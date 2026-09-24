@@ -15,3 +15,12 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
 3. **"Better on desktop" popup on phones.** After the fix it only appears right
    after a real sign-in on a phone, never over the login form. Now that the
    mobile screens are being polished, do you still want it at all?
+
+4. **Language switch on desktop.** Login and signup now have an AR/EN switch.
+   It is hidden on desktop so desktop stays exactly as it was. Show it there too?
+   (One class to remove on each page.)
+
+5. **Brand orange for small links.** `#FE3C01` on white is 3.6:1, below the
+   4.5:1 readability bar for small text ("Forgot password?", "Sign up", the
+   password-strength word). A slightly darker orange such as `#D93300` would
+   pass (about 4.7:1). That's an app-wide colour decision, so it wasn't changed.

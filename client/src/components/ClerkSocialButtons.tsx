@@ -1,11 +1,51 @@
 import { useSignIn, useSignUp, useAuth, useClerk } from "@clerk/clerk-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { HAS_CLERK } from "@/lib/clerkConfig";
 import { SiGoogle, SiLinkedin, SiSlack } from "react-icons/si";
+import { Info } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { detectInAppBrowser, type InAppBrowser } from "@/lib/in-app-browser";
 
 type Provider = "oauth_google" | "oauth_linkedin_oidc" | "oauth_slack";
+
+const IN_APP_BROWSER_NAMES: Record<Exclude<InAppBrowser, "other">, string> = {
+  instagram: "Instagram",
+  facebook: "Facebook",
+  snapchat: "Snapchat",
+  linkedin: "LinkedIn",
+  tiktok: "TikTok",
+  x: "X",
+};
+
+/**
+ * Google refuses to sign anyone in from Instagram's, Snapchat's (etc.) built-in
+ * browser, so there we say so right above the buttons and explain how to open
+ * the page in Safari or Chrome. The buttons stay: LinkedIn and Slack still work.
+ */
+function InAppBrowserNote() {
+  const { t } = useI18n();
+  const app = useMemo(() => detectInAppBrowser(navigator.userAgent), []);
+  if (!app) return null;
+
+  return (
+    <div
+      role="note"
+      data-testid="in-app-browser-note"
+      className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-start text-amber-900"
+    >
+      <Info className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
+      <div className="text-sm leading-6">
+        <p className="font-medium text-balance">
+          {app === "other"
+            ? t("auth.inAppBrowserTitleGeneric")
+            : t("auth.inAppBrowserTitle", { app: IN_APP_BROWSER_NAMES[app] })}
+        </p>
+        <p>{t("auth.inAppBrowserHelp")}</p>
+      </div>
+    </div>
+  );
+}
 
 interface ClerkSocialButtonsProps {
   mode?: "signin" | "signup";
@@ -104,6 +144,8 @@ function ClerkSocialButtonsInner({ mode = "signin", redirectPath = "/auth/clerk-
           <span className="bg-card px-2 text-muted-foreground">{t('auth.or')}</span>
         </div>
       </div>
+
+      <InAppBrowserNote />
 
       <button
         type="button"

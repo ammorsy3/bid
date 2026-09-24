@@ -1,5 +1,5 @@
 import { NeonButton } from "@/components/ui/neon-button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,15 +7,18 @@ import { z } from "zod";
 import { Link, useLocation, useSearch } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { emailInputProps } from "@/lib/form-validation";
 import { BidLogo } from "@/components/brand/BidLogo";
-import { Check, Eye, EyeOff, X } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, X } from "lucide-react";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
 import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
+import { LanguageSwitch } from "@/components/LanguageSwitch";
+import { ApiError } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 
 type RegisterForm = { email: string; password: string; confirmPassword: string; name: string };
 
@@ -56,13 +59,32 @@ function scorePassword(pw: string): { score: 0 | 1 | 2 | 3 | 4; labelKey: string
   };
 }
 
+// Under the email field: the usual validation message, or — when the email
+// already has an account — the same message with "sign in" as a link, since the
+// page's own sign-in link is far below the fold on a phone.
+function EmailFieldMessage() {
+  const { error, formMessageId } = useFormField();
+  const { t } = useI18n();
+  if (error?.type !== "taken") return <FormMessage />;
+  const [before, after = ""] = t("auth.userAlreadyExists").split("{link}");
+  return (
+    <p id={formMessageId} data-testid="email-taken" className="text-sm font-medium text-destructive">
+      {before}
+      <Link href="/login" className="underline underline-offset-2 hover:text-destructive/80">
+        {t("auth.userAlreadyExistsLink")}
+      </Link>
+      {after}
+    </p>
+  );
+}
+
 export default function Register() {
   useForceLightMode();
   const [, setLocation] = useLocation();
   const search = useSearch();
-  const { register, isLoading, user } = useAuthStore();
+  const { register, isLoading, sessionConfirmed } = useAuthStore();
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
 
   const urlParams = new URLSearchParams(search);
   const invitationToken = urlParams.get('token');
@@ -92,6 +114,13 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const signedUpHere = useRef(false);
+  // Password fields type left-to-right even in Arabic, so the room kept for the
+  // eye button is a physical side: the end of the row (left in Arabic).
+  const passwordPadding = isRtl ? "pl-11 md:pl-10" : "pr-11 md:pr-10";
+  const eyeButtonClass =
+    "absolute end-0 top-1/2 -translate-y-1/2 flex h-11 w-11 md:h-10 md:w-10 items-center justify-center text-neutral-400 hover:text-muted-foreground";
   const passwordValue = form.watch("password");
   const strength = scorePassword(passwordValue || "");
   const checks = checkPassword(passwordValue || "");
@@ -107,20 +136,26 @@ export default function Register() {
   // password is strong enough, collapse it to keep the form compact.
   const showRequirements = passwordFocused && !!passwordValue && !allMet;
 
+  // Someone already signed in doesn't need this page, but only once the server
+  // has confirmed the session this device remembers: an expired one must see
+  // the form, not bounce through the dashboard back to /login.
   useEffect(() => {
-    if (user && user.otpVerified) {
-      const { activeCompany } = useAuthStore.getState();
+    if (!sessionConfirmed || signedUpHere.current) return;
+    const { user, activeCompany } = useAuthStore.getState();
+    if (user?.otpVerified) {
       if (activeCompany) {
         setLocation("/dashboard");
       } else {
         setLocation("/onboarding");
       }
     }
-  }, []);
+  }, [sessionConfirmed, setLocation]);
 
   const onSubmit = async (data: RegisterForm) => {
+    setFormError(null);
     try {
       const { confirmPassword: _, ...registerData } = data;
+      signedUpHere.current = true;
       await register(registerData);
       toast({
         title: t('common.success'),
@@ -137,22 +172,24 @@ export default function Register() {
       await new Promise((resolve) => setTimeout(resolve, 700));
       setLocation("/verify-email");
     } catch (error: any) {
-      let description = t('auth.registerError');
+      signedUpHere.current = false;
+      // Say what went wrong inside the form rather than in a toast: toasts
+      // covered the logo on phones and the social buttons on desktop, and the
+      // server's own wording is English only.
       if (error?.message === 'User already exists') {
-        description = t('auth.userAlreadyExists');
-      } else if (error?.message) {
-        description = error.message;
+        form.setError('email', {
+          type: 'taken',
+          message: t('auth.userAlreadyExists', { link: t('auth.userAlreadyExistsLink') }),
+        });
+      } else {
+        const status = error instanceof ApiError ? error.statusCode : undefined;
+        setFormError(status === 429 ? t('auth.tooManyAttempts') : t('auth.registerError'));
       }
-      toast({
-        title: t('common.error'),
-        description,
-        variant: "destructive",
-      });
     }
   };
 
   return (
-    <div className="h-screen flex overflow-hidden">
+    <div className="min-h-dvh flex lg:h-screen lg:overflow-hidden">
       {transitioning && <FullscreenLoader label={t('auth.preparingWorkspace')} />}
 
       {/* Left panel — warm cream with animated illustration */}
@@ -177,13 +214,15 @@ export default function Register() {
         </div>
       </div>
 
-      {/* Right panel — form */}
-      <div className="flex-1 flex flex-col bg-muted overflow-y-auto">
+      {/* Right panel — form. Phones scroll the page itself; the locked,
+          screen-high layout with its own scroller is for lg: and up. */}
+      <div className="flex-1 flex flex-col bg-muted lg:overflow-y-auto">
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-6">
-          <header className="mb-6">
-            <Link href="/">
+          <header className="relative mb-6 flex w-full justify-center">
+            <Link href="/" className="inline-flex">
               <BidLogo variant="orange" size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
             </Link>
+            <LanguageSwitch className="absolute end-0 top-1/2 -translate-y-1/2 -me-1 lg:hidden" />
           </header>
 
           <div className="w-full max-w-md">
@@ -218,7 +257,7 @@ export default function Register() {
                         <FormControl>
                           <Input data-testid="input-email" {...emailInputProps} autoComplete="email" placeholder={t('auth.emailPlaceholder')} className="bg-card" {...field} />
                         </FormControl>
-                        <FormMessage />
+                        <EmailFieldMessage />
                       </FormItem>
                     )}
                   />
@@ -229,29 +268,32 @@ export default function Register() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('auth.password')}</FormLabel>
-                        <FormControl>
-                          <div className="relative">
+                        <div className="relative">
+                          {/* Typed left-to-right in Arabic too, so its padding sides are
+                              physical: keep the eye button's side (the end of the row) clear. */}
+                          <FormControl>
                             <Input
                               data-testid="input-password"
                               type={showPassword ? "text" : "password"}
                               autoComplete="new-password"
+                              dir="ltr"
                               placeholder={t('auth.passwordCreatePlaceholder')}
-                              className="bg-card pe-10"
+                              className={cn("bg-card", passwordPadding)}
                               {...field}
                               onFocus={() => setPasswordFocused(true)}
                               onBlur={(e) => { field.onBlur(); setPasswordFocused(false); }}
                             />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(s => !s)}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                              aria-label={showPassword ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
-                              tabIndex={-1}
-                            >
-                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
-                          </div>
-                        </FormControl>
+                          </FormControl>
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(s => !s)}
+                            className={eyeButtonClass}
+                            aria-label={showPassword ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
+                            tabIndex={-1}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
                         {passwordValue && (
                           <div className="mt-1.5 space-y-1">
                             <div className="flex gap-1" aria-hidden="true">
@@ -301,31 +343,43 @@ export default function Register() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('authPanel.confirmPasswordLabel')}</FormLabel>
-                        <FormControl>
-                          <div className="relative">
+                        <div className="relative">
+                          <FormControl>
                             <Input
                               data-testid="input-confirm-password"
                               type={showConfirm ? "text" : "password"}
                               autoComplete="new-password"
+                              dir="ltr"
                               placeholder={t('authPanel.reenterPassword')}
-                              className="bg-card pe-10"
+                              className={cn("bg-card", passwordPadding)}
                               {...field}
                             />
-                            <button
-                              type="button"
-                              onClick={() => setShowConfirm(s => !s)}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                              aria-label={showConfirm ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
-                              tabIndex={-1}
-                            >
-                              {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                            </button>
-                          </div>
-                        </FormControl>
+                          </FormControl>
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirm(s => !s)}
+                            className={eyeButtonClass}
+                            aria-label={showConfirm ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
+                            tabIndex={-1}
+                          >
+                            {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                  {formError && (
+                    <div
+                      role="alert"
+                      data-testid="signup-error"
+                      className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
+                    >
+                      <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <span>{formError}</span>
+                    </div>
+                  )}
 
                   <NeonButton data-testid="button-submit" type="submit" size="lg" className="w-full mt-6" disabled={isLoading}>
                     {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
@@ -338,15 +392,18 @@ export default function Register() {
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
                   {t('auth.haveAccount')}{" "}
-                  <Link href="/login" className="text-[#FE3C01] hover:text-[#d54d35] font-medium">
+                  {/* 44px tap area without moving anything (padding taken back
+                      out of the margins; the 12px gap below is its limit). */}
+                  <Link href="/login" className="inline-block py-3 -my-3 text-[#FE3C01] hover:text-[#d54d35] font-medium">
                     {t('auth.signInLink')}
                   </Link>
                 </p>
                 <p className="mt-3 text-xs text-muted-foreground">
                   {t('auth.accountAgreementPrefix')}{" "}
-                  <Link href="/terms" className="underline hover:text-foreground" data-testid="link-terms">{t('terms.pageTitle')}</Link>
-                  {" "}{t('auth.accountAgreementAnd')}{" "}
-                  <Link href="/privacy" className="underline hover:text-foreground" data-testid="link-privacy">{t('privacy.pageTitle')}</Link>.
+                  <Link href="/terms" className="underline whitespace-nowrap hover:text-foreground" data-testid="link-terms">{t('terms.pageTitle')}</Link>
+                  {/* Arabic "و" attaches to the next word: no space after it. */}
+                  {" "}{t('auth.accountAgreementAnd')}{isRtl ? "" : " "}
+                  <Link href="/privacy" className="underline whitespace-nowrap hover:text-foreground" data-testid="link-privacy">{t('privacy.pageTitle')}</Link>.
                 </p>
               </div>
             </div>

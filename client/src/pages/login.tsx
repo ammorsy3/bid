@@ -20,6 +20,8 @@ import { useForceLightMode } from "@/hooks/useForceLightMode";
 import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
 import { markJustSignedIn } from "@/components/desktop-recommendation-modal";
 import { emailInputProps } from "@/lib/form-validation";
+import { LanguageSwitch } from "@/components/LanguageSwitch";
+import { cn } from "@/lib/utils";
 
 type LoginForm = { email: string; password: string };
 type ForgotForm = { email: string };
@@ -28,9 +30,9 @@ export default function Login() {
   useForceLightMode();
   const [, setLocation] = useLocation();
   const search = useSearch();
-  const { login, isLoading, user, activeCompany } = useAuthStore();
+  const { login, isLoading, user, activeCompany, sessionConfirmed } = useAuthStore();
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, isRtl } = useI18n();
   const [rememberDevice, setRememberDevice] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
@@ -70,12 +72,17 @@ export default function Login() {
   });
 
   useEffect(() => {
-    if (!user) return;
+    // Move on only once the server has vouched for the session. A user this
+    // device merely remembers may have expired: /api/auth/me then clears it,
+    // and the form must stay usable meanwhile (no veil, no redirect).
+    if (!user || !sessionConfirmed) {
+      setTransitioning(false);
+      return;
+    }
 
     // Hold a branded loading veil for a beat before routing on, so signing in
     // lands with a deliberate "preparing your workspace" moment rather than an
     // instant jump. The redirect itself is unchanged — just delayed ~700ms.
-    markJustSignedIn();
     setTransitioning(true);
     const timer = setTimeout(() => {
       if (isMarketplaceSubdomain()) {
@@ -114,7 +121,7 @@ export default function Login() {
     }, 700);
 
     return () => clearTimeout(timer);
-  }, [user, activeCompany, setLocation, invitationToken, redirectUrl]);
+  }, [user, sessionConfirmed, activeCompany, setLocation, invitationToken, redirectUrl]);
 
   const onSubmit = async (data: LoginForm) => {
     setLoginError(null);
@@ -125,6 +132,9 @@ export default function Login() {
         sessionStorage.setItem('remember_browser', 'true');
       }
       await login(data.email, data.password, trustedToken || undefined);
+      // Only a real sign-in from this form counts as "just signed in" (it's
+      // what lets phones show the one-time "better on desktop" tip).
+      markJustSignedIn();
       toast({
         title: t('common.success'),
         description: t('auth.loginSuccess'),
@@ -132,23 +142,20 @@ export default function Login() {
     } catch (error) {
       sessionStorage.removeItem('otp_sent_by_login');
       sessionStorage.removeItem('remember_browser');
-      // Map the failure to a specific, persistent inline message.
+      // Map the failure to a specific, persistent inline message. No toast on
+      // top: it said the same thing and covered the logo on phones and the
+      // bottom of the form on desktop.
       const status = error instanceof ApiError ? error.statusCode : undefined;
       const message =
         status === 401 ? t('auth.loginError')
         : status === 429 ? t('auth.loginErrorRateLimit')
         : t('auth.loginErrorGeneric');
       setLoginError(message);
-      toast({
-        title: t('common.error'),
-        description: message,
-        variant: "destructive",
-      });
     }
   };
 
   return (
-    <div className="h-screen flex overflow-hidden">
+    <div className="min-h-dvh flex lg:h-screen lg:overflow-hidden">
       {transitioning && <FullscreenLoader label={t('auth.preparingWorkspace')} />}
 
       {/* Left panel — warm cream with animated illustration */}
@@ -173,13 +180,15 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right panel — form */}
-      <div className="flex-1 flex flex-col bg-muted overflow-y-auto">
+      {/* Right panel — form. Phones scroll the page itself; the locked,
+          screen-high layout with its own scroller is for lg: and up. */}
+      <div className="flex-1 flex flex-col bg-muted lg:overflow-y-auto">
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-6">
-          <header className="mb-6">
-            <Link href="/">
+          <header className="relative mb-6 flex w-full justify-center">
+            <Link href="/" className="inline-flex">
               <BidLogo variant="orange" size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
             </Link>
+            <LanguageSwitch className="absolute end-0 top-1/2 -translate-y-1/2 -me-1 lg:hidden" />
           </header>
 
           <div className="w-full max-w-md">
@@ -197,10 +206,13 @@ export default function Login() {
                     </div>
                     <h3 className="text-lg font-semibold text-foreground">{t('auth.resetLinkSent')}</h3>
                     <p className="text-sm text-muted-foreground">{t('auth.resetLinkSentDesc')}</p>
+                    {/* A 44px tap area that doesn't move anything: the 12px of
+                        padding above and below comes back out of the margins
+                        (space-y-4 sets those, hence the !). */}
                     <button
                       type="button"
                       onClick={() => { setForgotMode(false); setForgotSent(false); }}
-                      className="text-sm text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
+                      className="!mt-1 !-mb-3 py-3 text-sm text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
                     >
                       {t('auth.backToLogin')}
                     </button>
@@ -231,7 +243,7 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={() => setForgotMode(false)}
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        className="-my-3 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
                         {t('auth.backToLogin')}
                       </button>
@@ -280,36 +292,41 @@ export default function Login() {
                         <FormItem>
                           <div className="flex items-center justify-between">
                             <FormLabel>{t('auth.password')}</FormLabel>
+                            {/* py with a matching negative margin: a 44px tap area
+                                that doesn't move the row. */}
                             <button
                               type="button"
                               onClick={() => setForgotMode(true)}
-                              className="text-xs text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
+                              className="-my-3.5 py-3.5 text-xs text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
                             >
                               {t('auth.forgotPassword')}
                             </button>
                           </div>
-                          <FormControl>
-                            <div className="relative">
+                          <div className="relative">
+                            {/* Typed left-to-right in Arabic too, so its padding sides are
+                                physical: keep the eye button's side (the end of the row) clear. */}
+                            <FormControl>
                               <Input
                                 data-testid="input-password"
                                 type={showPassword ? "text" : "password"}
                                 autoComplete="current-password"
+                                dir="ltr"
                                 placeholder={t('auth.passwordPlaceholder')}
-                                className="bg-card pr-10"
+                                className={cn("bg-card", isRtl ? "pl-11 md:pl-10" : "pr-11 md:pr-10")}
                                 {...field}
                                 onChange={(e) => { field.onChange(e); if (loginError) setLoginError(null); }}
                               />
-                              <button
-                                type="button"
-                                onClick={() => setShowPassword(s => !s)}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-muted-foreground p-1"
-                                aria-label={showPassword ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
-                                tabIndex={-1}
-                              >
-                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                              </button>
-                            </div>
-                          </FormControl>
+                            </FormControl>
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(s => !s)}
+                              className="absolute end-0 top-1/2 -translate-y-1/2 flex h-11 w-11 md:h-10 md:w-10 items-center justify-center text-neutral-400 hover:text-muted-foreground"
+                              aria-label={showPassword ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
+                              tabIndex={-1}
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -322,7 +339,7 @@ export default function Login() {
                         onCheckedChange={(checked) => setRememberDevice(checked as boolean)}
                         data-testid="checkbox-remember"
                       />
-                      <label htmlFor="rememberDevice" className="text-sm text-muted-foreground cursor-pointer select-none">
+                      <label htmlFor="rememberDevice" className="-my-3 py-3 text-sm text-muted-foreground cursor-pointer select-none">
                         {t('auth.rememberDevice')}
                       </label>
                     </div>
@@ -336,16 +353,20 @@ export default function Login() {
                 <ClerkSocialButtons mode="signin" />
 
                 <div className="mt-6 text-center">
+                  {/* Bigger tap areas without moving anything: padding taken back
+                      out of the margins. "Sign up" grows 12px each way (the 12px
+                      gap below is its limit); the small links grow downwards only,
+                      so the two areas never overlap. */}
                   <p className="text-sm text-muted-foreground">
                     {t('auth.noAccount')}{" "}
-                    <Link href="/signup" className="text-[#FE3C01] hover:text-[#d54d35] font-medium">
+                    <Link href="/signup" className="inline-block py-3 -my-3 text-[#FE3C01] hover:text-[#d54d35] font-medium">
                       {t('auth.signUp')}
                     </Link>
                   </p>
                   <p className="mt-3 text-xs text-muted-foreground">
-                    <Link href="/terms" className="hover:text-foreground" data-testid="link-terms">{t('terms.pageTitle')}</Link>
+                    <Link href="/terms" className="inline-block pb-2 -mb-2 hover:text-foreground" data-testid="link-terms">{t('terms.pageTitle')}</Link>
                     <span className="mx-2">·</span>
-                    <Link href="/privacy" className="hover:text-foreground" data-testid="link-privacy">{t('privacy.pageTitle')}</Link>
+                    <Link href="/privacy" className="inline-block pb-2 -mb-2 hover:text-foreground" data-testid="link-privacy">{t('privacy.pageTitle')}</Link>
                   </p>
                 </div>
               </div>

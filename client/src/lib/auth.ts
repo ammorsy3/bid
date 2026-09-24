@@ -67,7 +67,12 @@ interface AuthState {
   
   // UI state
   isLoading: boolean;
-  
+
+  // True once the server has vouched for the signed-in user during this visit
+  // (sign-in, sign-up, or /api/auth/me). A user restored from storage starts
+  // unconfirmed: the session this device remembers may have expired.
+  sessionConfirmed: boolean;
+
   // Actions
   login: (email: string, password: string, trustedBrowserToken?: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
@@ -116,6 +121,7 @@ export const useAuthStore = create<AuthState>()(
       activeCompany: null,
       companies: [],
       isLoading: false,
+      sessionConfirmed: false,
 
       login: async (email: string, password: string, trustedBrowserToken?: string) => {
         set({ isLoading: true });
@@ -132,7 +138,8 @@ export const useAuthStore = create<AuthState>()(
             token: data.token,
             activeCompany: data.activeCompany || null,
             companies: data.companies || [],
-            isLoading: false
+            isLoading: false,
+            sessionConfirmed: true
           });
 
           // Set authorization header for future requests
@@ -162,7 +169,8 @@ export const useAuthStore = create<AuthState>()(
             token: data.token,
             activeCompany: data.autoJoinedCompany ?? null,
             companies: data.companies ?? [],
-            isLoading: false
+            isLoading: false,
+            sessionConfirmed: true
           });
 
           localStorage.setItem('token', data.token);
@@ -180,6 +188,7 @@ export const useAuthStore = create<AuthState>()(
           activeCompany: data.activeCompany || null,
           companies: data.companies || [],
           isLoading: false,
+          sessionConfirmed: true,
         });
         syncLanguageFromUser(data.user, data.token);
       },
@@ -192,7 +201,8 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           token: null,
           activeCompany: null,
-          companies: []
+          companies: [],
+          sessionConfirmed: false
         });
       },
 
@@ -204,14 +214,18 @@ export const useAuthStore = create<AuthState>()(
           const response = await fetch('/api/auth/me', {
             headers: { Authorization: `Bearer ${token}` }
           });
-          
+          // A sign-in or sign-out that finished while this was in flight wins:
+          // an expired token's 401 must not wipe the session the user just started.
+          if (localStorage.getItem('token') !== token) return;
+
           if (response.ok) {
             const data = await response.json();
             set({
               user: data.user,
               token,
               activeCompany: data.companies.find((c: Company) => c.id === data.activeCompanyId) || null,
-              companies: data.companies || []
+              companies: data.companies || [],
+              sessionConfirmed: true
             });
             syncLanguageFromUser(data.user, token);
           } else {
@@ -220,16 +234,19 @@ export const useAuthStore = create<AuthState>()(
               user: null, 
               token: null,
               activeCompany: null,
-              companies: []
+              companies: [],
+              sessionConfirmed: false
             });
           }
         } catch (error) {
+          if (localStorage.getItem('token') !== token) return;
           localStorage.removeItem('token');
           set({ 
             user: null, 
             token: null,
             activeCompany: null,
-            companies: []
+            companies: [],
+            sessionConfirmed: false
           });
         }
       },

@@ -90,6 +90,7 @@ export function SiteFooter({ lang = "en" }: { lang?: Lang }) {
 
           <div className="site-footer-col">
             <h5>{t.company}</h5>
+            <Link href="/pricing">{t.pricing}</Link>
             <a href="mailto:hello@bid.sa">{t.contact}</a>
             <Link href="/terms">{t.terms}</Link>
             <Link href="/privacy">{t.privacy}</Link>

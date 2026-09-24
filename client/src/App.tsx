@@ -48,6 +48,7 @@ import TeamInvite from "@/pages/team-invite";
 import TractionLink from "@/pages/TractionLink";
 import TractionLinkEditor from "@/pages/TractionLinkEditor";
 import Landing from "@/pages/Landing";
+import Pricing from "@/pages/Pricing";
 import Settings from "@/pages/Settings";
 import SettingsIntegrations from "@/pages/SettingsIntegrations";
 import DocsPage from "@/pages/docs/DocsPage";
@@ -139,6 +140,7 @@ export default function App() {
             <DesktopRecommendationModal />
             <Switch>
               <Route path="/" component={Landing} />
+              <Route path="/pricing" component={Pricing} />
               <Route path="/login" component={Login} />
               <Route path="/signup" component={Register} />
               <Route path="/join/:code" component={JoinByCode} />

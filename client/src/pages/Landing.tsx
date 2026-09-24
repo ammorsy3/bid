@@ -148,6 +148,7 @@ const Landing = () => {
             <Link href="/marketplace">{c.navMarketplace}</Link>
             <a href="#traction" onClick={scrollTo("traction")}>{c.navTraction}</a>
             <a href="#vendors" onClick={scrollTo("vendors")}>{c.navVendors}</a>
+            <Link href="/pricing">{c.navPricing}</Link>
           </nav>
 
           <div className="topbar-right">
@@ -182,6 +183,7 @@ const Landing = () => {
             <Link href="/marketplace" onClick={() => setMobileMenuOpen(false)}>{c.navMarketplace}</Link>
             <a href="#traction" onClick={scrollTo("traction")}>{c.navTraction}</a>
             <a href="#vendors" onClick={scrollTo("vendors")}>{c.navVendors}</a>
+            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>{c.navPricing}</Link>
             <div className="mobile-menu-btns">
               {user?.otpVerified ? (
                 <Link href="/dashboard"><button className="btn btn-primary" style={{ width: "100%" }}>{c.btnDashboard}</button></Link>
@@ -582,6 +584,7 @@ const Landing = () => {
             </div>
             <div>
               <h5>{c.ftCo}</h5>
+              <Link href="/pricing">{c.ftPricing}</Link>
               <a href="mailto:hello@bid.sa">{c.ftContact}</a>
               <Link href="/terms">{c.ftTerms}</Link>
               <Link href="/privacy">{c.ftPrivacy}</Link>

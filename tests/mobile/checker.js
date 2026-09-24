@@ -285,8 +285,9 @@
           });
       });
 
-    // field text size (iPhone zooms on focus below 16px)
-    visibleEls
+    // field text size (iPhone zooms on focus below 16px) — only matters on touch screens
+    const touchScreen = matchMedia("(pointer: coarse)").matches || vw < 768;
+    if (touchScreen) visibleEls
       .filter((el) => (el.tagName === "INPUT" && TEXT_INPUT_TYPES.has(el.type)) || el.tagName === "TEXTAREA" || el.tagName === "SELECT")
       .forEach((el) => {
         const size = px(getComputedStyle(el).fontSize);

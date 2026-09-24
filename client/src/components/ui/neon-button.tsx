@@ -3,13 +3,16 @@ import { cn } from '@/lib/utils'
 import { VariantProps, cva } from "class-variance-authority";
 
 const neonButtonVariants = cva(
-    "relative group border text-foreground mx-auto text-center rounded-full",
+    // A phone has no hover to give feedback on tap, so a press dims/shrinks
+    // the button a touch — otherwise the main "Sign in" / "Create account"
+    // action on these pages gives no response until the request finishes.
+    "relative group border text-foreground mx-auto text-center rounded-full active:scale-[0.97] transition-transform duration-100 disabled:active:scale-100",
     {
         variants: {
             variant: {
-                default: "bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/0 border-[var(--bid-orange)]/20",
-                solid: "bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white border-transparent hover:border-foreground/50 transition-all duration-200",
-                ghost: "border-transparent bg-transparent hover:border-zinc-600 hover:bg-card/10",
+                default: "bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/0 active:bg-[var(--bid-orange)]/10 border-[var(--bid-orange)]/20",
+                solid: "bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 active:bg-[var(--bid-orange)]/80 text-white border-transparent hover:border-foreground/50 transition-all duration-200",
+                ghost: "border-transparent bg-transparent hover:border-zinc-600 hover:bg-card/10 active:bg-card/20",
             },
             size: {
                 default: "px-7 py-1.5 ",

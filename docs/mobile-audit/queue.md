@@ -13,10 +13,10 @@ status column up to date.
 ### 1a. Shared fixes (done before the page loop, one commit each)
 | Fix | Status |
 |---|---|
-| Arabic font: IBM Plex Sans Arabic after the Latin fonts; Tailwind `tracking-*` neutralised on Arabic pages | todo |
-| index.html: drop the Replit script; `color-scheme` so phones don't force-darken; set `dir`/`lang` and keep auth pages light before first paint | todo |
-| Dialog / sheet close button and toast corner follow the language direction | todo |
-| Direction icons flip with `rtl:-scale-x-100` (convention in quality-bar.md; applied page by page) | todo |
+| Arabic font: IBM Plex Sans Arabic after the Latin fonts; Tailwind `tracking-*` neutralised on Arabic pages; Arabic placeholders stay right in LTR fields | fixed |
+| index.html: drop the Replit script; `color-scheme` so phones don't force-darken; set `dir`/`lang` and keep auth pages light before first paint | fixed |
+| Dialog / sheet close button and toast corner follow the language direction | fixed |
+| Direction icons flip with `rtl:-scale-x-100` (convention in quality-bar.md; applied page by page) | fixed |
 
 ### 1b. Pages (one fixer run per row)
 | Pages | Status | What to fix (known before the loop) |

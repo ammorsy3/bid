@@ -53,8 +53,10 @@ in Arabic first and English second, without changing how desktop looks.
    what's left.
 6. Final pass on every phone setup:
    `node tests/mobile/run.mjs --phase after --states <page> --summary`
-   Then look at the after photos with Read. Check Arabic and English on iphone-chrome,
-   plus iphone-webkit, iphone-dark and forced-dark in Arabic. Compare desktop before
+   Then look at the after photos with Read. **Check iphone-webkit (Safari's engine)
+   first and in both languages** — most Bid traffic is Saudi iPhones, so an
+   iOS-only problem outranks anything only android-chrome shows. Then
+   iphone-chrome, iphone-dark and forced-dark in Arabic. Compare desktop before
    and after; they must match.
 7. Run `npm run check`; it must pass.
 8. Write `.mobile-audit/<batch>/pages/<page>/result.md` with these sections:

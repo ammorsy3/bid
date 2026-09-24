@@ -4,6 +4,16 @@ What "looks like a real mobile app, with proper Arabic" means for Bid. The
 fixer agent builds to this bar; the reviewer agent judges against it. The
 automatic checklist (`tests/mobile/checker.js`) enforces the measurable parts.
 
+## Priority order: iPhone Safari first
+Most of Bid's phone traffic is Saudi iPhones. **iphone-webkit (Safari's
+engine) is the priority phone check, checked before android-chrome or any
+other project** — a fix that clears android-chrome but leaves an iOS-only
+bug (auto-zoom on a <16px field, a safe-area gap, a WebKit-specific overflow)
+is not done. When something can only be fixed for one engine at a time, fix
+Safari's problem first. The owner's own 5-minute real-iPhone check (see
+docs/mobile-audit/README.md) is the final word, since WebKit-via-Playwright
+is a close approximation, not the real Safari.
+
 ## 1. Fits the phone
 - Nothing wider than the screen. No sideways scrolling, nothing cut off at an
   edge, at 360, 393 and 430 px wide.

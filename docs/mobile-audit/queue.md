@@ -38,3 +38,4 @@ status column up to date.
 | 6 | Owner's tender tabs, proposal comparison, edit | todo |
 | 7 | Settings, integrations, profile editors | todo |
 | 8 | Admin (first give AdminLayout a phone menu) | todo |
+| 9 | Dedicated "feels like an installed app" pass over every page: press states on any one-off controls, deliberate motion for content swaps, re-check the manifest/icon still fits new screens. Safari/iOS is checked first throughout — see quality-bar.md. Global groundwork already shipped in batch 1 (icon/manifest, global press states, tap-highlight, overscroll). | todo |

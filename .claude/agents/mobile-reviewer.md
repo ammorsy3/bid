@@ -10,11 +10,14 @@ edit anything.
 
 1. Read `docs/mobile-audit/quality-bar.md` and the fixer's
    `.mobile-audit/<batch>/pages/<page>/result.md`.
-2. For each screen state, look at these photos with Read:
-   - `.mobile-audit/<batch>/after/iphone-chrome/<state>.ar.png`, then `.en.png`
+2. For each screen state, look at these photos with Read. **Most Bid traffic is
+   Saudi iPhones, so check `iphone-webkit` (Safari's engine) first** — an
+   iOS-only problem is the most important thing to catch, even if
+   android-chrome is clean:
+   - `.mobile-audit/<batch>/after/iphone-webkit/<state>.ar.png`, then `.en.png`,
+     then the same on `iphone-chrome`
    - the matching `before` photo, to see what changed
-   - Arabic on `android-chrome` (360 px), `iphone-webkit` (Safari engine),
-     `iphone-dark` and `forced-dark`
+   - Arabic on `android-chrome` (360 px), `iphone-dark` and `forced-dark`
    - `desktop` before and after, which must look the same
    - the checklist results in the matching `.json` files (`fails`, `issues`)
 3. Look for what a checklist can't see:

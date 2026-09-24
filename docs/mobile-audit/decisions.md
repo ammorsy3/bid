@@ -24,3 +24,16 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
    4.5:1 readability bar for small text ("Forgot password?", "Sign up", the
    password-strength word). A slightly darker orange such as `#D93300` would
    pass (about 4.7:1). That's an app-wide colour decision, so it wasn't changed.
+
+6. **"Feels like an installed app" — decided.** Global groundwork (home-screen
+   icon, manifest, status-bar tint, press feedback on every button, no tap
+   flash) is done and shipped in batch 1. Per-page app-feel polish (custom
+   motion, one-off controls) is deferred to a dedicated pass after every page
+   has its Arabic/mobile layout fixed — added as batch 9 in queue.md.
+
+7. **iPhone Safari is priority #1 — decided.** Every check and every fixer
+   round now looks at `iphone-webkit` (Safari's engine) first, ahead of
+   Android. There's no real iOS Simulator here (Xcode needs disk space this
+   Mac doesn't have — 13 GB free), so WebKit-via-Playwright plus your own
+   5-minute real-iPhone check (README.md) is the closest available proxy. If
+   you free up ~20 GB and want the exact Simulator, say so and I'll set it up.

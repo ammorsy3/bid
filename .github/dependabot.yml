@@ -1,0 +1,36 @@
+# Dependabot watches your dependencies and opens a pull request when one of them
+# releases a fix. The pull request runs CI, so you see whether the update breaks
+# anything before you merge it — you are never asked to take it on trust.
+#
+# Grouping matters: without it a quiet week still produces fifteen separate pull
+# requests and you stop reading them. These settings aim for a handful.
+
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Asia/Riyadh
+    # Security fixes are what matter; a steady drip of routine version bumps is
+    # what makes people ignore the robot. Cap the noise.
+    open-pull-requests-limit: 5
+    groups:
+      # Patch and minor updates are the safe kind — one PR for all of them.
+      safe-updates:
+        update-types: ["minor", "patch"]
+    # Major versions are opened one at a time, on purpose: each one can break
+    # something and deserves its own review (drizzle-orm 0.39 → 0.45 is exactly
+    # this kind of change).
+    labels:
+      - dependencies
+
+  # Keeps the GitHub Actions in the workflow itself current (actions/checkout etc).
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies

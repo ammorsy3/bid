@@ -21,6 +21,15 @@ updates:
       # Patch and minor updates are the safe kind — one PR for all of them.
       safe-updates:
         update-types: ["minor", "patch"]
+        # Two packages have shipped breaking changes inside minor releases and
+        # must not ride along with the safe group, where one bad bump blocks the
+        # other fifty-five. Excluded here rather than ignored, so they still get
+        # their own pull request and stay visible:
+        #   react-icons  5.4 -> 5.7 removed SiLinkedin and SiSlack
+        #   drizzle-zod  0.7 -> 0.8 changes the types of every generated schema
+        exclude-patterns:
+          - "react-icons"
+          - "drizzle-zod"
     # Major versions are opened one at a time, on purpose: each one can break
     # something and deserves its own review (drizzle-orm 0.39 → 0.45 is exactly
     # this kind of change).

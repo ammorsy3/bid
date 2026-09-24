@@ -9,6 +9,21 @@
     <meta name="color-scheme" content="only light" />
     <title>Bid</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Makes "Add to Home Screen" behave like a real app: its own icon, no
+         Safari/Chrome address bar, a matching status bar, and a plain-colour
+         splash instead of a screenshot of the browser. -->
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Bid" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Tints the phone's own status bar / address bar to match the page,
+         instead of leaving it the browser's default grey. -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1613" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

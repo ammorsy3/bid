@@ -248,6 +248,17 @@
     @apply border-border;
   }
 
+  html {
+    /* Android/Chrome flash a grey rectangle on every tap unless told not to
+       — the single biggest "this is a website" tell on a touch phone. Buttons
+       still get their own :active state below; this only removes the flash. */
+    -webkit-tap-highlight-color: transparent;
+    /* Stops a pull past the top/bottom of a scrollable panel (a dialog body,
+       a chat list) from chaining into the browser's own pull-to-refresh or
+       back/forward swipe. The page itself keeps iOS's normal bounce. */
+    overscroll-behavior-y: contain;
+  }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }

@@ -64,7 +64,7 @@
     "@uppy/aws-s3": "^5.0.1",
     "@uppy/core": "^5.0.2",
     "@uppy/dashboard": "^5.0.2",
-    "@uppy/react": "^5.1.0",
+    "@uppy/react": "^6.0.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "bcrypt": "^6.0.0",

@@ -147,11 +147,11 @@ function ipHash(ip: string | undefined): string | null {
   return crypto.createHash("sha256").update(`${salt}:${ip}`).digest("hex");
 }
 
-export function clientIp(req: any): string | undefined {
-  const fwd = req.headers?.["x-forwarded-for"];
-  if (typeof fwd === "string" && fwd.length) return fwd.split(",")[0].trim();
-  return req.ip || req.socket?.remoteAddress || undefined;
-}
+// Kept as a re-export: this module's callers (marketing routes) already import
+// clientIp from here, and the rate limiter needs the same helper without
+// pulling in the campaigns module's database imports.
+import { clientIp } from "./client-ip";
+export { clientIp };
 
 /** How long before the same visitor on the same campaign counts as a new click. */
 const VISIT_DEDUPE_MINUTES = 30;

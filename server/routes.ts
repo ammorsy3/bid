@@ -32,6 +32,7 @@ import { registerMcpAdapter } from "./routes/integrations/mcp";
 import { registerIntegrationsAdminRoutes } from "./routes/settings/integrations";
 import { registerMarketingRoutes } from "./routes/marketing";
 import { attributeSignup } from "./lib/campaigns";
+import { rateLimiter } from "./middleware/rate-limit";
 import {
   sendNewOfferNotification,
   sendOfferDecisionNotification,
@@ -96,6 +97,22 @@ import type { JWTPayload, AuthContext, AuthRequest } from "./middleware/auth-typ
 // MIDDLEWARE - AUTHENTICATION & AUTHORIZATION
 // ============================================================================
 
+// Routes a signed-in but not-yet-OTP-verified user may still reach. Everything
+// else is refused until the code is confirmed — see the check in
+// authenticateToken below.
+//
+//   /api/auth/me           the client calls this on every load; a failure here
+//                          wipes the stored token and bounces the user to the
+//                          login page instead of the code screen.
+//   send-otp / verify-otp  the code screen itself.
+//   change-email           the "wrong address?" escape hatch on that screen.
+const OTP_EXEMPT_PATHS = new Set([
+  "/api/auth/me",
+  "/api/auth/send-otp",
+  "/api/auth/verify-otp",
+  "/api/auth/change-email",
+]);
+
 // Middleware: Authenticate JWT and attach auth context
 const authenticateToken = async (req: AuthRequest, res: Response, next: Function) => {
   const authHeader = req.headers['authorization'];
@@ -112,6 +129,17 @@ const authenticateToken = async (req: AuthRequest, res: Response, next: Function
     const user = await storage.getUser(payload.userId);
     if (!user) {
       return res.status(403).json({ message: 'User not found' });
+    }
+
+    // Second factor, enforced server-side. Login hands out a token before the
+    // emailed code is entered, and the code screen lives in the browser — so
+    // without this check the code is decoration: anyone holding the password
+    // could skip the screen and call the API with that token directly.
+    if (!user.otpVerified && !OTP_EXEMPT_PATHS.has(req.path)) {
+      return res.status(403).json({
+        message: 'Please verify the code we emailed you before continuing.',
+        requiresOtp: true,
+      });
     }
 
     // Attach auth context
@@ -139,14 +167,42 @@ const authenticateToken = async (req: AuthRequest, res: Response, next: Function
   }
 };
 
-// Middleware: Require active company context
-const requireCompanyContext = (req: AuthRequest, res: Response, next: Function) => {
+// Middleware: Require active company context.
+//
+// The company id and role arrive inside the JWT, which is valid for seven days
+// and is never re-issued when the underlying membership changes. Trusting it
+// meant a removed team member kept full access to their old company's tenders
+// and bids for up to a week, and a demoted admin kept admin powers for the same
+// period. So the membership is re-read here, and the live role overwrites
+// whatever the token claimed — every inline `req.auth.roleInCompany` check
+// further down now reads the current value.
+const requireCompanyContext = async (req: AuthRequest, res: Response, next: Function) => {
   if (!req.auth?.activeCompanyId) {
     return res.status(400).json({
       message: 'No active company. Please select a company first.',
       requiresCompany: true
     });
   }
+
+  // Express 4 does not catch a rejected promise from async middleware: the
+  // request would hang rather than fail. Answer explicitly instead.
+  try {
+    const currentRole = await storage.getUserRoleInCompany(
+      req.auth.userId,
+      req.auth.activeCompanyId,
+    );
+    if (!currentRole) {
+      return res.status(403).json({
+        message: 'You no longer have access to this company',
+        requiresCompany: true,
+      });
+    }
+    req.auth.roleInCompany = currentRole;
+  } catch (error) {
+    console.error('requireCompanyContext membership check failed:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+
   next();
 };
 
@@ -322,7 +378,9 @@ const optionalAuth = async (req: AuthRequest, res: Response, next: Function) => 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
     const user = await storage.getUser(payload.userId);
-    if (user) {
+    // An unverified session is treated as anonymous here rather than rejected:
+    // these endpoints serve logged-out visitors anyway.
+    if (user && user.otpVerified) {
       req.auth = {
         userId: payload.userId,
         activeCompanyId: payload.activeCompanyId,
@@ -410,6 +468,11 @@ const generateToken = (payload: JWTPayload): string => {
 // ============================================================================
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
+  // Rate limiting for every route below. The policy itself lives in
+  // server/middleware/rate-limit.ts — one table, first match wins.
+  app.use(rateLimiter);
+
   
   // ==========================================================================
   // AUTH ROUTES
@@ -5585,6 +5648,10 @@ Respond with ONLY a JSON object. Example:
   app.post("/api/tenders/:tenderId/negotiation-actions",
     authenticateToken,
     requireCompanyContext,
+    // Awarding a tender and rejecting everybody else is the single most
+    // consequential thing a buyer does. It was reachable by any member,
+    // including a viewer.
+    requireCompanyRole('admin'),
     async (req: AuthRequest, res) => {
       try {
         const tender = await storage.getTender(req.params.tenderId);
@@ -5611,6 +5678,15 @@ Respond with ONLY a JSON object. Example:
           return res.status(400).json({ message: "At least one action is required" });
         }
 
+        // Every action names an offer and a company. Those came from the request
+        // body and were previously used as-is — so a requester who owned any one
+        // closed tender could pass an offer id belonging to somebody else's
+        // tender and have this handler accept it, reopen it, award it, and mail
+        // that vendor in their name. Bind both ids to the tender in the URL
+        // before anything is written.
+        const tenderOffers = await storage.getOffersByTender(req.params.tenderId);
+        const offersById = new Map(tenderOffers.map(o => [o.id, o]));
+
         const createdActions = [];
         const autoRejectedVendors: { companyId: string; message: string }[] = [];
 
@@ -5618,6 +5694,20 @@ Respond with ONLY a JSON object. Example:
           // Validate actionType
           if (!['resubmission_request', 'discount_request', 'award', 'rejection', 'free_message'].includes(action.actionType)) {
             return res.status(400).json({ message: `Invalid action type: ${action.actionType}` });
+          }
+
+          const targetOffer = offersById.get(action.offerId);
+          if (!targetOffer) {
+            return res.status(404).json({
+              code: 'OFFER_NOT_ON_TENDER',
+              message: 'That offer is not on this tender.',
+            });
+          }
+          if (targetOffer.companyId !== action.companyId) {
+            return res.status(400).json({
+              code: 'OFFER_COMPANY_MISMATCH',
+              message: 'The offer and the company do not match.',
+            });
           }
 
           // For award: check no existing award for this tender

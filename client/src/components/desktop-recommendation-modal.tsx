@@ -51,7 +51,7 @@ export function DesktopRecommendationModal() {
           <Monitor className="h-6 w-6 text-[#FE3C01]" strokeWidth={1.75} />
         </div>
         <DialogTitle className="text-center">{t("desktopRecommendation.title")}</DialogTitle>
-        <DialogDescription className="text-center">{t("desktopRecommendation.body")}</DialogDescription>
+        <DialogDescription className="text-center text-balance">{t("desktopRecommendation.body")}</DialogDescription>
         <div className="flex flex-col gap-2 pt-2">
           <Button onClick={() => setOpen(false)} className="w-full">
             {t("desktopRecommendation.continueOnMobile")}

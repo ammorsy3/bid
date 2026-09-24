@@ -691,6 +691,17 @@ const translations = {
       inAppBrowserTitle: "Google sign-in doesn't work inside {app}",
       inAppBrowserTitleGeneric: "Google sign-in doesn't work inside this app",
       inAppBrowserHelp: "Open this page in Safari or Chrome: tap\u00a0⋯ or Share, then “Open in browser”.",
+      // Google / LinkedIn / Slack return screen (/sso-callback).
+      ssoCompleting: "Completing sign-in…",
+      ssoCreatingAccount: "Creating your account…",
+      ssoLinking: "Linking your account…",
+      ssoDidNotComplete: "Sign-in did not complete",
+      ssoTryAgain: "Go back to login and try again.",
+      ssoNoAccount: "No account found with that email. Please sign up first.",
+      ssoEmailNotVerified: "Verify your email with the service you signed in with, then try again.",
+      ssoNoEmail: "That account has no email address. Try another way to sign in.",
+      ssoSignedIn: "Signed in",
+      ssoWelcome: "Welcome, {name}!",
     },
     onboarding: {
       companyDisplayName: "Company Display Name",
@@ -1042,6 +1053,7 @@ const translations = {
       stepOf: "Step {current} of {total}",
       // The language switch names the other language in its own script.
       otherLanguage: "العربية",
+      close: "Close",
     },
     tractionPage: {
       pageNotFound: "Page Not Found",
@@ -4841,6 +4853,16 @@ const translations = {
       inAppBrowserTitle: "تسجيل الدخول عبر Google ما يشتغل داخل {app}",
       inAppBrowserTitleGeneric: "تسجيل الدخول عبر Google ما يشتغل داخل هذا التطبيق",
       inAppBrowserHelp: "افتح الصفحة في Safari أو Chrome: اضغط\u00a0⋯ أو «مشاركة»، ثم «فتح في المتصفح».",
+      ssoCompleting: "نكمّل تسجيل دخولك…",
+      ssoCreatingAccount: "ننشئ حسابك…",
+      ssoLinking: "نربط حسابك…",
+      ssoDidNotComplete: "ما اكتمل تسجيل الدخول",
+      ssoTryAgain: "ارجع لتسجيل الدخول وحاول مرة ثانية.",
+      ssoNoAccount: "ما لقينا حساب بهذا البريد. أنشئ حسابك أول.",
+      ssoEmailNotVerified: "أكّد بريدك في الخدمة اللي سجّلت دخولك منها، وبعدها حاول مرة ثانية.",
+      ssoNoEmail: "هذا الحساب ما فيه بريد إلكتروني. جرّب طريقة دخول ثانية.",
+      ssoSignedIn: "تم تسجيل الدخول",
+      ssoWelcome: "أهلًا {name}!",
     },
     onboarding: {
       companyDisplayName: "الاسم المعروض للشركة",
@@ -5191,6 +5213,7 @@ const translations = {
       saving: "جاري الحفظ…",
       stepOf: "الخطوة {current} من {total}",
       otherLanguage: "English",
+      close: "إغلاق",
     },
     tractionPage: {
       pageNotFound: "الصفحة غير موجودة",
@@ -8276,8 +8299,8 @@ const translations = {
     },
     desktopRecommendation: {
       title: "تجربة أفضل على الكمبيوتر",
-      body: "بد يشتغل على الجوال، لكن التجربة أفضل على الكمبيوتر.",
-      continueOnMobile: "كمل على الجوال",
+      body: "تقدر تستخدم Bid على الجوال، لكن التجربة أسهل على الكمبيوتر.",
+      continueOnMobile: "كمّل على الجوال",
       openOnDesktop: "افتح على الكمبيوتر",
       linkCopied: "تم نسخ الرابط — افتحه على جهاز الكمبيوتر",
     },

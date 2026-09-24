@@ -1,0 +1,57 @@
+# Runs on every push and pull request. Nothing here touches a database or a
+# deployment — it only checks that what you just committed compiles, passes the
+# unit tests, and still builds.
+#
+# The integration tests (tests/*.integration.test.ts) are deliberately NOT run
+# here: they talk to the real Supabase database and object storage, so running
+# them from CI would both need production credentials and write to a live
+# database. Run those locally with `npm test`.
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  # A new push to the same branch cancels the previous run — no point finishing
+  # a check for code that has already been replaced.
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, unit tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run check
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Known vulnerabilities in shipped dependencies
+        # Fails the build when a dependency you actually ship has a high or
+        # critical advisory. The tree is clean as of the drizzle-orm 0.45.3
+        # upgrade, so this starts green and only turns red on something new.
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Build
+        # A placeholder key: the build only inlines this string, it never calls
+        # Clerk. The real key comes from Vercel's own environment at deploy time.
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: pk_test_ci-placeholder
+        run: npm run build

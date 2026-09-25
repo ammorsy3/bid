@@ -3,23 +3,15 @@
 Things the loop found that are a product or data decision rather than a layout
 fix. The newest are at the bottom. Answer in chat, or edit this file.
 
-1. **Two production accounts differ only by capital letters in the email —
-   wait before merging, they may not be the same person.** You asked to merge
-   them since it's "probably one person with two accounts." I looked before
-   touching anything, and found a mismatch worth flagging first:
-   - `Xakamsx@gmail.com` — name saved as **"ahmed"**, is an admin, never
-     logged in, owns nothing, belongs to no company.
-   - `xakamsx@gmail.com` — name saved as **"Abdulrahman"**, not an admin,
-     never logged in, but **is a member of one company**.
-
-   Different names on the two accounts. It's possible "ahmed" is your own
-   old test/admin account and "Abdulrahman" is a real teammate who happens to
-   share a similar-looking email — in which case merging would fold a real
-   person's membership into an unrelated admin account, which I can't undo
-   once their old account is gone. Please confirm these two really are the
-   same human (and if so, which one should survive) before I merge anything.
-   I have a script ready (modeled on `scripts/merge-databases.mjs`) that does
-   a dry run first and shows exactly what would move.
+1. **The two case-duplicate production accounts - merged (2026-09-25).**
+   Ahmed confirmed they are the same person. In production
+   (`PROD_DATABASE_URL`) the account `xakamsx@gmail.com` ("Abdulrahman", holds
+   the company membership) is the one that survives, and it took over the
+   admin flag. The other one (`Xakamsx@gmail.com`, "ahmed") owned and
+   referenced nothing, so no data had to move. Its row was kept, not
+   deleted: email renamed to `xakamsx+merged-e832e59f@gmail.com`, admin
+   removed. No case-duplicate emails are left. To undo, restore the "before"
+   values saved in the session's `merge-snapshot.json`.
 
 2. **The stray dependency-update commit — resolved, no action needed.**
    Checked with `git log`: that commit only exists as a shared ancestor of

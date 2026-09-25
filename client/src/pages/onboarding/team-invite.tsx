@@ -127,7 +127,7 @@ export default function TeamInvite() {
                         onValueChange={(value) => updateInvitation(index, 'role', value)}
                         disabled={loading}
                       >
-                        <SelectTrigger className="flex-1 sm:w-40">
+                        <SelectTrigger className="flex-1 sm:w-52">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

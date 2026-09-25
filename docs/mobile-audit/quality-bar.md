@@ -75,7 +75,10 @@ is a close approximation, not the real Safari.
 
 ## 6. Feels like an installed app, not a website you're visiting
 The client's own words: it should feel like something from the App Store, not
-a browser tab. Concretely:
+a browser tab. Ahmed's clarification (2026-09-25): this is about the whole
+journey, not the home-screen icon — every screen, tap and transition someone
+moves through, not a one-time "Add to Home Screen" moment. The icon/manifest
+work below is table stakes, not the point. Concretely:
 - **Every tap answers back.** A phone has no hover — without an `:active`
   state a tap gives no feedback until the action finishes, which reads as
   slow/broken. `Button` and `NeonButton` already dim + shrink slightly on

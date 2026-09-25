@@ -3,51 +3,66 @@
 Things the loop found that are a product or data decision rather than a layout
 fix. The newest are at the bottom. Answer in chat, or edit this file.
 
-1. **Two production accounts differ only by capital letters in the email.**
-   Login now matches emails whatever the capitals, but for this one pair it
-   keeps today's behaviour: the exact spelling wins. It is probably one person
-   with two accounts. Merge them later, or leave as is?
+1. **Two production accounts differ only by capital letters in the email —
+   wait before merging, they may not be the same person.** You asked to merge
+   them since it's "probably one person with two accounts." I looked before
+   touching anything, and found a mismatch worth flagging first:
+   - `Xakamsx@gmail.com` — name saved as **"ahmed"**, is an admin, never
+     logged in, owns nothing, belongs to no company.
+   - `xakamsx@gmail.com` — name saved as **"Abdulrahman"**, not an admin,
+     never logged in, but **is a member of one company**.
 
-2. **A dependency-update commit landed on this branch by accident**
-   ("Apply the 54 grouped dependency updates", from another Claude session
-   working in the same folder). Keep it in this PR, or move it to `main` first?
+   Different names on the two accounts. It's possible "ahmed" is your own
+   old test/admin account and "Abdulrahman" is a real teammate who happens to
+   share a similar-looking email — in which case merging would fold a real
+   person's membership into an unrelated admin account, which I can't undo
+   once their old account is gone. Please confirm these two really are the
+   same human (and if so, which one should survive) before I merge anything.
+   I have a script ready (modeled on `scripts/merge-databases.mjs`) that does
+   a dry run first and shows exactly what would move.
 
-3. **"Better on desktop" popup on phones.** After the fix it only appears right
-   after a real sign-in on a phone, never over the login form. Now that the
-   mobile screens are being polished, do you still want it at all?
+2. **The stray dependency-update commit — resolved, no action needed.**
+   Checked with `git log`: that commit only exists as a shared ancestor of
+   both `main` and this branch (it landed on `main` before this branch was
+   recreated from it). It won't show up as part of this branch's pull
+   request — nothing to move.
 
-4. **Language switch on desktop.** Login and signup now have an AR/EN switch.
-   It is hidden on desktop so desktop stays exactly as it was. Show it there too?
-   (One class to remove on each page.)
+3. **"Better on desktop" popup on phones — resolved.** Added a "don't show
+   this again" checkbox. Checking it and dismissing the popup once hides it
+   for good on that device; it's still there for people who haven't seen it
+   yet or didn't check the box.
 
-5. **Brand orange for small links.** `#FE3C01` on white is 3.6:1, below the
-   4.5:1 readability bar for small text ("Forgot password?", "Sign up", the
-   password-strength word). A slightly darker orange such as `#D93300` would
-   pass (about 4.7:1). That's an app-wide colour decision, so it wasn't changed.
+4. **Language switch on desktop — resolved.** Login and signup now show the
+   AR/EN switch on desktop too, not just phones.
 
-6. **"Feels like an installed app" — decided.** Global groundwork (home-screen
-   icon, manifest, status-bar tint, press feedback on every button, no tap
-   flash) is done and shipped in batch 1. Per-page app-feel polish (custom
-   motion, one-off controls) is deferred to a dedicated pass after every page
-   has its Arabic/mobile layout fixed — added as batch 9 in queue.md.
+5. **Brand orange for small links — still open, no action taken.** `#FE3C01`
+   on white is 3.6:1, below the 4.5:1 bar for small text ("Forgot password?",
+   "Sign up", the password-strength word). You said you're not sure it
+   matters — leaving it exactly as it is unless you want it revisited later.
+   A slightly darker orange such as `#D93300` would pass (about 4.7:1).
 
-7. **iPhone Safari is priority #1 — decided.** Every check and every fixer
-   round now looks at `iphone-webkit` (Safari's engine) first, ahead of
-   Android. There's no real iOS Simulator here (Xcode needs disk space this
-   Mac doesn't have — 13 GB free), so WebKit-via-Playwright plus your own
-   5-minute real-iPhone check (README.md) is the closest available proxy. If
-   you free up ~20 GB and want the exact Simulator, say so and I'll set it up.
+6. **"Feels like an installed app" — decided, no further action here.** You
+   said the home-screen icon isn't the important part — the whole journey
+   feeling native is what matters, which matches what batch 9 already plans
+   to cover (see queue.md): per-page motion and interaction polish, done as
+   its own pass once every page's Arabic/mobile layout is fixed. Global
+   groundwork (icon, manifest, status-bar tint, press feedback, no tap flash)
+   already shipped in batch 1 and stays as-is.
 
-8. **Pre-existing desktop bug, not fixed (out of scope for this audit).** On
-   /onboarding/team-invite, the role dropdown showing "Business Developer"
-   truncates to "Business…" on desktop too — this was already true before
-   any of this work started (same `sm:w-40` width). Fixing it would mean
-   widening a desktop control, which this audit deliberately leaves alone
-   (mobile + Arabic only, desktop pixels unchanged). Worth a quick separate
-   fix whenever you're next in that file.
+7. **iPhone Safari is priority #1 — decided, no action needed.** You can't
+   free up the disk space for a real iOS Simulator right now, so WebKit-via-
+   Playwright (already the default for every check) stays the closest
+   available proxy, plus your own real-iPhone check when you're ready to do
+   one.
 
-9. **Pre-existing, not fixed: empty Field/Industry dropdown placeholder.**
-   IndividualProfileEditor's specialization Select shows no placeholder text
-   when nothing is chosen, in both languages — noticed while reviewing the
-   onboarding pages, predates this audit, not touched. Worth a quick look
-   next time you're in that file.
+8. **Team-invite desktop role dropdown — fixed.** "Business Developer" no
+   longer truncates on desktop; widened the picker.
+
+9. **IndividualProfileEditor empty Field/Industry placeholder — fixed.** The
+   real cause: `VENDOR_CATEGORIES` stores full display strings today (e.g.
+   "Professional Services"), so any saved category that predates that
+   wording — or comes from anywhere else using a different string — matched
+   no dropdown option. The picker then showed neither the old value nor the
+   placeholder, just a blank box, in both languages. It now falls back to the
+   placeholder whenever the stored category isn't one of today's exact
+   options.

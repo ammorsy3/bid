@@ -28,10 +28,20 @@ status column up to date.
 | onboarding-company, onboarding-individual, onboarding-team | fixed (email/ltr/small-text fails → 0; category names + validation messages translated) | |
 | team-invite, join | fixed (dark-mode warning box, RTL name truncation, min-h-dvh) | |
 
+## Batch 2a — static public pages (fixture mode: no server, no login)
+Baseline (before fixes, 112 captures): 338 fails, all Arabic letter-spacing on landing + pricing; many warnings on docs.
+| Pages | Status | What to fix (known before the loop) |
+|---|---|---|
+| landing | in progress | Arabic letter-spacing fails (32 on phones). Check the mobile nav menu, hero, footer. |
+| pricing | todo | Arabic letter-spacing fails (16 on phones). |
+| docs | todo | 53-63 warnings in Arabic (tap sizes / English words). Code blocks and tables must scroll inside themselves, not the page. |
+| faq, getting-started, terms, privacy | todo | Checklist is clean; a person still needs to look at them (reading width, spacing, Arabic feel). |
+
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |
 |---|---|---|
-| 2 | Public pages: invite link, company/people/traction profiles, marketplace, pricing, faq, getting-started, terms, privacy, docs, landing | todo |
+| 2a | Static public pages (fixture mode, no login needed): landing, pricing, faq, getting-started, terms, privacy, docs | in progress |
+| 2b | Public pages that show real data: marketplace, company/people/traction profiles, tender invite link (need sample-data fixtures, or your sign-in for session mode) | todo |
 | 3 | App shell + dashboard tabs (sidebar, bottom bar) | todo |
 | 4 | Vendor side: tender page, submit offer, form fill | todo |
 | 5 | Tender wizard | todo |

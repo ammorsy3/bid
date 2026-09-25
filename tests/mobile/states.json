@@ -469,7 +469,11 @@
           }
         }
       },
-      "actions": [{ "click": "[data-testid=card-account-type-join]" }]
+      "actions": [
+        {
+          "click": "[data-testid=card-account-type-join]"
+        }
+      ]
     },
     {
       "id": "onboarding-pending-invite",
@@ -494,7 +498,11 @@
           ]
         }
       },
-      "actions": [{ "click": "[data-testid=card-account-type-join]" }]
+      "actions": [
+        {
+          "click": "[data-testid=card-account-type-join]"
+        }
+      ]
     },
     {
       "id": "onboarding-add-account",
@@ -662,6 +670,70 @@
       "page": "faq",
       "title": "Calibration — FAQ (expected to be mostly clean)",
       "route": "/faq",
+      "keyboard": false
+    },
+    {
+      "id": "landing-default",
+      "batch": "batch-2",
+      "page": "landing",
+      "title": "Landing page — first look",
+      "route": "/",
+      "keyboard": false
+    },
+    {
+      "id": "pricing-default",
+      "batch": "batch-2",
+      "page": "pricing",
+      "title": "Pricing page — first look",
+      "route": "/pricing",
+      "keyboard": false
+    },
+    {
+      "id": "faq-default",
+      "batch": "batch-2",
+      "page": "faq",
+      "title": "FAQ — first look",
+      "route": "/faq",
+      "keyboard": false
+    },
+    {
+      "id": "getting-started-default",
+      "batch": "batch-2",
+      "page": "getting-started",
+      "title": "Getting started — first look",
+      "route": "/getting-started",
+      "keyboard": false
+    },
+    {
+      "id": "terms-default",
+      "batch": "batch-2",
+      "page": "terms",
+      "title": "Terms of Service — first look",
+      "route": "/terms",
+      "keyboard": false
+    },
+    {
+      "id": "privacy-default",
+      "batch": "batch-2",
+      "page": "privacy",
+      "title": "Privacy policy — first look",
+      "route": "/privacy",
+      "keyboard": false
+    },
+    {
+      "id": "docs-index",
+      "batch": "batch-2",
+      "page": "docs",
+      "title": "Developer docs — index",
+      "route": "/docs",
+      "keyboard": false
+    },
+    {
+      "id": "docs-authentication",
+      "batch": "batch-2",
+      "page": "docs",
+      "title": "Developer docs — Authentication page",
+      "route": "/docs/authentication",
       "keyboard": false
     }
   ]

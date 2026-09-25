@@ -92,7 +92,15 @@ export default function IndividualProfileEditor() {
       seeded.current = true;
       setDisplayName(data.profile?.displayName || "");
       setUsername(data.company.slug || "");
-      setCategory(data.company.category || "");
+      // A category saved before VENDOR_CATEGORIES' current wording (or from a
+      // fixture/import using a different string) won't match any <SelectItem>,
+      // which leaves the picker showing neither that value nor its placeholder
+      // — just a blank box. Fall back to "" so the placeholder shows instead.
+      setCategory(
+        data.company.category && (VENDOR_CATEGORIES as readonly string[]).includes(data.company.category)
+          ? data.company.category
+          : ""
+      );
       setBio(data.profile?.bio || "");
       const links = data.profile?.socialLinks || {};
       setSocial(Object.fromEntries(Object.entries(links).filter(([, v]) => !!v)) as Record<string, string>);

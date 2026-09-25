@@ -4154,6 +4154,7 @@ const translations = {
       continueOnMobile: "Continue on Mobile",
       openOnDesktop: "Open on Desktop",
       linkCopied: "Link copied — open it on your desktop",
+      dontShowAgain: "Don't show this again",
     },
     support: {
       heading: "Support",
@@ -8305,6 +8306,7 @@ const translations = {
       continueOnMobile: "كمّل على الجوال",
       openOnDesktop: "افتح على الكمبيوتر",
       linkCopied: "تم نسخ الرابط — افتحه على جهاز الكمبيوتر",
+      dontShowAgain: "لا تعرض لي هذا مرة ثانية",
     },
     support: {
       heading: "الدعم",

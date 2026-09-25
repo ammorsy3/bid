@@ -222,7 +222,7 @@ export default function Register() {
             <Link href="/" className="inline-flex">
               <BidLogo variant="orange" size={48} className="cursor-pointer hover:opacity-80 transition-opacity" />
             </Link>
-            <LanguageSwitch className="absolute end-0 top-1/2 -translate-y-1/2 -me-1 lg:hidden" />
+            <LanguageSwitch className="absolute end-0 top-1/2 -translate-y-1/2 -me-1" />
           </header>
 
           <div className="w-full max-w-md">

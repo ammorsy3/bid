@@ -610,7 +610,7 @@ const Landing = () => {
             <span>
               <Link href="/terms">{c.ftTerms}</Link>{" · "}
               <Link href="/privacy">{c.ftPrivacy}</Link>{" · "}
-              <a href="#">{c.ftCookies}</a>
+              <Link href="/cookies">{c.ftCookies}</Link>
             </span>
           </div>
         </div>

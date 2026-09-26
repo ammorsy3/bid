@@ -112,7 +112,7 @@ export function SiteFooter({ lang = "en" }: { lang?: Lang }) {
             {" · "}
             <Link href="/privacy">{t.privacy}</Link>
             {" · "}
-            <a href="#">{t.cookies}</a>
+            <Link href="/cookies">{t.cookies}</Link>
           </span>
         </div>
       </div>

@@ -766,6 +766,14 @@
       "keyboard": false
     },
     {
+      "id": "cookies-default",
+      "batch": "batch-2",
+      "page": "cookies",
+      "title": "Cookie Policy — first look",
+      "route": "/cookies",
+      "keyboard": false
+    },
+    {
       "id": "docs-index",
       "batch": "batch-2",
       "page": "docs",

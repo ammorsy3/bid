@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Toaster } from "@/components/ui/toaster";
 import { NavigationProgress } from "@/components/ui/navigation-progress";
+import { ScrollToTopOnNavigate } from "@/components/scroll-to-top";
 import { DesktopRecommendationModal } from "@/components/desktop-recommendation-modal";
 import { RequireVerified } from "@/components/RequireVerified";
 import { I18nProvider, useI18n } from "@/lib/i18n";
@@ -69,6 +70,7 @@ import AdminCampaigns from "@/pages/AdminCampaigns";
 import ClerkCallback from "@/pages/ClerkCallback";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
+import Cookies from "@/pages/Cookies";
 import GettingStarted from "@/pages/GettingStarted";
 import FAQ from "@/pages/FAQ";
 import NotFound from "@/pages/not-found";
@@ -109,6 +111,7 @@ export default function App() {
           <AriaLocaleProvider>
             <Router>
               <NavigationProgress />
+              <ScrollToTopOnNavigate />
               <DesktopRecommendationModal />
               <Switch>
                 <Route path="/" component={Marketplace} />
@@ -119,6 +122,7 @@ export default function App() {
                 <Route path="/sso-callback" component={ClerkCallback} />
                 <Route path="/terms" component={Terms} />
                 <Route path="/privacy" component={Privacy} />
+              <Route path="/cookies" component={Cookies} />
                 <Route path="/:rest*">{() => { window.location.href = '/'; return null; }}</Route>
               </Switch>
               <Toaster />
@@ -137,6 +141,7 @@ export default function App() {
         <AriaLocaleProvider>
           <Router>
             <NavigationProgress />
+            <ScrollToTopOnNavigate />
             <DesktopRecommendationModal />
             <Switch>
               <Route path="/" component={Landing} />
@@ -207,6 +212,7 @@ export default function App() {
               <Route path="/faq" component={FAQ} />
               <Route path="/terms" component={Terms} />
               <Route path="/privacy" component={Privacy} />
+              <Route path="/cookies" component={Cookies} />
               <Route component={NotFound} />
             </Switch>
             <Toaster />

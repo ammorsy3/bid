@@ -79,7 +79,13 @@ export default function Privacy() {
 
           <div>
             <h2 className="text-lg font-semibold mb-2">{t('privacy.s8Title')}</h2>
-            <p>{t('privacy.s8Body')}</p>
+            <p>
+              {t('privacy.s8Body')}{" "}
+              {t('privacy.s8More')}{" "}
+              <Link href="/cookies" className="text-primary hover:underline" data-testid="link-cookies-inline">
+                {t('privacy.cookiePolicyLink')}
+              </Link>.
+            </p>
           </div>
 
           <div>
@@ -101,9 +107,12 @@ export default function Privacy() {
           </div>
         </section>
 
-        <div className="mt-12 pt-6 border-t border-border text-xs text-muted-foreground">
+        <div className="mt-12 pt-6 border-t border-border text-xs text-muted-foreground flex flex-wrap gap-x-4">
           <Link href="/terms" className="hover:text-foreground" data-testid="link-terms">
             {t('privacy.termsLink')}
+          </Link>
+          <Link href="/cookies" className="hover:text-foreground" data-testid="link-cookies">
+            {t('privacy.cookiePolicyLink')}
           </Link>
         </div>
       </main>

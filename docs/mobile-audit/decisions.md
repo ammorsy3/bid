@@ -65,6 +65,16 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     so the landing and pricing pages now use IBM Plex Sans Arabic like every
     other screen (Latin text stays in Inter). Tajawal is no longer downloaded.
 
-11. **Footer "Cookies" link goes nowhere.** On the landing page footer it
-    points at `#`. Is there a cookie policy page to link to, should it go
-    to the Privacy page, or should the link be removed? (No change made.)
+11. **Cookie Policy page — done.** Ahmed asked for one. New page at
+    `/cookies` (English + Arabic, laid out for phones), linked from both
+    footers and from the Privacy and Terms pages. It lists every cookie and
+    browser-storage key the app actually writes, checked against the code and
+    against what bidapp.sa sets for a first-time visitor (two Clerk sign-in
+    cookies; no advertising or third-party tracking cookies). Worth a quick
+    read by whoever handles your legal pages before you rely on it.
+
+12. **Privacy Policy names old providers.** Section 4 says files are hosted
+    on "Replit Object Storage" and the database is "Neon". Production now
+    runs on Supabase (database and file storage), and Vercel (hosting and
+    visitor/speed analytics) isn't listed. Update section 4 to match? (No
+    change made; it's legal text.)

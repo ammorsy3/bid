@@ -88,9 +88,12 @@ export default function Terms() {
           </div>
         </section>
 
-        <div className="mt-12 pt-6 border-t border-border text-xs text-muted-foreground">
+        <div className="mt-12 pt-6 border-t border-border text-xs text-muted-foreground flex flex-wrap gap-x-4">
           <Link href="/privacy" className="hover:text-foreground" data-testid="link-privacy">
             {t('terms.privacyLink')}
+          </Link>
+          <Link href="/cookies" className="hover:text-foreground" data-testid="link-cookies">
+            {t('terms.cookiePolicyLink')}
           </Link>
         </div>
       </main>

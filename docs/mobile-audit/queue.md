@@ -36,6 +36,7 @@ Baseline (before fixes, 112 captures): 338 fails, all Arabic letter-spacing on l
 | pricing | todo | Arabic letter-spacing fails (16 on phones). |
 | docs | todo | 53-63 warnings in Arabic (tap sizes / English words). Code blocks and tables must scroll inside themselves, not the page. |
 | faq, getting-started, terms, privacy | todo | Checklist is clean; a person still needs to look at them (reading width, spacing, Arabic feel). |
+| cookies (new page) | fixed (built phone-first; 0 fails on every setup, both languages) | Created on request. Also added an app-wide rule: a new page opens at the top (links used to keep the old scroll position); Back still returns to where you were. |
 
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |

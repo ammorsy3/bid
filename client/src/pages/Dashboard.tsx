@@ -63,6 +63,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import { StatusBadge, type BidState } from "@/components/brand/StatusDot";
 import { tenderStatusToState, proposalStatusToState } from "@/components/brand/statusMap";
 import { SkeletonList } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 
 interface VendorProfile {
@@ -350,6 +351,174 @@ function StepDone({ children }: { children: React.ReactNode }) {
   );
 }
 
+// ── RFPs tab on phones ───────────────────────────────────────────────────────
+// The list shows ten RFPs at a time and "Show more" adds the next ten. Search and
+// the filters always run on the full list; only the rendering is paged.
+const RFP_PAGE_SIZE = 10;
+
+// Something someone typed (an RFP title or description), clamped to two lines.
+// dir="auto" cuts it at the end of its own script (a Latin title on an Arabic page
+// keeps its "..." on the right). Full width, so every Latin title lines up on the same
+// edge and every Arabic title on the other, instead of short ones drifting to one side.
+function UserClamp({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <span dir="auto" data-user-content className={`w-full line-clamp-2 break-words ${className}`}>{children}</span>;
+}
+
+// Stand-in with the same shape as a real row, so nothing jumps when the list arrives.
+function RfpRowSkeleton() {
+  return (
+    <div aria-busy="true" className="rounded-2xl border border-[#FE3C01]/10 dark:border-border bg-card p-4 space-y-3">
+      <Skeleton className="h-5 w-11/12" />
+      <Skeleton className="h-5 w-2/3" />
+      <Skeleton className="h-6 w-32 rounded-full" />
+      <Skeleton className="h-4 w-full" />
+      <div className="grid grid-cols-2 gap-3">
+        <Skeleton className="h-4 w-4/5" />
+        <Skeleton className="h-4 w-3/5" />
+      </div>
+    </div>
+  );
+}
+
+// One RFP as a phone list row. The title gets its own full-width lines (the badges
+// used to squeeze it into a narrow column), the badges wrap underneath, the row
+// actions sit behind one 44px "..." button, and a tap anywhere on the row opens it.
+function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, dateText, onOpen, onEdit, onDelete }: {
+  tender: TenderWithCounts;
+  statusBadge: { state: BidState; label: string };
+  showNegotiate: boolean;
+  isDeadlineSoon: boolean;
+  dateText: string;
+  onOpen: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { t, isRtl } = useI18n();
+  const { toast } = useToast();
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/invite/${tender.id}`);
+      toast({ title: t('dashboard.rfpLinkCopied') });
+    } catch {
+      toast({ title: t('dashboard.rfpCopyFailed'), variant: "destructive" });
+    }
+  };
+
+  const offersText = tender.offersCount === 1 ? t('dashboard.rfpOffersOne')
+    : tender.offersCount === 2 ? t('dashboard.rfpOffersTwo')
+    : `${tender.offersCount} ${t('dashboard.offers')}`;
+  const typeText = tender.submissionType
+    ? (SUBMISSION_TYPE_LABEL_KEYS[tender.submissionType] ? t(SUBMISSION_TYPE_LABEL_KEYS[tender.submissionType]) : tender.submissionType)
+    : null;
+  const budgetText = tender.budgetRange || tender.budget;
+  const audience = tender.targetAudienceTypes ?? [];
+
+  return (
+    <SpotlightCard {...brandSpotlightProps()} spotlightColor={tender.status === 'cancelled' ? 'red' : 'orange'}>
+      <div className="relative px-4 pb-4 pt-3" data-testid={`card-tender-${tender.id}`}>
+        <div className="flex items-start gap-2">
+          <h3 className="min-w-0 flex-1 text-base font-bold leading-snug text-foreground">
+            {/* Stretched link: the ::after covers the whole row, so a tap anywhere opens the RFP
+                (and it is a real link for keyboards and long-press). The "..." button sits above it. */}
+            <a
+              href={`/tenders/${tender.id}`}
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                e.preventDefault();
+                onOpen();
+              }}
+              className="flex min-h-11 items-center rounded-md outline-none after:absolute after:inset-0 active:after:bg-black/[0.05] dark:active:after:bg-white/[0.06] focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring"
+              data-testid={`text-tender-title-${tender.id}`}
+            >
+              <UserClamp>{tender.title}</UserClamp>
+            </a>
+          </h3>
+          <DropdownMenu dir={isRtl ? 'rtl' : 'ltr'} modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative z-10 -me-2 shrink-0 text-[#6B635B] dark:text-muted-foreground"
+                aria-label={t('dashboard.rfpMoreActions')}
+                data-testid={`button-menu-${tender.id}`}
+              >
+                <MoreHorizontal className="!size-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" collisionPadding={12} className="w-56 p-1.5" data-testid={`menu-tender-${tender.id}`}>
+              <DropdownMenuItem className="min-h-12 gap-3 px-3 text-base active:bg-accent" onSelect={copyLink} data-testid={`button-copy-link-${tender.id}`}>
+                <Copy />
+                {t('dashboard.copyLink')}
+              </DropdownMenuItem>
+              {['draft', 'published'].includes(tender.status) && (
+                <DropdownMenuItem className="min-h-12 gap-3 px-3 text-base active:bg-accent" onSelect={onEdit} data-testid={`button-edit-${tender.id}`}>
+                  <Edit />
+                  {t('dashboard.edit')}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="min-h-12 gap-3 px-3 text-base text-red-600 focus:text-red-700 dark:text-red-300 active:bg-red-50 dark:active:bg-red-950/40"
+                onSelect={onDelete}
+                data-testid={`button-delete-${tender.id}`}
+              >
+                <Trash2 />
+                {t('dashboard.delete')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <StatusBadge state={statusBadge.state} label={statusBadge.label} data-testid={`badge-status-${tender.id}`} />
+          {showNegotiate && (
+            <span className="rounded-full bg-[#FE3C01] px-2 py-0.5 text-[11px] font-bold text-white">
+              {t('dashboard.negotiateBadge')}
+            </span>
+          )}
+          {audience.map((type: string) => (
+            <span key={type} className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-[#6B635B] dark:text-muted-foreground">
+              {type === 'company' ? t('tenderFlow.audienceCompanies')
+                : type === 'team' ? t('tenderFlow.audienceTeams')
+                : t('tenderFlow.audienceIndividuals')}
+            </span>
+          ))}
+        </div>
+
+        {tender.description && (
+          <p className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground" data-testid={`text-tender-description-${tender.id}`}>
+            <UserClamp>{tender.description}</UserClamp>
+          </p>
+        )}
+
+        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-sm text-[#6B635B] dark:text-muted-foreground">
+          <div className="flex min-w-0 items-start gap-2">
+            <Calendar className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className={`min-w-0 tabular-nums ${isDeadlineSoon ? 'font-semibold text-[var(--state-lost)] dark:text-red-300' : ''}`}>{dateText}</span>
+          </div>
+          <div className="flex min-w-0 items-start gap-2">
+            <Send className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="min-w-0" data-testid={`text-proposals-count-${tender.id}`}>{offersText}</span>
+          </div>
+          {typeText && (
+            <div className="col-span-2 flex min-w-0 items-start gap-2">
+              <FileText className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="min-w-0">{typeText}</span>
+            </div>
+          )}
+          <div className="col-span-2 flex min-w-0 items-start gap-2">
+            <DollarSign className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="min-w-0 tabular-nums">
+              {budgetText ? <bdi dir="ltr">{budgetText}</bdi> : t('dashboard.rfpBudgetNotSet')}
+            </span>
+          </div>
+        </div>
+      </div>
+    </SpotlightCard>
+  );
+}
+
 // Company verification status (as the server stores it) → translation key.
 const VERIFICATION_STATUS_KEYS: Record<string, string> = {
   verified: "dashboard.verifStatusVerified",
@@ -602,6 +771,9 @@ function DashboardInner({ user, activeCompany }: {
   const [selectedProposal, setSelectedProposal] = useState<IncomingOffer | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
+  const [rfpVisible, setRfpVisible] = useState(RFP_PAGE_SIZE);
+  const [tenderToDelete, setTenderToDelete] = useState<TenderWithCounts | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [activeTab, setActiveTabState] = useState(() => ROUTE_TO_TAB[location] ?? "overview");
   const mainRef = useRef<HTMLElement>(null);
   const closeDrawerRef = useRef<() => void>(() => {});
@@ -623,6 +795,8 @@ function DashboardInner({ user, activeCompany }: {
   const [tenderFilter, setTenderFilter] = useState<'all' | 'published' | 'draft' | 'closed'>('all');
   const [tenderTypeFilter, setTenderTypeFilter] = useState<string>('all');
   const [tenderOffersFilter, setTenderOffersFilter] = useState<string>('all');
+  // A new search or filter starts the phone list again from the first ten.
+  useEffect(() => { setRfpVisible(RFP_PAGE_SIZE); }, [tenderSearchQuery, tenderFilter, tenderTypeFilter, tenderOffersFilter]);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [verificationFilter, setVerificationFilter] = useState<string>("all");
@@ -888,13 +1062,13 @@ function DashboardInner({ user, activeCompany }: {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
       toast({
-        title: "RFP deleted",
-        description: "The RFP has been removed",
+        title: t('dashboard.rfpDeleted'),
+        description: t('dashboard.rfpDeletedDesc'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to delete",
+        title: t('dashboard.rfpDeleteFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -937,9 +1111,10 @@ function DashboardInner({ user, activeCompany }: {
   };
 
   // Format date
+  // Month name in the page language, Western digits in both.
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { 
+    return date.toLocaleDateString(language === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : 'en-US', { 
       month: 'short', 
       day: 'numeric', 
       year: 'numeric' 
@@ -2361,25 +2536,28 @@ function DashboardInner({ user, activeCompany }: {
                 isRtl={isRtl}
                 titleTestId="text-tenders-title"
                 descTestId="text-tenders-description"
-                action={
+                className="max-md:flex-col max-md:items-stretch max-md:gap-4"
+                action={isPhone && !loadingTenders && filteredTenders.length === 0 ? undefined : (
                   <ParticleButton
                     onSuccess={handleCreateTender}
                     successDuration={600}
                     particleColor="bg-blue-400"
-                    className="bg-[#FE3C01] hover:bg-[#1A1613] text-white rounded-full shadow-[0_10px_24px_-8px_rgba(254,60,1,0.5)] transition-colors"
+                    className="bg-[#FE3C01] hover:bg-[#1A1613] text-white rounded-full shadow-[0_10px_24px_-8px_rgba(254,60,1,0.5)] transition-colors max-md:w-full max-md:active:bg-[#1A1613]"
                     data-testid="button-create-tender-header"
                   >
                     <Plus className={`h-4 w-4 me-2`} />
                     {t('dashboard.newTender')}
                   </ParticleButton>
-                }
+                )}
               />
               </motion.div>
 
-              {/* Filters */}
+              {/* Filters. On phones an empty workspace skips them: nothing to search yet, and
+                  the one thing to do (create the first RFP) stays on the first screen. */}
+              {!(isPhone && !loadingTenders && tenders.length === 0) && (
               <Card {...brandCardProps()}>
-                <CardContent className="pt-6">
-                  <div className={`flex flex-col sm:flex-row gap-4`}>
+                <CardContent className="pt-6 max-md:p-4">
+                  <div className={`flex flex-col sm:flex-row gap-4 max-md:gap-3`}>
                     <div className="relative flex-1">
                       <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
                       <Input
@@ -2391,59 +2569,84 @@ function DashboardInner({ user, activeCompany }: {
                       />
                     </div>
                     <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={tenderFilter} onValueChange={(v) => setTenderFilter(v as any)} className="w-full sm:w-auto">
-                      <TabsList className="grid grid-cols-4 w-full sm:w-auto">
-                        <TabsTrigger value="all" data-testid="filter-all">{t('dashboard.all')}</TabsTrigger>
-                        <TabsTrigger value="published" data-testid="filter-published">{t('dashboard.published')}</TabsTrigger>
-                        <TabsTrigger value="draft" data-testid="filter-draft">{t('dashboard.draft')}</TabsTrigger>
-                        <TabsTrigger value="closed" data-testid="filter-closed">{t('dashboard.closed')}</TabsTrigger>
+                      <TabsList className="grid grid-cols-4 w-full sm:w-auto max-md:h-auto">
+                        <TabsTrigger value="all" className="max-md:min-h-11 max-md:active:opacity-70" data-testid="filter-all">{t('dashboard.all')}</TabsTrigger>
+                        <TabsTrigger value="published" className="max-md:min-h-11 max-md:active:opacity-70" data-testid="filter-published">{t('dashboard.published')}</TabsTrigger>
+                        <TabsTrigger value="draft" className="max-md:min-h-11 max-md:active:opacity-70" data-testid="filter-draft">{t('dashboard.draft')}</TabsTrigger>
+                        <TabsTrigger value="closed" className="max-md:min-h-11 max-md:active:opacity-70" data-testid="filter-closed">{t('dashboard.closed')}</TabsTrigger>
                       </TabsList>
                     </Tabs>
-                    <Select value={tenderTypeFilter} onValueChange={setTenderTypeFilter}>
-                      <SelectTrigger className="w-full sm:w-[180px] h-9" data-testid="filter-tender-type">
+                    <div className="grid grid-cols-2 gap-3 sm:contents">
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={tenderTypeFilter} onValueChange={setTenderTypeFilter}>
+                      <SelectTrigger className="w-full sm:w-[180px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-tender-type">
                         <SelectValue placeholder={t('dashboard.allTypes')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">{t('dashboard.allTypes')}</SelectItem>
+                        <SelectItem value="all" className="max-md:min-h-11">{t('dashboard.allTypes')}</SelectItem>
                         {Object.entries(SUBMISSION_TYPE_LABEL_KEYS).map(([value, labelKey]) => (
-                          <SelectItem key={value} value={value}>{t(labelKey)}</SelectItem>
+                          <SelectItem key={value} value={value} className="max-md:min-h-11">{t(labelKey)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={tenderOffersFilter} onValueChange={setTenderOffersFilter}>
-                      <SelectTrigger className="w-full sm:w-[180px] h-9" data-testid="filter-tender-offers">
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={tenderOffersFilter} onValueChange={setTenderOffersFilter}>
+                      <SelectTrigger className="w-full sm:w-[180px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-tender-offers">
                         <SelectValue placeholder={t('dashboard.offersReceived')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">{t('dashboard.offersReceived')}</SelectItem>
-                        <SelectItem value="none">{t('dashboard.noOffers')}</SelectItem>
-                        <SelectItem value="1-5">1-5 {t('dashboard.offers')}</SelectItem>
-                        <SelectItem value="6-10">6-10 {t('dashboard.offers')}</SelectItem>
-                        <SelectItem value="10+">10+ {t('dashboard.offers')}</SelectItem>
+                        <SelectItem value="all" className="max-md:min-h-11">{t('dashboard.offersReceived')}</SelectItem>
+                        <SelectItem value="none" className="max-md:min-h-11">{t('dashboard.noOffers')}</SelectItem>
+                        <SelectItem value="1-5" className="max-md:min-h-11">1-5 {t('dashboard.offers')}</SelectItem>
+                        <SelectItem value="6-10" className="max-md:min-h-11">6-10 {t('dashboard.offers')}</SelectItem>
+                        <SelectItem value="10+" className="max-md:min-h-11">10+ {t('dashboard.offers')}</SelectItem>
                       </SelectContent>
                     </Select>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
+              )}
 
               {/* Tenders List */}
               {loadingTenders ? (
-                <SkeletonList items={3} />
+                isPhone ? (
+                  <div className="space-y-3" data-testid="skeleton-rfps">
+                    <RfpRowSkeleton />
+                    <RfpRowSkeleton />
+                    <RfpRowSkeleton />
+                  </div>
+                ) : (
+                  <SkeletonList items={3} />
+                )
               ) : filteredTenders.length === 0 ? (
                 <Card {...brandCardProps()}>
-                  <CardContent className="flex flex-col items-center justify-center py-16">
+                  <CardContent className={`flex flex-col items-center justify-center py-16 max-md:px-4 ${isPhone && tenders.length > 0 ? 'max-md:py-6' : 'max-md:py-10'}`}>
+                    {/* Phones, filters on, nothing matched: no big icon tile, so the message and
+                        "Clear filters" stay on the first screen above the tab bar. */}
+                    {!(isPhone && tenders.length > 0) && (
                     <div className="h-16 w-16 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-4 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
                       <FileText className="h-8 w-8" />
                     </div>
-                    <h3 className="font-display font-black text-2xl mb-2 tracking-[-0.03em]" data-testid="text-no-tenders-title">
-                      {t('dashboard.noTenders')}
+                    )}
+                    <h3 className={`font-display font-black text-2xl mb-2 tracking-[-0.03em] max-md:text-center max-md:text-balance max-md:leading-snug ${isPhone && tenders.length > 0 ? 'max-md:text-xl' : ''}`} data-testid="text-no-tenders-title">
+                      {isPhone && tenders.length > 0 ? t('dashboard.rfpNoMatches') : t('dashboard.noTenders')}
                     </h3>
-                    <p className="text-muted-foreground text-center max-w-md mb-6" data-testid="text-no-tenders-description">
-                      {t('dashboard.noTendersDesc')}
+                    <p className="text-muted-foreground text-center max-w-md mb-6 max-md:text-balance" data-testid="text-no-tenders-description">
+                      {isPhone && tenders.length > 0 ? t('dashboard.rfpNoMatchesDesc') : t('dashboard.noTendersDesc')}
                     </p>
+                    {isPhone && tenders.length > 0 && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => { setTenderSearchQuery(""); setTenderFilter('all'); setTenderTypeFilter('all'); setTenderOffersFilter('all'); }}
+                        data-testid="button-clear-rfp-filters"
+                      >
+                        {t('dashboard.rfpClearFilters')}
+                      </Button>
+                    )}
                     {!tenderSearchQuery && tenderFilter === 'all' && tenderTypeFilter === 'all' && tenderOffersFilter === 'all' && (
                       <Button
                         onClick={handleCreateTender}
-                        className="bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white"
+                        className="bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white max-md:w-full max-md:active:bg-[#C93000]"
                         data-testid="button-create-first-tender"
                       >
                         <Plus className={`h-4 w-4 me-2`} />
@@ -2453,8 +2656,13 @@ function DashboardInner({ user, activeCompany }: {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-4">
-                      {filteredTenders.map((tender) => {
+                <div className="space-y-4 max-md:space-y-3">
+                      {isPhone && (
+                        <p className="text-sm text-[#6B635B] dark:text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-rfp-count">
+                          {t('dashboard.rfpShowing', { shown: Math.min(rfpVisible, filteredTenders.length), total: filteredTenders.length })}
+                        </p>
+                      )}
+                      {(isPhone ? filteredTenders.slice(0, rfpVisible) : filteredTenders).map((tender) => {
                         const statusBadge = getStatusBadge(tender.status, tender.deadline);
                         const isDeadlineSoon = new Date(tender.deadline).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000;
                         const isReadyToNegotiate = tender.status === 'closed' && tender.offersCount >= 2 && !incomingOffers.some(o => o.tenderId === tender.id && o.status === 'accepted');
@@ -2465,6 +2673,22 @@ function DashboardInner({ user, activeCompany }: {
                           }
                         };
                         
+                        if (isPhone) {
+                          return (
+                            <RfpRowMobile
+                              key={tender.id}
+                              tender={tender}
+                              statusBadge={statusBadge}
+                              showNegotiate={isReadyToNegotiate}
+                              isDeadlineSoon={isDeadlineSoon}
+                              dateText={formatDate(tender.deadline)}
+                              onOpen={() => setLocation(`/tenders/${tender.id}`)}
+                              onEdit={() => setLocation(`/tenders/${tender.id}/edit`)}
+                              onDelete={() => { setTenderToDelete(tender); setDeleteDialogOpen(true); }}
+                            />
+                          );
+                        }
+
                         return (
                           <SpotlightCard
                             key={tender.id}
@@ -2510,7 +2734,7 @@ function DashboardInner({ user, activeCompany }: {
                               <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm ${isRtl ? 'text-right' : ''}`}>
                                 <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                   <Calendar className="h-4 w-4" />
-                                  <span className={`font-mono ${isDeadlineSoon ? 'text-[var(--state-lost)] font-semibold' : ''}`}>
+                                  <span className={`font-mono rtl:font-sans ${isDeadlineSoon ? 'text-[var(--state-lost)] font-semibold' : ''}`}>
                                     {formatDate(tender.deadline)}
                                   </span>
                                 </div>
@@ -2580,6 +2804,16 @@ function DashboardInner({ user, activeCompany }: {
                           </SpotlightCard>
                         );
                       })}
+                      {isPhone && filteredTenders.length > rfpVisible && (
+                        <Button
+                          variant="outline"
+                          className="h-12 w-full text-base"
+                          onClick={() => setRfpVisible((n) => n + RFP_PAGE_SIZE)}
+                          data-testid="button-show-more-rfps"
+                        >
+                          {t('dashboard.rfpShowMore', { count: filteredTenders.length - rfpVisible })}
+                        </Button>
+                      )}
                 </div>
               )}
             </TabsContent>
@@ -3662,6 +3896,29 @@ function DashboardInner({ user, activeCompany }: {
 
           </Tabs>
         </main>
+
+      {/* Delete RFP confirmation (phones; desktop keeps the browser confirm) */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="max-md:w-[calc(100%-2rem)] max-md:rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dashboard.rfpDeleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              <UserClamp className="mx-auto font-medium text-foreground">{tenderToDelete?.title}</UserClamp>
+              <span className="mt-1 block">{t('dashboard.rfpDeleteWarning')}</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="max-md:gap-2">
+            <AlertDialogCancel className="mt-0" data-testid="button-cancel-delete-rfp">{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 active:bg-destructive/80 text-destructive-foreground"
+              onClick={() => tenderToDelete && deleteTender.mutate(tenderToDelete.id)}
+              data-testid="button-confirm-delete-rfp"
+            >
+              {t('dashboard.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Remove Vendor Confirmation */}
       <AlertDialog open={!!vendorToRemove} onOpenChange={(open) => !open && setVendorToRemove(null)}>

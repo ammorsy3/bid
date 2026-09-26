@@ -880,6 +880,74 @@
       "keyboard": false
     },
     {
+      "id": "dash-rfps-more",
+      "batch": "batch-3",
+      "page": "dashboard-rfps",
+      "title": "Dashboard — RFPs list after \"Show more\" (Seet, 20 of 60 shown)",
+      "route": "/rfps",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        { "waitFor": "[data-testid=\"button-show-more-rfps\"]" },
+        { "click": "[data-testid=\"button-show-more-rfps\"]" },
+        { "wait": 400 }
+      ],
+      "skipProjects": ["desktop"]
+    },
+    {
+      "id": "dash-rfps-menu-open",
+      "batch": "batch-3",
+      "page": "dashboard-rfps",
+      "title": "Dashboard — RFP row menu open (Seet)",
+      "route": "/rfps",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        { "waitFor": "[data-testid^=\"button-menu-\"]" },
+        { "click": "[data-testid^=\"button-menu-\"]" },
+        { "waitFor": "[role=\"menu\"]" },
+        { "wait": 400 }
+      ],
+      "fullPage": false,
+      "skipProjects": ["desktop"]
+    },
+    {
+      "id": "dash-rfps-delete-confirm",
+      "batch": "batch-3",
+      "page": "dashboard-rfps",
+      "title": "Dashboard — delete RFP confirmation (Seet; nothing is deleted)",
+      "route": "/rfps",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        { "waitFor": "[data-testid^=\"button-menu-\"]" },
+        { "click": "[data-testid^=\"button-menu-\"]" },
+        { "waitFor": "[role=\"menu\"]" },
+        { "click": "[role=\"menu\"] [data-testid^=\"button-delete-\"]" },
+        { "waitFor": "[role=\"alertdialog\"]" },
+        { "wait": 400 }
+      ],
+      "expectDialog": true,
+      "fullPage": false,
+      "skipProjects": ["desktop"]
+    },
+    {
+      "id": "dash-rfps-no-match",
+      "batch": "batch-3",
+      "page": "dashboard-rfps",
+      "title": "Dashboard — RFPs search with no match (Seet)",
+      "route": "/rfps",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        { "waitFor": "[data-testid^=\"card-tender-\"]" },
+        { "fill": ["[data-testid=\"input-tender-search\"]", "zzzzqq"] },
+        { "waitFor": "[data-testid=\"button-clear-rfp-filters\"]" },
+        { "wait": 300 }
+      ],
+      "skipProjects": ["desktop"]
+    },
+    {
       "id": "dash-proposals",
       "batch": "batch-3",
       "page": "dashboard-proposals",

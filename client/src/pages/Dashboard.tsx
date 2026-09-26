@@ -27,7 +27,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
-import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark, User, Code2, CheckCircle2 } from "lucide-react";
+import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark, User, Code2, CheckCircle2, MapPin } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { SupportContactLinks } from "@/components/support-contact";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,14 +41,14 @@ import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, P
 import { useState, useEffect, useRef } from "react";
 import { useDashboardTour, usePageTour, resetAllTours } from "@/lib/tour";
 import { DASHBOARD_TOUR_STEPS, VENDORS_BASE_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
-import { categoryLabel } from "@/lib/category-labels";
+import { categoryLabel, cityLabel } from "@/lib/category-labels";
 import { profilePath } from "@/lib/profile-url";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
 import {
@@ -265,7 +265,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
       </div>
       {isEditing ? (
         <div className="space-y-2">
-          <div className={`flex items-center gap-2`}>
+          <div className={`flex items-center gap-2 max-md:[direction:ltr]`}>
             <span className="text-sm text-muted-foreground whitespace-nowrap">/traction/</span>
             <Input
               value={slug}
@@ -274,8 +274,11 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
                 setSlugTaken(false);
               }}
               placeholder="your-company"
-              className={`font-mono text-sm ${slugTaken ? 'border-amber-300 focus-visible:ring-amber-200' : ''}`}
+              className={`font-mono text-base md:text-sm ${slugTaken ? 'border-amber-300 focus-visible:ring-amber-200' : ''}`}
               maxLength={50}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               data-testid="input-traction-slug"
             />
           </div>
@@ -284,24 +287,24 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
               <HelpCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
               <div>
                 <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">"{slug}" {t('dashboard.slugTaken')}</p>
-                <p className="text-xs text-amber-600 mt-0.5">
-                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
-                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button> {t('dashboard.slugTakenSuggestion')}
+                <p className="text-xs text-amber-600 max-md:text-amber-800 mt-0.5 max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-x-2">
+                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300 max-md:min-h-11" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
+                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300 max-md:min-h-11" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button> {t('dashboard.slugTakenSuggestion')}
                 </p>
               </div>
             </div>
           )}
-          <div className={`flex gap-2`}>
+          <div className={`flex gap-2 max-md:[&>button]:flex-1`}>
             <Button
               size="sm"
               onClick={() => createSlugMutation.mutate(slug)}
               disabled={!slug.trim() || slug.length < 2 || createSlugMutation.isPending}
-              className="bg-[#FE3C01] hover:bg-[#E83501] text-white"
+              className="bg-[#FE3C01] hover:bg-[#E83501] text-white max-md:h-11 max-md:active:bg-[#C93000]"
               data-testid="button-create-traction"
             >
               {createSlugMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('dashboard.createLink')}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => { setIsEditing(false); setSlugTaken(false); }}>{t('common.cancel')}</Button>
+            <Button size="sm" variant="ghost" className="max-md:h-11" onClick={() => { setIsEditing(false); setSlugTaken(false); }}>{t('common.cancel')}</Button>
           </div>
         </div>
       ) : (
@@ -309,7 +312,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
           variant="outline"
           size="sm"
           onClick={() => setIsEditing(true)}
-          className="border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/5"
+          className="border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/5 max-md:h-11 max-md:w-full max-md:border-transparent max-md:bg-[#FE3C01] max-md:text-white max-md:hover:bg-[#E83501] max-md:hover:text-white max-md:active:bg-[#C93000]"
           data-testid="button-setup-traction"
         >
           <Plus className={`h-4 w-4 me-1`} />
@@ -728,6 +731,333 @@ function ProposalRowMobile({ kind, offer, dateText, tenderBadge, onOpenTender, o
   );
 }
 
+// ── Vendors Base tab on phones ───────────────────────────────────────────────
+// Copy to the clipboard. The async clipboard API can refuse (Safari drops the tap gesture
+// after an await, some in-app browsers have none), so fall back to the old copy command.
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {}
+  try {
+    const box = document.createElement('textarea');
+    box.value = text;
+    box.setAttribute('readonly', '');
+    box.style.cssText = 'position:fixed;top:0;opacity:0;font-size:16px';
+    document.body.appendChild(box);
+    box.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(box);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
+// "Copy link" that answers back: the label turns into a green "Copied" for two seconds,
+// and a copy that fails says so instead of doing nothing.
+function CopyLinkButton({ url, className = "", iconClassName = "", testId }: { url: string; className?: string; iconClassName?: string; testId?: string }) {
+  const { t } = useI18n();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+  return (
+    <Button
+      variant="outline"
+      className={className}
+      onClick={async () => {
+        if (await copyText(url)) setCopied(true);
+        else toast({ title: t('dashboard.rfpCopyFailed'), variant: "destructive" });
+      }}
+      aria-live="polite"
+      data-testid={testId}
+    >
+      {copied ? <Check className="text-green-700 dark:text-green-400" /> : <Copy className={iconClassName} />}
+      <span className={copied ? 'text-green-700 dark:text-green-400' : ''}>{copied ? t('dashboard.copied') : t('dashboard.copyLink')}</span>
+    </Button>
+  );
+}
+
+// The joining link on phones: the whole link on its own lines (a Latin URL, so left-to-right and
+// broken anywhere instead of cut off), then 44px buttons instead of three bare icons.
+function TractionLinkActionsMobile({ slug }: { slug: string }) {
+  const { t } = useI18n();
+  const url = `${window.location.origin}/traction/${slug}`;
+  return (
+    <div className="space-y-2">
+      <div dir="ltr" data-user-content className="min-h-11 break-words rounded-lg bg-muted px-3 py-2.5 text-start font-mono text-sm leading-snug" data-testid="text-traction-link">
+        {/* <wbr> after each slash: the link wraps at a slash instead of in the middle of a word. */}
+        {url.split('/').map((part, i, all) => (
+          <span key={i}>{part}{i < all.length - 1 && <>/<wbr /></>}</span>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <CopyLinkButton
+          url={url}
+          className="col-span-2 max-md:h-auto max-md:min-h-11 border-[#FE3C01]/30 hover:bg-[#FE3C01]/5"
+          iconClassName="text-[#FE3C01]"
+          testId="button-copy-traction-link"
+        />
+        <Button variant="outline" className="max-md:h-auto max-md:min-h-11" asChild>
+          <a href={`/traction/${slug}`} target="_blank" rel="noopener noreferrer" data-testid="button-preview-traction">
+            <ExternalLink />
+            {t('dashboard.tractionPreview')}
+          </a>
+        </Button>
+        <Button variant="outline" className="max-md:h-auto max-md:min-h-11" asChild>
+          <a href={`/traction/${slug}/edit`} data-testid="button-customize-traction">
+            <Paintbrush />
+            {t('dashboard.tractionCustomize')}
+          </a>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// A vendor's logo that shows the placeholder (icon or initials) until the picture has loaded, or for
+// good if it never does (a missing or private file), so the avatar is never an empty circle.
+function LogoAvatar({ url, shape = "rounded-full", children }: { url: string | null; shape?: string; children: React.ReactNode }) {
+  const [state, setState] = useState<'loading' | 'loaded' | 'failed'>('loading');
+  return (
+    <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden border border-border bg-primary/10 ${shape}`}>
+      {state !== 'loaded' && children}
+      {url && state !== 'failed' && (
+        <img
+          src={url}
+          alt=""
+          decoding="async"
+          onLoad={() => setState('loaded')}
+          onError={() => setState('failed')}
+          className={`absolute inset-0 h-full w-full object-cover ${state === 'loaded' ? 'bg-card' : 'opacity-0'}`}
+        />
+      )}
+    </div>
+  );
+}
+
+// Stand-in with the same shape as a real vendor row, so nothing jumps when the list arrives.
+function VendorRowSkeleton() {
+  return (
+    <div aria-busy="true" className="rounded-2xl border border-[#FE3C01]/10 dark:border-border bg-card p-4 space-y-3">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-5 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+      </div>
+      <Skeleton className="h-6 w-32 rounded-full" />
+      <Skeleton className="h-4 w-full" />
+      <div className="grid grid-cols-2 gap-2">
+        <Skeleton className="h-11 rounded-md" />
+        <Skeleton className="h-11 rounded-md" />
+      </div>
+    </div>
+  );
+}
+
+// One vendor as a phone list row. The name gets a full-width line of its own (the chips used to
+// squeeze it into a narrow column), the chips wrap underneath, and the two actions are 44px.
+function VendorRowMobile({ vendor, categoryText, cityText, joinText, onRemove }: {
+  vendor: VendorProfile;
+  categoryText: string;
+  cityText: string;
+  joinText: string;
+  onRemove: () => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <SpotlightCard {...brandSpotlightProps()} spotlightColor="orange">
+      <div className="px-4 pb-4 pt-4" data-testid={`card-vendor-${vendor.id}`}>
+        <div className="flex items-start gap-3">
+          <LogoAvatar url={vendor.logoUrl}>
+            <Building2 className="h-5 w-5 text-primary" aria-hidden="true" />
+          </LogoAvatar>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base font-bold leading-snug text-foreground" data-testid={`text-vendor-name-${vendor.id}`}>
+              {/* Only as wide as the text, so the name sits next to the logo whatever script it is in. */}
+              <UserClamp className="!w-fit max-w-full">{vendor.company}</UserClamp>
+            </h3>
+            <p className="mt-0.5 text-sm leading-snug text-[#6B635B] dark:text-muted-foreground" data-testid={`text-vendor-category-${vendor.id}`}>
+              <UserClamp className="!w-fit max-w-full">{categoryText}</UserClamp>
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          {vendor.verificationStatus === 'verified' && (
+            <Badge variant="secondary" className="gap-1" data-testid={`badge-verified-${vendor.id}`}>
+              <CheckCircle className="h-3 w-3" aria-hidden="true" />
+              {t('dashboard.verified')}
+            </Badge>
+          )}
+          {/* "Invited" as a light orange chip with dark orange text: white on the brand orange is only 3.3:1. */}
+          <Badge
+            variant="outline"
+            className={`max-w-full whitespace-normal ${vendor.joinMethod === 'invitation' ? 'border-transparent bg-[#FE3C01]/10 text-[#B32A00] dark:text-[#FF8A63]' : ''}`}
+            data-testid={`badge-join-method-${vendor.id}`}
+          >
+            {joinText}
+          </Badge>
+        </div>
+
+        {vendor.bio && (
+          <p className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground" data-testid={`text-vendor-bio-${vendor.id}`}>
+            <UserClamp>{vendor.bio}</UserClamp>
+          </p>
+        )}
+
+        {cityText && (
+          <div className="mt-2 flex min-w-0 items-center gap-2 text-sm text-[#6B635B] dark:text-muted-foreground">
+            <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span dir="auto" data-user-content className="min-w-0 truncate">{cityText}</span>
+          </div>
+        )}
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            className="max-md:h-auto max-md:min-h-11 whitespace-normal py-2 text-center leading-tight"
+            onClick={() => {
+              if (vendor.slug) window.open(`/company/${vendor.slug}`, '_blank', 'noopener,noreferrer');
+            }}
+            disabled={!vendor.slug}
+            data-testid={`button-view-vendor-${vendor.id}`}
+          >
+            <Eye />
+            {t('dashboard.offerVendorProfile')}
+          </Button>
+          <Button
+            variant="outline"
+            className="max-md:h-auto max-md:min-h-11 whitespace-normal py-2 text-center leading-tight text-destructive dark:text-red-300 border-destructive/30 hover:bg-destructive/10 hover:border-destructive active:bg-destructive/10"
+            onClick={onRemove}
+            data-testid={`button-remove-vendor-${vendor.id}`}
+          >
+            <Trash2 />
+            {t('dashboard.remove')}
+          </Button>
+        </div>
+      </div>
+    </SpotlightCard>
+  );
+}
+
+// One pending join request as a phone list row: the same shape as a vendor row, with the
+// three actions (view, reject, approve) as 44px buttons.
+function JoinRequestRowMobile({ request, dateText, onReject, onApprove, rejecting, approving }: {
+  request: JoinRequest;
+  dateText: string;
+  onReject: () => void;
+  onApprove: () => void;
+  rejecting: boolean;
+  approving: boolean;
+}) {
+  const { t, isRtl } = useI18n();
+  const vendor = request.vendor;
+  const status = vendor?.verificationStatus;
+  const initials = (vendor?.company || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const website = vendor?.websiteUrl ? vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '') : '';
+  const statusClass = status === 'verified'
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
+    : status === 'under_review'
+    ? 'border-amber-200 bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800'
+    : 'border-border bg-muted text-[#6B635B] dark:text-muted-foreground';
+  return (
+    <SpotlightCard {...brandSpotlightProps()} spotlightColor={status === 'verified' ? 'green' : 'orange'}>
+      <div className="px-4 pb-4 pt-4" data-testid={`card-request-${request.id}`}>
+        <div className="flex items-start gap-3">
+          <LogoAvatar url={vendor?.logoUrl ?? null} shape="rounded-xl">
+            <span className="text-sm font-bold text-[#B32A00] dark:text-[#FF8A63]">{initials}</span>
+          </LogoAvatar>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base font-bold leading-snug text-foreground" data-testid={`text-request-company-${request.id}`}>
+              <UserClamp className="!w-fit max-w-full">{vendor?.company || t('dashboard.unknownVendor')}</UserClamp>
+            </h3>
+            {vendor?.expertise && (
+              <p className="mt-0.5 text-sm leading-snug text-[#6B635B] dark:text-muted-foreground" data-testid={`text-request-category-${request.id}`}>
+                <UserClamp className="!w-fit max-w-full">{categoryLabel(vendor.expertise, isRtl)}</UserClamp>
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <Badge variant="outline" className={`gap-1 ${statusClass}`} data-testid={`badge-request-status-${request.id}`}>
+            {status === 'verified' && <ShieldCheck className="h-3 w-3" aria-hidden="true" />}
+            {status === 'under_review' && <Clock className="h-3 w-3" aria-hidden="true" />}
+            {status === 'verified' ? t('dashboard.verifiedStatus') : status === 'under_review' ? t('dashboard.underReviewStatus') : t('dashboard.notVerifiedStatus')}
+          </Badge>
+        </div>
+
+        {vendor?.bio && (
+          <p className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground">
+            <UserClamp>{vendor.bio}</UserClamp>
+          </p>
+        )}
+
+        <div className="mt-2 space-y-1 text-sm text-[#6B635B] dark:text-muted-foreground">
+          {website && (
+            <a
+              href={vendor!.websiteUrl!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="-my-1 flex min-h-11 min-w-0 items-center gap-2 active:opacity-70"
+            >
+              <Globe className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span dir="ltr" data-user-content className="min-w-0 truncate">{website}</span>
+            </a>
+          )}
+          {dateText && (
+            <div className="flex min-w-0 items-center gap-2">
+              <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="tabular-nums">{dateText}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            className="col-span-2 max-md:h-auto max-md:min-h-11 whitespace-normal py-2 text-center leading-tight"
+            onClick={() => {
+              if (vendor?.slug) window.open(`/company/${vendor.slug}`, '_blank', 'noopener,noreferrer');
+            }}
+            disabled={!vendor?.slug}
+            data-testid={`button-view-profile-${request.id}`}
+          >
+            <Eye />
+            {t('dashboard.offerVendorProfile')}
+          </Button>
+          <Button
+            variant="outline"
+            className="max-md:h-auto max-md:min-h-11 whitespace-normal py-2 text-center leading-tight border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700 active:bg-red-50 dark:text-red-300"
+            onClick={onReject}
+            disabled={rejecting}
+            data-testid={`button-reject-${request.id}`}
+          >
+            <XCircle />
+            {t('dashboard.reject')}
+          </Button>
+          <Button
+            className="max-md:h-auto max-md:min-h-11 whitespace-normal py-2 text-center leading-tight bg-green-700 text-white hover:bg-green-800 active:bg-green-800"
+            onClick={onApprove}
+            disabled={approving}
+            data-testid={`button-approve-${request.id}`}
+          >
+            {approving ? <Loader2 className="animate-spin" /> : <CheckCircle />}
+            {t('dashboard.approve')}
+          </Button>
+        </div>
+      </div>
+    </SpotlightCard>
+  );
+}
+
 // Company verification status (as the server stores it) → translation key.
 const VERIFICATION_STATUS_KEYS: Record<string, string> = {
   verified: "dashboard.verifStatusVerified",
@@ -1012,6 +1342,9 @@ function DashboardInner({ user, activeCompany }: {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [verificationFilter, setVerificationFilter] = useState<string>("all");
+  // Vendors Base on phones: how many rows are shown (10, then +10 per "Show more"); a new search or filter starts over.
+  const [vendorVisible, setVendorVisible] = useState(RFP_PAGE_SIZE);
+  useEffect(() => { setVendorVisible(RFP_PAGE_SIZE); }, [searchQuery, categoryFilter, cityFilter, verificationFilter]);
   const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showCompanyProfileDialog, setShowCompanyProfileDialog] = useState(false);
@@ -1119,6 +1452,9 @@ function DashboardInner({ user, activeCompany }: {
     enabled: canManage,
     refetchOnMount: 'always',
     staleTime: 0,
+    // Phones: while a new search is loading keep showing the last list instead of flashing
+    // the loading placeholders on every letter typed. Desktop behaves as before.
+    placeholderData: isPhone ? keepPreviousData : undefined,
   });
 
   const [vendorToRemove, setVendorToRemove] = useState<{ id: string; companyId: string; name: string } | null>(null);
@@ -1138,7 +1474,7 @@ function DashboardInner({ user, activeCompany }: {
       );
       queryClient.invalidateQueries({ queryKey: ['/api/onboarding-tasks'] });
       setVendorToRemove(null);
-      toast({ title: t('dashboard.removeVendorTitle'), description: `${name} ${t('dashboard.removedFromBase')}` });
+      toast({ title: t('dashboard.removeVendorTitle'), description: `\u2068${name}\u2069 ${t('dashboard.removedFromBase')}` });
     },
     onError: () => {
       toast({ title: t('dashboard.removeVendorTitle'), description: t('dashboard.removeVendorError'), variant: 'destructive' });
@@ -1146,7 +1482,7 @@ function DashboardInner({ user, activeCompany }: {
   });
 
   // Fetch pending join requests
-  const { data: pendingRequests = [] } = useQuery<JoinRequest[]>({
+  const { data: pendingRequests = [], isLoading: loadingRequests } = useQuery<JoinRequest[]>({
     queryKey: ['/api/join-requests', 'pending'],
     queryFn: async () => {
       const response = await fetch('/api/join-requests?status=pending', {
@@ -1260,11 +1596,19 @@ function DashboardInner({ user, activeCompany }: {
   const filteredVendors = vendors.filter(vendor => {
     const matchesCategory = categoryFilter === 'all' || vendor.category === categoryFilter;
     const matchesCity = cityFilter === 'all' || vendor.city === cityFilter;
-    const matchesVerification = verificationFilter === 'all' || vendor.verificationStatus === verificationFilter;
+    const matchesVerification = verificationFilter === 'all'
+      || (verificationFilter === 'unverified' ? vendor.verificationStatus !== 'verified' : vendor.verificationStatus === verificationFilter);
     return matchesCategory && matchesCity && matchesVerification;
   });
 
   const activeFilterCount = [categoryFilter, cityFilter, verificationFilter].filter(f => f !== 'all').length;
+
+  // Category and city are stored in English; show them in the page language (the server sends "No category" for a missing one).
+  const vendorCategoryText = (category: string) => category === 'No category' ? t('dashboard.noCategory') : categoryLabel(category, isRtl);
+  const vendorJoinText = (method: string) => method === 'invitation' ? t('dashboard.invitedMethod') : method === 'proposal_accepted' ? t('dashboard.viaProposal') : t('dashboard.appliedViaTraction');
+  const clearVendorFilters = () => { setCategoryFilter('all'); setCityFilter('all'); setVerificationFilter('all'); };
+  // A workspace with no vendors at all (nothing searched, nothing filtered) skips the search and filters on phones.
+  const vendorsEmptyWorkspace = !loadingVendors && vendors.length === 0 && !searchQuery && activeFilterCount === 0;
 
   // Delete tender mutation
   const deleteTender = useMutation({
@@ -1338,12 +1682,12 @@ function DashboardInner({ user, activeCompany }: {
     mutationFn: async (id: string) => {
       return await apiRequest('POST', `/api/join-requests/${id}/approve`, {});
     },
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/join-requests'] });
       queryClient.invalidateQueries({ queryKey: ['/api/vendors-base'] });
       toast({
-        title: "Request approved",
-        description: data.message || "Vendor has been added to your base",
+        title: t('dashboard.requestApproved'),
+        description: t('dashboard.requestApprovedDesc'),
       });
       setSelectedRequest(null);
       setProfileDrawerOpen(false);
@@ -1351,7 +1695,7 @@ function DashboardInner({ user, activeCompany }: {
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to approve",
+        title: t('dashboard.requestApproveFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -1366,8 +1710,8 @@ function DashboardInner({ user, activeCompany }: {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/join-requests'] });
       toast({
-        title: "Request rejected",
-        description: "Vendor application has been declined",
+        title: t('dashboard.requestRejected'),
+        description: t('dashboard.requestRejectedDesc'),
       });
       setSelectedRequest(null);
       setProfileDrawerOpen(false);
@@ -1375,7 +1719,7 @@ function DashboardInner({ user, activeCompany }: {
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to reject",
+        title: t('dashboard.requestRejectFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -3515,6 +3859,9 @@ function DashboardInner({ user, activeCompany }: {
                           <p className="text-xs text-muted-foreground">{t('dashboard.shareLinkWithVendors')}</p>
                         </div>
                       </div>
+                      {isPhone ? (
+                        <TractionLinkActionsMobile slug={activeCompany.profile.tractionSlug} />
+                      ) : (
                       <div className={`flex items-center gap-2`}>
                         <div dir="ltr" className="flex-1 min-w-0 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate">
                           {window.location.origin}/traction/{activeCompany.profile.tractionSlug}
@@ -3545,6 +3892,7 @@ function DashboardInner({ user, activeCompany }: {
                           </Button>
                         </a>
                       </div>
+                      )}
                     </div>
                   ) : (
                     <TractionSlugSetup companyName={activeCompany?.name || ''} isRtl={isRtl} />
@@ -3553,16 +3901,16 @@ function DashboardInner({ user, activeCompany }: {
               </Card>
 
               <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
-                <TabsList className={`flex w-full max-w-2xl overflow-x-auto sm:grid sm:grid-cols-2 ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
-                  <TabsTrigger value="vendors-list" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
-                    <Users className="h-4 w-4" />
-                    {t('dashboard.vendorsBase')} ({vendors.length})
+                <TabsList className={`grid grid-cols-2 w-full max-w-2xl max-md:h-auto ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
+                  <TabsTrigger value="vendors-list" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap max-md:whitespace-normal max-md:min-h-11 max-md:gap-1.5 max-md:px-1.5 max-md:active:opacity-70 ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
+                    <Users className="h-4 w-4 max-[400px]:hidden" />
+                    <span>{t('dashboard.vendorsBase')} <TabCount loading={loadingVendors} count={vendors.length} /></span>
                   </TabsTrigger>
-                  <TabsTrigger value="join-requests" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
-                    <UserPlus className="h-4 w-4" />
+                  <TabsTrigger value="join-requests" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap max-md:whitespace-normal max-md:min-h-11 max-md:gap-1.5 max-md:px-1.5 max-md:active:opacity-70 ${BRAND_TABTRIGGER}`} data-testid="tab-join-requests" data-tour="vendors-requests-tab">
+                    <UserPlus className="h-4 w-4 max-[400px]:hidden" />
                     {t('dashboard.pendingRequests')}
                     {pendingRequests.length > 0 && (
-                      <Badge variant="destructive" className="ms-2" data-testid="badge-pending-count">
+                      <Badge variant="destructive" className="ms-2 max-md:ms-1.5" data-testid="badge-pending-count">
                         {pendingRequests.length}
                       </Badge>
                     )}
@@ -3572,8 +3920,11 @@ function DashboardInner({ user, activeCompany }: {
                 {/* Vendors List Sub-Tab */}
                 <TabsContent value="vendors-list" className="space-y-4">
                   {/* Search */}
+                  {/* On phones a workspace with no vendors yet skips search and filters: nothing to search,
+                      and the one thing to do (share the joining link) stays on the first screen. */}
+                  {!(isPhone && vendorsEmptyWorkspace && !vendorsTourActive) && (
                   <Card {...brandCardProps()} data-tour="vendors-search">
-                    <CardContent className="pt-6">
+                    <CardContent className="pt-6 max-md:p-4">
                       <div className="relative">
                         <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground`} />
                         <Input
@@ -3581,59 +3932,58 @@ function DashboardInner({ user, activeCompany }: {
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           className="ps-10 text-start"
+                          enterKeyHint="search"
                           data-testid="input-vendor-search"
                         />
                       </div>
                     </CardContent>
                   </Card>
+                  )}
 
                   {/* Vendor Filters */}
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  {!(isPhone && vendorsEmptyWorkspace) && (
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+                    <div className="hidden items-center gap-1.5 text-sm text-muted-foreground sm:flex">
                       <Filter className="h-4 w-4" />
                     </div>
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger className="w-full sm:w-[160px] h-9" data-testid="filter-category">
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-full sm:w-[160px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-category">
                         <SelectValue placeholder={t('dashboard.allCategories')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">{t('dashboard.allCategories')}</SelectItem>
+                        <SelectItem value="all" className="max-md:min-h-11">{t('dashboard.allCategories')}</SelectItem>
                         {uniqueCategories.map(cat => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                          <SelectItem key={cat} value={cat} className="max-md:min-h-11">{vendorCategoryText(cat)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={cityFilter} onValueChange={setCityFilter}>
-                      <SelectTrigger className="w-full sm:w-[160px] h-9" data-testid="filter-city">
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={cityFilter} onValueChange={setCityFilter}>
+                      <SelectTrigger className="w-full sm:w-[160px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-city">
                         <SelectValue placeholder={t('dashboard.allCities')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">{t('dashboard.allCities')}</SelectItem>
+                        <SelectItem value="all" className="max-md:min-h-11">{t('dashboard.allCities')}</SelectItem>
                         {uniqueCities.map(city => (
-                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                          <SelectItem key={city} value={city} className="max-md:min-h-11">{cityLabel(city, isRtl)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={verificationFilter} onValueChange={setVerificationFilter}>
-                      <SelectTrigger className="w-full sm:w-[160px] h-9" data-testid="filter-verification">
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={verificationFilter} onValueChange={setVerificationFilter}>
+                      <SelectTrigger className="col-span-2 w-full sm:w-[160px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-verification">
                         <SelectValue placeholder={t('dashboard.allStatuses')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">{t('dashboard.allStatuses')}</SelectItem>
-                        <SelectItem value="verified">{t('dashboard.verified')}</SelectItem>
-                        <SelectItem value="unverified">{t('dashboard.unverified')}</SelectItem>
+                        <SelectItem value="all" className="max-md:min-h-11">{t('dashboard.allStatuses')}</SelectItem>
+                        <SelectItem value="verified" className="max-md:min-h-11">{t('dashboard.verified')}</SelectItem>
+                        <SelectItem value="unverified" className="max-md:min-h-11">{t('dashboard.unverified')}</SelectItem>
                       </SelectContent>
                     </Select>
                     {activeFilterCount > 0 && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-9 px-2 text-muted-foreground hover:text-foreground"
-                        onClick={() => {
-                          setCategoryFilter('all');
-                          setCityFilter('all');
-                          setVerificationFilter('all');
-                        }}
+                        className="col-span-2 h-9 px-2 text-muted-foreground hover:text-foreground max-md:h-11 max-md:text-[#6B635B] max-md:dark:text-muted-foreground"
+                        onClick={clearVendorFilters}
                         data-testid="button-clear-filters"
                       >
                         <X className="h-3.5 w-3.5 me-1" />
@@ -3641,15 +3991,17 @@ function DashboardInner({ user, activeCompany }: {
                       </Button>
                     )}
                   </div>
+                  )}
 
-                  {/* Active Filter Badges */}
+                  {/* Active Filter Badges. Not on phones: the three dropdowns above already show what is chosen,
+                      and these chips' remove buttons are 20px. */}
                   <AnimatePresence>
                     {activeFilterCount > 0 && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="flex flex-wrap gap-2"
+                        className="flex flex-wrap gap-2 max-md:hidden"
                       >
                         {categoryFilter !== 'all' && (
                           <motion.div
@@ -3658,7 +4010,7 @@ function DashboardInner({ user, activeCompany }: {
                             exit={{ opacity: 0, scale: 0.8 }}
                           >
                             <Badge variant="secondary" className="gap-1 pe-1">
-                              {t('dashboard.filterByCategory')}: {categoryFilter}
+                              {t('dashboard.filterByCategory')}: {vendorCategoryText(categoryFilter)}
                               <button
                                 onClick={() => setCategoryFilter('all')}
                                 className="ms-1 rounded-full hover:bg-muted p-0.5"
@@ -3676,7 +4028,7 @@ function DashboardInner({ user, activeCompany }: {
                             exit={{ opacity: 0, scale: 0.8 }}
                           >
                             <Badge variant="secondary" className="gap-1 pe-1">
-                              {t('dashboard.filterByCity')}: {cityFilter}
+                              {t('dashboard.filterByCity')}: {cityLabel(cityFilter, isRtl)}
                               <button
                                 onClick={() => setCityFilter('all')}
                                 className="ms-1 rounded-full hover:bg-muted p-0.5"
@@ -3711,24 +4063,67 @@ function DashboardInner({ user, activeCompany }: {
 
                   {/* Vendors List */}
                   {loadingVendors ? (
-                    <SkeletonList items={4} />
+                    isPhone ? (
+                      <div className="space-y-3" data-testid="skeleton-vendors">
+                        <VendorRowSkeleton />
+                        <VendorRowSkeleton />
+                        <VendorRowSkeleton />
+                      </div>
+                    ) : (
+                      <SkeletonList items={4} />
+                    )
                   ) : filteredVendors.length === 0 ? (
                     <Card {...brandCardProps()}>
-                      <CardContent className="flex flex-col items-center justify-center py-16">
+                      <CardContent className={`flex flex-col items-center justify-center py-16 max-md:px-4 ${isPhone && !vendorsEmptyWorkspace ? 'max-md:py-6' : 'max-md:py-10'}`}>
+                        {/* Phones, search or filters on, nothing matched: no big icon tile, so the message and
+                            "Clear filters" stay on the first screen above the tab bar. */}
+                        {!(isPhone && !vendorsEmptyWorkspace) && (
                         <div className="h-16 w-16 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-4 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
                           <Users className="h-8 w-8" />
                         </div>
-                        <h3 className="font-display font-black text-2xl mb-2 tracking-[-0.03em]" data-testid="text-empty-vendors-title">
-                          {t('dashboard.noVendors')}
+                        )}
+                        <h3 className={`font-display font-black text-2xl mb-2 tracking-[-0.03em] max-md:text-center max-md:text-balance max-md:leading-snug ${isPhone && !vendorsEmptyWorkspace ? 'max-md:text-xl' : ''}`} data-testid="text-empty-vendors-title">
+                          {isPhone && !vendorsEmptyWorkspace ? t('dashboard.vendorNoMatches') : t('dashboard.noVendors')}
                         </h3>
-                        <p className="text-muted-foreground text-center max-w-md" data-testid="text-empty-vendors-description">
-                          {t('dashboard.noVendorsDesc')}
+                        <p className="text-muted-foreground text-center max-w-md max-md:text-balance" data-testid="text-empty-vendors-description">
+                          {isPhone && !vendorsEmptyWorkspace ? t('dashboard.rfpNoMatchesDesc') : t('dashboard.noVendorsDesc')}
                         </p>
+                        {isPhone && !vendorsEmptyWorkspace && (
+                          <Button
+                            variant="outline"
+                            className="mt-6 w-full"
+                            onClick={() => { setSearchQuery(""); clearVendorFilters(); }}
+                            data-testid="button-clear-vendor-filters"
+                          >
+                            {t('dashboard.rfpClearFilters')}
+                          </Button>
+                        )}
+                        {isPhone && vendorsEmptyWorkspace && activeCompany?.profile?.tractionSlug && (
+                          <CopyLinkButton
+                            url={`${window.location.origin}/traction/${activeCompany.profile.tractionSlug}`}
+                            className="mt-6 w-full max-md:h-auto max-md:min-h-11 border-transparent bg-[#FE3C01] text-white hover:bg-[#E83501] hover:text-white active:bg-[#C93000]"
+                            testId="button-copy-traction-link-empty"
+                          />
+                        )}
                       </CardContent>
                     </Card>
                   ) : (
-                    <div className="grid gap-4">
-                      {filteredVendors.map((vendor) => (
+                    <div className="grid gap-4 max-md:gap-3">
+                      {isPhone && filteredVendors.length > RFP_PAGE_SIZE && (
+                        <p className="text-sm text-[#6B635B] dark:text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-vendors-count">
+                          {t('dashboard.rfpShowing', { shown: Math.min(vendorVisible, filteredVendors.length), total: filteredVendors.length })}
+                        </p>
+                      )}
+                      {(isPhone ? filteredVendors.slice(0, vendorVisible) : filteredVendors).map((vendor) => isPhone ? (
+                        <VendorRowMobile
+                          key={vendor.id}
+                          vendor={vendor}
+                          categoryText={vendorCategoryText(vendor.category)}
+                          cityText={cityLabel(vendor.city, isRtl)}
+                          joinText={vendorJoinText(vendor.joinMethod)}
+                          onRemove={() => setVendorToRemove({ id: vendor.id, companyId: vendor.companyId, name: vendor.company })}
+                        />
+                      ) : (
                         <SpotlightCard key={vendor.id} {...brandSpotlightProps()} spotlightColor="orange" data-testid={`card-vendor-${vendor.id}`}>
                           <div className="p-6">
                             <div className="flex items-start justify-between mb-4">
@@ -3805,19 +4200,34 @@ function DashboardInner({ user, activeCompany }: {
                           </div>
                         </SpotlightCard>
                       ))}
+                      {isPhone && filteredVendors.length > vendorVisible && (
+                        <Button
+                          variant="outline"
+                          className="h-12 w-full text-base"
+                          onClick={() => setVendorVisible((n) => n + RFP_PAGE_SIZE)}
+                          data-testid="button-show-more-vendors"
+                        >
+                          {t('dashboard.rfpShowMore', { count: filteredVendors.length - vendorVisible })}
+                        </Button>
+                      )}
                     </div>
                   )}
                 </TabsContent>
 
                 {/* Join Requests Sub-Tab */}
                 <TabsContent value="join-requests" className="space-y-4">
-                  {pendingRequests.length === 0 ? (
+                  {isPhone && loadingRequests ? (
+                    <div className="space-y-3" data-testid="skeleton-requests">
+                      <VendorRowSkeleton />
+                      <VendorRowSkeleton />
+                    </div>
+                  ) : pendingRequests.length === 0 ? (
                     <Card {...brandCardProps()}>
-                      <CardContent className="flex flex-col items-center justify-center py-16">
+                      <CardContent className="flex flex-col items-center justify-center py-16 max-md:px-4 max-md:py-10">
                         <div className="h-14 w-14 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-3 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
                           <UserPlus className="h-7 w-7" />
                         </div>
-                        <p className="font-display font-black text-2xl tracking-[-0.03em]" data-testid="text-no-requests">
+                        <p className="font-display font-black text-2xl tracking-[-0.03em] max-md:text-center max-md:text-balance max-md:leading-snug" data-testid="text-no-requests">
                           {t('dashboard.noPendingRequests')}
                         </p>
                       </CardContent>
@@ -3837,7 +4247,20 @@ function DashboardInner({ user, activeCompany }: {
                         {pendingRequests.map((request) => {
                           const initials = (request.vendor?.company || 'U')
                             .split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-                          const timeAgo = request.createdAt ? new Date(request.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                          const timeAgo = request.createdAt ? formatDate(request.createdAt) : '';
+                          if (isPhone) {
+                            return (
+                              <JoinRequestRowMobile
+                                key={request.id}
+                                request={request}
+                                dateText={timeAgo}
+                                onReject={() => rejectRequest.mutate(request.id)}
+                                onApprove={() => approveRequest.mutate(request.id)}
+                                rejecting={rejectRequest.isPending}
+                                approving={approveRequest.isPending}
+                              />
+                            );
+                          }
                           return (
                             <SpotlightCard
                               key={request.id}
@@ -4227,13 +4650,13 @@ function DashboardInner({ user, activeCompany }: {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('dashboard.removeVendorTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('dashboard.removeVendorDesc', { name: vendorToRemove?.name ?? '' })}
+              {t('dashboard.removeVendorDesc', { name: `\u2068${vendorToRemove?.name ?? ''}\u2069` })}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('dashboard.cancel')}</AlertDialogCancel>
+          <AlertDialogFooter className="max-md:gap-2">
+            <AlertDialogCancel className="max-md:mt-0">{t('dashboard.cancel')}</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              className="bg-destructive hover:bg-destructive/90 active:bg-destructive/80 text-destructive-foreground"
               onClick={() => vendorToRemove && removeVendorMutation.mutate({ id: vendorToRemove.id, name: vendorToRemove.name })}
             >
               {removeVendorMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('dashboard.remove')}

@@ -1027,6 +1027,228 @@
       "keyboard": false
     },
     {
+      "id": "dash-vendors-filter-open",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors, status filter open (Seet)",
+      "route": "/vendors",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "waitFor": "[data-testid^=\"card-vendor-\"]"
+        },
+        {
+          "click": "[data-testid=\"filter-verification\"]"
+        },
+        {
+          "waitFor": "[role=\"listbox\"]"
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "fullPage": false,
+      "skipProjects": [
+        "desktop"
+      ]
+    },
+    {
+      "id": "dash-vendors-no-match",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors, search with no result (Seet)",
+      "route": "/vendors",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "waitFor": "[data-testid^=\"card-vendor-\"]"
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-vendor-search\"]",
+            "zzzq"
+          ]
+        },
+        {
+          "waitFor": "[data-testid=\"button-clear-vendor-filters\"]"
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "skipProjects": [
+        "desktop"
+      ]
+    },
+    {
+      "id": "dash-vendors-remove-confirm",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors, remove confirmation (Seet, nothing is removed)",
+      "route": "/vendors",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "waitFor": "[data-testid^=\"button-remove-vendor-\"]"
+        },
+        {
+          "click": "[data-testid^=\"button-remove-vendor-\"]"
+        },
+        {
+          "waitFor": "[role=\"alertdialog\"]"
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "expectDialog": true,
+      "fullPage": false,
+      "skipProjects": [
+        "desktop"
+      ]
+    },
+    {
+      "id": "dash-vendors-link-copied",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors, joining link copied (Seet)",
+      "route": "/vendors",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "waitFor": "[data-testid=\"button-copy-traction-link\"]"
+        },
+        {
+          "click": "[data-testid=\"button-copy-traction-link\"]"
+        },
+        {
+          "wait": 500
+        }
+      ],
+      "skipProjects": [
+        "desktop"
+      ]
+    },
+    {
+      "id": "dash-vendors-many",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors, 25 made-up vendors incl. long and mixed-script names, first 10 (Seet, list faked in the page)",
+      "route": "/vendors",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "waitFor": "[data-testid=\"tab-vendors-list\"]"
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "eval": "(async () => { const root = document.getElementById('root'); const key = Object.keys(root).find(k => k.startsWith('__reactContainer$')); const stack = [root[key]]; let client = null, guard = 0; while (stack.length && !client && guard++ < 20000) { const n = stack.pop(); if (!n) continue; const c = n.memoizedProps && n.memoizedProps.client; if (c && c.invalidateQueries) { client = c; break; } if (n.sibling) stack.push(n.sibling); if (n.child) stack.push(n.child); } const names = ['شركة الأفق للمقاولات والتجارة العامة والخدمات اللوجستية المحدودة', 'Supercalifragilisticexpialidocious-Trading-and-Contracting-Company-of-Saudi-Arabia-LLC', 'شركة Nova للتقنية', 'Zed', 'مؤسسة النخبة', 'Blue Ocean Consulting', 'Al Rajhi Tech', 'شركة الرياض']; const cats = ['Marketing & Advertising', 'Information Technology', 'No category', 'Financial Services', 'Legal Services', 'Custom Freelance Category That Is Rather Long']; const joins = ['invitation', 'traction', 'proposal_accepted']; const FAKE = Array.from({ length: 25 }, (_, i) => ({ id: 'fv' + i, companyId: 'c' + i, slug: i % 5 === 3 ? '' : 's' + i, hasProfile: true, company: names[i % names.length] + (i >= 8 ? ' ' + i : ''), legalName: null, category: cats[i % cats.length], city: i % 4 === 1 ? null : ['Riyadh', 'Jeddah', 'Al Hofuf', 'Dammam'][i % 4], crNumber: null, vatNumber: null, bio: i % 3 === 0 ? '' : 'نبذة تعريفية طويلة نسبياً عن الشركة وخدماتها ومجالات عملها الرئيسية وخبرتها في السوق السعودي خلال السنوات الماضية ' + i, logoUrl: null, email: '', verificationStatus: i % 3 === 0 ? 'verified' : 'not_verified', joinMethod: joins[i % 3], joinedAt: '2026-09-01T10:00:00Z' })); const URLPART = '/api/vendors-base';const orig = window.fetch; window.fetch = (input, init) => { const url = typeof input === 'string' ? input : input.url; if (url.includes(URLPART)) return Promise.resolve(new Response(JSON.stringify(FAKE), { status: 200, headers: { 'Content-Type': 'application/json' } })); return orig(input, init); }; await client.invalidateQueries({ queryKey: ['/api/vendors-base'] }); })()"
+        },
+        {
+          "waitFor": "[data-testid=\"card-vendor-fv0\"]"
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "skipProjects": [
+        "desktop"
+      ]
+    },
+    {
+      "id": "dash-vendors-many-more",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors, 25 made-up vendors after \"Show more\" (20 of 25, Seet)",
+      "route": "/vendors",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "waitFor": "[data-testid=\"tab-vendors-list\"]"
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "eval": "(async () => { const root = document.getElementById('root'); const key = Object.keys(root).find(k => k.startsWith('__reactContainer$')); const stack = [root[key]]; let client = null, guard = 0; while (stack.length && !client && guard++ < 20000) { const n = stack.pop(); if (!n) continue; const c = n.memoizedProps && n.memoizedProps.client; if (c && c.invalidateQueries) { client = c; break; } if (n.sibling) stack.push(n.sibling); if (n.child) stack.push(n.child); } const names = ['شركة الأفق للمقاولات والتجارة العامة والخدمات اللوجستية المحدودة', 'Supercalifragilisticexpialidocious-Trading-and-Contracting-Company-of-Saudi-Arabia-LLC', 'شركة Nova للتقنية', 'Zed', 'مؤسسة النخبة', 'Blue Ocean Consulting', 'Al Rajhi Tech', 'شركة الرياض']; const cats = ['Marketing & Advertising', 'Information Technology', 'No category', 'Financial Services', 'Legal Services', 'Custom Freelance Category That Is Rather Long']; const joins = ['invitation', 'traction', 'proposal_accepted']; const FAKE = Array.from({ length: 25 }, (_, i) => ({ id: 'fv' + i, companyId: 'c' + i, slug: i % 5 === 3 ? '' : 's' + i, hasProfile: true, company: names[i % names.length] + (i >= 8 ? ' ' + i : ''), legalName: null, category: cats[i % cats.length], city: i % 4 === 1 ? null : ['Riyadh', 'Jeddah', 'Al Hofuf', 'Dammam'][i % 4], crNumber: null, vatNumber: null, bio: i % 3 === 0 ? '' : 'نبذة تعريفية طويلة نسبياً عن الشركة وخدماتها ومجالات عملها الرئيسية وخبرتها في السوق السعودي خلال السنوات الماضية ' + i, logoUrl: null, email: '', verificationStatus: i % 3 === 0 ? 'verified' : 'not_verified', joinMethod: joins[i % 3], joinedAt: '2026-09-01T10:00:00Z' })); const URLPART = '/api/vendors-base';const orig = window.fetch; window.fetch = (input, init) => { const url = typeof input === 'string' ? input : input.url; if (url.includes(URLPART)) return Promise.resolve(new Response(JSON.stringify(FAKE), { status: 200, headers: { 'Content-Type': 'application/json' } })); return orig(input, init); }; await client.invalidateQueries({ queryKey: ['/api/vendors-base'] }); })()"
+        },
+        {
+          "waitFor": "[data-testid=\"button-show-more-vendors\"]"
+        },
+        {
+          "click": "[data-testid=\"button-show-more-vendors\"]"
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "skipProjects": [
+        "desktop"
+      ]
+    },
+    {
+      "id": "dash-vendors-requests",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors, pending join requests (Seet has none: three made-up requests faked in the page)",
+      "route": "/vendors",
+      "keyboard": false,
+      "workspace": "seet",
+      "storage": {
+        "dashboard-vendors-tab": "join-requests"
+      },
+      "actions": [
+        {
+          "waitFor": "[data-testid=\"tab-join-requests\"]"
+        },
+        {
+          "wait": 2500
+        },
+        {
+          "eval": "(async () => { const root = document.getElementById('root'); const key = Object.keys(root).find(k => k.startsWith('__reactContainer$')); const stack = [root[key]]; let client = null, guard = 0; while (stack.length && !client && guard++ < 20000) { const n = stack.pop(); if (!n) continue; const c = n.memoizedProps && n.memoizedProps.client; if (c && c.invalidateQueries) { client = c; break; } if (n.sibling) stack.push(n.sibling); if (n.child) stack.push(n.child); } const FAKE = [{ id: 'r1', status: 'pending', createdAt: '2026-09-20T10:00:00Z', vendor: { id: 'v1', slug: 'x', hasProfile: true, name: 'A', email: 'a@example.com', company: 'شركة الأفق للمقاولات والتجارة العامة المحدودة', expertise: 'Construction & Infrastructure', verificationStatus: 'verified', logoUrl: null, bio: 'نقدم خدمات المقاولات والصيانة في المنطقة الشرقية منذ أكثر من عشر سنوات مع فريق متخصص.', websiteUrl: 'https://www.example-contracting-and-trading-company.com.sa/' } }, { id: 'r2', status: 'pending', createdAt: '2026-09-22T10:00:00Z', vendor: { id: 'v2', slug: null, hasProfile: false, name: 'B', email: 'b@example.com', company: 'Very Long Company Name For Advanced Digital Transformation Consulting Services LLC', expertise: 'Information Technology', verificationStatus: 'under_review', logoUrl: null, bio: null, websiteUrl: null } }, { id: 'r3', status: 'pending', createdAt: '2026-09-23T10:00:00Z', vendor: { id: 'v3', slug: 'z', hasProfile: false, name: 'C', email: 'c@example.com', company: 'Zed', expertise: null, verificationStatus: 'not_verified', logoUrl: null, bio: 'Short bio', websiteUrl: null } }]; const URLPART = '/api/join-requests';const orig = window.fetch; window.fetch = (input, init) => { const url = typeof input === 'string' ? input : input.url; if (url.includes(URLPART)) return Promise.resolve(new Response(JSON.stringify(FAKE), { status: 200, headers: { 'Content-Type': 'application/json' } })); return orig(input, init); }; await client.invalidateQueries({ queryKey: ['/api/join-requests'] }); })()"
+        },
+        {
+          "waitFor": "[data-testid=\"card-request-r1\"]"
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "skipProjects": [
+        "desktop"
+      ]
+    },
+    {
+      "id": "dash-vendors-new-setup",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors, joining-link setup open (empty workspace)",
+      "route": "/vendors",
+      "keyboard": false,
+      "actions": [
+        {
+          "waitFor": "[data-testid=\"button-setup-traction\"]"
+        },
+        {
+          "click": "[data-testid=\"button-setup-traction\"]"
+        },
+        {
+          "waitFor": "[data-testid=\"input-traction-slug\"]"
+        },
+        {
+          "wait": 300
+        }
+      ]
+    },
+    {
       "id": "dash-menu-open",
       "batch": "batch-3",
       "page": "dashboard-shell",

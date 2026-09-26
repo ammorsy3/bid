@@ -150,6 +150,9 @@ for (const state of states) {
 
         await page.goto(state.route, { waitUntil: "domcontentloaded" });
         for (const action of state.actions ?? []) await runAction(page, action);
+        // Web fonts (IBM Plex Sans Arabic) change line wrapping; don't judge or
+        // photograph the fallback font.
+        await page.evaluate(() => document.fonts.ready);
 
         const readiness = await page.evaluate(
           (o) => (window as any).__mobileAudit.ready(o),
@@ -179,9 +182,16 @@ for (const state of states) {
         );
         fs.mkdirSync(outDir, { recursive: true });
         const base = path.join(outDir, `${state.id}.${lang}`);
+        const fullPage = state.fullPage !== false && project !== "desktop";
+        // A click scrolls the page; a full-page photo taken from there shows a
+        // sticky top bar stuck halfway down. Photograph from the top.
+        if (fullPage) {
+          await page.evaluate(() => window.scrollTo(0, 0));
+          await page.waitForTimeout(150);
+        }
         await page.screenshot({
           path: `${base}.png`,
-          fullPage: state.fullPage !== false && project !== "desktop",
+          fullPage,
           animations: "disabled",
           caret: "hide",
           // CSS-pixel photos (393px wide on an iPhone) keep the report light.

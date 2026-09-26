@@ -49,8 +49,32 @@ const PAGE_LABELS = {
   "onboarding-team": "Setting up a vendor team",
   "team-invite": "Accepting a team invitation",
   join: "Joining with a code",
+  landing: "The Bid home page",
+  pricing: "Pricing",
+  faq: "Frequently asked questions",
+  "getting-started": "Getting started guide",
+  terms: "Terms of Service",
+  privacy: "Privacy Policy",
+  cookies: "Cookie Policy (new)",
+  docs: "Developer docs",
 };
 const PAGE_SUMMARIES = {
+  landing:
+    "The menu button on a phone was broken: opening it pushed the whole page down, and Chrome then scrolled so far that the menu items ended up off the screen. The menu now drops down over a dimmed page from a top bar that stays put as you scroll. The sign-up message slides up from the bottom like a native app, every button is big enough to tap and visibly reacts when pressed, and an orange badge that was cut off at the screen edge is whole again. In Arabic, the letters were being spread apart (which breaks Arabic writing) on phones and on desktop; that's fixed everywhere, and the page now uses the same Arabic font as the rest of the app.",
+  pricing:
+    "The phone menu opened off-screen here too. The monthly/yearly switch is now a big, easy-to-hit switch that slides, the plan buttons are comfortable to tap, and every FAQ question can be tapped across its whole row. Arabic letters are no longer spread apart, numbers in the Arabic text match the prices, and the small grey text in the footer is now dark enough to read comfortably on a phone.",
+  faq:
+    "Everything already fit, but the small links at the top and bottom were too small to tap reliably, and the text was a little small for a phone. Links are now easy to tap, the reading text is bigger on phones only, and each question reacts when you press it. The “back” arrow now points the right way in Arabic. Desktop looks exactly as before.",
+  "getting-started":
+    "Same treatment as the FAQ: bigger tap areas for the links, slightly larger reading text on phones, and the “back” arrow points the right way in Arabic. Desktop is unchanged.",
+  terms:
+    "Bigger tap areas for the header and footer links, and slightly larger reading text on phones. Desktop is unchanged.",
+  privacy:
+    "Bigger tap areas for the header and footer links, slightly larger reading text on phones, and a new link to the Cookie Policy. Desktop is unchanged. The text still names old providers (Replit, Neon); that's on your to-decide list.",
+  cookies:
+    "New page. The footer's “Cookies” link used to go nowhere, so this page was written from scratch, phone-first, in English and Arabic. It lists every cookie and piece of browser storage the app really uses, what each is for, and how long it stays, and it explains how to clear them on iPhone and Chrome.",
+  docs:
+    "Paused: this developer reference exists only in English, so it needs a decision from you (see the list below) before it's fixed.",
   login:
     "On iPhone, typing your email starts with a capital letter automatically — that alone used to make a correct password get rejected as “wrong.” If your phone had an old, expired sign-in saved, the screen could get stuck loading forever instead of showing the sign-in form. In Arabic, the password box typed backwards and the “show password” eye icon sat on top of the text. All of that is fixed, and we added a small button so you can switch between Arabic and English right on this screen.",
   signup:

@@ -138,6 +138,8 @@
   .hero-deco{position:absolute;inset:0;pointer-events:none}
   .hero-deco .piece{position:absolute;animation:float 6s ease-in-out infinite}
   @keyframes float{0%,100%{transform:translateY(0) scale(var(--s,1)) rotate(var(--r,0deg))}50%{transform:translateY(-10px) scale(var(--s,1)) rotate(var(--r,0deg))}}
+  /* Phone version: size and tilt live in scale/rotate, so only the bob is animated. */
+  @keyframes float-m{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
   /* Desktop piece positions */
   .hero-deco .piece.p1{top:24%;left:5%}
@@ -708,6 +710,28 @@
   .landing-rtl .modal-card{text-align:right}
   .landing-rtl .modal-icon{justify-content:flex-end}
   .landing-rtl .vcard h3,.landing-rtl .vcard p{text-align:right}
+
+  /* Arabic is never letter-spaced (it pulls the joined letters apart), at any width. */
+  .landing-rtl .hero h1,
+  .landing-rtl .sec-head h2,
+  .landing-rtl .vendors-hero h2,
+  .landing-rtl .cta-strip h2,
+  .landing-rtl .stage h3,
+  .landing-rtl .vcard h3,
+  .landing-rtl .mcard h4,
+  .landing-rtl .takeaway .quote,
+  .landing-rtl .takeaway .stat .v,
+  .landing-rtl .takeaway .stat .k,
+  .landing-rtl .mock-rfpform .label-tab,
+  .landing-rtl .mock-po .head .l,
+  .landing-rtl .mock-po .stamp,
+  .landing-rtl .mock-tlink .url-pill .copy,
+  .landing-rtl .mock-tlink .row-mini .label,
+  .landing-rtl .mock-rfpcheck .head,
+  .landing-rtl .footer-row h5,
+  .landing-rtl .modal-headline{letter-spacing:normal}
+  /* these two carry their spacing inline, so they need !important */
+  .landing-rtl .hero-deco .piece.p4>div,.landing-rtl .more-title{letter-spacing:normal!important}
   /* .mcard uses logical properties (text-align:start, padding-inline-start),
      so it mirrors automatically under dir="rtl" — no overrides needed. */
 
@@ -721,38 +745,73 @@
     /* Five columns get too tight here — drop the link lists to a 2x2 under
        the brand blurb before the single-column mobile layout takes over. */
     .footer-row{grid-template-columns:1fr 1fr;gap:32px}
+
+    /* Sticky top bar: overflow-x:hidden turns .landing-page into a scroll box,
+       and position:sticky then never engages. clip stops sideways scroll the
+       same way without that side effect (older browsers keep "hidden"). */
+    .landing-page{overflow-x:hidden;overflow-x:clip}
+    .landing-page section[id]{scroll-margin-top:64px}
+
+    /* Readable text colours (the desktop greys/oranges are a little too pale) */
+    .hero .sub{color:#6B625A}
+    .hero-deco .piece.p3>div{background:#15803D!important}
+
+    /* Arabic on phones: taller lines for multi-line headings, Arabic font on buttons */
+    .landing-rtl button{font-family:inherit}
+    .landing-rtl .hero-deco .piece.p4>div{line-height:1.3!important}
+    .landing-rtl .more-title{line-height:1.25!important}
+    .landing-rtl .sec-head h2,.landing-rtl .cta-strip h2{line-height:1.25}
+    .landing-rtl .vendors-hero h2{line-height:1.15}
+    .landing-rtl .stage h3,.landing-rtl .vcard h3,.landing-rtl .mcard h4{line-height:1.4}
+    .landing-rtl .takeaway .quote{line-height:1.5}
   }
 
   /* ============ MOBILE (≤ 640px) ============ */
   @media (max-width:640px){
-    .page{padding:0 16px}
+    .page{padding:0 16px;--gutter:16px}
 
-    /* Topbar */
-    .topbar{padding:14px 0}
+    /* Topbar: a full-width sticky app bar with 44px touch targets */
+    .topbar{padding:9px var(--gutter);margin:0 calc(var(--gutter) * -1)}
+    .topbar > a{display:inline-flex;align-items:center;min-height:44px;min-width:44px}
     .topbar-nav-desktop{display:none}
     .topbar-auth-desktop{display:none}
-    .hamburger{display:flex}
+    .lang-toggle{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:0 14px;font-size:13px}
+    .hamburger{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;margin-inline-end:-11px}
+
+    /* Menu drops down over the page from under the bar (never pushes the page) */
+    .mobile-menu{position:absolute;top:100%;inset-inline:var(--gutter);margin:8px 0 0;max-height:calc(100vh - 90px);max-height:calc(100dvh - 90px);overflow-y:auto;overscroll-behavior:contain;box-shadow:0 24px 48px -16px rgba(11,9,7,.3)}
+    .mobile-menu-scrim{position:absolute;top:100%;left:0;right:0;height:100vh;height:100dvh;z-index:-1;background:rgba(11,9,7,.35);animation:fadeIn .15s ease}
+    .mobile-menu .mobile-menu-btns a{padding:0;border:0}
+    .mobile-menu-btns .btn{justify-content:center;min-height:48px}
+    .mobile-menu-btns .btn-ghost{border:1.5px solid var(--line-strong)}
 
     /* Hero */
     .hero{padding:56px 0 80px;overflow:hidden}
+    .hero .badge{padding-inline:12px 16px}
     .hero h1{font-size:clamp(52px,13vw,76px)}
     .hero .sub{font-size:15px;padding:0 8px}
     .hero .ctas{flex-direction:column;align-items:center;gap:10px}
+    .hero .ctas > a{width:100%;max-width:300px}
     .hero .ctas .btn{width:100%;max-width:300px;justify-content:center}
+    .hero .ctas .btn-ghost{border:1.5px solid var(--line-strong)}
 
     /* Hero: extra bottom padding creates a safe zone for the bottom cards */
     .hero{padding:64px 0 200px;overflow:hidden;min-height:620px}
 
+    /* Size and tilt use scale/rotate (not the animated transform) so the
+       cards look the same whether or not the float animation is running. */
+    .hero-deco .piece{scale:var(--s,1);rotate:var(--r,0deg);animation-name:float-m}
+
     /* p1 — RFP card: same height as avatar cluster, smaller */
-    .hero-deco .piece.p1{top:2%;left:-16px;--s:.52}
+    .hero-deco .piece.p1{top:2%;left:-22px;--s:.52}
     /* p2 — avatar cluster: top-right, mostly visible */
     .hero-deco .piece.p2{top:2%;right:-10px;--s:.62}
     /* p3 — Awarded pill: raised up */
     .hero-deco .piece.p3{top:auto;bottom:12%;left:-8px;--s:.82}
     /* p4 — Pre-Awarded PO circle: raised up */
-    .hero-deco .piece.p4{top:auto;bottom:19%;right:-18px;--s:.78}
+    .hero-deco .piece.p4{top:auto;bottom:11%;right:-2px;--s:.78}
     /* p5 — AI drafted pill: raised up */
-    .hero-deco .piece.p5{top:auto;bottom:8%;right:10px;--s:.8}
+    .hero-deco .piece.p5{top:auto;bottom:6%;right:10px;--s:.8}
 
     /* Sections */
     .landing-page section{padding:48px 0}
@@ -763,13 +822,18 @@
     /* Stages — all stack to single column */
     .stages.s3,.stages.s4{grid-template-columns:1fr}
     .stage{min-height:280px}
-    .stage .visual{height:180px}
+    .stage .visual{height:200px}
     .stage h3{font-size:22px}
 
     /* Takeaway */
-    .takeaway{flex-direction:column;gap:16px}
-    .takeaway .stat{text-align:left}
+    .takeaway{flex-direction:column;align-items:flex-start;gap:16px}
+    .landing-rtl .takeaway{flex-direction:column}
+    .takeaway .stat{text-align:start}
     .landing-rtl .takeaway .stat{text-align:right}
+    /* sticker chips always sit on top of the mock cards (never half hidden behind them) */
+    .stage .visual .ico{z-index:2}
+    /* the PO stamp sits on the side where the Arabic text isn't */
+    .landing-rtl .mock-po .stamp{right:auto;left:-12px}
 
     /* Vendors */
     .vendors-section{padding:48px 0}
@@ -793,18 +857,49 @@
     .cta-strip h2{font-size:32px}
 
     /* Footer */
-    .footer-row{grid-template-columns:1fr;gap:32px}
+    .footer-row{grid-template-columns:1fr 1fr;gap:24px 20px}
+    .footer-row .brand{grid-column:1 / -1}
+    .footer-row .brand > span{width:fit-content}
+    .footer-row a{padding:13px 0}
+    .footer-support a{min-height:44px}
     .footer-bot{flex-direction:column;align-items:flex-start;gap:10px}
+    .footer-bot a{display:inline-block;padding:13px 6px}
+    .footer-bot a:first-child{margin-inline-start:-6px}
     .landing-page footer{padding:48px 0 32px}
 
-    /* Modal */
-    .modal-card{padding:28px 20px 24px;border-radius:20px}
+    /* Modal: a bottom sheet on phones */
+    .modal-backdrop{align-items:flex-end;padding:0}
+    .modal-card{max-width:none;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto;padding:28px 20px max(24px,env(safe-area-inset-bottom));border-radius:24px 24px 0 0;animation:sheetUp .28s cubic-bezier(.2,.8,.2,1)}
+    @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .modal-close{top:8px;right:auto;inset-inline-end:8px;width:44px;height:44px}
+    .modal-btn{min-height:52px}
     .modal-headline{font-size:22px}
+    .modal-headline-line{display:block}
+    .landing-rtl .modal-icon{justify-content:flex-start}
+    .landing-rtl .modal-headline{line-height:1.35}
+  }
+
+  /* ============ TOUCH SCREENS (no hover) ============ */
+  /* A tap leaves :hover stuck on iPhones, so drop the hover-only effects and
+     give every tap an :active answer instead. */
+  @media (hover:none){
+    .stage:hover,.vcard:hover,.mcard:hover{transform:none;box-shadow:none}
+    .stage:hover .arrow-pill{background:var(--ink)}
+    .btn-primary:hover{background:var(--ink)}
+    .btn-primary:hover .arrow{transform:none}
+    .btn-ghost:hover{background:transparent}
+    .lang-toggle:hover{background:transparent;color:var(--ink);border-color:var(--line-strong)}
+    .footer-row a:hover{color:var(--stone)}
+    .modal-btn:hover{border-color:var(--line-strong);box-shadow:none}
+    .modal-btn.primary:hover{background:var(--orange);border-color:var(--orange)}
+    .cta-strip .btn-white:hover{transform:none;box-shadow:none}
+    .btn:active,.lang-toggle:active,.hamburger:active,.modal-btn:active,.cta-strip .btn-white:active{transform:scale(.97);opacity:.85}
+    .mobile-menu a:active,.footer-row a:active,.footer-bot a:active,.topbar > a:active{opacity:.6}
   }
 
   /* ============ SMALL PHONES (≤ 390px) ============ */
   @media (max-width:390px){
-    .page{padding:0 12px}
+    .page{padding:0 12px;--gutter:12px}
     .hero h1{font-size:clamp(46px,13vw,64px)}
     .sec-head h2{font-size:clamp(32px,9vw,48px)}
     .vendors-hero h2{font-size:clamp(42px,13vw,64px)}

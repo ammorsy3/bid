@@ -681,6 +681,51 @@
       "keyboard": false
     },
     {
+      "id": "landing-menu-open",
+      "batch": "batch-2",
+      "page": "landing",
+      "title": "Landing — phone menu open",
+      "route": "/",
+      "actions": [
+        {
+          "click": "button.hamburger"
+        },
+        {
+          "waitFor": ".mobile-menu"
+        },
+        {
+          "wait": 300
+        }
+      ],
+      "keyboard": false,
+      "fullPage": false,
+      "skipProjects": [
+        "desktop"
+      ],
+      "expectDialog": true
+    },
+    {
+      "id": "landing-signup-popup",
+      "batch": "batch-2",
+      "page": "landing",
+      "title": "Landing — tapped the main sign-up button (popup)",
+      "route": "/",
+      "actions": [
+        {
+          "click": ".hero .ctas .btn-primary"
+        },
+        {
+          "waitFor": ".modal-card"
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "keyboard": false,
+      "fullPage": false,
+      "expectDialog": true
+    },
+    {
       "id": "pricing-default",
       "batch": "batch-2",
       "page": "pricing",

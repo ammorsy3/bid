@@ -32,7 +32,7 @@ status column up to date.
 Baseline (before fixes, 112 captures): 338 fails, all Arabic letter-spacing on landing + pricing; many warnings on docs.
 | Pages | Status | What to fix (known before the loop) |
 |---|---|---|
-| landing | in progress | Arabic letter-spacing fails (32 on phones). Check the mobile nav menu, hero, footer. |
+| landing | fixed (32 → 0 phone fails; desktop Arabic 31 → 0; desktop English pixel-identical; reviewer PASS round 2) | Phone menu drops down over a dimmed page instead of pushing it off-screen; sticky top bar; sign-up popup is a bottom sheet; 44px taps; touch press states; Arabic letter-spacing removed at every width. Menu and popup are real dialogs now. 2 questions added (decisions.md #10, #11). |
 | pricing | todo | Arabic letter-spacing fails (16 on phones). |
 | docs | todo | 53-63 warnings in Arabic (tap sizes / English words). Code blocks and tables must scroll inside themselves, not the page. |
 | faq, getting-started, terms, privacy | todo | Checklist is clean; a person still needs to look at them (reading width, spacing, Arabic feel). |

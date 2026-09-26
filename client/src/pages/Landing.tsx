@@ -47,6 +47,7 @@ const copy = {
     ftBriefs: "Receive briefs", ftTenders: "Explore tenders", ftConnect: "Connect with clients",
     ftContact: "Contact", ftTerms: "Terms", ftPrivacy: "Privacy", ftSupport: "SUPPORT",
     ftCopy: "© 2026 Bid, Sourcing Redefined.", ftCookies: "Cookies",
+    ariaMenu: "Menu", ariaLang: "Switch language",
   },
   ar: {
     navAbout: "عن Bid", navMarketplace: "سوق Bid", navTraction: "روابط الانضمام", navVendors: "للموردين", navPricing: "الأسعار",
@@ -86,6 +87,7 @@ const copy = {
     ftBriefs: "استلام البريفات", ftTenders: "استكشف المناقصات", ftConnect: "تواصل مع العملاء",
     ftContact: "تواصل معنا", ftTerms: "الشروط", ftPrivacy: "الخصوصية", ftSupport: "الدعم",
     ftCopy: "© 2026 Bid، التوريد بشكل جديد.", ftCookies: "الكوكيز",
+    ariaMenu: "القائمة", ariaLang: "تغيير اللغة",
   },
 } as const;
 
@@ -94,12 +96,12 @@ function SignUpModal({ onClose, lang }: { onClose: () => void; lang: Lang }) {
   const c = copy[lang];
   return (
     <div className="modal-backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-card" dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="modal-card" dir={lang === "ar" ? "rtl" : "ltr"} role="dialog" aria-modal="true" aria-labelledby="signup-modal-title">
         <button className="modal-close" onClick={onClose} aria-label={lang === "ar" ? "إغلاق" : "Close"}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
         <div className="modal-icon"><BidMonogram variant="onInk" size={56} /></div>
-        <h2 className="modal-headline">{c.modalHeadline}</h2>
+        <h2 className="modal-headline" id="signup-modal-title">{c.modalHeadline.split(/(?<=\.)\s+/).map((line, i) => <span key={i} className="modal-headline-line">{line} </span>)}</h2>
         <button className="modal-btn" onClick={() => { onClose(); navigate("/login"); }}>{c.modalLogin}</button>
         <button className="modal-btn primary" onClick={() => { onClose(); navigate("/signup?redirect=%2Ftenders%2Fnew%2Fai"); }}>{c.modalSignUp}</button>
       </div>
@@ -138,7 +140,7 @@ const Landing = () => {
 
         {/* ===== TOPBAR ===== */}
         <div className="topbar">
-          <a href="/" style={{ textDecoration: "none" }}>
+          <a href="/" style={{ textDecoration: "none" }} onClick={e => { e.preventDefault(); setMobileMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
             <BidLogo variant="orange" size={28} />
           </a>
 
@@ -153,7 +155,7 @@ const Landing = () => {
 
           <div className="topbar-right">
             {/* Language toggle */}
-            <button className="lang-toggle" onClick={toggleLang} aria-label="Switch language">
+            <button className="lang-toggle" onClick={toggleLang} aria-label={c.ariaLang}>
               {lang === "en" ? "AR" : "EN"}
             </button>
 
@@ -170,32 +172,36 @@ const Landing = () => {
             </div>
 
             {/* Mobile hamburger */}
-            <button className="hamburger" onClick={() => setMobileMenuOpen(o => !o)} aria-label="Menu">
+            <button className="hamburger" onClick={() => setMobileMenuOpen(o => !o)} aria-label={c.ariaMenu} aria-expanded={mobileMenuOpen} aria-controls="mobile-menu">
               <span></span><span></span><span></span>
             </button>
           </div>
-        </div>
 
-        {/* Mobile menu drawer */}
-        {mobileMenuOpen && (
-          <div className="mobile-menu" dir={isRtl ? "rtl" : "ltr"}>
-            <a href="#rfp" onClick={scrollTo("rfp")}>{c.navAbout}</a>
-            <Link href="/marketplace" onClick={() => setMobileMenuOpen(false)}>{c.navMarketplace}</Link>
-            <a href="#traction" onClick={scrollTo("traction")}>{c.navTraction}</a>
-            <a href="#vendors" onClick={scrollTo("vendors")}>{c.navVendors}</a>
-            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>{c.navPricing}</Link>
-            <div className="mobile-menu-btns">
-              {user?.otpVerified ? (
-                <Link href="/dashboard"><button className="btn btn-primary" style={{ width: "100%" }}>{c.btnDashboard}</button></Link>
-              ) : (
-                <>
-                  <Link href="/login"><button className="btn btn-ghost" style={{ width: "100%" }}>{c.btnSignIn}</button></Link>
-                  <Link href="/signup"><button className="btn btn-primary" style={{ width: "100%" }}>{c.btnCreateAccount}</button></Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+          {/* Mobile menu drawer: lives inside the sticky bar so it drops down over
+              the page instead of pushing it (and the page never jumps). */}
+          {mobileMenuOpen && (
+            <>
+              <div className="mobile-menu-scrim" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
+              <div className="mobile-menu" id="mobile-menu" dir={isRtl ? "rtl" : "ltr"} role="dialog" aria-modal="true" aria-label={c.ariaMenu}>
+                <a href="#rfp" onClick={scrollTo("rfp")}>{c.navAbout}</a>
+                <Link href="/marketplace" onClick={() => setMobileMenuOpen(false)}>{c.navMarketplace}</Link>
+                <a href="#traction" onClick={scrollTo("traction")}>{c.navTraction}</a>
+                <a href="#vendors" onClick={scrollTo("vendors")}>{c.navVendors}</a>
+                <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>{c.navPricing}</Link>
+                <div className="mobile-menu-btns">
+                  {user?.otpVerified ? (
+                    <Link href="/dashboard"><button className="btn btn-primary" style={{ width: "100%" }}>{c.btnDashboard}</button></Link>
+                  ) : (
+                    <>
+                      <Link href="/login"><button className="btn btn-ghost" style={{ width: "100%" }}>{c.btnSignIn}</button></Link>
+                      <Link href="/signup"><button className="btn btn-primary" style={{ width: "100%" }}>{c.btnCreateAccount}</button></Link>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* ===== HERO ===== */}
         <section className="hero" id="hero">
@@ -220,7 +226,7 @@ const Landing = () => {
           </div>
 
           {/* Floating decorations */}
-          <div className="hero-deco">
+          <div className="hero-deco" aria-hidden="true">
             <div className="piece p1" style={{ "--r": "-7deg" } as React.CSSProperties}>
               <div style={{ background: "white", borderRadius: 12, padding: "10px 12px", width: 170, boxShadow: "0 14px 28px -10px rgba(11,9,7,.18)", display: "flex", flexDirection: "column", gap: 6 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -521,7 +527,7 @@ const Landing = () => {
         {/* ===== AND MANY MORE ===== */}
         <section style={{ padding: "40px 0 80px" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <h2 style={{ fontSize: "clamp(56px,7vw,108px)", fontWeight: 700, letterSpacing: "-.04em", lineHeight: .95, color: "var(--ink)" }}>{c.moreTitle}<span style={{ color: "var(--orange)" }}>.</span></h2>
+            <h2 className="more-title" style={{ fontSize: "clamp(56px,7vw,108px)", fontWeight: 700, letterSpacing: "-.04em", lineHeight: .95, color: "var(--ink)" }}>{c.moreTitle}<span style={{ color: "var(--orange)" }}>.</span></h2>
           </div>
           <div className="more-grid">
             <div className="mcard">

@@ -10,8 +10,10 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
    admin flag. The other one (`Xakamsx@gmail.com`, "ahmed") owned and
    referenced nothing, so no data had to move. Its row was kept, not
    deleted: email renamed to `xakamsx+merged-e832e59f@gmail.com`, admin
-   removed. No case-duplicate emails are left. To undo, restore the "before"
-   values saved in the session's `merge-snapshot.json`.
+   removed. No case-duplicate emails are left. Nothing else was touched, so
+   undoing it is two updates: set user `e832e59f-…` back to email
+   `Xakamsx@gmail.com` with `is_admin = true`, and set user `982f49b6-…`
+   back to `is_admin = false`.
 
 2. **The stray dependency-update commit — resolved, no action needed.**
    Checked with `git log`: that commit only exists as a shared ancestor of
@@ -58,3 +60,13 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
    placeholder, just a blank box, in both languages. It now falls back to the
    placeholder whenever the stored category isn't one of today's exact
    options.
+
+10. **Landing page Arabic font.** The landing page uses Tajawal for Arabic;
+    every other screen uses IBM Plex Sans Arabic. Both read well and pass the
+    checks, but the switch from the landing page into sign-up is a visible
+    font change. Keep Tajawal on the landing page, or match the rest of the
+    app? (No change made.)
+
+11. **Footer "Cookies" link goes nowhere.** On the landing page footer it
+    points at `#`. Is there a cookie policy page to link to, should it go
+    to the Privacy page, or should the link be removed? (No change made.)

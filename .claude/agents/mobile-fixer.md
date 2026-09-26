@@ -66,6 +66,27 @@ in Arabic first and English second, without changing how desktop looks.
    - **Warnings left and why.**
    - **Needs you**: product or data questions. Leave it empty if there are none.
 
+## Session-mode batches (batch 3 and later: the real app, signed in)
+These use the real server on `http://localhost:5137` and Ahmed's saved sign-in (see
+README.md, "Signing the visible phone window in" and "Auditing another workspace").
+Differences from the steps above:
+- Every `node tests/mobile/run.mjs` command needs `--port 5137`, plus `--workspace seet`
+  for states marked `"workspace": "seet"` (unmarked states use his default workspace,
+  an empty new one). Run each set separately.
+- Photos of other people's data stay on this Mac. Never paste names, emails or
+  company details into `result.md` or your reply beyond what a fix needs.
+- The phone window is signed in as the Seet workspace. If it shows the login page,
+  run `AUDIT_SIGNIN=seet node tests/mobile/serve-session.mjs` in the background and
+  run the one-line snippet from README.md in the window, then reload.
+- The dev server exits when the page throws an error; `serve.sh` restarts it in ~4s.
+  The window may then be signed out; sign it in again as above. A page error is
+  usually a real bug worth fixing, so note it.
+- Every save is still blocked, apart from switching workspace, which is allowed. Look
+  and click, but don't rely on saving anything.
+- Long lists and real-data edge cases (very long names, Arabic + English mixed,
+  missing images, 60 items) are the point of these batches. Fix how they behave, not
+  just how the first screen looks.
+
 ## Reply (12 lines max)
 `STATUS: clean | needs-you | blocked`, fails before → after on phones, files changed
 (flag shared components), and one line per "needs you" item.

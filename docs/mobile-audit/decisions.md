@@ -153,3 +153,24 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     "2 يونيو 2026"), because the browser formats it. Cosmetic; worth a look on a
     real iPhone, or we format it ourselves so both match.
 
+25. **Vendors tab: product calls made on phones only.** (a) The app has no "add
+    vendor / invite by email" dialog at all, only the joining link and approving
+    requests; inviting by email would be a new feature. (b) On phones "View" is
+    labelled "Vendor profile", the cards themselves aren't tappable, and the small
+    filter chips are hidden. (c) The "Not verified" filter used to match nothing on
+    every screen size; it now means "not verified", which includes "under review"
+    and "rejected". Say if you want any of it different.
+
+26. **Small server/data things on the Vendors tab.** `/api/vendors-base` sends the
+    English word "No category" for vendors without one (`server/routes.ts` around
+    line 5504), so an Arabic user sees English. One vendor logo is stored at a path
+    that answers 401 to an image tag, so it shows the grey placeholder. And on the
+    Proposals tab the accept/reject toasts are hard-coded English. All outside the
+    layout work, so I've left them; want me to fix them as one small task?
+
+27. **A few audit states patch the page from the outside.** Three new vendor states
+    (many, many-more, requests) fake extra data by replacing the browser's `fetch`
+    and finding the app's data cache through React's internals. That's fine for
+    photos, but it can break when React or the data library is upgraded; if those
+    states start failing, that's the reason, not the page.
+

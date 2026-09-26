@@ -61,11 +61,9 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
    placeholder whenever the stored category isn't one of today's exact
    options.
 
-10. **Landing page Arabic font.** The landing page uses Tajawal for Arabic;
-    every other screen uses IBM Plex Sans Arabic. Both read well and pass the
-    checks, but the switch from the landing page into sign-up is a visible
-    font change. Keep Tajawal on the landing page, or match the rest of the
-    app? (No change made.)
+10. **Landing page Arabic font — resolved.** Ahmed prefers the app's font,
+    so the landing and pricing pages now use IBM Plex Sans Arabic like every
+    other screen (Latin text stays in Inter). Tajawal is no longer downloaded.
 
 11. **Footer "Cookies" link goes nowhere.** On the landing page footer it
     points at `#`. Is there a cookie policy page to link to, should it go

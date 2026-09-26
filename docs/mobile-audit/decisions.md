@@ -118,3 +118,22 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     first unfinished step needs a small change to how the list works, which also
     changes desktop. Want it?
 
+19. **RFP rows on phones: buttons became "tap the row + ... menu".** On desktop each
+    RFP row has View / Copy link / Edit / Delete buttons. On phones there wasn't
+    room, so tapping the row opens it and a "..." menu holds Copy link, Edit and
+    Delete (Delete asks to confirm in a sheet). Desktop is untouched and still uses
+    the browser's own "are you sure" box. Say if you want the phone or desktop way
+    changed.
+
+20. **The tender list is slow on the server.** Loading "my RFPs" (`GET /api/tenders`
+    in `server/routes.ts`) runs two database lookups per tender: 120 for Seet's 60
+    tenders. It took 2-7 seconds during the audit (against the dev database) and
+    twice failed with an error for about five minutes, which broke two photo runs.
+    One combined lookup would fix it. Someone with many RFPs would notice this on
+    their phone. Not a layout problem and `server/` is outside this audit, so I
+    left it; want me to fix it as a separate task afterwards?
+
+21. **Red status text on dark backgrounds is 3.52:1** (`components/brand/StatusDot.tsx`,
+    e.g. the "Closed" pill in dark mode). Shared component, so I left it. It is
+    the same kind of decision as the brand-orange one (#5).
+

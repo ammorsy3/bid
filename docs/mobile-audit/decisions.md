@@ -105,3 +105,16 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     page, so I'd like your OK before doing it (I'd do it right after batch 3 and
     re-run all earlier batches to check nothing moved).
 
+17. **The app can sign someone out when the server hiccups.** While auditing, the
+    server briefly answered 500 on the tender lists (against the dev database);
+    the app then received a 403 "Invalid token" and logged the user out. A short
+    server or database error should never end someone's session. Not a layout
+    problem and `server/` is outside this audit, so I've left it. Worth a look on
+    its own: it may only happen on the dev copy of the database.
+
+18. **Onboarding checklist opens the finished first step.** The "Get started" list
+    always opens step 1, even when step 1 is done, so a finished company sees a
+    "you're verified" line first instead of the next thing to do. Opening the
+    first unfinished step needs a small change to how the list works, which also
+    changes desktop. Want it?
+

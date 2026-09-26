@@ -44,8 +44,8 @@ Baseline (before fixes, 136 captures): 155 fails. Populated states use the Seet 
 | Pages | Status | What to fix (known before the loop) |
 |---|---|---|
 | dashboard-shell | fixed (phone fails 91 → 0, reviewer PASS, desktop layout identical) | Fixed the hooks crash, names cut off at the wrong end in Arabic, English labels on the Arabic page, 44px drawer rows, workspace list mirrored and kept inside the drawer, press states. Open for you: the trash icon on AI-chat history deletes with no confirm; Radix menus/selects are left-to-right on Arabic pages app-wide (see decisions.md #15, #16). |
-| dashboard-overview | in progress | Stat cards, onboarding checklist (a step marked complete still shows its "verify" button), fixed bottom bar covering content. |
-| dashboard-rfps | todo | 60 tenders in one 17,934px page (needs paging / load-more); status badges squeeze long titles into a narrow column; 174 warnings in Arabic. |
+| dashboard-overview | fixed (phone fails 8 → 0, reviewer PASS after a second round; desktop layout identical) | Finished checklist steps now show a done line instead of a button (small change on desktop too); phones show loading placeholders instead of a false "17%" / "0"; tighter checklist rows. Open: the list opens the finished first step by default (decisions.md #18). |
+| dashboard-rfps | in progress | 60 tenders in one 17,934px page (needs paging / load-more); status badges squeeze long titles into a narrow column; 174 warnings in Arabic. |
 | dashboard-proposals | todo | Long titles squeezed by badges; check the tab switch (received / sent). |
 | dashboard-vendors | todo | Join link truncated from the wrong end; "covered" fails; 42 warnings. |
 

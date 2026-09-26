@@ -76,3 +76,22 @@ Later batches need real data, so they run against the real dev server:
 3. `/mobile-polish batch-2`. Every save is still blocked by the safety net, and
    your saved language is pinned inside the browser only.
 Reports from these batches show real people's data, so they stay on your Mac.
+
+### Signing the visible phone window in (session-mode batches)
+The `phone` Chrome window is a throwaway browser, so it starts signed out. After
+`npm run e2e:login` and `tests/mobile/serve.sh`:
+1. `node tests/mobile/serve-session.mjs` (add `AUDIT_SIGNIN=seet` for another workspace).
+   It serves your saved sign-in to `127.0.0.1:5298` for 60 seconds.
+2. In the phone window, on any `http://localhost:5137` page, run this in the page
+   (it copies the sign-in into the window's own storage and prints nothing secret):
+   `async () => { const j = await (await fetch('http://127.0.0.1:5298/')).json(); for (const {name, value} of j.localStorage) localStorage.setItem(name, value); document.cookie = 'audit_lang=ar; path=/'; return j.localStorage.length; }`
+3. Reload. If the server ever restarts, the app signs the window out; repeat.
+
+### Auditing another workspace
+Your workspace is stored inside the sign-in token. Make a copy set to another workspace:
+`node tests/mobile/use-workspace.mjs "Seet" seet` (audit server must be running).
+Then `node tests/mobile/run.mjs --port 5137 --workspace seet ...` photographs the
+states marked `"workspace": "seet"`; unmarked states use your default workspace.
+The safety net lets `POST /api/companies/switch/:id` through, because it stores
+nothing (it only mints a token), and every other save is still blocked.
+

@@ -33,7 +33,7 @@ export default defineConfig({
     timezoneId: "Asia/Riyadh",
     trace: "off",
     // Session mode reuses the sign-in you made yourself with `npm run e2e:login`.
-    ...(fixtureMode ? {} : { storageState: "tests/e2e/.auth/user.json" }),
+    ...(fixtureMode ? {} : { storageState: `tests/e2e/.auth/${process.env.AUDIT_SIGNIN ?? "user"}.json` }),
   },
 
   webServer: fixtureMode

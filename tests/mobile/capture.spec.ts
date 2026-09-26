@@ -59,6 +59,9 @@ type State = {
   userAgent?: string;
   projects?: string[];
   skipProjects?: string[];
+  // Session mode: which saved sign-in this state uses ("seet" = tests/e2e/.auth/seet.json).
+  // Omitted = your default workspace (user.json).
+  workspace?: string;
 };
 
 const only = (process.env.AUDIT_STATES ?? "")
@@ -73,6 +76,7 @@ const states: State[] = JSON.parse(
 ).states.filter(
   (s: State) =>
     s.batch === BATCH &&
+    (s.workspace ?? "user") === (process.env.AUDIT_SIGNIN ?? "user") &&
     (only.length === 0 || only.includes(s.id) || only.includes(s.page)),
 );
 

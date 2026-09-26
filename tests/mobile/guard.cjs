@@ -139,6 +139,15 @@ async function handle(route, opts) {
     return fulfill(route, scripted.answer);
   }
 
+  // 2a. The one write-shaped request that is safe to pass through in session mode:
+  //     switching workspace. The route only mints a new sign-in token that names the
+  //     other workspace (it stores nothing), and the app breaks if it gets a fake
+  //     answer. See POST /api/companies/switch/:companyId in server/routes.ts.
+  if (mode === "session" && method === "POST" && /^\/api\/companies\/switch\/[\w-]+$/.test(pathname)) {
+    log({ ...base, status: null, via: "session:allowed-workspace-switch" });
+    return route.continue();
+  }
+
   // 2. Every write is faked. This is the safety guarantee: nothing reaches a server.
   if (WRITE_METHODS.has(method)) {
     const fixed = matchRoute(persona && persona.routes, method, pathname) || matchRoute(loadCommon().routes, method, pathname);

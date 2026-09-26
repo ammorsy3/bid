@@ -22,6 +22,8 @@ env.AUDIT_BATCH = opt("batch") ?? env.AUDIT_BATCH ?? "batch-1";
 if (opt("states")) env.AUDIT_STATES = opt("states");
 if (opt("langs")) env.AUDIT_LANGS = opt("langs");
 if (opt("port")) env.AUDIT_PORT = opt("port");
+// Session mode: --workspace seet uses tests/e2e/.auth/seet.json (make it with use-workspace.mjs).
+if (opt("workspace")) env.AUDIT_SIGNIN = opt("workspace");
 
 const projectFlags = (opt("projects") ?? "").split(",").filter(Boolean).flatMap((p) => ["--project", p]);
 const run = spawnSync("npx", ["playwright", "test", "-c", "playwright.mobile.config.ts", ...projectFlags], {

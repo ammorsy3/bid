@@ -42,9 +42,11 @@ test("capture a signed-in session", async ({ page }) => {
   await expect
     .poll(
       async () => {
-        const token = await page.evaluate(() =>
-          window.localStorage.getItem("token"),
-        );
+        // The page navigates while someone signs in (a redirect, an OAuth
+        // round trip); evaluating mid-navigation throws. Treat that as "not yet".
+        const token = await page
+          .evaluate(() => window.localStorage.getItem("token"))
+          .catch(() => null);
         if (!token) return false;
         return !isAuthWall(new URL(page.url()).pathname);
       },

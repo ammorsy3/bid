@@ -78,3 +78,14 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     runs on Supabase (database and file storage), and Vercel (hosting and
     visitor/speed analytics) isn't listed. Update section 4 to match? (No
     change made; it's legal text.)
+
+13. **Developer docs (/docs) are English-only.** The API reference pages and
+    their menus exist only in English. With the app in Arabic they render
+    mirrored right-to-left. Options: (a) always show them as a clean
+    left-to-right English page (standard for API docs), or (b) translate
+    them to Arabic. The docs fix was stopped before it started, so the page
+    is paused in the queue until you say which you want. Note: the docs run
+    was cut off partway, so unfinished, unreviewed edits to the docs files
+    (`client/src/pages/docs/*`, plus small changes in `index.html`,
+    `index.css` and `i18n.tsx`) are sitting uncommitted in the working
+    folder. They were left out of every commit on purpose.

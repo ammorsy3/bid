@@ -86,7 +86,7 @@ export default function Cookies() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 text-[15px] sm:text-sm leading-relaxed text-foreground">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 text-[15px] sm:text-[0.875rem] leading-relaxed text-foreground">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-balance">{c("pageTitle")}</h1>
         <p className="text-sm text-muted-foreground mb-8">{c("lastUpdated")}</p>
 

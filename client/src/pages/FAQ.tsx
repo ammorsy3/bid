@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { BidLogo } from "@/components/brand/BidLogo";
-import { ArrowLeft, ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 
@@ -12,7 +12,7 @@ function FAQAccordion({ question, answer }: { question: string; answer: string }
   return (
     <div className="border-b border-border last:border-0">
       <button
-        className="w-full flex items-center justify-between gap-4 py-4 text-start text-sm font-medium hover:text-primary transition-colors"
+        className="w-full flex items-center justify-between gap-4 py-4 text-start text-[15px] leading-6 sm:text-[0.875rem] sm:leading-5 font-medium hover:text-primary transition-colors active:opacity-60"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
       >
@@ -22,7 +22,7 @@ function FAQAccordion({ question, answer }: { question: string; answer: string }
         />
       </button>
       {open && (
-        <p className="pb-4 text-sm text-muted-foreground leading-relaxed">
+        <p className="pb-4 text-[15px] sm:text-[0.875rem] text-muted-foreground leading-relaxed">
           {answer}
         </p>
       )}
@@ -31,24 +31,23 @@ function FAQAccordion({ question, answer }: { question: string; answer: string }
 }
 
 export default function FAQ() {
-  const { t, isRtl } = useI18n();
-  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
+  const { t } = useI18n();
 
   return (
     <div className="min-h-screen bg-card">
       <header className="border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" data-testid="link-home">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-2 sm:py-4 flex items-center justify-between">
+          <Link href="/" className="max-sm:inline-flex max-sm:items-center max-sm:min-h-11 max-sm:min-w-11" data-testid="link-home">
             <BidLogo variant="orange" size={28} />
           </Link>
-          <Link href="/dashboard" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" data-testid="link-dashboard">
-            <BackArrow className="h-4 w-4" />
+          <Link href="/dashboard" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground max-sm:min-h-11 active:opacity-60" data-testid="link-dashboard">
+            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
             {t('faq.backToDashboard')}
           </Link>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <h1 className="text-3xl font-bold mb-2">{t('faq.pageTitle')}</h1>
         <p className="text-muted-foreground mb-10">
           {t('faq.pageSubtitle')}

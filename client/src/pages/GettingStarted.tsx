@@ -1,33 +1,32 @@
 import { Link } from "wouter";
 import { BidLogo } from "@/components/brand/BidLogo";
-import { ArrowLeft, ArrowRight, Building2, FileText, Users, CheckCircle, Send, Search } from "lucide-react";
+import { ArrowLeft, Building2, FileText, Users, CheckCircle, Send, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export default function GettingStarted() {
-  const { t, isRtl } = useI18n();
-  const BackArrow = isRtl ? ArrowRight : ArrowLeft;
+  const { t } = useI18n();
 
   return (
     <div className="min-h-screen bg-card">
       <header className="border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" data-testid="link-home">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-2 sm:py-4 flex items-center justify-between">
+          <Link href="/" className="max-sm:inline-flex max-sm:items-center max-sm:min-h-11 max-sm:min-w-11" data-testid="link-home">
             <BidLogo variant="orange" size={28} />
           </Link>
-          <Link href="/dashboard" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" data-testid="link-dashboard">
-            <BackArrow className="h-4 w-4" />
+          <Link href="/dashboard" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground max-sm:min-h-11 active:opacity-60" data-testid="link-dashboard">
+            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
             {t('gettingStarted.backToDashboard')}
           </Link>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <h1 className="text-3xl font-bold mb-2">{t('gettingStarted.pageTitle')}</h1>
         <p className="text-muted-foreground mb-10">
           {t('gettingStarted.pageSubtitle')}
         </p>
 
-        <section className="space-y-10 text-sm leading-relaxed text-foreground">
+        <section className="space-y-10 text-[15px] sm:text-[0.875rem] leading-relaxed text-foreground">
 
           {/* Step 1 */}
           <div className="flex gap-4">

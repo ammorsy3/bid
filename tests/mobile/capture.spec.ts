@@ -240,12 +240,21 @@ for (const state of states) {
             project,
             `${state.id}.${lang}.json`,
           );
-          const before = fs.existsSync(beforeFile)
-            ? JSON.parse(fs.readFileSync(beforeFile, "utf8"))
-            : { issues: [] };
-          const known = new Set(
-            before.issues.filter((i: any) => i.level === "fail").map(issueKey),
-          );
+          const known = new Set<string>();
+          const addKnown = (file: string) => {
+            for (const i of JSON.parse(fs.readFileSync(file, "utf8")).issues ?? [])
+              if (i.level === "fail") known.add(issueKey(i));
+          };
+          if (fs.existsSync(beforeFile)) {
+            addKnown(beforeFile);
+          } else {
+            // A state added after the baseline has no desktop "before" of its own.
+            // Its shared chrome (sidebar, header) has the same known problems as the
+            // other states in this batch, so count those as known too.
+            const dir = path.dirname(beforeFile);
+            for (const f of fs.existsSync(dir) ? fs.readdirSync(dir) : [])
+              if (f.endsWith(`.${lang}.json`)) addKnown(path.join(dir, f));
+          }
           const added = result.issues.filter(
             (i: any) => i.level === "fail" && !known.has(issueKey(i)),
           );

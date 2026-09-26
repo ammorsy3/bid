@@ -54,7 +54,7 @@ Baseline (before fixes, 136 captures): 155 fails. Populated states use the Seet 
 |---|---|---|
 | 2a | Static public pages (fixture mode, no login needed): landing, pricing, faq, getting-started, terms, privacy, docs | in progress |
 | 2b | Public pages that show real data: marketplace, company/people/traction profiles, tender invite link (need sample-data fixtures, or your sign-in for session mode) | todo |
-| 3 | App shell + dashboard tabs (sidebar, bottom bar) | in progress (see the batch 3 table below) |
+| 3 | App shell + dashboard tabs (sidebar, bottom bar) | done, all five pages fixed (see the batch 3 table above); next: report to Ahmed |
 | 4 | Vendor side: tender page, submit offer, form fill | todo |
 | 5 | Tender wizard | todo |
 | 6 | Owner's tender tabs, proposal comparison, edit | todo |

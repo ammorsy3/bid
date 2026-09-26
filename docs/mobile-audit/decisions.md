@@ -137,3 +137,19 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     e.g. the "Closed" pill in dark mode). Shared component, so I left it. It is
     the same kind of decision as the brand-orange one (#5).
 
+22. **Proposals tab: small wording/product calls.** (a) On phones the vendor button
+    says "Vendor profile"; on desktop it still says "View" (which in Arabic is the
+    same word as "Proposal"). (b) Incoming offers that are still pending show no
+    badge, on desktop too; a "Pending" badge might help buyers. (c) The empty-state
+    buttons ("Explore Marketplace" / "Create RFP") were added on phones only.
+    Say if any of these should apply on desktop as well.
+
+23. **Arabic "days left" wording needs a native-speaker glance.** New phrases such as
+    "يوم واحد متبقي", "يومان متبقيان", "أيام متبقية" replace an English-style count.
+    Every deadline in the test data has already passed, so the photos never show
+    them; the wording is grammatical but hasn't been seen on screen.
+
+24. **Arabic dates show a comma in Safari (WebKit) but not Chrome** ("2 يونيو، 2026" vs
+    "2 يونيو 2026"), because the browser formats it. Cosmetic; worth a look on a
+    real iPhone, or we format it ourselves so both match.
+

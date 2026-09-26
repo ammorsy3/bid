@@ -965,6 +965,51 @@
       "keyboard": false
     },
     {
+      "id": "dash-proposals-incoming",
+      "batch": "batch-3",
+      "page": "dashboard-proposals",
+      "title": "Dashboard — proposals, Incoming Offers tab (Seet, 11 offers, first 10 shown)",
+      "route": "/proposals",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        { "waitFor": "[data-testid=\"tab-received-proposals\"]" },
+        { "click": "[data-testid=\"tab-received-proposals\"]" },
+        { "waitFor": "[data-testid^=\"button-review-tender-\"]" },
+        { "wait": 400 }
+      ]
+    },
+    {
+      "id": "dash-proposals-incoming-more",
+      "batch": "batch-3",
+      "page": "dashboard-proposals",
+      "title": "Dashboard — Incoming Offers after \"Show more\" (Seet, all 11 shown)",
+      "route": "/proposals",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        { "waitFor": "[data-testid=\"tab-received-proposals\"]" },
+        { "click": "[data-testid=\"tab-received-proposals\"]" },
+        { "waitFor": "[data-testid=\"button-show-more-incoming-offers\"]" },
+        { "click": "[data-testid=\"button-show-more-incoming-offers\"]" },
+        { "wait": 400 }
+      ],
+      "skipProjects": ["desktop"]
+    },
+    {
+      "id": "dash-proposals-new-incoming",
+      "batch": "batch-3",
+      "page": "dashboard-proposals",
+      "title": "Dashboard — proposals, Incoming Offers tab (empty workspace)",
+      "route": "/proposals",
+      "keyboard": false,
+      "actions": [
+        { "waitFor": "[data-testid=\"tab-received-proposals\"]" },
+        { "click": "[data-testid=\"tab-received-proposals\"]" },
+        { "wait": 600 }
+      ]
+    },
+    {
       "id": "dash-vendors",
       "batch": "batch-3",
       "page": "dashboard-vendors",

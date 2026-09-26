@@ -48,6 +48,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
+import { categoryLabel } from "@/lib/category-labels";
 import { profilePath } from "@/lib/profile-url";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
 import {
@@ -519,6 +520,214 @@ function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, date
   );
 }
 
+// ── Proposals tab on phones ──────────────────────────────────────────────────
+// Same idea as the RFPs tab: ten rows at a time, a full-width 2-line title, badges
+// under it, and a row that opens the RFP when you tap anywhere on it.
+
+// "1 day left", "يومان متبقيان", "15 يومًا متبقيًا": the plain "days left" wording is
+// wrong for 1, 2 and 11+ in Arabic ("1 أيام متبقية").
+function daysLeftText(t: (key: string, vars?: Record<string, string | number>) => string, days: number): string {
+  if (days === 1) return t('dashboard.daysLeftOne');
+  if (days === 2) return t('dashboard.daysLeftTwo');
+  if (days >= 11) return t('dashboard.daysLeftMany', { count: days });
+  return `${days} ${t('dashboard.daysLeft')}`;
+}
+
+// The number of proposals on a sub-tab. On phones, while the list is still loading, a
+// pulsing bar stands in for it so a made-up "(0)" never shows before the real count.
+function TabCount({ loading, count }: { loading: boolean; count: number }) {
+  if (!loading) return <span className="tabular-nums">({count})</span>;
+  return (
+    <>
+      <span aria-busy="true" className="inline-block h-4 w-6 rounded bg-current opacity-20 animate-pulse md:hidden" />
+      <span className="tabular-nums max-md:hidden">({count})</span>
+    </>
+  );
+}
+
+// Stand-in with the same shape as a real proposal row, so nothing jumps when the list arrives.
+function ProposalRowSkeleton() {
+  return (
+    <div aria-busy="true" className="rounded-2xl border border-[#FE3C01]/10 dark:border-border bg-card p-4 space-y-3">
+      <Skeleton className="h-5 w-11/12" />
+      <Skeleton className="h-6 w-32 rounded-full" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-2/3" />
+      <div className="grid grid-cols-2 gap-3">
+        <Skeleton className="h-4 w-4/5" />
+        <Skeleton className="h-4 w-3/5" />
+      </div>
+      <Skeleton className="h-11 w-full rounded-md" />
+      <Skeleton className="h-11 w-full rounded-md" />
+    </div>
+  );
+}
+
+// Proposal status as a small pill with text that reads clearly on the cream card.
+function ProposalStatusPill({ status }: { status: MyOffer['status'] }) {
+  const { t } = useI18n();
+  const base = "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium";
+  if (status === 'accepted') {
+    return <span className={`${base} bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300`}><CheckCircle className="h-3 w-3" aria-hidden="true" />{t('dashboard.accepted')}</span>;
+  }
+  if (status === 'rejected') {
+    return <span className={`${base} bg-muted text-[#6B635B] dark:text-muted-foreground`}><XCircle className="h-3 w-3" aria-hidden="true" />{t('dashboard.rejected')}</span>;
+  }
+  if (status === 'shortlisted') {
+    return <span className={`${base} bg-[#FE3C01]/10 text-[#B32A00] dark:text-[#FF8A63]`}><Bookmark className="h-3 w-3" aria-hidden="true" />{t('dashboard.shortlisted')}</span>;
+  }
+  if (status === 'superseded') {
+    return <span className={`${base} bg-muted text-[#6B635B] dark:text-muted-foreground`}>{t('dashboard.superseded')}</span>;
+  }
+  return <span className={`${base} bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200`}><Clock className="h-3 w-3" aria-hidden="true" />{t('dashboard.pending')}</span>;
+}
+
+// One proposal as a phone list row. "sent" = a proposal we submitted, "incoming" = an
+// offer a vendor sent us. The whole row opens the RFP (a real link stretched over the
+// row); the buttons sit above it, at least 44px tall, and wrap in a two-column grid.
+function ProposalRowMobile({ kind, offer, dateText, tenderBadge, onOpenTender, onViewFile, onOpenProfile }: {
+  kind: 'sent' | 'incoming';
+  offer: MyOffer | IncomingOffer;
+  dateText: string;
+  tenderBadge?: { state: BidState; label: string };
+  onOpenTender: () => void;
+  onViewFile: (url: string) => void;
+  onOpenProfile?: () => void;
+}) {
+  const { t, isRtl } = useI18n();
+  const incoming = kind === 'incoming' ? (offer as IncomingOffer) : null;
+
+  const deadline = new Date(offer.tender.deadline);
+  const isExpired = deadline.getTime() < Date.now();
+  const daysRemaining = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  const deadlineText = isExpired ? t('dashboard.deadlinePassed') : daysLeftText(t, daysRemaining);
+  const deadlineClass = isExpired
+    ? 'font-semibold text-red-700 dark:text-red-300'
+    : daysRemaining <= 3 ? 'font-semibold text-orange-700 dark:text-orange-300' : '';
+  const amount = offer.quotePrice ? t('dashboard.sarAmount', { amount: offer.quotePrice.toLocaleString('en-US') }) : null;
+  const vendorName = incoming ? (incoming.profile?.displayName || incoming.company.name) : '';
+
+  // Secondary actions, only the ones this proposal has. The last one takes the full row
+  // when there is an odd number, so the grid never ends on a half-empty line.
+  const files: { key: string; label: string; icon: React.ReactNode; onClick: () => void; disabled?: boolean; testId?: string }[] = [];
+  if (incoming) {
+    files.push({
+      key: 'profile', label: t('dashboard.offerVendorProfile'), icon: <Eye />,
+      onClick: () => onOpenProfile?.(), disabled: !incoming.company?.slug, testId: `button-view-offer-${offer.id}`,
+    });
+  }
+  if (offer.combinedFileUrl) files.push({ key: 'combined', label: t('dashboard.combinedProposal'), icon: <FileText />, onClick: () => onViewFile(offer.combinedFileUrl!) });
+  if (offer.technicalFileUrl) files.push({ key: 'technical', label: t('dashboard.technicalProposal'), icon: <FileText />, onClick: () => onViewFile(offer.technicalFileUrl!) });
+  if (offer.financialFileUrl) files.push({ key: 'financial', label: t('dashboard.financialProposal'), icon: <DollarSign />, onClick: () => onViewFile(offer.financialFileUrl!) });
+  if (offer.videoUrl) files.push({ key: 'video', label: t('dashboard.videoPitchLabel'), icon: <Video />, onClick: () => window.open(offer.videoUrl!, '_blank') });
+
+  const linkClass = "min-h-11 rounded-md outline-none after:absolute after:inset-0 active:after:bg-black/[0.05] dark:active:after:bg-white/[0.06] focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-ring";
+  const openLink = (e: React.MouseEvent) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    onOpenTender();
+  };
+
+  return (
+    <SpotlightCard {...brandSpotlightProps()} spotlightColor={offer.status === 'accepted' ? 'green' : offer.status === 'rejected' ? 'red' : 'orange'}>
+      <div className="relative px-4 pb-4 pt-3" data-testid={incoming ? `card-incoming-offer-${offer.id}` : `card-my-offer-${offer.id}`}>
+        {incoming ? (
+          <h3 className="pt-1 text-base font-bold leading-snug text-foreground" data-testid={`text-offer-vendor-${offer.id}`}>
+            <UserClamp>{vendorName}</UserClamp>
+          </h3>
+        ) : (
+          <h3 className="text-base font-bold leading-snug text-foreground">
+            {/* Stretched link: a tap anywhere on the row opens the RFP; the buttons sit above it. */}
+            <a href={`/tenders/${offer.tender.id}`} onClick={openLink} className={`flex items-center ${linkClass}`} data-testid={`text-offer-title-${offer.id}`}>
+              <UserClamp>{offer.tender.title}</UserClamp>
+            </a>
+          </h3>
+        )}
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          {incoming && amount && (
+            <span className="whitespace-nowrap text-base font-bold tabular-nums text-green-700 dark:text-green-400" data-testid={`text-offer-amount-${offer.id}`}>
+              {amount}
+            </span>
+          )}
+          {tenderBadge && <StatusBadge state={tenderBadge.state} label={tenderBadge.label} />}
+          {incoming?.company.verificationStatus === 'verified' && (
+            <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">{t('dashboard.verified')}</span>
+          )}
+          {(kind === 'sent' || offer.status !== 'pending') && <ProposalStatusPill status={offer.status} />}
+        </div>
+
+        {incoming ? (
+          <div className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground">
+            <span className="block text-xs">{t('dashboard.forTender')}</span>
+            <a href={`/tenders/${offer.tender.id}`} onClick={openLink} className={`flex items-center font-semibold text-foreground ${linkClass}`} data-testid={`text-offer-tender-${offer.id}`}>
+              <UserClamp>{offer.tender.title}</UserClamp>
+            </a>
+          </div>
+        ) : (
+          <p className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground">
+            <UserClamp>{offer.tender.description || t('dashboard.noDescription')}</UserClamp>
+          </p>
+        )}
+
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 text-sm text-[#6B635B] dark:text-muted-foreground">
+          <div className="flex min-w-0 items-start gap-2">
+            <Calendar className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="min-w-0">{incoming ? t('dashboard.received') : t('dashboard.submitted')} <span className="tabular-nums">{dateText}</span></span>
+          </div>
+          <div className={`flex min-w-0 items-start gap-2 ${deadlineClass}`}>
+            <Clock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="min-w-0 tabular-nums">{deadlineText}</span>
+          </div>
+          {incoming?.company.category && (
+            <div className="col-span-2 flex min-w-0 items-start gap-2">
+              <Building2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="min-w-0" dir="auto" data-user-content>{categoryLabel(incoming.company.category, isRtl)}</span>
+            </div>
+          )}
+          {!incoming && amount && (
+            <div className="col-span-2 flex min-w-0 items-start gap-2 font-medium text-green-700 dark:text-green-400">
+              <DollarSign className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 tabular-nums">{amount}</span>
+            </div>
+          )}
+          {offer.notes && (
+            <div className="col-span-2 flex min-w-0 items-start gap-2 italic">
+              <MessageSquare className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 flex-1"><UserClamp>{`"${offer.notes}"`}</UserClamp></span>
+            </div>
+          )}
+        </div>
+
+        <div className="relative z-10 mt-4 grid grid-cols-2 gap-2">
+          <Button
+            variant={incoming ? 'default' : 'outline'}
+            className={`col-span-2 h-auto min-h-11 whitespace-normal py-2 text-center leading-tight ${incoming ? 'bg-[#FE3C01] text-white hover:bg-[#d54d35] active:bg-[#C93000]' : ''}`}
+            onClick={onOpenTender}
+            data-testid={incoming ? `button-review-tender-${offer.id}` : `button-view-tender-${offer.id}`}
+          >
+            {incoming ? <ExternalLink /> : <Eye />}
+            {t('dashboard.viewTender')}
+          </Button>
+          {files.map((f, i) => (
+            <Button
+              key={f.key}
+              variant="outline"
+              className={`h-auto min-h-11 whitespace-normal py-2 text-center leading-tight ${i === files.length - 1 && files.length % 2 === 1 ? 'col-span-2' : ''}`}
+              onClick={f.onClick}
+              disabled={f.disabled}
+              data-testid={f.testId}
+            >
+              {f.icon}
+              {f.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+    </SpotlightCard>
+  );
+}
+
 // Company verification status (as the server stores it) → translation key.
 const VERIFICATION_STATUS_KEYS: Record<string, string> = {
   verified: "dashboard.verifStatusVerified",
@@ -772,6 +981,9 @@ function DashboardInner({ user, activeCompany }: {
   const [selectedVendor, setSelectedVendor] = useState<VendorProfile | null>(null);
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
   const [rfpVisible, setRfpVisible] = useState(RFP_PAGE_SIZE);
+  // Proposals tab on phones: how many rows of each list are shown (10, then +10 per "Show more").
+  const [sentVisible, setSentVisible] = useState(RFP_PAGE_SIZE);
+  const [incomingVisible, setIncomingVisible] = useState(RFP_PAGE_SIZE);
   const [tenderToDelete, setTenderToDelete] = useState<TenderWithCounts | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [activeTab, setActiveTabState] = useState(() => ROUTE_TO_TAB[location] ?? "overview");
@@ -2834,14 +3046,14 @@ function DashboardInner({ user, activeCompany }: {
 
             <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={(isIndividual || isTeam) ? 'submitted' : proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
               {!isIndividual && !isTeam && (
-              <TabsList className={`grid w-full max-w-md grid-cols-2 ${BRAND_TABSLIST}`}>
-                <TabsTrigger value="submitted" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-submitted-proposals">
-                  <Send className="h-4 w-4" />
-                  {t('dashboard.myProposals')} ({myOffers.length})
+              <TabsList className={`grid w-full max-w-md grid-cols-2 max-md:h-auto ${BRAND_TABSLIST}`}>
+                <TabsTrigger value="submitted" className={`gap-2 max-md:min-h-11 max-md:gap-1.5 max-md:px-2 max-md:active:opacity-70 ${BRAND_TABTRIGGER}`} data-testid="tab-submitted-proposals">
+                  <Send className="h-4 w-4 max-[400px]:hidden" />
+                  <span>{t('dashboard.myProposals')} <TabCount loading={loadingMyOffers} count={myOffers.length} /></span>
                 </TabsTrigger>
-                <TabsTrigger value="received" className={`gap-2 ${BRAND_TABTRIGGER}`} data-testid="tab-received-proposals">
-                  <Inbox className="h-4 w-4" />
-                  {t('dashboard.incomingOffers')} ({incomingOffers.length})
+                <TabsTrigger value="received" className={`gap-2 max-md:min-h-11 max-md:gap-1.5 max-md:px-2 max-md:active:opacity-70 ${BRAND_TABTRIGGER}`} data-testid="tab-received-proposals">
+                  <Inbox className="h-4 w-4 max-[400px]:hidden" />
+                  <span>{t('dashboard.incomingOffers')} <TabCount loading={loadingIncomingOffers} count={incomingOffers.length} /></span>
                 </TabsTrigger>
               </TabsList>
               )}
@@ -2849,25 +3061,60 @@ function DashboardInner({ user, activeCompany }: {
               {/* Submitted Proposals Sub-Tab */}
               <TabsContent value="submitted" className="space-y-4">
                 {loadingMyOffers ? (
-                  <SkeletonList items={3} />
+                  isPhone ? (
+                    <div className="space-y-3" data-testid="skeleton-my-offers">
+                      <ProposalRowSkeleton />
+                      <ProposalRowSkeleton />
+                      <ProposalRowSkeleton />
+                    </div>
+                  ) : (
+                    <SkeletonList items={3} />
+                  )
                 ) : myOffers.length === 0 ? (
                   <Card {...brandCardProps()}>
-                    <CardContent className="flex flex-col items-center justify-center py-12">
+                    <CardContent className="flex flex-col items-center justify-center py-12 max-md:px-4 max-md:py-8">
                       <div className="h-14 w-14 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-3 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
                         <Send className="h-7 w-7" />
                       </div>
-                      <p className="font-display font-black text-2xl tracking-[-0.03em]">{t('dashboard.noProposals')}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="font-display font-black text-2xl tracking-[-0.03em] max-md:text-center max-md:text-balance max-md:leading-snug">{t('dashboard.noProposals')}</p>
+                      <p className="text-sm text-muted-foreground mt-1 max-md:text-center max-md:text-balance">
                         {t('dashboard.noProposalsDesc')}
                       </p>
+                      <Button
+                        className="mt-5 w-full bg-[#FE3C01] text-white hover:bg-[#d54d35] active:bg-[#C93000] md:hidden"
+                        onClick={handleExploreMarketplace}
+                        data-testid="button-explore-marketplace-empty"
+                      >
+                        <Globe />
+                        {t('dashboard.task6Action')}
+                      </Button>
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-4">
-                        {myOffers.map((offer) => {
+                  <div className="space-y-4 max-md:space-y-3">
+                        {isPhone && myOffers.length > RFP_PAGE_SIZE && (
+                          <p className="text-sm text-[#6B635B] dark:text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-my-offers-count">
+                            {t('dashboard.rfpShowing', { shown: Math.min(sentVisible, myOffers.length), total: myOffers.length })}
+                          </p>
+                        )}
+                        {(isPhone ? myOffers.slice(0, sentVisible) : myOffers).map((offer) => {
                           const isExpired = new Date(offer.tender.deadline) < new Date();
                           const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                          
+
+                          if (isPhone) {
+                            return (
+                              <ProposalRowMobile
+                                key={offer.id}
+                                kind="sent"
+                                offer={offer}
+                                dateText={formatDate(offer.submittedAt)}
+                                tenderBadge={getStatusBadge(offer.tender.status)}
+                                onOpenTender={() => setLocation(`/tenders/${offer.tender.id}`)}
+                                onViewFile={(url) => viewAuthenticatedFile(url)}
+                              />
+                            );
+                          }
+
                           return (
                         <SpotlightCard
                           key={offer.id}
@@ -2918,17 +3165,13 @@ function DashboardInner({ user, activeCompany }: {
                               <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                 <Calendar className="h-4 w-4" />
                                 <span>
-                                  {t('dashboard.submitted')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
+                                  {t('dashboard.submitted')} {formatDate(offer.submittedAt)}
                                 </span>
                               </div>
                               <div className={`flex items-center gap-2 font-medium ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
                                 <Clock className="h-4 w-4" />
                                 <span>
-                                  {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
+                                  {isExpired ? t('dashboard.deadlinePassed') : daysLeftText(t, daysRemaining)}
                                 </span>
                               </div>
                               {offer.notes && (
@@ -2995,6 +3238,16 @@ function DashboardInner({ user, activeCompany }: {
                         </SpotlightCard>
                           );
                         })}
+                        {isPhone && myOffers.length > sentVisible && (
+                          <Button
+                            variant="outline"
+                            className="h-12 w-full text-base"
+                            onClick={() => setSentVisible((n) => n + RFP_PAGE_SIZE)}
+                            data-testid="button-show-more-my-offers"
+                          >
+                            {t('dashboard.rfpShowMore', { count: myOffers.length - sentVisible })}
+                          </Button>
+                        )}
                   </div>
                 )}
               </TabsContent>
@@ -3002,25 +3255,67 @@ function DashboardInner({ user, activeCompany }: {
               {/* Received Proposals Sub-Tab — company only */}
               {!isIndividual && !isTeam && <TabsContent value="received" className="space-y-4">
                 {loadingIncomingOffers ? (
-                  <SkeletonList items={3} />
+                  isPhone ? (
+                    <div className="space-y-3" data-testid="skeleton-incoming-offers">
+                      <ProposalRowSkeleton />
+                      <ProposalRowSkeleton />
+                      <ProposalRowSkeleton />
+                    </div>
+                  ) : (
+                    <SkeletonList items={3} />
+                  )
                 ) : incomingOffers.length === 0 ? (
                   <Card {...brandCardProps()}>
-                    <CardContent className="flex flex-col items-center justify-center py-12">
+                    <CardContent className="flex flex-col items-center justify-center py-12 max-md:px-4 max-md:py-8">
                       <div className="h-14 w-14 rounded-2xl bg-[#FE3C01] text-white flex items-center justify-center mb-3 shadow-[0_12px_24px_-10px_rgba(254,60,1,0.5)]">
                         <Inbox className="h-7 w-7" />
                       </div>
-                      <p className="font-display font-black text-2xl tracking-[-0.03em]">{t('dashboard.noIncomingOffers')}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="font-display font-black text-2xl tracking-[-0.03em] max-md:text-center max-md:text-balance max-md:leading-snug">{t('dashboard.noIncomingOffers')}</p>
+                      <p className="text-sm text-muted-foreground mt-1 max-md:text-center max-md:text-balance">
                         {t('dashboard.noIncomingOffersDesc')}
                       </p>
+                      {/* Offers come from RFPs: with none yet, creating one is the one thing to do. */}
+                      {!loadingTenders && tenders.length === 0 && (
+                        <Button
+                          className="mt-5 w-full bg-[#FE3C01] text-white hover:bg-[#d54d35] active:bg-[#C93000] md:hidden"
+                          onClick={handleCreateTender}
+                          data-testid="button-create-tender-from-offers"
+                        >
+                          <Plus />
+                          {t('dashboard.createTender')}
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-4">
-                        {incomingOffers.map((offer) => {
+                  <div className="space-y-4 max-md:space-y-3">
+                        {isPhone && incomingOffers.length > RFP_PAGE_SIZE && (
+                          <p className="text-sm text-[#6B635B] dark:text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-incoming-offers-count">
+                            {t('dashboard.rfpShowing', { shown: Math.min(incomingVisible, incomingOffers.length), total: incomingOffers.length })}
+                          </p>
+                        )}
+                        {(isPhone ? incomingOffers.slice(0, incomingVisible) : incomingOffers).map((offer) => {
                       const isExpired = new Date(offer.tender.deadline) < new Date();
                       const daysRemaining = Math.ceil((new Date(offer.tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                      
+
+                      if (isPhone) {
+                        return (
+                          <ProposalRowMobile
+                            key={offer.id}
+                            kind="incoming"
+                            offer={offer}
+                            dateText={formatDate(offer.submittedAt)}
+                            onOpenTender={() => setLocation(`/tenders/${offer.tender.id}`)}
+                            onViewFile={(url) => viewAuthenticatedFile(url)}
+                            onOpenProfile={() => {
+                              if (offer.company?.slug) {
+                                window.open(`/company/${offer.company.slug}`, '_blank', 'noopener,noreferrer');
+                              }
+                            }}
+                          />
+                        );
+                      }
+
                       return (
                         <SpotlightCard
                           key={offer.id}
@@ -3077,29 +3372,25 @@ function DashboardInner({ user, activeCompany }: {
                               <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                 <Calendar className="h-4 w-4" />
                                 <span>
-                                  {t('dashboard.received')} {new Date(offer.submittedAt).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
+                                  {t('dashboard.received')} {formatDate(offer.submittedAt)}
                                 </span>
                               </div>
                               <div className={`flex items-center gap-2 font-medium ${isExpired ? 'text-red-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-muted-foreground'}`}>
                                 <Clock className="h-4 w-4" />
                                 <span>
-                                  {isExpired ? t('dashboard.deadlinePassed') : `${daysRemaining} ${t('dashboard.daysLeft')}`}
+                                  {isExpired ? t('dashboard.deadlinePassed') : daysLeftText(t, daysRemaining)}
                                 </span>
                               </div>
                               {offer.company.category && (
                                 <div className={`flex items-center gap-2 text-muted-foreground font-medium`}>
                                   <Building2 className="h-4 w-4" />
-                                  <span>{offer.company.category}</span>
+                                  <span>{categoryLabel(offer.company.category, isRtl)}</span>
                                 </div>
                               )}
                               {offer.quotePrice && (
                                 <div className={`flex items-center gap-2 font-medium`}>
                                   <DollarSign className="h-4 w-4 text-[var(--state-won)]" />
-                                  <span className="text-[var(--state-won)]">SAR {offer.quotePrice.toLocaleString()}</span>
+                                  <span className="text-[var(--state-won)]">{t('dashboard.sarAmount', { amount: offer.quotePrice.toLocaleString('en-US') })}</span>
                                 </div>
                               )}
                             </div>
@@ -3178,6 +3469,16 @@ function DashboardInner({ user, activeCompany }: {
                         </SpotlightCard>
                         );
                         })}
+                        {isPhone && incomingOffers.length > incomingVisible && (
+                          <Button
+                            variant="outline"
+                            className="h-12 w-full text-base"
+                            onClick={() => setIncomingVisible((n) => n + RFP_PAGE_SIZE)}
+                            data-testid="button-show-more-incoming-offers"
+                          >
+                            {t('dashboard.rfpShowMore', { count: incomingOffers.length - incomingVisible })}
+                          </Button>
+                        )}
                   </div>
                 )}
               </TabsContent>}

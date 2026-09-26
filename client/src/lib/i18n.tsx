@@ -609,6 +609,11 @@ const translations = {
       rfpOffersOne: "1 offer",
       rfpOffersTwo: "2 offers",
       rfpBudgetNotSet: "Budget not set",
+      sarAmount: "SAR {amount}",
+      daysLeftOne: "1 day left",
+      daysLeftTwo: "2 days left",
+      daysLeftMany: "{count} days left",
+      offerVendorProfile: "Vendor profile",
     },
     auth: {
       signInTitle: "Sign in to your account",
@@ -4902,6 +4907,11 @@ const translations = {
       rfpOffersOne: "عرض واحد",
       rfpOffersTwo: "عرضان",
       rfpBudgetNotSet: "الميزانية غير محددة",
+      sarAmount: "{amount} ر.س",
+      daysLeftOne: "يوم واحد متبقي",
+      daysLeftTwo: "يومان متبقيان",
+      daysLeftMany: "{count} يومًا متبقيًا",
+      offerVendorProfile: "ملف المورد",
     },
     auth: {
       signInTitle: "تسجيل الدخول إلى حسابك",

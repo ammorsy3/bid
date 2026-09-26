@@ -923,7 +923,7 @@
       "workspace": "seet",
       "actions": [
         {
-          "click": "button[aria-label=\"Open menu\"]"
+          "click": "[data-testid=\"button-open-menu\"]"
         },
         {
           "waitFor": "[role=\"dialog\"]"
@@ -948,7 +948,7 @@
       "workspace": "seet",
       "actions": [
         {
-          "click": "button[aria-label=\"Open menu\"]"
+          "click": "[data-testid=\"button-open-menu\"]"
         },
         {
           "waitFor": "[role=\"dialog\"]"

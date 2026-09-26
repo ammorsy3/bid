@@ -1,6 +1,7 @@
 import { useAuthStore } from "@/lib/auth";
 import { displayRoleName } from "@/lib/roles";
 import { useLogout } from "@/hooks/use-logout";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
@@ -317,10 +318,26 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
   );
 }
 
+// A name or title someone typed can be in either script, whatever the page
+// language is. dir="auto" lets the browser cut it off at the end of its own
+// script ("Built…", not "…iltcorrectly"); the inline-block keeps it lined up
+// with the page direction instead of jumping to the other side.
+function UserText({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <span dir="auto" data-user-content className={`inline-block max-w-full truncate align-bottom ${className}`}>{children}</span>;
+}
+
+// Company verification status (as the server stores it) → translation key.
+const VERIFICATION_STATUS_KEYS: Record<string, string> = {
+  verified: "dashboard.verifStatusVerified",
+  under_review: "dashboard.verifStatusUnderReview",
+  not_verified: "dashboard.verifStatusNotVerified",
+  rejected: "dashboard.verifStatusRejected",
+};
+
 // Component for sidebar header with logo/toggle swap on hover when collapsed
 function ChatHistorySidebar() {
   const [, setLocation] = useLocation();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { data: chatSessions } = useQuery<any[]>({
     queryKey: ["/api/ai-chat-sessions"],
   });
@@ -342,22 +359,24 @@ function ChatHistorySidebar() {
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return t('common.today') || "Today";
+    if (diffDays <= 0) return t('common.today') || "Today";
     if (diffDays === 1) return t('common.yesterday') || "Yesterday";
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return d.toLocaleDateString();
+    // Western digits in both languages, and a month name in the page's language.
+    if (diffDays < 7) return new Intl.RelativeTimeFormat(language === 'ar' ? 'ar-SA-u-nu-latn' : 'en', { numeric: 'always' }).format(-diffDays, 'day');
+    return d.toLocaleDateString(language === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
   return (
     <SidebarGroup>
       <div className="px-3 py-2 flex items-center justify-between group-data-[collapsible=icon]:hidden">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider rtl:normal-case rtl:tracking-normal">
           {t('dashboard.aiChatHistory') || "AI Chat History"}
         </span>
         <Button
           variant="ghost"
           size="icon"
           className="h-5 w-5"
+          aria-label={t('dashboard.createTender')}
           onClick={() => setLocation("/tenders/new/ai")}
         >
           <Plus className="h-3 w-3" />
@@ -370,12 +389,12 @@ function ChatHistorySidebar() {
               <SidebarMenuButton
                 tooltip={session.title}
                 onClick={() => setLocation(`/tenders/new/ai?session=${session.id}`)}
-                className="py-2 text-sm rounded-lg hover:bg-muted group/chat"
+                className="py-2 text-sm rounded-lg hover:bg-muted group/chat max-md:h-auto max-md:min-h-11 max-md:group-has-[[data-sidebar=menu-action]]/menu-item:pe-11"
               >
                 <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                  <span className="text-sm truncate block">{session.title}</span>
-                  <span className="text-[10px] text-muted-foreground">{formatDate(session.updatedAt)}</span>
+                  <span className="text-sm truncate block"><UserText>{session.title}</UserText></span>
+                  <span className="text-[11px] text-muted-foreground">{formatDate(session.updatedAt)}</span>
                 </div>
               </SidebarMenuButton>
               {/* Sibling, not a child: SidebarMenuButton is itself a <button>,
@@ -386,10 +405,10 @@ function ChatHistorySidebar() {
                   e.stopPropagation();
                   deleteMutation.mutate(session.id);
                 }}
-                aria-label="Delete chat"
-                className="opacity-0 group-hover/chat:opacity-100 p-0.5 hover:text-destructive transition-opacity group-data-[collapsible=icon]:hidden"
+                aria-label={t('dashboard.deleteChat')}
+                className="opacity-0 max-md:opacity-100 group-hover/chat:opacity-100 p-0.5 hover:text-destructive active:text-destructive transition-opacity group-data-[collapsible=icon]:hidden"
               >
-                <Trash2 className="h-3 w-3" />
+                <Trash2 className="h-3 w-3 max-md:h-4 max-md:w-4" />
               </SidebarMenuAction>
             </SidebarMenuItem>
           ))}
@@ -432,6 +451,14 @@ function MobileTourSidebarSync({ open, stepId }: { open: boolean; stepId: string
     if (isMobile) setOpenMobile(open);
   }, [isMobile, open, stepId, setOpenMobile]);
 
+  return null;
+}
+
+// Lets code outside the sidebar provider (the create-RFP handler) close the phone
+// drawer before it opens a popup, so the popup isn't stacked on top of the drawer.
+function DrawerCloseBridge({ closeRef }: { closeRef: React.MutableRefObject<() => void> }) {
+  const { isMobile, setOpenMobile } = useSidebar();
+  closeRef.current = () => { if (isMobile) setOpenMobile(false); };
   return null;
 }
 
@@ -515,8 +542,33 @@ const ROUTE_TO_TAB: Record<string, string> = {
   '/vendors': 'vendors',
 };
 
+type AuthSnapshot = ReturnType<typeof useAuthStore.getState>;
+
+// Thin gate in front of the real dashboard. The redirects used to sit in the
+// middle of the dashboard itself, above dozens of later hooks, so the moment the
+// user or workspace went empty (sign-out, session expiry) React threw "Rendered
+// fewer hooks than expected". Here nothing is skipped: the dashboard is either
+// rendered whole or not at all.
 export default function Dashboard() {
-  const { user, activeCompany, companies, switchCompany } = useAuthStore();
+  const { user, activeCompany } = useAuthStore();
+  const [, setLocation] = useLocation();
+  // Signup left half-finished (user exists, no workspace): resume at the
+  // account-type choice rather than assuming they wanted a company.
+  const redirectTo = !user ? "/login" : !user.otpVerified ? "/verify-email" : !activeCompany ? "/onboarding" : null;
+  useEffect(() => {
+    if (redirectTo) setLocation(redirectTo);
+  }, [redirectTo, setLocation]);
+  if (!user || !activeCompany || redirectTo) return null;
+  return <DashboardInner user={user} activeCompany={activeCompany} />;
+}
+
+function DashboardInner({ user, activeCompany }: {
+  user: NonNullable<AuthSnapshot["user"]>;
+  activeCompany: NonNullable<AuthSnapshot["activeCompany"]>;
+}) {
+  const { companies, switchCompany } = useAuthStore();
+  const isPhone = useIsMobile();
+  const [menuBoundary, setMenuBoundary] = useState<Element | null>(null);
   const [location, setLocation] = useLocation();
   const { t, isRtl, language, setLanguage } = useI18n();
     const [searchQuery, setSearchQuery] = useState("");
@@ -528,6 +580,7 @@ export default function Dashboard() {
   const [tenderSearchQuery, setTenderSearchQuery] = useState("");
   const [activeTab, setActiveTabState] = useState(() => ROUTE_TO_TAB[location] ?? "overview");
   const mainRef = useRef<HTMLElement>(null);
+  const closeDrawerRef = useRef<() => void>(() => {});
 
   // Keep the URL in sync with the active tab so /rfps, /proposals, and
   // /vendors are real, shareable, back-button-friendly routes (B-7) instead
@@ -602,23 +655,6 @@ export default function Dashboard() {
     if (vendorsTourActive) setVendorsSubTab('vendors-list');
   }, [vendorsTourActive]);
 
-  if (!user) {
-    setLocation("/login");
-    return null;
-  }
-
-  if (!user.otpVerified) {
-    setLocation("/verify-email");
-    return null;
-  }
-
-  if (!activeCompany) {
-    // Signup left half-finished (user exists, no workspace). Resume at the
-    // account-type choice rather than assuming they wanted a company.
-    setLocation("/onboarding");
-    return null;
-  }
-
   // Check if user is owner or admin (can create tenders, manage vendors)
   const userRole = activeCompany.role || 'viewer';
   const canManage = ['owner', 'admin'].includes(userRole);
@@ -628,7 +664,10 @@ export default function Dashboard() {
   const isBuyerAccount = workspaceKind === 'company';
   const requiresLegalVerification = workspaceKind === 'company';
   const isIndividual = workspaceKind === 'individual';
-  const roleLabel = isIndividual ? t('dashboard.roleIndividual') : userRole.charAt(0).toUpperCase() + userRole.slice(1);
+  const roleLabel = isIndividual ? t('dashboard.roleIndividual') : displayRoleName(userRole, workspaceKind, t);
+  const verificationLabel = VERIFICATION_STATUS_KEYS[activeCompany.verificationStatus]
+    ? t(VERIFICATION_STATUS_KEYS[activeCompany.verificationStatus])
+    : activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   const myProfilePath = activeCompany?.slug ? profilePath({ slug: activeCompany.slug, accountType: workspaceKind }) : null;
   const isTeam = workspaceKind === 'team';
   const canCreateTenders = isBuyerAccount;
@@ -987,28 +1026,29 @@ export default function Dashboard() {
     <>
     <SidebarProvider>
       <MobileTourSidebarSync open={!!dashboardTourStep?.requiresMobileSidebar} stepId={dashboardTourStep?.id ?? null} />
+      <DrawerCloseBridge closeRef={closeDrawerRef} />
       <Sidebar collapsible="icon" side={isRtl ? "right" : "left"} className={isRtl ? "border-l border-border dark:border-border" : "border-r border-border dark:border-border"}>
         {/* Brand accent strip */}
         <div className="h-0.5 bg-gradient-to-r from-[#FE3C01] to-[#F19A8F] flex-shrink-0" />
         <SidebarHeader className="border-b px-4 py-4">
-          <div className={`flex items-center gap-3`}>
+          <div className={`flex items-center gap-3 max-md:gap-2`}>
             <SidebarLogoToggle />
             {companies.length > 1 || canActivateIndividual ? (
-              <DropdownMenu>
+              <DropdownMenu dir={isRtl ? 'rtl' : 'ltr'} onOpenChange={(open) => { if (open) setMenuBoundary(document.querySelector('[data-mobile="true"]')); }}>
                 <DropdownMenuTrigger asChild>
-                  <button className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden flex items-center gap-1 hover:bg-muted/50 rounded-md px-2 py-1 -mx-2 transition-colors ${isRtl ? 'text-right' : ''}`}>
+                  <button className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden flex items-center gap-1 hover:bg-muted/50 active:bg-muted rounded-md px-2 py-1 -mx-2 transition-colors max-md:min-h-11 ${isRtl ? 'text-right' : ''}`}>
                     <div className="flex-1 min-w-0">
                       <h2 className="font-semibold text-sm truncate">
-                        {activeCompany.profile?.displayName || activeCompany.name}
+                        <UserText className="max-md:whitespace-normal max-md:line-clamp-2 max-md:break-words">{activeCompany.profile?.displayName || activeCompany.name}</UserText>
                       </h2>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {roleLabel}{requiresLegalVerification && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
+                      <p className="text-xs text-muted-foreground truncate max-md:whitespace-normal">
+                        {roleLabel}{requiresLegalVerification && ` • ${verificationLabel}`}
                       </p>
                     </div>
                     <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align={isRtl ? 'end' : 'start'} className="w-64">
+                <DropdownMenuContent align={isRtl ? 'end' : 'start'} collisionBoundary={isPhone && menuBoundary ? [menuBoundary] : undefined} collisionPadding={8} className="w-64">
                   {companies.map((company: any) => (
                     <DropdownMenuItem
                       key={company.id}
@@ -1023,13 +1063,13 @@ export default function Dashboard() {
                           }
                         }
                       }}
-                      className={`flex items-center gap-3 py-2 ${company.id === activeCompany.id ? 'bg-primary/5' : ''}`}
+                      className={`flex items-center gap-3 py-2 max-md:min-h-12 ${company.id === activeCompany.id ? 'bg-primary/5' : ''}`}
                     >
                       <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center text-primary font-medium text-xs flex-shrink-0">
-                        {(company.profile?.displayName || company.name).charAt(0).toUpperCase()}
+                        {(Array.from(String(company.profile?.displayName || company.name))[0] ?? '').toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{company.profile?.displayName || company.name}</p>
+                        <p className="text-sm font-medium truncate"><UserText>{company.profile?.displayName || company.name}</UserText></p>
                         <p className="text-xs text-muted-foreground capitalize">
                           {company.accountType === 'individual'
                             ? t('dashboard.roleIndividual')
@@ -1044,7 +1084,7 @@ export default function Dashboard() {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => setLocation('/onboarding/individual-basics')}
-                        className="flex items-center gap-3 py-2"
+                        className="flex items-center gap-3 py-2 max-md:min-h-12"
                         data-testid="menu-activate-individual"
                       >
                         <div className="h-8 w-8 rounded-md bg-[var(--state-won)]/10 flex items-center justify-center text-[var(--state-won)] flex-shrink-0">
@@ -1062,10 +1102,10 @@ export default function Dashboard() {
             ) : (
               <div className={`flex-1 min-w-0 group-data-[collapsible=icon]:hidden ${isRtl ? 'text-right' : ''}`}>
                 <h2 className="font-semibold text-sm truncate">
-                  {activeCompany.profile?.displayName || activeCompany.name}
+                  <UserText className="max-md:whitespace-normal max-md:line-clamp-2 max-md:break-words">{activeCompany.profile?.displayName || activeCompany.name}</UserText>
                 </h2>
-                <p className="text-xs text-muted-foreground truncate">
-                  {roleLabel}{requiresLegalVerification && ` • ${activeCompany.verificationStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}`}
+                <p className="text-xs text-muted-foreground truncate max-md:whitespace-normal">
+                  {roleLabel}{requiresLegalVerification && ` • ${verificationLabel}`}
                 </p>
               </div>
             )}
@@ -1075,7 +1115,7 @@ export default function Dashboard() {
                 onClick={() => window.open(myProfilePath, '_blank', 'noopener,noreferrer')}
                 title={t('settings.viewPublicProfile')}
                 aria-label={t('settings.viewPublicProfile')}
-                className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-[#FE3C01] hover:bg-[#FE3C01]/10 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden"
+                className="h-7 w-7 max-md:h-11 max-md:w-11 flex items-center justify-center rounded-md text-muted-foreground hover:text-[#FE3C01] hover:bg-[#FE3C01]/10 active:bg-[#FE3C01]/10 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden"
                 data-testid="button-view-public-profile-sidebar"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -1085,7 +1125,10 @@ export default function Dashboard() {
           </div>
         </SidebarHeader>
         
-        <SidebarContent>
+        {/* data-audit-ok="covered": this box scrolls above the pinned profile footer, so
+            the mobile checklist sees rows that are scrolled out of view as "covered" by
+            the footer (see the reason in the page result file). */}
+        <SidebarContent data-audit-ok="covered">
           {/* Action Items - Create & Search */}
           <SidebarGroup>
             <SidebarGroupContent>
@@ -1093,11 +1136,11 @@ export default function Dashboard() {
                 {canManage && canCreateTenders && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={handleCreateTender}
+                      onClick={() => { closeDrawerRef.current(); handleCreateTender(); }}
                       tooltip={t('dashboard.createTender')}
                       data-testid="sidebar-create-tender"
                       data-tour="create-tender"
-                      className="py-3 text-base rounded-xl bg-[#FE3C01] text-white hover:bg-[#1A1613] hover:text-white shadow-[0_10px_24px_-8px_rgba(254,60,1,0.55)] transition-all"
+                      className="py-3 text-base rounded-xl bg-[#FE3C01] text-white hover:bg-[#1A1613] hover:text-white active:bg-[#1A1613] active:text-white shadow-[0_10px_24px_-8px_rgba(254,60,1,0.55)] transition-all"
                     >
                       <Plus className="h-5 w-5 text-white" />
                       <span className="text-base font-medium group-data-[collapsible=icon]:hidden text-white">{t('dashboard.createTender')}</span>
@@ -1121,15 +1164,7 @@ export default function Dashboard() {
                 )}
                 {canManage && !isIndividual && !isTeam && (
                   <SidebarMenuItem>
-                    <SidebarMenuButton
-                      onClick={() => setShowSearchModal(true)}
-                      tooltip={t('dashboard.searchTenders')}
-                      data-testid="sidebar-search-tenders"
-                      className="py-3 text-base rounded-lg hover:bg-muted"
-                    >
-                      <Search className="h-5 w-5 text-muted-foreground" />
-                      <span className="text-base font-medium group-data-[collapsible=icon]:hidden">{t('dashboard.searchTenders')}</span>
-                    </SidebarMenuButton>
+                    <SidebarSearchButton label={t('dashboard.searchTenders')} onOpen={() => setShowSearchModal(true)} />
                   </SidebarMenuItem>
                 )}
               </SidebarMenu>
@@ -1159,7 +1194,7 @@ export default function Dashboard() {
               <div className="px-2 group-data-[collapsible=icon]:px-0">
                 <button
                   onClick={() => window.open('/marketplace', '_blank')}
-                  className="w-full rounded-xl border border-[#FE3C01]/20 bg-gradient-to-br from-[#FE3C01]/5 to-[#F19A8F]/10 px-3 py-3 hover:from-[#FE3C01]/10 hover:to-[#F19A8F]/20 hover:border-[#FE3C01]/30 transition-all group/mp cursor-pointer group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
+                  className="w-full rounded-xl border border-[#FE3C01]/20 bg-gradient-to-br from-[#FE3C01]/5 to-[#F19A8F]/10 px-3 py-3 hover:from-[#FE3C01]/10 hover:to-[#F19A8F]/20 hover:border-[#FE3C01]/30 active:scale-[0.98] active:from-[#FE3C01]/10 active:to-[#F19A8F]/20 transition-all group/mp cursor-pointer group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
                 >
                   <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:gap-0">
                     <div className="h-8 w-8 rounded-lg bg-[#FE3C01]/10 flex items-center justify-center flex-shrink-0 group-hover/mp:bg-[#FE3C01]/15 transition-colors">
@@ -1183,7 +1218,7 @@ export default function Dashboard() {
                 <div className="px-2 group-data-[collapsible=icon]:px-0">
                   <button
                     onClick={() => setLocation('/admin/dashboard')}
-                    className="w-full rounded-xl border border-purple-300/30 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 px-3 py-3 hover:from-purple-500/15 hover:to-indigo-500/20 hover:border-purple-400/40 transition-all group/admin cursor-pointer group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
+                    className="w-full rounded-xl border border-purple-300/30 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 px-3 py-3 hover:from-purple-500/15 hover:to-indigo-500/20 hover:border-purple-400/40 active:scale-[0.98] active:from-purple-500/15 active:to-indigo-500/20 transition-all group/admin cursor-pointer group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:rounded-lg group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center"
                   >
                     <div className="flex items-center gap-2.5 group-data-[collapsible=icon]:gap-0">
                       <div className="h-8 w-8 rounded-lg bg-[var(--bid-orange)]/15 flex items-center justify-center flex-shrink-0 group-hover/admin:bg-[var(--bid-orange)]/25 transition-colors">
@@ -1193,7 +1228,7 @@ export default function Dashboard() {
                         <p className="text-sm font-semibold text-gray-900 dark:text-foreground">{t('settings.adminPanelLabel')}</p>
                         <p className="text-[11px] text-muted-foreground leading-tight">{t('settings.adminPanelDesc')}</p>
                       </div>
-                      <ChevronRight className="h-3.5 w-3.5 text-purple-400/50 group-hover/admin:text-purple-500 transition-colors flex-shrink-0 group-data-[collapsible=icon]:hidden" />
+                      <ChevronRight className="h-3.5 w-3.5 text-purple-400/50 group-hover/admin:text-purple-500 transition-colors flex-shrink-0 rtl:-scale-x-100 group-data-[collapsible=icon]:hidden" />
                     </div>
                   </button>
                 </div>
@@ -1217,7 +1252,7 @@ export default function Dashboard() {
                   </div>
                   <SupportContactLinks
                     className="mt-2.5 flex flex-col gap-1 group-data-[collapsible=icon]:hidden"
-                    linkClassName="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                    linkClassName="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground active:bg-accent transition-colors max-md:min-h-11 max-md:text-sm"
                     iconClassName="h-3.5 w-3.5 text-[#FE3C01] flex-shrink-0"
                   />
                 </div>
@@ -1231,7 +1266,7 @@ export default function Dashboard() {
           {canManage && canCreateTenders && <ChatHistorySidebar />}
         </SidebarContent>
 
-        <SidebarFooter className="border-t px-4 py-4">
+        <SidebarFooter className="border-t px-4 py-4 max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:max-h-[45dvh] max-md:overflow-y-auto max-md:overscroll-contain">
           {/* Legal verification belongs to company workspaces only. */}
           {requiresLegalVerification && activeCompany.verificationStatus === 'not_verified' && (
             <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
@@ -1239,7 +1274,7 @@ export default function Dashboard() {
               <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{t('settings.companyNotVerifiedDesc')}</p>
               <button
                 onClick={() => setLocation('/settings?tab=company')}
-                className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900"
+                className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900 max-md:inline-flex max-md:min-h-11 max-md:items-center"
               >
                 {t('settings.verifyNow')}
               </button>
@@ -1263,7 +1298,7 @@ export default function Dashboard() {
               )}
               <button
                 onClick={() => setLocation('/settings?tab=company')}
-                className="text-xs font-semibold text-red-800 dark:text-red-300 underline underline-offset-2 hover:text-red-900"
+                className="text-xs font-semibold text-red-800 dark:text-red-300 underline underline-offset-2 hover:text-red-900 max-md:inline-flex max-md:min-h-11 max-md:items-center"
               >
                 {t('settings.reUploadDocuments')}
               </button>
@@ -1272,7 +1307,7 @@ export default function Dashboard() {
 
           <Popover>
             <PopoverTrigger asChild>
-              <button className={`flex items-center gap-3 w-full hover:bg-accent rounded-md p-1 -m-1 transition-colors ${isRtl ? 'text-right' : ''}`} data-testid="button-user-menu" data-tour="user-menu">
+              <button className={`flex items-center gap-3 w-full hover:bg-accent active:bg-accent rounded-md p-1 -m-1 transition-colors max-md:min-h-11 ${isRtl ? 'text-right' : ''}`} data-testid="button-user-menu" data-tour="user-menu">
                 <div className="relative flex-shrink-0">
                   {user.profilePictureUrl ? (
                     <img
@@ -1317,12 +1352,12 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
-                <span className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
+                <span dir="auto" data-user-content className="text-sm font-medium truncate group-data-[collapsible=icon]:hidden">
                   {user.name || user.username}
                 </span>
               </button>
             </PopoverTrigger>
-            <PopoverContent side="top" align={isRtl ? "end" : "start"} className="w-72 mb-2 p-0">
+            <PopoverContent side="top" align={isRtl ? "end" : "start"} collisionPadding={8} className="w-72 mb-2 p-0 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto overscroll-contain">
               {/* User Header */}
               <div className="p-4 border-b">
                 <div className="flex items-center gap-3">
@@ -1338,8 +1373,8 @@ export default function Dashboard() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm">{user.name || user.username}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    <p className="font-semibold text-sm truncate"><UserText>{user.name || user.username}</UserText></p>
+                    <p className="text-xs text-muted-foreground truncate"><UserText>{user.email}</UserText></p>
                   </div>
                 </div>
               </div>
@@ -1349,7 +1384,7 @@ export default function Dashboard() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button 
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 max-md:py-3 hover:bg-accent active:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-notifications"
                     >
                       <div className="relative">
@@ -1361,10 +1396,10 @@ export default function Dashboard() {
                         )}
                       </div>
                       <span className="text-sm text-start flex-1">{t('settings.notifications')}</span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 rtl:-scale-x-100" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent side="right" align="start" className="w-72 p-0">
+                  <PopoverContent side={isPhone ? "bottom" : "right"} align="start" collisionPadding={8} className="w-72 p-0">
                     <div className="p-3 border-b">
                       <p className="font-medium text-sm">{t('settings.notifications')}</p>
                     </div>
@@ -1399,9 +1434,9 @@ export default function Dashboard() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={`text-sm truncate ${offer.isViewed ? '' : 'font-semibold'}`}>{t('settings.newProposal')}</p>
-                              <p className={`text-xs truncate ${offer.isViewed ? 'text-muted-foreground' : 'text-muted-foreground font-medium'}`}>{offer.tender?.title}</p>
+                              <p className={`text-xs truncate ${offer.isViewed ? 'text-muted-foreground' : 'text-muted-foreground font-medium'}`}><UserText>{offer.tender?.title}</UserText></p>
                               <p className={`text-xs mt-0.5 ${offer.isViewed ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
-                                {new Date(offer.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                {new Date(offer.submittedAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
                               </p>
                             </div>
                           </button>
@@ -1424,22 +1459,22 @@ export default function Dashboard() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button 
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 max-md:py-3 hover:bg-accent active:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-help"
                     >
                       <HelpCircle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                       <span className="text-sm text-start flex-1">{t('settings.helpCenter')}</span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 rtl:-scale-x-100" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent side="right" align="start" className="w-48 p-1">
-                    <button onClick={() => setLocation('/getting-started')} className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                  <PopoverContent side={isPhone ? "bottom" : "right"} align="start" collisionPadding={8} className="w-48 p-1">
+                    <button onClick={() => setLocation('/getting-started')} className="w-full flex items-center gap-2 px-3 py-2 max-md:py-3 rounded-md text-sm hover:bg-accent active:bg-accent transition-colors">
                       {t('settings.gettingStarted')}
                     </button>
-                    <button onClick={() => setLocation('/faq')} className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                    <button onClick={() => setLocation('/faq')} className="w-full flex items-center gap-2 px-3 py-2 max-md:py-3 rounded-md text-sm hover:bg-accent active:bg-accent transition-colors">
                       {t('settings.faqs')}
                     </button>
-                    <button onClick={() => window.location.href = 'mailto:info@bid.sa'} className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors">
+                    <button onClick={() => window.location.href = 'mailto:info@bid.sa'} className="w-full flex items-center gap-2 px-3 py-2 max-md:py-3 rounded-md text-sm hover:bg-accent active:bg-accent transition-colors">
                       {t('settings.contactSupport')}
                     </button>
                   </PopoverContent>
@@ -1448,7 +1483,7 @@ export default function Dashboard() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button 
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 max-md:py-3 hover:bg-accent active:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-language"
                     >
                       <Globe className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -1456,13 +1491,13 @@ export default function Dashboard() {
                       <span className="text-xs text-muted-foreground">
                         {language === 'en' ? t('companyProfileEditor.langEnglish') : t('companyProfileEditor.langArabic')}
                       </span>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 rtl:-scale-x-100" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent side="right" align="start" className="w-40 p-1">
+                  <PopoverContent side={isPhone ? "bottom" : "right"} align="start" collisionPadding={8} className="w-40 p-1">
                     <button
                       onClick={() => setLanguage('en')}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                      className={`w-full flex items-center gap-2 px-3 py-2 max-md:py-3 rounded-md text-sm transition-colors ${
                         language === 'en' ? 'bg-accent font-medium' : 'hover:bg-accent'
                       }`}
                       data-testid="lang-english"
@@ -1472,7 +1507,7 @@ export default function Dashboard() {
                     </button>
                     <button
                       onClick={() => setLanguage('ar')}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+                      className={`w-full flex items-center gap-2 px-3 py-2 max-md:py-3 rounded-md text-sm transition-colors ${
                         language === 'ar' ? 'bg-accent font-medium' : 'hover:bg-accent'
                       }`}
                       data-testid="lang-arabic"
@@ -1494,7 +1529,7 @@ export default function Dashboard() {
                       localStorage.setItem('theme', 'light');
                       setCurrentTheme('light');
                     }}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm transition-colors ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 max-md:py-3 px-3 rounded-md text-sm transition-colors ${
                       currentTheme === 'light'
                         ? 'bg-background shadow-sm font-medium' 
                         : 'text-muted-foreground hover:text-foreground'
@@ -1510,7 +1545,7 @@ export default function Dashboard() {
                       localStorage.setItem('theme', 'dark');
                       setCurrentTheme('dark');
                     }}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm transition-colors ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 max-md:py-3 px-3 rounded-md text-sm transition-colors ${
                       currentTheme === 'dark'
                         ? 'bg-background shadow-sm font-medium' 
                         : 'text-muted-foreground hover:text-foreground'
@@ -1531,7 +1566,7 @@ export default function Dashboard() {
                       localStorage.setItem('theme', 'system');
                       setCurrentTheme('system');
                     }}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-md text-sm transition-colors ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 max-md:py-3 px-3 rounded-md text-sm transition-colors ${
                       currentTheme === 'system'
                         ? 'bg-background shadow-sm font-medium' 
                         : 'text-muted-foreground hover:text-foreground'
@@ -1549,7 +1584,7 @@ export default function Dashboard() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button
-                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 max-md:py-3 hover:bg-accent active:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-add-account"
                     >
                       <Plus className="h-5 w-5 text-muted-foreground" />
@@ -1557,10 +1592,10 @@ export default function Dashboard() {
                       <ChevronRight className={`h-4 w-4 text-muted-foreground ${isRtl ? 'rotate-180' : ''}`} />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent side={isRtl ? "left" : "right"} align="end" className="w-56 p-1">
+                  <PopoverContent side={isPhone ? "bottom" : isRtl ? "left" : "right"} align={isPhone ? "start" : "end"} collisionPadding={8} className="w-56 p-1">
                     <button
                       onClick={() => setLocation('/onboarding/company-basics?addAccount=1')}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent ${isRtl ? 'text-right' : ''}`}
+                      className={`w-full flex items-center gap-2 px-3 py-2 max-md:py-3 rounded-md text-sm hover:bg-accent active:bg-accent ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-create-organization"
                     >
                       <Building2 className="h-4 w-4" />
@@ -1568,7 +1603,7 @@ export default function Dashboard() {
                     </button>
                     <button
                       onClick={() => setLocation('/onboarding?addAccount=1&join=1')}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm hover:bg-accent ${isRtl ? 'text-right' : ''}`}
+                      className={`w-full flex items-center gap-2 px-3 py-2 max-md:py-3 rounded-md text-sm hover:bg-accent active:bg-accent ${isRtl ? 'text-right' : ''}`}
                       data-testid="menu-join-organization"
                     >
                       <UserPlus className="h-4 w-4" />
@@ -1580,7 +1615,7 @@ export default function Dashboard() {
                 {!isIndividual && (
                 <button
                   onClick={() => setLocation('/company/edit')}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 max-md:py-3 hover:bg-accent active:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                   data-testid="menu-company-profile"
                 >
                   <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -1590,7 +1625,7 @@ export default function Dashboard() {
 
                 <button
                   onClick={() => setLocation('/settings')}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 max-md:py-3 hover:bg-accent active:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                   data-testid="menu-settings"
                 >
                   <Settings className="h-5 w-5 text-muted-foreground" />
@@ -1599,7 +1634,7 @@ export default function Dashboard() {
 
                 <button 
                   onClick={handleLogout}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 max-md:py-3 hover:bg-accent active:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
                   data-testid="button-logout"
                 >
                   <LogOut className="h-5 w-5 text-muted-foreground" />
@@ -1613,11 +1648,11 @@ export default function Dashboard() {
           {tourDismissed && (
             <button
               onClick={handleRetakeTour}
-              className={`mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full px-1 group-data-[collapsible=icon]:hidden`}
+              className={`mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground active:text-foreground transition-colors w-full px-1 max-md:mt-1 max-md:min-h-11 group-data-[collapsible=icon]:hidden`}
               data-testid="button-retake-tour"
             >
               <HelpCircle className="h-3.5 w-3.5 flex-shrink-0" />
-              <span>{isRtl ? 'جولة تعريفية' : 'Take a tour'}</span>
+              <span>{t('dashboard.takeTour')}</span>
             </button>
           )}
         </SidebarFooter>
@@ -1626,7 +1661,7 @@ export default function Dashboard() {
       {/* Search Tenders Modal */}
       <Dialog open={showSearchModal} onOpenChange={setShowSearchModal}>
         <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0">
-          <div className="p-6 border-b">
+          <div className="p-6 max-md:pt-14 border-b">
             <Input
               placeholder={t('dashboard.searchPlaceholder')}
               value={tenderSearchQuery}
@@ -1694,13 +1729,17 @@ export default function Dashboard() {
 
       <SidebarInset className="bg-[#F6F4F1] dark:bg-background">
         {/* Mobile top bar — only way to reach navigation on phones */}
-        <header className="md:hidden sticky top-0 z-30 flex items-center gap-3 h-14 px-4 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-          <SidebarTrigger className="h-9 w-9 -ms-1.5" aria-label="Open menu" />
+        <header className="md:hidden sticky top-0 z-30 flex items-center gap-3 h-14 px-4 border-b border-border bg-card">
+          <SidebarTrigger className="h-9 w-9 -ms-1.5" aria-label={t('dashboard.openMenu')} data-testid="button-open-menu" />
           <BidLogo variant="orange" size={24} />
         </header>
-        {/* Main Content */}
+        {/* Main Content. data-audit-ok (phones only): the fixed bottom tab bar sits on top
+            of whatever is scrolled to the bottom edge, and the last row always clears it
+            (max-md:pb-28), so the mobile checklist's "covered" on a control at the fold
+            is expected, not a bug (reason in the page result file). */}
         <main
           ref={mainRef}
+          data-audit-ok={isPhone ? "covered" : undefined}
           className="flex-1 overflow-auto p-4 sm:p-6 max-md:pb-28"
           style={currentTheme !== 'dark' ? {
             // Porcelain canvas with two soft blooms — orange top-right, ink
@@ -2850,7 +2889,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className={`flex items-center gap-2`}>
-                        <div className="flex-1 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate">
+                        <div dir="ltr" className="flex-1 min-w-0 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate">
                           {window.location.origin}/traction/{activeCompany.profile.tractionSlug}
                         </div>
                         <Button
@@ -3398,7 +3437,7 @@ export default function Dashboard() {
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-2">{t('dashboard.yourProfileLink')}</p>
                       <div className={`flex items-center gap-2 flex-wrap`}>
-                        <div className="flex-1 min-w-0 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate">
+                        <div dir="ltr" className="flex-1 min-w-0 bg-muted rounded-lg px-3 py-2 text-sm font-mono truncate">
                           {profileUrl}
                         </div>
                         <Button variant="outline" size="sm" onClick={copyProfileLink} className="flex-shrink-0 gap-1.5">
@@ -3972,9 +4011,9 @@ export default function Dashboard() {
            the drawer stays available for secondary items (marketplace,
            profile, settings). Safe-area aware. ── */}
     <nav
-      className="md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/85"
+      className="md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      aria-label="Primary"
+      aria-label={t('dashboard.primaryNav')}
     >
       <div className={`flex items-stretch`}>
         {sidebarItems.filter(i => i.show).slice(0, 4).map((item) => {
@@ -3987,11 +4026,11 @@ export default function Dashboard() {
               onClick={() => { setActiveTab(item.value); mainRef.current?.scrollTo({ top: 0 }); }}
               aria-current={active ? 'page' : undefined}
               data-testid={`bottomnav-${item.value}`}
-              className={`flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] px-1 text-[11px] font-medium transition-colors ${
-                active ? 'text-[#FE3C01]' : 'text-muted-foreground'
+              className={`group flex-1 flex flex-col items-center justify-center gap-1 min-h-[56px] px-1 text-[11px] transition-colors active:bg-accent ${
+                active ? 'text-[#FE3C01] font-semibold' : 'text-muted-foreground font-medium'
               }`}
             >
-              <ActiveIcon className="h-5 w-5" aria-hidden />
+              <ActiveIcon className="h-5 w-5 transition-transform duration-100 group-active:scale-90" aria-hidden />
               <span className="truncate max-w-full leading-none">{item.label}</span>
               <span className={`h-1 w-1 rounded-full ${active ? 'bg-[#FE3C01]' : 'bg-transparent'}`} aria-hidden />
             </button>

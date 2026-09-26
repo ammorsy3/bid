@@ -43,8 +43,8 @@ Baseline (before fixes, 136 captures): 155 fails. Populated states use the Seet 
 (60 tenders, 11 proposals); "-new" states use his empty, unverified default workspace.
 | Pages | Status | What to fix (known before the loop) |
 |---|---|---|
-| dashboard-shell | in progress | Top bar, phone menu drawer, bottom tab bar, workspace switcher, search, banners. Workspace name truncated from the wrong end in Arabic; "Open menu"/"Toggle Sidebar" labels are English; Dashboard.tsx returns early above dozens of hooks when there is no workspace (crash "Rendered fewer hooks", plus setState during render). |
-| dashboard-overview | todo | Stat cards, onboarding checklist (a step marked complete still shows its "verify" button), fixed bottom bar covering content. |
+| dashboard-shell | fixed (phone fails 91 → 0, reviewer PASS, desktop layout identical) | Fixed the hooks crash, names cut off at the wrong end in Arabic, English labels on the Arabic page, 44px drawer rows, workspace list mirrored and kept inside the drawer, press states. Open for you: the trash icon on AI-chat history deletes with no confirm; Radix menus/selects are left-to-right on Arabic pages app-wide (see decisions.md #15, #16). |
+| dashboard-overview | in progress | Stat cards, onboarding checklist (a step marked complete still shows its "verify" button), fixed bottom bar covering content. |
 | dashboard-rfps | todo | 60 tenders in one 17,934px page (needs paging / load-more); status badges squeeze long titles into a narrow column; 174 warnings in Arabic. |
 | dashboard-proposals | todo | Long titles squeezed by badges; check the tab switch (received / sent). |
 | dashboard-vendors | todo | Join link truncated from the wrong end; "covered" fails; 42 warnings. |

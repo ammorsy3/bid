@@ -91,3 +91,17 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     without you. Want me to add OpenAI to the list of service providers, and
     a sentence about AI features (what's sent and whether it's used to train
     models)? That last part needs a fact from you or OpenAI's terms.
+
+15. **AI-chat history: the trash icon deletes at once.** In the dashboard menu each
+    saved AI chat has a trash icon that deletes it with no "are you sure" and no
+    undo. On phones it is now always visible (before, it only showed on hover, which
+    phones don't have), so an accidental tap is easier. Want a confirm dialog or an
+    "Undo" toast? (Product call, not a layout fix.)
+
+16. **Menus and dropdowns are left-to-right on Arabic pages, app-wide.** The app
+    has no global text-direction setting for its dropdown/menu/tab components (Radix),
+    so on Arabic pages they still lay out left-to-right. I only fixed the workspace
+    list in the menu. A one-place fix would cover every page, but it touches every
+    page, so I'd like your OK before doing it (I'd do it right after batch 3 and
+    re-run all earlier batches to check nothing moved).
+

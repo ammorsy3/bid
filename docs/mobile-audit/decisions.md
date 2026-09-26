@@ -73,19 +73,21 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     cookies; no advertising or third-party tracking cookies). Worth a quick
     read by whoever handles your legal pages before you rely on it.
 
-12. **Privacy Policy names old providers.** Section 4 says files are hosted
-    on "Replit Object Storage" and the database is "Neon". Production now
-    runs on Supabase (database and file storage), and Vercel (hosting and
-    visitor/speed analytics) isn't listed. Update section 4 to match? (No
-    change made; it's legal text.)
+12. **Privacy Policy providers — fixed (2026-09-26).** Section 4 now names
+    Supabase (database and file storage) and Vercel (hosting and website
+    performance analytics) instead of Replit and Neon; date bumped to
+    September 2026, English and Arabic.
 
-13. **Developer docs (/docs) are English-only.** The API reference pages and
-    their menus exist only in English. With the app in Arabic they render
-    mirrored right-to-left. Options: (a) always show them as a clean
-    left-to-right English page (standard for API docs), or (b) translate
-    them to Arabic. The docs fix was stopped before it started, so the page
-    is paused in the queue until you say which you want. Note: the docs run
-    was cut off partway, so unfinished, unreviewed edits to the docs files
-    (`client/src/pages/docs/*`, plus small changes in `index.html`,
-    `index.css` and `i18n.tsx`) are sitting uncommitted in the working
-    folder. They were left out of every commit on purpose.
+13. **Developer docs (/docs) — Arabic version being built (Ahmed chose
+    option B, 2026-09-26).** All prose, headings, tables and menus are
+    translated. Code (cURL, Python, JSON and other snippets) stays exactly as
+    in English so it can be copied and run. The docs follow the app's
+    language, with an AR/EN switch in the docs header (and in the phone menu).
+
+14. **Privacy Policy doesn't mention the AI provider.** The AI features
+    (Copilot, AI chat, and the image/audio tools) send what people type, and
+    likely tender text, to OpenAI (`server/ai/*`). Section 4 lists no AI
+    provider, so this is a gap in what the policy discloses. I didn't add it
+    without you. Want me to add OpenAI to the list of service providers, and
+    a sentence about AI features (what's sent and whether it's used to train
+    models)? That last part needs a fact from you or OpenAI's terms.

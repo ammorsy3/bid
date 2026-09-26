@@ -106,6 +106,13 @@
 .site-footer--rtl .site-footer-bot {
   direction: rtl;
 }
+/* Arabic is never letter-spaced (it pulls the joined letters apart), at any
+   width. It has no capitals either, so the heading gets a touch more size. */
+.site-footer--rtl .site-footer-row h5 {
+  letter-spacing: normal;
+  text-transform: none;
+  font-size: 13px;
+}
 
 @media (max-width: 900px) {
   .site-footer-row {
@@ -114,13 +121,52 @@
   }
 }
 @media (max-width: 560px) {
+  /* Two link columns under the brand line (like the landing footer), each
+     link a 44px tap. */
+  .site-footer {
+    padding: 48px 0 32px;
+    --stone: #6B625A;
+  }
+  .site-footer .site-footer-inner {
+    padding: 0 16px;
+  }
   .site-footer-row {
-    grid-template-columns: 1fr;
-    gap: 32px;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 20px;
+  }
+  .site-footer-brand {
+    grid-column: 1 / -1;
+  }
+  .site-footer-col a {
+    padding: 13px 0;
+  }
+  .site-footer-support a {
+    min-height: 44px;
   }
   .site-footer-bot {
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
+    gap: 10px;
+  }
+  .site-footer-bot a {
+    display: inline-block;
+    min-width: 44px;
+    padding: 13px 6px;
+    text-align: center;
+  }
+  .site-footer-bot a:first-child {
+    margin-inline-start: -6px;
+  }
+}
+
+/* Touch screens: no stuck hover colour, and every tap answers back. */
+@media (hover: none) {
+  .site-footer-col a:hover,
+  .site-footer-bot a:hover {
+    color: var(--stone);
+  }
+  .site-footer-col a:active,
+  .site-footer-bot a:active {
+    opacity: 0.6;
   }
 }

@@ -33,7 +33,7 @@ Baseline (before fixes, 112 captures): 338 fails, all Arabic letter-spacing on l
 | Pages | Status | What to fix (known before the loop) |
 |---|---|---|
 | landing | fixed (32 → 0 phone fails; desktop Arabic 31 → 0; desktop English pixel-identical; reviewer PASS round 2) | Phone menu drops down over a dimmed page instead of pushing it off-screen; sticky top bar; sign-up popup is a bottom sheet; 44px taps; touch press states; Arabic letter-spacing removed at every width. Menu and popup are real dialogs now. 2 questions added (decisions.md #10, #11). |
-| pricing | todo | Arabic letter-spacing fails (16 on phones). |
+| pricing | fixed (16 → 0 phone fails; desktop Arabic 16 → 0; desktop English pixel-identical; reviewer: 1 must-fix, done) | Phone menu was opening off-screen (now drops down like landing's). Monthly/yearly is a big segmented switch; plan buttons 48px; whole FAQ rows tappable; Arabic digits made Western like the prices; footer grey darkened on phones on both footers (3.3 → 5.1:1). Arabic menu wording still differs from landing's (سوق Bid / دخول vs السوق / تسجيل الدخول) — copy choice, left alone. |
 | docs | todo | 53-63 warnings in Arabic (tap sizes / English words). Code blocks and tables must scroll inside themselves, not the page. |
 | faq, getting-started, terms, privacy | todo | Checklist is clean; a person still needs to look at them (reading width, spacing, Arabic feel). |
 | cookies (new page) | fixed (built phone-first; 0 fails on every setup, both languages) | Created on request. Also added an app-wide rule: a new page opens at the top (links used to keep the old scroll position); Back still returns to where you were. |

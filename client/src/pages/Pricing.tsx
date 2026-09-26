@@ -101,6 +101,8 @@ const copy = {
     btnSignIn: "Sign in",
     btnCreateAccount: "Create an Account →",
     btnDashboard: "Dashboard",
+    ariaMenu: "Menu",
+    ariaLang: "Switch language",
 
     heroTitle1: "Flexible pricing",
     heroTitle2: "that fits you.",
@@ -109,6 +111,7 @@ const copy = {
 
     billMonthly: "Monthly",
     billYearly: "Yearly",
+    billingAria: "Billing period",
     termNoteMonthly: "",
     termNoteYearly: "Save 20%",
 
@@ -190,6 +193,8 @@ const copy = {
     btnSignIn: "تسجيل الدخول",
     btnCreateAccount: "إنشاء حساب ←",
     btnDashboard: "لوحة التحكم",
+    ariaMenu: "القائمة",
+    ariaLang: "تغيير اللغة",
 
     heroTitle1: "أسعار مرنة",
     heroTitle2: "تناسبك.",
@@ -198,8 +203,9 @@ const copy = {
 
     billMonthly: "شهري",
     billYearly: "سنوي",
+    billingAria: "مدة الفوترة",
     termNoteMonthly: "",
-    termNoteYearly: "وفّر ٢٠٪",
+    termNoteYearly: "وفّر 20%",
 
     perUserMo: "لكل مستخدم / شهرياً",
     billedMonthly: "تُحصّل شهرياً",
@@ -244,10 +250,10 @@ const copy = {
     freeName: "مجاني",
     freeSub: "بدون بطاقة، وبدون حدّ زمني. استخدمها ما دمت تحتاجها.",
     freeCta: "ابدأ مجاناً",
-    freeReqTenders: "حتى ٣ مناقصات منشورة",
+    freeReqTenders: "حتى 3 مناقصات منشورة",
     freeReqPrivate: "مناقصات خاصة بالدعوة فقط",
     freeReqSeat: "مستخدم واحد",
-    freeVenProposals: "نحو ١٠ عروض شهرياً",
+    freeVenProposals: "نحو 10 عروض شهرياً",
     freeVenProfile: "ملف شركة مجاني",
 
     faqTitle: "الأسئلة الشائعة",
@@ -255,7 +261,7 @@ const copy = {
     faqContactPre: "ما زال لديك سؤال؟",
     faqContactLink: "تواصل معنا",
     q1: "هل يستطيع المورّد تقديم عرض دون دفع؟",
-    a1: "نعم. التقديم على Bid مجاني. الباقة المجانية تغطي نحو ١٠ عروض شهرياً، ولا يوجد اشتراك يقف بينك وبين تقديم عرض.",
+    a1: "نعم. التقديم على Bid مجاني. الباقة المجانية تغطي نحو 10 عروض شهرياً، ولا يوجد اشتراك يقف بينك وبين تقديم عرض.",
     q3: "هل الباقة المجانية محدودة بمدة؟",
     a3: "لا. لا يوجد عدّاد تنازلي. الباقة المجانية محدودة بالاستخدام لا بالمدة، وتبقى متاحة لك ما دمت تحتاجها.",
     q8: "ما الفرق بين المناقصات الخاصة والسوق؟",
@@ -268,9 +274,9 @@ const copy = {
     a6: "في أي وقت. الترقية تُطبّق فوراً وتُحتسب بالتناسب، والتخفيض يسري في نهاية دورة الفوترة الحالية.",
 
     ctaTitle: "توريد أفضل يبدأ من هنا.",
-    ctaSub: "٣ مناقصات، بدون بطاقة. ارتقِ يوم تُغطّي Bid تكلفتها.",
+    ctaSub: "3 مناقصات، بدون بطاقة. ارتقِ يوم تُغطّي Bid تكلفتها.",
     ctaMockTitle: "مناقصة جديدة منشورة",
-    ctaMockChip: "٨ عروض",
+    ctaMockChip: "8 عروض",
     ctaBtn: "أنشئ حساباً ←",
   },
 };
@@ -317,7 +323,7 @@ const Pricing = () => {
     <div
       style={{ background: "var(--cream)" }}
       dir={isRtl ? "rtl" : "ltr"}
-      className={`landing-page surface-cream${isRtl ? " landing-rtl" : ""}`}
+      className={`landing-page pricing-page surface-cream${isRtl ? " landing-rtl" : ""}`}
     >
       <div className="page">
         {/* ===== TOPBAR ===== */}
@@ -333,7 +339,7 @@ const Pricing = () => {
           </nav>
 
           <div className="topbar-right">
-            <button className="lang-toggle" onClick={toggleLang} aria-label="Switch language">
+            <button className="lang-toggle" onClick={toggleLang} aria-label={c.ariaLang}>
               {lang === "en" ? "AR" : "EN"}
             </button>
 
@@ -359,51 +365,57 @@ const Pricing = () => {
             <button
               className="hamburger"
               onClick={() => setMobileMenuOpen((o) => !o)}
-              aria-label="Menu"
+              aria-label={c.ariaMenu}
               aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
             >
               <span></span>
               <span></span>
               <span></span>
             </button>
           </div>
-        </div>
 
-        {mobileMenuOpen && (
-          <div className="mobile-menu" dir={isRtl ? "rtl" : "ltr"}>
-            <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-              {c.navAbout}
-            </Link>
-            <Link href="/marketplace" onClick={() => setMobileMenuOpen(false)}>
-              {c.navMarketplace}
-            </Link>
-            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
-              {c.navPricing}
-            </Link>
-            <div className="mobile-menu-btns">
-              {user?.otpVerified ? (
-                <Link href="/dashboard">
-                  <button className="btn btn-primary" style={{ width: "100%" }}>
-                    {c.btnDashboard}
-                  </button>
+          {/* Phone menu: lives inside the sticky bar so it drops down over the
+              page instead of pushing it (same as the landing page). */}
+          {mobileMenuOpen && (
+            <>
+              <div className="mobile-menu-scrim" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
+              <div className="mobile-menu" id="mobile-menu" dir={isRtl ? "rtl" : "ltr"} role="dialog" aria-modal="true" aria-label={c.ariaMenu}>
+                <Link href="/" onClick={() => setMobileMenuOpen(false)}>
+                  {c.navAbout}
                 </Link>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <button className="btn btn-ghost" style={{ width: "100%" }}>
-                      {c.btnSignIn}
-                    </button>
-                  </Link>
-                  <Link href="/signup">
-                    <button className="btn btn-primary" style={{ width: "100%" }}>
-                      {c.btnCreateAccount}
-                    </button>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+                <Link href="/marketplace" onClick={() => setMobileMenuOpen(false)}>
+                  {c.navMarketplace}
+                </Link>
+                <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
+                  {c.navPricing}
+                </Link>
+                <div className="mobile-menu-btns">
+                  {user?.otpVerified ? (
+                    <Link href="/dashboard">
+                      <button className="btn btn-primary" style={{ width: "100%" }}>
+                        {c.btnDashboard}
+                      </button>
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href="/login">
+                        <button className="btn btn-ghost" style={{ width: "100%" }}>
+                          {c.btnSignIn}
+                        </button>
+                      </Link>
+                      <Link href="/signup">
+                        <button className="btn btn-primary" style={{ width: "100%" }}>
+                          {c.btnCreateAccount}
+                        </button>
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* ===== HERO ===== */}
         <section className="pricing-hero">
@@ -412,7 +424,7 @@ const Pricing = () => {
           </h1>
           <p>{c.heroSub}</p>
 
-          <div className="billing-toggle" role="group" aria-label={c.billMonthly}>
+          <div className="billing-toggle" role="group" aria-label={c.billingAria} data-billing={billing}>
             {TERMS.map((t) => {
               const tc = termCopy(t);
               const active = billing === t.id;

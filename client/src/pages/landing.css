@@ -863,7 +863,7 @@
     .footer-bot{flex-direction:column;align-items:flex-start;gap:10px}
     .footer-bot a{display:inline-block;padding:13px 6px}
     .footer-bot a:first-child{margin-inline-start:-6px}
-    .landing-page footer{padding:48px 0 32px}
+    .landing-page footer{padding:48px 0 32px;--stone:#6B625A}
 
     /* Modal: a bottom sheet on phones */
     .modal-backdrop{align-items:flex-end;padding:0}

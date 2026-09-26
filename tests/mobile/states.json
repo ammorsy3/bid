@@ -734,6 +734,62 @@
       "keyboard": false
     },
     {
+      "id": "pricing-menu-open",
+      "batch": "batch-2",
+      "page": "pricing",
+      "title": "Pricing — phone menu open",
+      "route": "/pricing",
+      "actions": [
+        {
+          "click": "button.hamburger"
+        },
+        {
+          "waitFor": ".mobile-menu"
+        },
+        {
+          "wait": 300
+        }
+      ],
+      "keyboard": false,
+      "fullPage": false,
+      "expectDialog": true,
+      "skipProjects": [
+        "desktop"
+      ]
+    },
+    {
+      "id": "pricing-yearly",
+      "batch": "batch-2",
+      "page": "pricing",
+      "title": "Pricing — switched to yearly",
+      "route": "/pricing",
+      "actions": [
+        {
+          "click": "[data-testid=\"toggle-yearly\"]"
+        },
+        {
+          "wait": 500
+        }
+      ],
+      "keyboard": false
+    },
+    {
+      "id": "pricing-faq-open",
+      "batch": "batch-2",
+      "page": "pricing",
+      "title": "Pricing — first FAQ answer open",
+      "route": "/pricing",
+      "actions": [
+        {
+          "click": ".pricing-faq details:first-of-type summary"
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "keyboard": false
+    },
+    {
       "id": "faq-default",
       "batch": "batch-2",
       "page": "faq",

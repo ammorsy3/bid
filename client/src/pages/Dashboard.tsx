@@ -326,6 +326,30 @@ function UserText({ children, className = "" }: { children: React.ReactNode; cla
   return <span dir="auto" data-user-content className={`inline-block max-w-full truncate align-bottom ${className}`}>{children}</span>;
 }
 
+// The big number on a stat card. On phones, while the count is still loading, a
+// pulsing bar of the same height stands in for it so a made-up "0" never flashes
+// before the real figure arrives. Desktop keeps showing the number as before.
+function StatNumber({ loading, children }: { loading: boolean; children: React.ReactNode }) {
+  if (!loading) return <>{children}</>;
+  return (
+    <>
+      <span aria-busy="true" className="block h-12 w-14 rounded-lg bg-white/10 animate-pulse md:hidden" />
+      <span className="max-md:hidden">{children}</span>
+    </>
+  );
+}
+
+// Shown in place of a step's action button once that step is finished, so a
+// completed step never offers to do the thing again.
+function StepDone({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="inline-flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-400" data-testid="text-step-done">
+      <Check className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+      {children}
+    </p>
+  );
+}
+
 // Company verification status (as the server stores it) → translation key.
 const VERIFICATION_STATUS_KEYS: Record<string, string> = {
   verified: "dashboard.verifStatusVerified",
@@ -798,7 +822,7 @@ function DashboardInner({ user, activeCompany }: {
     completedCount: number;
   }
   
-  const { data: onboardingTasks } = useQuery<OnboardingTasks>({
+  const { data: onboardingTasks, isLoading: loadingOnboarding } = useQuery<OnboardingTasks>({
     queryKey: ['/api/onboarding-tasks'],
     queryFn: async () => {
       const response = await fetch('/api/onboarding-tasks', {
@@ -1013,6 +1037,22 @@ function DashboardInner({ user, activeCompany }: {
   const handleLogout = () => {
     doLogout("/");
   };
+
+  // One entry per checklist step, gated by the *same* condition that renders the
+  // step's AccordionItem below (keep the two in step). Feeds the progress text and
+  // the phone loading skeleton's row count.
+  const checklistFlags = [
+    ...(canManage && requiresLegalVerification ? [isCompanyVerified] : []),          // task-1
+    ...(canManage && (isBuyerAccount || isTeam) ? [onboardingTasks?.hasCompletedProfile] : []), // task-2
+    ...(canManage && isBuyerAccount ? [onboardingTasks?.hasVendors] : []),           // task-3
+    ...(isBuyerAccount ? [onboardingTasks?.hasTender] : []),                         // task-4
+    ...(isIndividual ? [hasProfileComplete] : []),                                   // task-4b
+    onboardingTasks?.hasReviewedProposal,                                            // task-5
+    onboardingTasks?.hasExploredMarketplace,                                         // task-6
+  ];
+  // On phones, until /api/onboarding-tasks answers, show pulsing placeholders
+  // instead of "0 of N" and rows painted "not done" that then flip to done.
+  const showChecklistSkeleton = isPhone && loadingOnboarding;
 
   const sidebarItems = [
     { value: "overview", label: t('dashboard.overview'), icon: LayoutDashboard, show: true },
@@ -1780,7 +1820,7 @@ function DashboardInner({ user, activeCompany }: {
                     01
                   </span>
                 )}
-                <h1 className="font-display font-bold text-4xl sm:text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[0.95]">
+                <h1 className="font-display font-bold text-4xl sm:text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[0.95] max-md:rtl:leading-[1.3]">
                   {t('dashboard.overview')}<span className="text-[#FE3C01]">.</span>
                 </h1>
                 {canManage && (
@@ -1804,7 +1844,7 @@ function DashboardInner({ user, activeCompany }: {
                     tabIndex={0}
                     onClick={() => setActiveTab('tenders')}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('tenders'); } }}
-                    className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
+                    className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors max-md:transition-[background-color,border-color,transform] max-md:active:scale-[0.98] max-md:active:bg-white/[0.10] hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
                   >
                     <div className={`flex items-start gap-4`}>
                       <div className="h-11 w-11 rounded-xl bg-[#FE3C01] text-white flex items-center justify-center flex-shrink-0 shadow-[0_8px_18px_-6px_rgba(254,60,1,0.5)]">
@@ -1812,7 +1852,7 @@ function DashboardInner({ user, activeCompany }: {
                       </div>
                       <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
                         <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
-                          {tenders.filter(tender => tender.status === 'published').length}
+                          <StatNumber loading={loadingTenders}>{tenders.filter(tender => tender.status === 'published').length}</StatNumber>
                         </p>
                         <p className="text-sm text-[#B9AFA5] mt-2 font-medium [unicode-bidi:plaintext]">{t('dashboard.activeRfps')}</p>
                       </div>
@@ -1827,7 +1867,7 @@ function DashboardInner({ user, activeCompany }: {
                     tabIndex={0}
                     onClick={() => setActiveTab('proposals')}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('proposals'); } }}
-                    className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
+                    className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors max-md:transition-[background-color,border-color,transform] max-md:active:scale-[0.98] max-md:active:bg-white/[0.10] hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
                   >
                     <div className={`flex items-start gap-4`}>
                       <div className="h-11 w-11 rounded-xl bg-white/10 text-[#F4EDE1] flex items-center justify-center flex-shrink-0 border border-white/10">
@@ -1835,7 +1875,7 @@ function DashboardInner({ user, activeCompany }: {
                       </div>
                       <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
                         <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
-                          {incomingOffers.filter(o => o.status === 'pending').length}
+                          <StatNumber loading={loadingIncomingOffers}>{incomingOffers.filter(o => o.status === 'pending').length}</StatNumber>
                         </p>
                         <p className="text-sm text-[#B9AFA5] mt-2 font-medium">{t('dashboard.pendingProposals')}</p>
                       </div>
@@ -1850,7 +1890,7 @@ function DashboardInner({ user, activeCompany }: {
                     tabIndex={0}
                     onClick={() => setActiveTab('vendors')}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveTab('vendors'); } }}
-                    className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
+                    className="group cursor-pointer rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 transition-colors max-md:transition-[background-color,border-color,transform] max-md:active:scale-[0.98] max-md:active:bg-white/[0.10] hover:bg-white/[0.07] hover:border-[#FE3C01]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FE3C01]"
                   >
                     <div className={`flex items-start gap-4`}>
                       <div className="h-11 w-11 rounded-xl bg-white/10 text-[#F4EDE1] flex items-center justify-center flex-shrink-0 border border-white/10">
@@ -1858,7 +1898,7 @@ function DashboardInner({ user, activeCompany }: {
                       </div>
                       <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
                         <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
-                          {vendors.length}
+                          <StatNumber loading={loadingVendors}>{vendors.length}</StatNumber>
                         </p>
                         <p className="text-sm text-[#B9AFA5] mt-2 font-medium">{t('dashboard.vendorsInBase')}</p>
                       </div>
@@ -1882,25 +1922,25 @@ function DashboardInner({ user, activeCompany }: {
                     <div className="h-11 w-11 rounded-2xl bg-[#FE3C01] flex items-center justify-center flex-shrink-0 shadow-[0_8px_18px_-6px_rgba(254,60,1,0.45)]">
                       <Handshake className="h-5 w-5 text-white" />
                     </div>
-                    <div className={isRtl ? 'text-right' : ''}>
+                    <div className={`min-w-0 ${isRtl ? 'text-right' : ''}`}>
                       <h3 className="font-display font-bold text-xl text-[#1A1613] dark:text-foreground tracking-[-0.02em]">{t('dashboard.readyToNegotiateTitle')}</h3>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-0.5">
+                      <p className="text-sm text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground mt-0.5">
                         {t('dashboard.readyToNegotiateDesc').replace('{count}', String(tendersReadyToNegotiate.length))}
                       </p>
                     </div>
                   </div>
                   <div className="space-y-2.5">
                     {tendersReadyToNegotiate.slice(0, 3).map(tender => (
-                      <div key={tender.id} className={`[background:var(--spotlight-card-bg)] rounded-2xl border border-[#FE3C01]/10 px-4 py-3 flex items-center justify-between shadow-[0_8px_20px_-12px_rgba(11,9,7,0.12)]`}>
-                        <div className={isRtl ? 'text-right' : ''}>
-                          <p className="font-semibold text-sm text-[#1A1613] dark:text-foreground">{tender.title}</p>
-                          <p className="text-xs text-[#8A8078] dark:text-muted-foreground mt-0.5">
+                      <div key={tender.id} className={`[background:var(--spotlight-card-bg)] rounded-2xl border border-[#FE3C01]/10 px-4 py-3 flex items-center justify-between max-md:flex-col max-md:items-stretch max-md:gap-3 shadow-[0_8px_20px_-12px_rgba(11,9,7,0.12)]`}>
+                        <div className={`min-w-0 ${isRtl ? 'text-right' : ''}`}>
+                          <p dir="auto" className="font-semibold text-sm text-[#1A1613] dark:text-foreground max-md:line-clamp-2 [overflow-wrap:anywhere]">{tender.title}</p>
+                          <p className="text-xs text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground mt-0.5">
                             {t('dashboard.proposalsCount').replace('{count}', String(tender.offersCount))}
                           </p>
                         </div>
                         <Button
                           size="sm"
-                          className="bg-[#1A1613] hover:bg-[#FE3C01] text-[#F4EDE1] rounded-full px-4 flex-shrink-0 transition-colors"
+                          className="bg-[#1A1613] hover:bg-[#FE3C01] text-[#F4EDE1] rounded-full px-4 flex-shrink-0 transition-colors max-md:h-11 max-md:w-full"
                           onClick={() => setLocation(`/tenders/${tender.id}`)}
                         >
                           {t('dashboard.negotiateNowBtn')} {isRtl ? '←' : '→'}
@@ -1908,12 +1948,13 @@ function DashboardInner({ user, activeCompany }: {
                       </div>
                     ))}
                     {tendersReadyToNegotiate.length > 3 && (
-                      <p
-                        className={`text-xs text-[#FE3C01] cursor-pointer hover:underline font-medium ${isRtl ? 'text-right' : 'text-start'} px-1 pt-1`}
+                      <button
+                        type="button"
+                        className={`block w-full text-xs text-[#FE3C01] cursor-pointer hover:underline font-medium ${isRtl ? 'text-right' : 'text-start'} px-1 pt-1 max-md:min-h-11 max-md:py-2 max-md:active:opacity-60`}
                         onClick={() => setActiveTab('tenders')}
                       >
                         {t('dashboard.moreTenders', { count: tendersReadyToNegotiate.length - 3 })} {isRtl ? '←' : '→'}
-                      </p>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -1935,7 +1976,7 @@ function DashboardInner({ user, activeCompany }: {
                   </div>
                   <div className={`min-w-0 ${isRtl ? 'text-right' : ''}`}>
                     <h3 className="font-display font-bold text-base text-[#1A1613] dark:text-foreground tracking-[-0.02em]">{t('dashboard.bookDemoTitle')}</h3>
-                    <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-0.5">{t('dashboard.bookDemoDesc')}</p>
+                    <p className="text-sm text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground mt-0.5">{t('dashboard.bookDemoDesc')}</p>
                   </div>
                 </div>
                 <Button
@@ -1957,13 +1998,13 @@ function DashboardInner({ user, activeCompany }: {
               className="rounded-3xl border border-[#1A1613]/10 dark:border-border overflow-hidden bg-white dark:bg-card shadow-[0_18px_44px_-32px_rgba(26,22,19,0.25)]"
               data-tour="onboarding-tasks"
             >
-              <div className="px-6 sm:px-8 pt-7 pb-6 sm:pt-8 sm:pb-8">
+              <div className="px-4 sm:px-8 pt-7 pb-6 sm:pt-8 sm:pb-8">
                 <div className={`mb-6 ${isRtl ? 'text-right' : ''}`}>
                       <span className="inline-block text-xs font-semibold text-[#FE3C01] bg-[#FFE4D7] dark:bg-[#FE3C01]/15 px-3 py-1.5 rounded-full mb-3 tracking-wide">
                         02
                       </span>
-                      <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#1A1613] dark:text-foreground tracking-[-0.035em] leading-[1.05]">{t('dashboard.getStartedTitle')}<span className="text-[#FE3C01]">.</span></h2>
-                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-2 max-w-xl">{t('dashboard.getStartedDesc')}</p>
+                      <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#1A1613] dark:text-foreground tracking-[-0.035em] leading-[1.05] max-md:rtl:leading-[1.3]">{t('dashboard.getStartedTitle')}<span className="text-[#FE3C01]">.</span></h2>
+                      <p className="text-sm text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground mt-2 max-w-xl">{t('dashboard.getStartedDesc')}</p>
                     </div>
 
                     {/* Animated progress bar */}
@@ -1974,22 +2015,23 @@ function DashboardInner({ user, activeCompany }: {
                         // AccordionItems — a hand-kept parallel list drifts, and
                         // then the progress text counts tasks nobody can see (or
                         // misses ones they can).
-                        const allFlags = [
-                          ...(canManage && requiresLegalVerification ? [isCompanyVerified] : []),          // task-1
-                          ...(canManage && (isBuyerAccount || isTeam) ? [onboardingTasks?.hasCompletedProfile] : []), // task-2
-                          ...(canManage && isBuyerAccount ? [onboardingTasks?.hasVendors] : []),           // task-3
-                          ...(isBuyerAccount ? [onboardingTasks?.hasTender] : []),                         // task-4
-                          ...(isIndividual ? [hasProfileComplete] : []),                                   // task-4b
-                          onboardingTasks?.hasReviewedProposal,                                            // task-5
-                          onboardingTasks?.hasExploredMarketplace,                                         // task-6
-                        ];
+                        const allFlags = checklistFlags;
                         const localCount = allFlags.filter(Boolean).length;
                         const total = allFlags.length;
                         const pct = total > 0 ? Math.round((localCount / total) * 100) : 0;
+                        if (showChecklistSkeleton) return (
+                          <div aria-busy="true">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="block h-5 w-40 rounded-md bg-[#1A1613]/10 dark:bg-white/10 animate-pulse" />
+                              <span className="block h-5 w-10 rounded-md bg-[#1A1613]/10 dark:bg-white/10 animate-pulse" />
+                            </div>
+                            <div className="h-2 rounded-full bg-[#1A1613]/10 dark:bg-white/10 animate-pulse" />
+                          </div>
+                        );
                         return (
                           <>
                             <div className={`flex items-center justify-between mb-2`}>
-                              <span className="text-sm text-[#8A8078] dark:text-muted-foreground font-medium">
+                              <span className="text-sm text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground font-medium">
                                 {localCount} {t('tenderFlow.ofLabel')} {total} {t('dashboard.tasksComplete')}
                               </span>
                               <span className="text-sm font-bold text-[#FE3C01] tabular-nums">{pct}%</span>
@@ -2008,20 +2050,27 @@ function DashboardInner({ user, activeCompany }: {
                     </div>
 
                     {/* Tasks */}
+                    {showChecklistSkeleton ? (
+                      <div aria-busy="true" className="space-y-3">
+                        {checklistFlags.map((_, i) => (
+                          <div key={i} className="h-16 rounded-2xl bg-[#1A1613]/[0.06] dark:bg-white/[0.06] animate-pulse" />
+                        ))}
+                      </div>
+                    ) : (
                     <Accordion type="single" collapsible defaultValue={canManage && !isIndividual ? "task-1" : "task-4"} className="space-y-3">
 
                       {/* Task 1: Get Verified (admins/owners only — individuals are auto-verified and never need this) */}
                       {canManage && requiresLegalVerification && (
-                      <AccordionItem value="task-1" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3`}>
-                          <div className={`flex items-center gap-3`}>
+                      <AccordionItem value="task-1" className={`border-2 rounded-2xl px-4 md:px-5 transition-all duration-300 ${isCompanyVerified ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 max-md:active:opacity-60`}>
+                          <div className={`flex items-center gap-3 max-md:flex-1 max-md:min-w-0`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isCompanyVerified ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {isCompanyVerified ? <Check className="h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
                             </div>
                             <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${isCompanyVerified ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task1Title')}</span>
                             {isCompanyVerified && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] max-md:text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" /><span className="max-[400px]:sr-only">{t('dashboard.completed')}</span>
                               </span>
                             )}
                           </div>
@@ -2029,14 +2078,20 @@ function DashboardInner({ user, activeCompany }: {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task1Desc')}</p>
-                              <Button
-                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={() => setLocation('/settings?tab=company&highlight=verification')}
-                                data-testid="button-task-get-verified"
-                              >
-                                {t('dashboard.task1Action')}
-                              </Button>
+                              {isCompanyVerified ? (
+                                <StepDone>{t('dashboard.task1Done')}</StepDone>
+                              ) : (
+                                <>
+                                  <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task1Desc')}</p>
+                                  <Button
+                                    className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white max-md:w-full"
+                                    onClick={() => setLocation('/settings?tab=company&highlight=verification')}
+                                    data-testid="button-task-get-verified"
+                                  >
+                                    {t('dashboard.task1Action')}
+                                  </Button>
+                                </>
+                              )}
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <GetVerifiedVisual />
@@ -2048,16 +2103,16 @@ function DashboardInner({ user, activeCompany }: {
 
                       {/* Task 2: Complete Company Profile (only for owners/admins) */}
                       {canManage && (isBuyerAccount || isTeam) && (
-                      <AccordionItem value="task-2" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3`}>
-                          <div className={`flex items-center gap-3`}>
+                      <AccordionItem value="task-2" className={`border-2 rounded-2xl px-4 md:px-5 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 max-md:active:opacity-60`}>
+                          <div className={`flex items-center gap-3 max-md:flex-1 max-md:min-w-0`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasCompletedProfile ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasCompletedProfile ? <Check className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
                             </div>
                             <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasCompletedProfile ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isTeam ? t('dashboard.task2TitleTeam') : t('dashboard.task2Title')}</span>
                             {onboardingTasks?.hasCompletedProfile && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] max-md:text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" /><span className="max-[400px]:sr-only">{t('dashboard.completed')}</span>
                               </span>
                             )}
                           </div>
@@ -2065,14 +2120,20 @@ function DashboardInner({ user, activeCompany }: {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isTeam ? t('dashboard.task2DescTeam') : t('dashboard.task2Desc')}</p>
-                              <Button
-                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={() => setLocation('/settings?tab=company')}
-                                data-testid="button-task-complete-profile"
-                              >
-                                {t('dashboard.task2Action')}
-                              </Button>
+                              {onboardingTasks?.hasCompletedProfile ? (
+                                <StepDone>{t('dashboard.stepDone')}</StepDone>
+                              ) : (
+                                <>
+                                  <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isTeam ? t('dashboard.task2DescTeam') : t('dashboard.task2Desc')}</p>
+                                  <Button
+                                    className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white max-md:w-full"
+                                    onClick={() => setLocation('/settings?tab=company')}
+                                    data-testid="button-task-complete-profile"
+                                  >
+                                    {t('dashboard.task2Action')}
+                                  </Button>
+                                </>
+                              )}
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <CompanyProfileVisual />
@@ -2084,16 +2145,16 @@ function DashboardInner({ user, activeCompany }: {
 
                       {/* Task 3: Set Your Vendors Base (admins/owners only) */}
                       {canManage && isBuyerAccount && (
-                      <AccordionItem value="task-3" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3`}>
-                          <div className={`flex items-center gap-3`}>
+                      <AccordionItem value="task-3" className={`border-2 rounded-2xl px-4 md:px-5 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 max-md:active:opacity-60`}>
+                          <div className={`flex items-center gap-3 max-md:flex-1 max-md:min-w-0`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasVendors ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasVendors ? <Check className="h-4 w-4" /> : <Users className="h-4 w-4" />}
                             </div>
                             <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasVendors ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task3Title')}</span>
                             {onboardingTasks?.hasVendors && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] max-md:text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" /><span className="max-[400px]:sr-only">{t('dashboard.completed')}</span>
                               </span>
                             )}
                           </div>
@@ -2101,14 +2162,20 @@ function DashboardInner({ user, activeCompany }: {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task3Desc')}</p>
-                              <Button
-                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={() => setActiveTab('vendors')}
-                                data-testid="button-task-set-vendors"
-                              >
-                                {t('dashboard.task3Action')}
-                              </Button>
+                              {onboardingTasks?.hasVendors ? (
+                                <StepDone>{t('dashboard.stepDone')}</StepDone>
+                              ) : (
+                                <>
+                                  <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task3Desc')}</p>
+                                  <Button
+                                    className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white max-md:w-full"
+                                    onClick={() => setActiveTab('vendors')}
+                                    data-testid="button-task-set-vendors"
+                                  >
+                                    {t('dashboard.task3Action')}
+                                  </Button>
+                                </>
+                              )}
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <VendorsBaseVisual />
@@ -2119,16 +2186,16 @@ function DashboardInner({ user, activeCompany }: {
                       )}
 
                       {/* Task 4: Create your First RFP (company/team only) */}
-                      {isBuyerAccount && <AccordionItem value="task-4" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3`}>
-                          <div className={`flex items-center gap-3`}>
+                      {isBuyerAccount && <AccordionItem value="task-4" className={`border-2 rounded-2xl px-4 md:px-5 transition-all duration-300 ${onboardingTasks?.hasTender ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 max-md:active:opacity-60`}>
+                          <div className={`flex items-center gap-3 max-md:flex-1 max-md:min-w-0`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasTender ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasTender ? <Check className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                             </div>
                             <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasTender ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4Title')}</span>
                             {onboardingTasks?.hasTender && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] max-md:text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" /><span className="max-[400px]:sr-only">{t('dashboard.completed')}</span>
                               </span>
                             )}
                           </div>
@@ -2136,14 +2203,20 @@ function DashboardInner({ user, activeCompany }: {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task4Desc')}</p>
-                              <Button
-                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={handleCreateTender}
-                                data-testid="button-task-create-rfp"
-                              >
-                                {t('dashboard.task4Action')}
-                              </Button>
+                              {onboardingTasks?.hasTender ? (
+                                <StepDone>{t('dashboard.stepDone')}</StepDone>
+                              ) : (
+                                <>
+                                  <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task4Desc')}</p>
+                                  <Button
+                                    className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white max-md:w-full"
+                                    onClick={handleCreateTender}
+                                    data-testid="button-task-create-rfp"
+                                  >
+                                    {t('dashboard.task4Action')}
+                                  </Button>
+                                </>
+                              )}
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <CreateTenderVisual />
@@ -2153,16 +2226,16 @@ function DashboardInner({ user, activeCompany }: {
                       </AccordionItem>}
 
                       {/* Task 4b: Complete your profile (individual only) */}
-                      {isIndividual && <AccordionItem value="task-4b" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${hasProfileComplete ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3`}>
-                          <div className={`flex items-center gap-3`}>
+                      {isIndividual && <AccordionItem value="task-4b" className={`border-2 rounded-2xl px-4 md:px-5 transition-all duration-300 ${hasProfileComplete ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 max-md:active:opacity-60`}>
+                          <div className={`flex items-center gap-3 max-md:flex-1 max-md:min-w-0`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${hasProfileComplete ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {hasProfileComplete ? <Check className="h-4 w-4" /> : <User className="h-4 w-4" />}
                             </div>
                             <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${hasProfileComplete ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task4bTitle')}</span>
                             {hasProfileComplete && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] max-md:text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" /><span className="max-[400px]:sr-only">{t('dashboard.completed')}</span>
                               </span>
                             )}
                           </div>
@@ -2170,30 +2243,36 @@ function DashboardInner({ user, activeCompany }: {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task4bDesc')}</p>
-                              <Button
-                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={() => setLocation('/company/edit')}
-                                data-testid="button-task-complete-profile"
-                              >
-                                {t('dashboard.task4bAction')}
-                              </Button>
+                              {hasProfileComplete ? (
+                                <StepDone>{t('dashboard.stepDone')}</StepDone>
+                              ) : (
+                                <>
+                                  <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task4bDesc')}</p>
+                                  <Button
+                                    className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white max-md:w-full"
+                                    onClick={() => setLocation('/company/edit')}
+                                    data-testid="button-task-complete-profile"
+                                  >
+                                    {t('dashboard.task4bAction')}
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </AccordionContent>
                       </AccordionItem>}
 
                       {/* Task 5: Submit your First Proposal */}
-                      <AccordionItem value="task-5" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3`}>
-                          <div className={`flex items-center gap-3`}>
+                      <AccordionItem value="task-5" className={`border-2 rounded-2xl px-4 md:px-5 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 max-md:active:opacity-60`}>
+                          <div className={`flex items-center gap-3 max-md:flex-1 max-md:min-w-0`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasReviewedProposal ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasReviewedProposal ? <Check className="h-4 w-4" /> : <Send className="h-4 w-4" />}
                             </div>
                             <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasReviewedProposal ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{isIndividual ? t('dashboard.task5TitleIndividual') : t('dashboard.task5Title')}</span>
                             {onboardingTasks?.hasReviewedProposal && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] max-md:text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" /><span className="max-[400px]:sr-only">{t('dashboard.completed')}</span>
                               </span>
                             )}
                           </div>
@@ -2201,14 +2280,20 @@ function DashboardInner({ user, activeCompany }: {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isIndividual ? t('dashboard.task5DescIndividual') : t('dashboard.task5Desc')}</p>
-                              <Button
-                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={() => setActiveTab('proposals')}
-                                data-testid="button-task-submit-proposal"
-                              >
-                                {t('dashboard.task5Action')}
-                              </Button>
+                              {onboardingTasks?.hasReviewedProposal ? (
+                                <StepDone>{t('dashboard.stepDone')}</StepDone>
+                              ) : (
+                                <>
+                                  <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{isIndividual ? t('dashboard.task5DescIndividual') : t('dashboard.task5Desc')}</p>
+                                  <Button
+                                    className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white max-md:w-full"
+                                    onClick={() => setActiveTab('proposals')}
+                                    data-testid="button-task-submit-proposal"
+                                  >
+                                    {t('dashboard.task5Action')}
+                                  </Button>
+                                </>
+                              )}
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <SubmitProposalVisual />
@@ -2218,16 +2303,16 @@ function DashboardInner({ user, activeCompany }: {
                       </AccordionItem>
 
                       {/* Task 6: Explore Tenders Marketplace */}
-                      <AccordionItem value="task-6" className={`border-2 rounded-2xl px-5 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
-                        <AccordionTrigger className={`hover:no-underline py-3`}>
-                          <div className={`flex items-center gap-3`}>
+                      <AccordionItem value="task-6" className={`border-2 rounded-2xl px-4 md:px-5 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'border-[#FE3C01] [background:var(--spotlight-card-bg)] dark:bg-[#FE3C01]/10 shadow-[0_8px_20px_-12px_rgba(254,60,1,0.22)]' : '[background:var(--spotlight-card-bg)] border-[#FE3C01]/10 hover:border-[#FE3C01]/30 dark:border-border dark:hover:border-gray-600 shadow-[0_8px_20px_-16px_rgba(11,9,7,0.18)]'}`}>
+                        <AccordionTrigger className={`hover:no-underline py-3 max-md:active:opacity-60`}>
+                          <div className={`flex items-center gap-3 max-md:flex-1 max-md:min-w-0`}>
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${onboardingTasks?.hasExploredMarketplace ? 'bg-[#FE3C01] text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                               {onboardingTasks?.hasExploredMarketplace ? <Check className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
                             </div>
                             <span className={`font-semibold flex-1 min-w-0 ${isRtl ? 'text-right' : 'text-start'} ${onboardingTasks?.hasExploredMarketplace ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}>{t('dashboard.task6Title')}</span>
                             {onboardingTasks?.hasExploredMarketplace && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
-                                <Check className="h-2.5 w-2.5" />{t('dashboard.completed')}
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] max-md:text-[11px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 flex-shrink-0">
+                                <Check className="h-2.5 w-2.5" /><span className="max-[400px]:sr-only">{t('dashboard.completed')}</span>
                               </span>
                             )}
                           </div>
@@ -2235,14 +2320,20 @@ function DashboardInner({ user, activeCompany }: {
                         <AccordionContent className="pb-4">
                           <div className={`flex items-center gap-8`}>
                             <div className={`flex-1 min-w-0 max-w-md space-y-4 ${isRtl ? 'text-right' : ''}`}>
-                              <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task6Desc')}</p>
-                              <Button
-                                className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white"
-                                onClick={handleExploreMarketplace}
-                                data-testid="button-task-explore-marketplace"
-                              >
-                                {t('dashboard.task6Action')}
-                              </Button>
+                              {onboardingTasks?.hasExploredMarketplace ? (
+                                <StepDone>{t('dashboard.stepDone')}</StepDone>
+                              ) : (
+                                <>
+                                  <p className="text-[15px] leading-relaxed text-muted-foreground dark:text-muted-foreground">{t('dashboard.task6Desc')}</p>
+                                  <Button
+                                    className="bg-[#FE3C01] hover:bg-[#D44D3A] text-white max-md:w-full"
+                                    onClick={handleExploreMarketplace}
+                                    data-testid="button-task-explore-marketplace"
+                                  >
+                                    {t('dashboard.task6Action')}
+                                  </Button>
+                                </>
+                              )}
                             </div>
                             <div className="hidden md:block w-[220px] flex-shrink-0 ms-auto pointer-events-none select-none">
                               <TendersMarketplaceVisual />
@@ -2252,6 +2343,7 @@ function DashboardInner({ user, activeCompany }: {
                       </AccordionItem>
 
                     </Accordion>
+                    )}
                   </div>
                 </motion.div>
 

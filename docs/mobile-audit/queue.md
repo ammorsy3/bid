@@ -38,12 +38,23 @@ Baseline (before fixes, 112 captures): 338 fails, all Arabic letter-spacing on l
 | faq, getting-started, terms, privacy | fixed (0 fails on all 70 captures incl. cookies; desktop pixel-identical; I looked at the Arabic iPhone photos myself instead of using the reviewer agent, since the changes were light) | Header links and footer links are 44px on phones; the back arrow flips the app's usual way; reading text is 15px on phones (unchanged on desktop); FAQ rows have press feedback. | Checklist is clean; a person still needs to look at them (reading width, spacing, Arabic feel). |
 | cookies (new page) | fixed (built phone-first; 0 fails on every setup, both languages) | Created on request. Also added an app-wide rule: a new page opens at the top (links used to keep the old scroll position); Back still returns to where you were. |
 
+## Batch 3 — the signed-in dashboard (session mode: real server, Ahmed's account)
+Baseline (before fixes, 136 captures): 155 fails. Populated states use the Seet workspace
+(60 tenders, 11 proposals); "-new" states use his empty, unverified default workspace.
+| Pages | Status | What to fix (known before the loop) |
+|---|---|---|
+| dashboard-shell | in progress | Top bar, phone menu drawer, bottom tab bar, workspace switcher, search, banners. Workspace name truncated from the wrong end in Arabic; "Open menu"/"Toggle Sidebar" labels are English; Dashboard.tsx returns early above dozens of hooks when there is no workspace (crash "Rendered fewer hooks", plus setState during render). |
+| dashboard-overview | todo | Stat cards, onboarding checklist (a step marked complete still shows its "verify" button), fixed bottom bar covering content. |
+| dashboard-rfps | todo | 60 tenders in one 17,934px page (needs paging / load-more); status badges squeeze long titles into a narrow column; 174 warnings in Arabic. |
+| dashboard-proposals | todo | Long titles squeezed by badges; check the tab switch (received / sent). |
+| dashboard-vendors | todo | Join link truncated from the wrong end; "covered" fails; 42 warnings. |
+
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |
 |---|---|---|
 | 2a | Static public pages (fixture mode, no login needed): landing, pricing, faq, getting-started, terms, privacy, docs | in progress |
 | 2b | Public pages that show real data: marketplace, company/people/traction profiles, tender invite link (need sample-data fixtures, or your sign-in for session mode) | todo |
-| 3 | App shell + dashboard tabs (sidebar, bottom bar) | todo |
+| 3 | App shell + dashboard tabs (sidebar, bottom bar) | in progress (see the batch 3 table below) |
 | 4 | Vendor side: tender page, submit offer, form fill | todo |
 | 5 | Tender wizard | todo |
 | 6 | Owner's tender tabs, proposal comparison, edit | todo |

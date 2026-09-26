@@ -844,6 +844,133 @@
       "title": "Developer docs — Authentication page",
       "route": "/docs/authentication",
       "keyboard": false
+    },
+    {
+      "id": "dash-overview",
+      "batch": "batch-3",
+      "page": "dashboard-overview",
+      "title": "Dashboard — overview (Seet, lots of data)",
+      "route": "/dashboard",
+      "keyboard": false,
+      "workspace": "seet"
+    },
+    {
+      "id": "dash-overview-new",
+      "batch": "batch-3",
+      "page": "dashboard-overview",
+      "title": "Dashboard — overview (new, unverified, empty workspace)",
+      "route": "/dashboard",
+      "keyboard": false
+    },
+    {
+      "id": "dash-rfps",
+      "batch": "batch-3",
+      "page": "dashboard-rfps",
+      "title": "Dashboard — RFPs list (Seet, 60 tenders)",
+      "route": "/rfps",
+      "keyboard": false,
+      "workspace": "seet"
+    },
+    {
+      "id": "dash-rfps-new",
+      "batch": "batch-3",
+      "page": "dashboard-rfps",
+      "title": "Dashboard — RFPs list (empty workspace)",
+      "route": "/rfps",
+      "keyboard": false
+    },
+    {
+      "id": "dash-proposals",
+      "batch": "batch-3",
+      "page": "dashboard-proposals",
+      "title": "Dashboard — proposals (Seet)",
+      "route": "/proposals",
+      "keyboard": false,
+      "workspace": "seet"
+    },
+    {
+      "id": "dash-proposals-new",
+      "batch": "batch-3",
+      "page": "dashboard-proposals",
+      "title": "Dashboard — proposals (empty workspace)",
+      "route": "/proposals",
+      "keyboard": false
+    },
+    {
+      "id": "dash-vendors",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors base (Seet)",
+      "route": "/vendors",
+      "keyboard": false,
+      "workspace": "seet"
+    },
+    {
+      "id": "dash-vendors-new",
+      "batch": "batch-3",
+      "page": "dashboard-vendors",
+      "title": "Dashboard — vendors base (empty workspace)",
+      "route": "/vendors",
+      "keyboard": false
+    },
+    {
+      "id": "dash-menu-open",
+      "batch": "batch-3",
+      "page": "dashboard-shell",
+      "title": "Dashboard — phone menu open (Seet)",
+      "route": "/dashboard",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "click": "button[aria-label=\"Open menu\"]"
+        },
+        {
+          "waitFor": "[role=\"dialog\"]"
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "expectDialog": true,
+      "fullPage": false,
+      "skipProjects": [
+        "desktop"
+      ]
+    },
+    {
+      "id": "dash-workspace-list",
+      "batch": "batch-3",
+      "page": "dashboard-shell",
+      "title": "Dashboard — workspace switcher open (5 workspaces)",
+      "route": "/dashboard",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "click": "button[aria-label=\"Open menu\"]"
+        },
+        {
+          "waitFor": "[role=\"dialog\"]"
+        },
+        {
+          "wait": 400
+        },
+        {
+          "click": "button:has(svg.lucide-chevrons-up-down)"
+        },
+        {
+          "waitFor": "[role=\"menu\"]"
+        },
+        {
+          "wait": 300
+        }
+      ],
+      "expectDialog": true,
+      "fullPage": false,
+      "skipProjects": [
+        "desktop"
+      ]
     }
   ]
 }

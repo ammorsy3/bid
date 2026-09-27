@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { Router, Route, Switch, Redirect } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider as AriaI18nProvider } from "react-aria-components";
+import { DirectionProvider as RadixDirectionProvider } from "@radix-ui/react-direction";
 import { queryClient } from "@/lib/queryClient";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
@@ -80,12 +81,17 @@ import { captureAttribution } from "@/lib/attribution";
 
 // react-aria's date pickers default to the Hijri calendar for Arabic locales;
 // force Gregorian regardless of language so dates never render as Hijri.
+// Radix UI (Select, DropdownMenu, Tabs, etc. — most of client/src/components/ui)
+// doesn't read the page's dir="rtl"; without this provider every one of those
+// menus lays out left-to-right even on Arabic pages.
 function AriaLocaleProvider({ children }: { children: React.ReactNode }) {
   const { language } = useI18n();
   return (
-    <AriaI18nProvider locale={language === "ar" ? "ar-SA-u-ca-gregory" : "en-US"}>
-      {children}
-    </AriaI18nProvider>
+    <RadixDirectionProvider dir={language === "ar" ? "rtl" : "ltr"}>
+      <AriaI18nProvider locale={language === "ar" ? "ar-SA-u-ca-gregory" : "en-US"}>
+        {children}
+      </AriaI18nProvider>
+    </RadixDirectionProvider>
   );
 }
 

@@ -1073,6 +1073,9 @@ function ChatHistorySidebar() {
   const { data: chatSessions } = useQuery<any[]>({
     queryKey: ["/api/ai-chat-sessions"],
   });
+  // The trash icon is always visible on phones (no hover to reveal it there),
+  // so an accidental tap is easier than on desktop; confirm before deleting.
+  const [chatToDelete, setChatToDelete] = useState<{ id: string; title: string } | null>(null);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -1080,6 +1083,7 @@ function ChatHistorySidebar() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/ai-chat-sessions"] });
+      setChatToDelete(null);
     },
   });
 
@@ -1135,7 +1139,7 @@ function ChatHistorySidebar() {
               <SidebarMenuAction
                 onClick={(e) => {
                   e.stopPropagation();
-                  deleteMutation.mutate(session.id);
+                  setChatToDelete({ id: session.id, title: session.title });
                 }}
                 aria-label={t('dashboard.deleteChat')}
                 className="opacity-0 max-md:opacity-100 group-hover/chat:opacity-100 p-0.5 hover:text-destructive active:text-destructive transition-opacity group-data-[collapsible=icon]:hidden"
@@ -1146,6 +1150,28 @@ function ChatHistorySidebar() {
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
+
+      <AlertDialog open={!!chatToDelete} onOpenChange={(open) => !open && setChatToDelete(null)}>
+        <AlertDialogContent className="max-md:w-[calc(100%-2rem)] max-md:rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('dashboard.chatDeleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              <UserClamp className="mx-auto font-medium text-foreground">{chatToDelete?.title}</UserClamp>
+              <span className="mt-1 block">{t('dashboard.chatDeleteWarning')}</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="max-md:gap-2">
+            <AlertDialogCancel className="mt-0" data-testid="button-cancel-delete-chat">{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 active:bg-destructive/80 text-destructive-foreground"
+              onClick={() => chatToDelete && deleteMutation.mutate(chatToDelete.id)}
+              data-testid="button-confirm-delete-chat"
+            >
+              {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('dashboard.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarGroup>
   );
 }

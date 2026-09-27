@@ -93,7 +93,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { safeCompany, type SafeCompany } from "./lib/safe-company";
-import { eq, and, asc, desc, ilike, or, isNull, sql, gte, gt, count, ne, lt, notInArray } from "drizzle-orm";
+import { eq, and, asc, desc, ilike, or, isNull, sql, gte, gt, count, ne, lt, notInArray, inArray } from "drizzle-orm";
 import { normalizeEmail, pickAccountForEmail } from "./lib/email-address";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -237,6 +237,9 @@ export interface IStorage {
   getOffer(id: string): Promise<Offer | undefined>;
   getOffersByTender(tenderId: string): Promise<(Offer & { company: SafeCompany; profile?: CompanyProfile })[]>;
   getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]>;
+  // One grouped query for several tenders at once, offer count only — used by
+  // GET /api/tenders so listing N tenders doesn't run N queries.
+  getOfferCountsByTenders(tenderIds: string[]): Promise<Map<string, number>>;
   hasAppliedToRequester(applicantCompanyId: string, requesterCompanyId: string): Promise<boolean>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
   getOfferByFileUrl(fileUrl: string): Promise<Offer | null>;
@@ -253,6 +256,9 @@ export interface IStorage {
   createInvitation(invitation: InsertInvitation): Promise<Invitation>;
   getInvitationsByTender(tenderId: string): Promise<Invitation[]>;
   getInvitationsByCompany(companyId: string): Promise<(Invitation & { tender: Tender; requester: SafeCompany })[]>;
+  // One grouped query for several tenders at once, invitation count only —
+  // used by GET /api/tenders so listing N tenders doesn't run N queries.
+  getInvitationCountsByTenders(tenderIds: string[]): Promise<Map<string, number>>;
 
   // Invitations sent to a bare email address — someone with no Bid account yet.
   // `invitations` can only reference a workspace that already exists, so it
@@ -1340,6 +1346,16 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
+  async getOfferCountsByTenders(tenderIds: string[]): Promise<Map<string, number>> {
+    if (tenderIds.length === 0) return new Map();
+    const rows = await db
+      .select({ tenderId: offers.tenderId, count: count() })
+      .from(offers)
+      .where(inArray(offers.tenderId, tenderIds))
+      .groupBy(offers.tenderId);
+    return new Map(rows.map(r => [r.tenderId, Number(r.count)]));
+  }
+
   async getOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender })[]> {
     const results = await db
       .select({
@@ -1517,6 +1533,16 @@ export class DatabaseStorage implements IStorage {
       .from(invitations)
       .where(eq(invitations.tenderId, tenderId))
       .orderBy(desc(invitations.invitedAt));
+  }
+
+  async getInvitationCountsByTenders(tenderIds: string[]): Promise<Map<string, number>> {
+    if (tenderIds.length === 0) return new Map();
+    const rows = await db
+      .select({ tenderId: invitations.tenderId, count: count() })
+      .from(invitations)
+      .where(inArray(invitations.tenderId, tenderIds))
+      .groupBy(invitations.tenderId);
+    return new Map(rows.map(r => [r.tenderId, Number(r.count)]));
   }
 
   // Tenders a given workspace has been invited to (the "Invited" list). Joins in

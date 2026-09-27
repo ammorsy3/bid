@@ -3387,18 +3387,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const tenders = await storage.getTendersByCompany(req.auth!.activeCompanyId!);
 
-        // Get offer counts for each tender
-        const tendersWithCounts = await Promise.all(
-          tenders.map(async (tender) => {
-            const offers = await storage.getOffersByTender(tender.id);
-            const invitations = await storage.getInvitationsByTender(tender.id);
-            return {
-              ...tender,
-              offersCount: offers.length,
-              invitedCount: invitations.length
-            };
-          })
-        );
+        // Two grouped queries for every tender at once, instead of two
+        // per-tender queries each (was 120 queries for 60 tenders).
+        const tenderIds = tenders.map(t => t.id);
+        const [offerCounts, invitedCounts] = await Promise.all([
+          storage.getOfferCountsByTenders(tenderIds),
+          storage.getInvitationCountsByTenders(tenderIds),
+        ]);
+        const tendersWithCounts = tenders.map((tender) => ({
+          ...tender,
+          offersCount: offerCounts.get(tender.id) ?? 0,
+          invitedCount: invitedCounts.get(tender.id) ?? 0,
+        }));
 
         res.json(tendersWithCounts);
       } catch (error) {

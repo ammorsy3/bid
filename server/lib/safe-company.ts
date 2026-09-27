@@ -7,12 +7,15 @@
 // and a vendor show each other. That published every company's join code to
 // people outside it. Anything that hands a company to someone who is not in
 // that company must go through safeCompany() first.
+//
+// `streampayConsumerId` is the company's customer id at the payment gateway —
+// nobody outside the company has any use for it.
 
 import type { Company } from "@shared/schema";
 
-export type SafeCompany = Omit<Company, "joinCode" | "documents" | "ownerUserId">;
+export type SafeCompany = Omit<Company, "joinCode" | "documents" | "ownerUserId" | "streampayConsumerId">;
 
 export function safeCompany(company: Company): SafeCompany {
-  const { joinCode, documents, ownerUserId, ...rest } = company;
+  const { joinCode, documents, ownerUserId, streampayConsumerId, ...rest } = company;
   return rest;
 }

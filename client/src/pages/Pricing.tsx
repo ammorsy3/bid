@@ -7,6 +7,7 @@ import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { SUPPORT_WHATSAPP_URL } from "@/components/support-contact";
 import { SiteFooter } from "@/components/site-footer";
+import { MONTHLY_PRICE, YEARLY_DISCOUNT } from "@shared/billing-plans";
 import {
   Infinity as InfinityIcon,
   Users,
@@ -40,7 +41,7 @@ const usd = (sar: number) => Math.round(sar / USD_PEG);
 type Term = { id: Billing; months: number; discount: number };
 const TERMS: Term[] = [
   { id: "monthly", months: 1, discount: 0 },
-  { id: "yearly", months: 12, discount: 0.2 },
+  { id: "yearly", months: 12, discount: YEARLY_DISCOUNT },
 ];
 
 const rateFor = (base: number, term: Term) => Math.round(base * (1 - term.discount));
@@ -49,14 +50,16 @@ const savedFor = (base: number, term: Term) => base * term.months - billedFor(ba
 
 type PlanId = "pro" | "business" | "enterprise";
 
-/* `base` is the undiscounted monthly rate in SAR; every term derives from it. */
+/* `base` is the undiscounted monthly rate in SAR, before VAT; every term
+   derives from it. Prices live in shared/billing-plans.ts, which is also what
+   checkout charges — so this page can't drift from the real price. */
 const PLANS: {
   id: PlanId;
   base: number | null;
   featured?: boolean;
 }[] = [
-  { id: "pro", base: 79 },
-  { id: "business", base: 179, featured: true },
+  { id: "pro", base: MONTHLY_PRICE.pro },
+  { id: "business", base: MONTHLY_PRICE.business, featured: true },
   { id: "enterprise", base: null },
 ];
 
@@ -112,7 +115,7 @@ const copy = {
     termNoteMonthly: "",
     termNoteYearly: "Save 20%",
 
-    perUserMo: "per user / month",
+    perUserMo: "/ month + VAT",
     billedMonthly: "billed monthly",
     billedYearly: "billed yearly",
     youSave: "You save",
@@ -201,7 +204,7 @@ const copy = {
     termNoteMonthly: "",
     termNoteYearly: "وفّر ٢٠٪",
 
-    perUserMo: "لكل مستخدم / شهرياً",
+    perUserMo: "شهرياً + الضريبة",
     billedMonthly: "تُحصّل شهرياً",
     billedYearly: "تُحصّل سنوياً",
     youSave: "توفّر",
@@ -500,8 +503,13 @@ const Pricing = () => {
                     {pc.cta}
                   </a>
                 ) : (
-                  <Link href="/signup">
-                    <button className={`btn ${plan.featured ? "btn-orange" : "btn-primary"}`}>
+                  // Signed in → straight to checkout in Settings → Plans & Billing,
+                  // with this plan and term already picked. Signed out → sign up first.
+                  <Link href={user ? `/settings?tab=billing&plan=${plan.id}&term=${billing}` : "/signup"}>
+                    <button
+                      className={`btn ${plan.featured ? "btn-orange" : "btn-primary"}`}
+                      data-testid={`button-plan-${plan.id}`}
+                    >
                       {pc.cta}
                     </button>
                   </Link>

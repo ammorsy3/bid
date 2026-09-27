@@ -31,6 +31,7 @@ import { registerWebhookAdapter } from "./routes/integrations/webhook";
 import { registerMcpAdapter } from "./routes/integrations/mcp";
 import { registerIntegrationsAdminRoutes } from "./routes/settings/integrations";
 import { registerMarketingRoutes } from "./routes/marketing";
+import { registerBillingRoutes } from "./routes/billing";
 import { attributeSignup } from "./lib/campaigns";
 import { normalizeEmail } from "./lib/email-address";
 import { rateLimiter } from "./middleware/rate-limit";
@@ -7002,6 +7003,7 @@ Respond with ONLY a JSON object. Example:
   registerMcpAdapter(app);
   registerIntegrationsAdminRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole, requireAccountType });
   registerMarketingRoutes(app, { authenticateToken, requireAdmin });
+  registerBillingRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole, requireAdmin });
 
   // ============================================================================
   // AI CHAT HISTORY
@@ -7131,6 +7133,7 @@ Respond with ONLY a JSON object. Example:
     "tender_lifecycle",
     "qa_activity",
     "company_admin",
+    "billing",
   ] as const;
   const NOTIF_CHANNELS = ["email", "in_app", "sms"] as const;
 

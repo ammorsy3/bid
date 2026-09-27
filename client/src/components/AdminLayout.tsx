@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Users, AlertTriangle, FileText,
-  Shield, LogOut, ArrowLeft, Store, Bug, Bell, UserPlus, Megaphone
+  Shield, LogOut, ArrowLeft, Store, Bug, Bell, UserPlus, Megaphone, CreditCard
 } from "lucide-react";
 import { useAuthStore } from "@/lib/auth";
 import { useLogout } from "@/hooks/use-logout";
@@ -97,6 +97,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           href: "/admin/campaigns",
           label: t('admin.navCampaigns'),
           icon: Megaphone,
+          count: 0,
+        },
+        {
+          href: "/admin/checkouts",
+          label: t('admin.navCheckouts'),
+          icon: CreditCard,
           count: 0,
         },
       ],

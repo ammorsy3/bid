@@ -21,7 +21,8 @@ type Category =
   | "negotiation_activity"
   | "tender_lifecycle"
   | "qa_activity"
-  | "company_admin";
+  | "company_admin"
+  | "billing";
 
 interface PreferenceRow {
   category: string;
@@ -37,6 +38,7 @@ const CATEGORIES: { id: Category; tKey: string }[] = [
   { id: "tender_lifecycle", tKey: "TenderLifecycle" },
   { id: "qa_activity", tKey: "QaActivity" },
   { id: "company_admin", tKey: "CompanyAdmin" },
+  { id: "billing", tKey: "Billing" },
 ];
 
 // Email-only for now. The API still accepts in_app / sms in case we

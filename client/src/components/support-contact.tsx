@@ -73,6 +73,11 @@ type SupportContactLinksProps = {
   iconClassName?: string;
   /** Show the localized label next to each value (defaults to value only). */
   showLabels?: boolean;
+  /**
+   * Include the Instagram + LinkedIn links. The public footers want them; the
+   * dashboard's Support card doesn't, since they aren't a way to reach support.
+   */
+  showSocial?: boolean;
 };
 
 /**
@@ -86,6 +91,7 @@ export function SupportContactLinks({
   linkClassName,
   iconClassName,
   showLabels = false,
+  showSocial = true,
 }: SupportContactLinksProps) {
   const ctx = useI18n();
   const activeLang = lang ?? ctx.language;
@@ -114,28 +120,32 @@ export function SupportContactLinks({
         <WhatsAppIcon className={cn(iconClassName)} />
         <span>{s("whatsapp")}</span>
       </a>
-      <a
-        href={SUPPORT_INSTAGRAM_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={linkClassName}
-        aria-label={s("instagramAria")}
-        data-testid="link-support-instagram"
-      >
-        <InstagramIcon className={cn(iconClassName)} />
-        <span>{s("instagram")}</span>
-      </a>
-      <a
-        href={SUPPORT_LINKEDIN_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={linkClassName}
-        aria-label={s("linkedinAria")}
-        data-testid="link-support-linkedin"
-      >
-        <LinkedInIcon className={cn(iconClassName)} />
-        <span>{s("linkedin")}</span>
-      </a>
+      {showSocial && (
+        <>
+          <a
+            href={SUPPORT_INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClassName}
+            aria-label={s("instagramAria")}
+            data-testid="link-support-instagram"
+          >
+            <InstagramIcon className={cn(iconClassName)} />
+            <span>{s("instagram")}</span>
+          </a>
+          <a
+            href={SUPPORT_LINKEDIN_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={linkClassName}
+            aria-label={s("linkedinAria")}
+            data-testid="link-support-linkedin"
+          >
+            <LinkedInIcon className={cn(iconClassName)} />
+            <span>{s("linkedin")}</span>
+          </a>
+        </>
+      )}
     </div>
   );
 }

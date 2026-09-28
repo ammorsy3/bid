@@ -2053,6 +2053,7 @@ function DashboardInner({ user, activeCompany }: {
                     className="mt-2.5 flex flex-col gap-1 group-data-[collapsible=icon]:hidden"
                     linkClassName="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground active:bg-accent transition-colors max-md:min-h-11 max-md:text-sm"
                     iconClassName="h-3.5 w-3.5 text-[#FE3C01] flex-shrink-0"
+                    showSocial={false}
                   />
                 </div>
               </div>

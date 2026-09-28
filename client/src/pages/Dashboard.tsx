@@ -2448,7 +2448,7 @@ function DashboardInner({ user, activeCompany }: {
           {tourDismissed && (
             <button
               onClick={handleRetakeTour}
-              className={`mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground active:text-foreground transition-colors w-full px-1 max-md:mt-1 max-md:min-h-11 group-data-[collapsible=icon]:hidden`}
+              className={`mt-3 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground active:text-foreground transition-colors w-full min-h-11 px-1 max-md:mt-1 group-data-[collapsible=icon]:hidden`}
               data-testid="button-retake-tour"
             >
               <HelpCircle className="h-3.5 w-3.5 flex-shrink-0" />

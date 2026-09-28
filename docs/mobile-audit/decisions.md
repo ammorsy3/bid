@@ -158,3 +158,16 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     photos, but it can break when React or the data library is upgraded; if those
     states start failing, that's the reason, not the page.
 
+
+28. **"Take a tour" link is 16px tall on desktop — pre-existing, just wasn't
+    visible until now.** The final re-check (after today's follow-up fixes)
+    surfaced a small tap-target problem in `dash-rfps` desktop: the sidebar's
+    "Take a tour" text link (`client/src/pages/Dashboard.tsx`, near line 2452)
+    has `max-md:min-h-11` — a comfortable height on phones — but no minimum
+    height at all on desktop, so it's just its text line, 16px tall. It only
+    shows once the tour has been dismissed once, which hadn't happened yet
+    when the batch's desktop baseline was taken, so this is the first time
+    it's been checked. It isn't something any fixer's change touched, and I
+    haven't changed it either — surfacing it, not fixing it, since it's a
+    desktop pixel change and I wasn't asked for one. Want me to give it a
+    small minimum height on desktop too?

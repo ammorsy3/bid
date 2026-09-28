@@ -84,26 +84,21 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     in English so it can be copied and run. The docs follow the app's
     language, with an AR/EN switch in the docs header (and in the phone menu).
 
-14. **Privacy Policy doesn't mention the AI provider.** The AI features
-    (Copilot, AI chat, and the image/audio tools) send what people type, and
-    likely tender text, to OpenAI (`server/ai/*`). Section 4 lists no AI
-    provider, so this is a gap in what the policy discloses. I didn't add it
-    without you. Want me to add OpenAI to the list of service providers, and
-    a sentence about AI features (what's sent and whether it's used to train
-    models)? That last part needs a fact from you or OpenAI's terms.
+14. **Privacy Policy doesn't mention the AI provider — Ahmed says no
+    (2026-09-27).** Left as is; no change to the Privacy Policy.
 
-15. **AI-chat history: the trash icon deletes at once.** In the dashboard menu each
-    saved AI chat has a trash icon that deletes it with no "are you sure" and no
-    undo. On phones it is now always visible (before, it only showed on hover, which
-    phones don't have), so an accidental tap is easier. Want a confirm dialog or an
-    "Undo" toast? (Product call, not a layout fix.)
+15. **AI-chat history: the trash icon deletes at once — fixed (2026-09-27,
+    Ahmed said add a confirm).** Same confirm-dialog pattern as the RFP and
+    vendor deletes: title, the chat's own title, "This can't be undone",
+    Delete / Cancel. Verified in the phone window in Arabic.
 
-16. **Menus and dropdowns are left-to-right on Arabic pages, app-wide.** The app
-    has no global text-direction setting for its dropdown/menu/tab components (Radix),
-    so on Arabic pages they still lay out left-to-right. I only fixed the workspace
-    list in the menu. A one-place fix would cover every page, but it touches every
-    page, so I'd like your OK before doing it (I'd do it right after batch 3 and
-    re-run all earlier batches to check nothing moved).
+16. **Menus and dropdowns are left-to-right on Arabic pages, app-wide — fixed
+    (2026-09-27, Ahmed said fix it).** The whole app is now wrapped in Radix's
+    `DirectionProvider`, keyed to the current language. Verified in the phone
+    window on a page no fixer had touched (Settings > timezone): the dropdown
+    now opens right-aligned with the checkmark on the correct side. Re-ran
+    batch 1 and batch 2's checks afterwards to confirm nothing moved (see
+    queue.md).
 
 17. **The app can sign someone out when the server hiccups.** While auditing, the
     server briefly answered 500 on the tender lists (against the dev database);
@@ -112,37 +107,26 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     problem and `server/` is outside this audit, so I've left it. Worth a look on
     its own: it may only happen on the dev copy of the database.
 
-18. **Onboarding checklist opens the finished first step.** The "Get started" list
-    always opens step 1, even when step 1 is done, so a finished company sees a
-    "you're verified" line first instead of the next thing to do. Opening the
-    first unfinished step needs a small change to how the list works, which also
-    changes desktop. Want it?
+18. **Onboarding checklist opens the finished first step — Ahmed says leave it
+    (2026-09-27).** No change.
 
-19. **RFP rows on phones: buttons became "tap the row + ... menu".** On desktop each
-    RFP row has View / Copy link / Edit / Delete buttons. On phones there wasn't
-    room, so tapping the row opens it and a "..." menu holds Copy link, Edit and
-    Delete (Delete asks to confirm in a sheet). Desktop is untouched and still uses
-    the browser's own "are you sure" box. Say if you want the phone or desktop way
-    changed.
+19. **RFP rows on phones: "tap the row + ... menu" — Ahmed says keep it
+    (2026-09-27).** No change.
 
-20. **The tender list is slow on the server.** Loading "my RFPs" (`GET /api/tenders`
-    in `server/routes.ts`) runs two database lookups per tender: 120 for Seet's 60
-    tenders. It took 2-7 seconds during the audit (against the dev database) and
-    twice failed with an error for about five minutes, which broke two photo runs.
-    One combined lookup would fix it. Someone with many RFPs would notice this on
-    their phone. Not a layout problem and `server/` is outside this audit, so I
-    left it; want me to fix it as a separate task afterwards?
+20. **The tender list is slow on the server — fixed (2026-09-27, Ahmed said fix
+    it).** `GET /api/tenders` now runs two grouped queries (one `GROUP BY` each
+    for offer counts and invitation counts) instead of two per tender. Verified
+    against the real dev server with Seet's 60 tenders: 0.4-1.0s, down from
+    2-7s, and the totals still match what the Proposals tab shows (11 offers,
+    1 invitation).
 
-21. **Red status text on dark backgrounds is 3.52:1** (`components/brand/StatusDot.tsx`,
-    e.g. the "Closed" pill in dark mode). Shared component, so I left it. It is
-    the same kind of decision as the brand-orange one (#5).
+21. **Red status text on dark backgrounds — fixed (2026-09-27, Ahmed said fix
+    it).** `--state-lost` is now lightened in dark mode only (#E34C3B, 4.59:1);
+    light mode unchanged. See the commit for the full explanation.
 
-22. **Proposals tab: small wording/product calls.** (a) On phones the vendor button
-    says "Vendor profile"; on desktop it still says "View" (which in Arabic is the
-    same word as "Proposal"). (b) Incoming offers that are still pending show no
-    badge, on desktop too; a "Pending" badge might help buyers. (c) The empty-state
-    buttons ("Explore Marketplace" / "Create RFP") were added on phones only.
-    Say if any of these should apply on desktop as well.
+22. **Proposals tab: small wording/product calls — Ahmed says leave desktop as
+    is (2026-09-27).** None of (a)/(b)/(c) applied to desktop; phones keep their
+    own wording and behaviour.
 
 23. **Arabic "days left" wording needs a native-speaker glance.** New phrases such as
     "يوم واحد متبقي", "يومان متبقيان", "أيام متبقية" replace an English-style count.
@@ -161,12 +145,12 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     every screen size; it now means "not verified", which includes "under review"
     and "rejected". Say if you want any of it different.
 
-26. **Small server/data things on the Vendors tab.** `/api/vendors-base` sends the
-    English word "No category" for vendors without one (`server/routes.ts` around
-    line 5504), so an Arabic user sees English. One vendor logo is stored at a path
-    that answers 401 to an image tag, so it shows the grey placeholder. And on the
-    Proposals tab the accept/reject toasts are hard-coded English. All outside the
-    layout work, so I've left them; want me to fix them as one small task?
+26. **Small server/data things — two fixed, one still open (2026-09-27, Ahmed
+    said fix the translations).** "No category" and the accept/reject toasts are
+    fixed; see the commit for the full explanation. Still open: one vendor logo
+    is stored at a path that answers 401 to an image tag, so it shows the grey
+    placeholder instead — a broken file reference, not a translation gap; want
+    me to track down which vendor and fix the stored path?
 
 27. **A few audit states patch the page from the outside.** Three new vendor states
     (many, many-more, requests) fake extra data by replacing the browser's `fetch`

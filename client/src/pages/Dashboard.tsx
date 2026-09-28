@@ -1071,6 +1071,7 @@ const VERIFICATION_STATUS_KEYS: Record<string, string> = {
 function ChatHistorySidebar() {
   const [, setLocation] = useLocation();
   const { t, language } = useI18n();
+  const { toast } = useToast();
   const { data: chatSessions } = useQuery<any[]>({
     queryKey: ["/api/ai-chat-sessions"],
   });
@@ -1078,13 +1079,31 @@ function ChatHistorySidebar() {
   // so an accidental tap is easier than on desktop; confirm before deleting.
   const [chatToDelete, setChatToDelete] = useState<{ id: string; title: string } | null>(null);
 
+  // Optimistic: the chat disappears from the list the instant Delete is
+  // confirmed, instead of after the round trip to the server. Rolled back
+  // on error (see onError) so a failed delete doesn't leave a chat missing.
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       await apiRequest("DELETE", `/api/ai-chat-sessions/${id}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/ai-chat-sessions"] });
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/ai-chat-sessions"] });
+      const previous = queryClient.getQueryData(["/api/ai-chat-sessions"]);
+      queryClient.setQueryData(
+        ["/api/ai-chat-sessions"],
+        (old: any[] | undefined) => (old ?? []).filter((s) => s.id !== id)
+      );
       setChatToDelete(null);
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(["/api/ai-chat-sessions"], context.previous);
+      }
+      toast({ title: t('dashboard.deleteChat'), description: t('dashboard.chatDeleteError'), variant: 'destructive' });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ai-chat-sessions"] });
     },
   });
 
@@ -1492,20 +1511,30 @@ function DashboardInner({ user, activeCompany }: {
   const [profileEmbedVariant, setProfileEmbedVariant] = useState<'inline' | 'popup' | 'text'>('inline');
   const [profileEmbedCopied, setProfileEmbedCopied] = useState(false);
 
+  // Optimistic: the vendor's row disappears the instant Remove is confirmed
+  // instead of after the round trip to the server; rolled back on error.
   const removeVendorMutation = useMutation({
     mutationFn: async ({ id }: { id: string; name: string }) => {
       await apiRequest('DELETE', `/api/vendors-base/${id}`);
     },
-    onSuccess: (_data, { id, name }) => {
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/vendors-base', searchQuery] });
+      const previous = queryClient.getQueryData(['/api/vendors-base', searchQuery]);
       queryClient.setQueryData(
         ['/api/vendors-base', searchQuery],
         (old: VendorProfile[] | undefined) => (old ?? []).filter(v => v.id !== id)
       );
-      queryClient.invalidateQueries({ queryKey: ['/api/onboarding-tasks'] });
       setVendorToRemove(null);
+      return { previous };
+    },
+    onSuccess: (_data, { name }) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/onboarding-tasks'] });
       toast({ title: t('dashboard.removeVendorTitle'), description: `\u2068${name}\u2069 ${t('dashboard.removedFromBase')}` });
     },
-    onError: () => {
+    onError: (_err, _vars, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(['/api/vendors-base', searchQuery], context.previous);
+      }
       toast({ title: t('dashboard.removeVendorTitle'), description: t('dashboard.removeVendorError'), variant: 'destructive' });
     },
   });
@@ -1766,10 +1795,22 @@ function DashboardInner({ user, activeCompany }: {
     }
   });
 
-  // Update offer status mutation (accept/reject proposals)
+  // Update offer status mutation (accept/reject proposals). Optimistic: the
+  // badge changes the instant you tap Accept/Reject/Shortlist instead of
+  // after the round trip to the server; rolled back on error.
   const updateOfferStatus = useMutation({
     mutationFn: async ({ offerId, status }: { offerId: string; status: string }) => {
       return await apiRequest('PATCH', `/api/offers/${offerId}/status`, { status });
+    },
+    onMutate: async ({ offerId, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/my-tenders/offers'] });
+      const previous = queryClient.getQueryData(['/api/my-tenders/offers']);
+      queryClient.setQueryData(
+        ['/api/my-tenders/offers'],
+        (old: IncomingOffer[] | undefined) =>
+          (old ?? []).map((o) => (o.id === offerId ? { ...o, status: status as IncomingOffer['status'] } : o))
+      );
+      return { previous };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/my-tenders/offers'] });
@@ -1786,7 +1827,10 @@ function DashboardInner({ user, activeCompany }: {
           : t('dashboard.offerRejectedDesc'),
       });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, _variables, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(['/api/my-tenders/offers'], context.previous);
+      }
       toast({
         title: t('dashboard.offerUpdateFailed'),
         description: error.message,

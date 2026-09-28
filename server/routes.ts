@@ -5501,7 +5501,7 @@ Respond with ONLY a JSON object. Example:
           hasProfile: !!v.profile,
           company: v.profile?.displayName || v.vendorCompany.name,
           legalName: v.vendorCompany.legalName,
-          category: v.vendorCompany.category || 'No category',
+          category: v.vendorCompany.category || null, // client shows its own translated "no category" text
           city: v.vendorCompany.city,
           crNumber: v.vendorCompany.crNumber,
           vatNumber: v.vendorCompany.vatNumber,

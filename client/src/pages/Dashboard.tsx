@@ -74,7 +74,7 @@ interface VendorProfile {
   hasProfile: boolean;
   company: string;
   legalName: string | null;
-  category: string;
+  category: string | null;
   city: string | null;
   crNumber: string | null;
   vatNumber: string | null;
@@ -1615,7 +1615,7 @@ function DashboardInner({ user, activeCompany }: {
   });
 
   // Derived unique values for vendor filters
-  const uniqueCategories = Array.from(new Set(vendors.map(v => v.category).filter(Boolean))).sort();
+  const uniqueCategories = Array.from(new Set(vendors.map(v => v.category).filter((c): c is string => Boolean(c)))).sort();
   const uniqueCities = Array.from(new Set(vendors.map(v => v.city).filter(Boolean) as string[])).sort();
 
   // Filter vendors based on category, city, and verification status
@@ -1629,8 +1629,10 @@ function DashboardInner({ user, activeCompany }: {
 
   const activeFilterCount = [categoryFilter, cityFilter, verificationFilter].filter(f => f !== 'all').length;
 
-  // Category and city are stored in English; show them in the page language (the server sends "No category" for a missing one).
-  const vendorCategoryText = (category: string) => category === 'No category' ? t('dashboard.noCategory') : categoryLabel(category, isRtl);
+  // Category and city are stored in English; show them in the page language. A
+  // vendor with no category set gets our own translated placeholder, not the
+  // server's (the server used to send the literal English "No category").
+  const vendorCategoryText = (category: string | null) => category ? categoryLabel(category, isRtl) : t('dashboard.noCategory');
   const vendorJoinText = (method: string) => method === 'invitation' ? t('dashboard.invitedMethod') : method === 'proposal_accepted' ? t('dashboard.viaProposal') : t('dashboard.appliedViaTraction');
   const clearVendorFilters = () => { setCategoryFilter('all'); setCityFilter('all'); setVerificationFilter('all'); };
   // A workspace with no vendors at all (nothing searched, nothing filtered) skips the search and filters on phones.
@@ -1775,15 +1777,15 @@ function DashboardInner({ user, activeCompany }: {
       toast({
         title: variables.status === 'accepted' ? t('dashboard.accepted') : variables.status === 'shortlisted' ? t('dashboard.shortlisted') : t('dashboard.rejected'),
         description: variables.status === 'accepted'
-          ? "Vendor has been added to your Vendors Base."
+          ? t('dashboard.offerAcceptedDesc')
           : variables.status === 'shortlisted'
-          ? "Proposal has been shortlisted."
-          : "This proposal has been marked as ignored.",
+          ? t('dashboard.offerShortlistedDesc')
+          : t('dashboard.offerRejectedDesc'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to update proposal",
+        title: t('dashboard.offerUpdateFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -4170,7 +4172,7 @@ function DashboardInner({ user, activeCompany }: {
                                     )}
                                   </div>
                                   <p className="text-sm font-medium text-muted-foreground" data-testid={`text-vendor-category-${vendor.id}`}>
-                                    {vendor.category}
+                                    {vendor.category || t('dashboard.noCategory')}
                                   </p>
                                 </div>
                               </div>

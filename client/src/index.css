@@ -937,6 +937,21 @@ html[dir="rtl"] .docs-scope h2 {
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Bid · Content-swap motion (View Transitions API)
+   Used via client/src/lib/view-transition.ts to turn a hard instant cut
+   (a tab switch, a list filtering) into a soft cross-fade instead. The
+   browser's own default duration is 250ms; tuned here to sit between
+   Button/NeonButton's press feedback (100ms) and Dialog's open/close
+   (200ms) so it reads as part of the same family of motion, not slower or
+   snappier. No prefers-reduced-motion query needed here — the JS helper
+   never starts a transition at all for those visitors.
+   ───────────────────────────────────────────────────────────────────────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 200ms;
+}
+
 @keyframes ticker-scroll {
   0% {
     transform: translateX(0);

@@ -50,6 +50,7 @@ import { useToast } from "@/hooks/use-toast";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { categoryLabel, cityLabel } from "@/lib/category-labels";
 import { profilePath } from "@/lib/profile-url";
+import { withViewTransition } from "@/lib/view-transition";
 import VendorProfileDrawer from "@/components/VendorProfileDrawer";
 import {
   GetVerifiedVisual,
@@ -1350,9 +1351,11 @@ function DashboardInner({ user, activeCompany }: {
   // /vendors are real, shareable, back-button-friendly routes (B-7) instead
   // of pure client-side tab state.
   const setActiveTab = (value: string) => {
-    setActiveTabState(value);
-    const route = TAB_TO_ROUTE[value];
-    if (route && route !== location) setLocation(route);
+    withViewTransition(() => {
+      setActiveTabState(value);
+      const route = TAB_TO_ROUTE[value];
+      if (route && route !== location) setLocation(route);
+    });
   };
   useEffect(() => {
     const tabForRoute = ROUTE_TO_TAB[location];
@@ -3153,7 +3156,7 @@ function DashboardInner({ user, activeCompany }: {
                         data-testid="input-tender-search"
                       />
                     </div>
-                    <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={tenderFilter} onValueChange={(v) => setTenderFilter(v as any)} className="w-full sm:w-auto">
+                    <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={tenderFilter} onValueChange={(v) => withViewTransition(() => setTenderFilter(v as any))} className="w-full sm:w-auto">
                       <TabsList className="grid grid-cols-4 w-full sm:w-auto max-md:h-auto">
                         <TabsTrigger value="all" className="max-md:min-h-11 max-md:active:opacity-70" data-testid="filter-all">{t('dashboard.all')}</TabsTrigger>
                         <TabsTrigger value="published" className="max-md:min-h-11 max-md:active:opacity-70" data-testid="filter-published">{t('dashboard.published')}</TabsTrigger>
@@ -3417,7 +3420,7 @@ function DashboardInner({ user, activeCompany }: {
             />
             </motion.div>
 
-            <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={(isIndividual || isTeam) ? 'submitted' : proposalsSubTab} onValueChange={(v) => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); }} className="space-y-4">
+            <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={(isIndividual || isTeam) ? 'submitted' : proposalsSubTab} onValueChange={(v) => withViewTransition(() => { setProposalsSubTab(v); localStorage.setItem('dashboard-proposals-tab', v); })} className="space-y-4">
               {!isIndividual && !isTeam && (
               <TabsList className={`grid w-full max-w-md grid-cols-2 max-md:h-auto ${BRAND_TABSLIST}`}>
                 <TabsTrigger value="submitted" className={`gap-2 max-md:min-h-11 max-md:gap-1.5 max-md:px-2 max-md:active:opacity-70 ${BRAND_TABTRIGGER}`} data-testid="tab-submitted-proposals">
@@ -3929,7 +3932,7 @@ function DashboardInner({ user, activeCompany }: {
                 </CardContent>
               </Card>
 
-              <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={vendorsSubTab} onValueChange={(v) => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); }} className="space-y-4">
+              <Tabs dir={isRtl ? 'rtl' : 'ltr'} value={vendorsSubTab} onValueChange={(v) => withViewTransition(() => { setVendorsSubTab(v); localStorage.setItem('dashboard-vendors-tab', v); })} className="space-y-4">
                 <TabsList className={`grid grid-cols-2 w-full max-w-2xl max-md:h-auto ${BRAND_TABSLIST}`} data-tour="vendors-tabs">
                   <TabsTrigger value="vendors-list" className={`gap-2 flex-shrink-0 sm:flex-1 whitespace-nowrap max-md:whitespace-normal max-md:min-h-11 max-md:gap-1.5 max-md:px-1.5 max-md:active:opacity-70 ${BRAND_TABTRIGGER}`} data-testid="tab-vendors-list">
                     <Users className="h-4 w-4 max-[400px]:hidden" />

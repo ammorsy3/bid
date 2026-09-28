@@ -335,14 +335,52 @@ function UserText({ children, className = "" }: { children: React.ReactNode; cla
 // The big number on a stat card. On phones, while the count is still loading, a
 // pulsing bar of the same height stands in for it so a made-up "0" never flashes
 // before the real figure arrives. Desktop keeps showing the number as before.
-function StatNumber({ loading, children }: { loading: boolean; children: React.ReactNode }) {
-  if (!loading) return <>{children}</>;
-  return (
-    <>
-      <span aria-busy="true" className="block h-12 w-14 rounded-lg bg-white/10 animate-pulse md:hidden" />
-      <span className="max-md:hidden">{children}</span>
-    </>
-  );
+//
+// Once a real number is showing, a change to it (the placeholder being
+// replaced by the real count, or the real count itself changing - e.g. 2
+// tenders becomes 3 right after creating one) counts up/down from the
+// number already on screen instead of just swapping in the new one. Simply
+// re-rendering more often - a tab revisit where nothing changed, a
+// background refetch that confirms the same figure - stays quiet: nothing
+// plays unless the number itself is different from what's already shown.
+function StatNumber({ loading, value }: { loading: boolean; value: number }) {
+  const [displayed, setDisplayed] = useState(value);
+  const shown = useRef(value);
+
+  useEffect(() => {
+    if (loading) return; // wait for the real number before animating anything
+    const from = shown.current;
+    const to = value;
+    shown.current = to;
+    if (from === to) return;
+
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setDisplayed(to);
+      return;
+    }
+
+    let frame: number;
+    const duration = 500;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out: quick then settles, not linear
+      setDisplayed(Math.round(from + (to - from) * eased));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, loading]);
+
+  if (loading) {
+    return (
+      <>
+        <span aria-busy="true" className="block h-12 w-14 rounded-lg bg-white/10 animate-pulse md:hidden" />
+        <span className="max-md:hidden">{value}</span>
+      </>
+    );
+  }
+  return <>{displayed}</>;
 }
 
 // Shown in place of a step's action button once that step is finished, so a
@@ -2659,7 +2697,7 @@ function DashboardInner({ user, activeCompany }: {
                       </div>
                       <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
                         <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
-                          <StatNumber loading={loadingTenders}>{tenders.filter(tender => tender.status === 'published').length}</StatNumber>
+                          <StatNumber loading={loadingTenders} value={tenders.filter(tender => tender.status === 'published').length} />
                         </p>
                         <p className="text-sm text-[#B9AFA5] mt-2 font-medium [unicode-bidi:plaintext]">{t('dashboard.activeRfps')}</p>
                       </div>
@@ -2682,7 +2720,7 @@ function DashboardInner({ user, activeCompany }: {
                       </div>
                       <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
                         <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
-                          <StatNumber loading={loadingIncomingOffers}>{incomingOffers.filter(o => o.status === 'pending').length}</StatNumber>
+                          <StatNumber loading={loadingIncomingOffers} value={incomingOffers.filter(o => o.status === 'pending').length} />
                         </p>
                         <p className="text-sm text-[#B9AFA5] mt-2 font-medium">{t('dashboard.pendingProposals')}</p>
                       </div>
@@ -2705,7 +2743,7 @@ function DashboardInner({ user, activeCompany }: {
                       </div>
                       <div className={`flex-1 ${isRtl ? 'text-right' : ''}`}>
                         <p className="font-display font-bold text-5xl text-[#F4EDE1] tracking-[-0.04em] leading-[1] tabular-nums">
-                          <StatNumber loading={loadingVendors}>{vendors.length}</StatNumber>
+                          <StatNumber loading={loadingVendors} value={vendors.length} />
                         </p>
                         <p className="text-sm text-[#B9AFA5] mt-2 font-medium">{t('dashboard.vendorsInBase')}</p>
                       </div>

@@ -208,6 +208,12 @@
   --bid-logo-orange-word: var(--bid-cream);
   --bid-logo-orange-dot: var(--bid-orange);
 
+  /* Lost Red, lightened for dark mode only: the light-mode hex (#D7321F) is
+     3.74:1 on the dark ink background, below the 4.5:1 bar for the status-badge
+     text that uses it (e.g. "Closed"). This is 4.59:1, same hue and saturation,
+     just lighter. (mobile-audit decisions.md #21) */
+  --state-lost: #E34C3B;
+
   /* Colorway 02 — Cream wordmark on Ink surface */
   --background: hsl(26, 16%, 9%);
   --foreground: hsl(38, 47%, 92%);

@@ -212,7 +212,7 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => { setForgotMode(false); setForgotSent(false); }}
-                      className="!mt-1 !-mb-3 py-3 text-sm text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
+                      className="!mt-1 !-mb-3 py-3 text-sm text-[#FE3C01] hover:text-[#d54d35] active:opacity-70 font-medium transition-colors"
                     >
                       {t('auth.backToLogin')}
                     </button>
@@ -243,7 +243,7 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={() => setForgotMode(false)}
-                        className="-my-3 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        className="-my-3 py-3 text-sm text-muted-foreground hover:text-foreground active:opacity-70 transition-colors"
                       >
                         {t('auth.backToLogin')}
                       </button>
@@ -297,7 +297,7 @@ export default function Login() {
                             <button
                               type="button"
                               onClick={() => setForgotMode(true)}
-                              className="-my-3.5 py-3.5 text-xs text-[#FE3C01] hover:text-[#d54d35] font-medium transition-colors"
+                              className="-my-3.5 py-3.5 text-xs text-[#FE3C01] hover:text-[#d54d35] active:opacity-70 font-medium transition-colors"
                             >
                               {t('auth.forgotPassword')}
                             </button>
@@ -320,7 +320,7 @@ export default function Login() {
                             <button
                               type="button"
                               onClick={() => setShowPassword(s => !s)}
-                              className="absolute end-0 top-1/2 -translate-y-1/2 flex h-11 w-11 md:h-10 md:w-10 items-center justify-center text-neutral-400 hover:text-muted-foreground"
+                              className="absolute end-0 top-1/2 -translate-y-1/2 flex h-11 w-11 md:h-10 md:w-10 items-center justify-center text-neutral-400 hover:text-muted-foreground active:scale-90 transition-transform"
                               aria-label={showPassword ? t('auth.hidePasswordAria') : t('auth.showPasswordAria')}
                               tabIndex={-1}
                             >

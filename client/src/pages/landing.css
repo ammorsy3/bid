@@ -891,7 +891,7 @@
     .modal-btn:hover{border-color:var(--line-strong);box-shadow:none}
     .modal-btn.primary:hover{background:var(--orange);border-color:var(--orange)}
     .cta-strip .btn-white:hover{transform:none;box-shadow:none}
-    .btn:active,.lang-toggle:active,.hamburger:active,.modal-btn:active,.cta-strip .btn-white:active{transform:scale(.97);opacity:.85}
+    .btn:active,.lang-toggle:active,.hamburger:active,.modal-btn:active,.modal-close:active,.cta-strip .btn-white:active{transform:scale(.97);opacity:.85}
     .mobile-menu a:active,.footer-row a:active,.footer-bot a:active,.topbar > a:active{opacity:.6}
   }
 

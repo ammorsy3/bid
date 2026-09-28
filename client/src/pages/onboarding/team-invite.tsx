@@ -172,7 +172,7 @@ export default function TeamInvite() {
                 type="button"
                 onClick={() => setLocation('/dashboard')}
                 disabled={loading}
-                className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors disabled:opacity-50 max-md:p-2 max-md:-m-2"
+                className="text-sm text-neutral-400 hover:text-neutral-600 active:opacity-70 transition-colors disabled:opacity-50 max-md:p-2 max-md:-m-2"
               >
                 {t('onboardingPanel.skipForNow')}
               </button>

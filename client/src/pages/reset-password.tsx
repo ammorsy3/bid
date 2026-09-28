@@ -138,7 +138,7 @@ export default function ResetPassword() {
               <button
                 type="button"
                 onClick={() => setLocation("/login")}
-                className="-my-3 py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="-my-3 py-3 text-sm text-muted-foreground hover:text-foreground active:opacity-70 transition-colors"
               >
                 {t("auth.backToLogin")}
               </button>

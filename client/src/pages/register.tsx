@@ -120,7 +120,7 @@ export default function Register() {
   // eye button is a physical side: the end of the row (left in Arabic).
   const passwordPadding = isRtl ? "pl-11 md:pl-10" : "pr-11 md:pr-10";
   const eyeButtonClass =
-    "absolute end-0 top-1/2 -translate-y-1/2 flex h-11 w-11 md:h-10 md:w-10 items-center justify-center text-neutral-400 hover:text-muted-foreground";
+    "absolute end-0 top-1/2 -translate-y-1/2 flex h-11 w-11 md:h-10 md:w-10 items-center justify-center text-neutral-400 hover:text-muted-foreground active:scale-90 transition-transform";
   const passwordValue = form.watch("password");
   const strength = scorePassword(passwordValue || "");
   const checks = checkPassword(passwordValue || "");

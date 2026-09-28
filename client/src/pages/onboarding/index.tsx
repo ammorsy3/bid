@@ -327,7 +327,7 @@ export default function OnboardingChoice() {
                   card would collapse the one section on screen — so skip it. */}
               {!joinOnlyMode && (
               <Card
-                className={`cursor-pointer group transition-all duration-200 border-2 ${
+                className={`cursor-pointer group transition-all duration-200 active:scale-[0.97] border-2 ${
                   isActive
                     ? `${activeBorder} shadow-md`
                     : `border-transparent ${hoverBorder} hover:shadow-md`

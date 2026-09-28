@@ -289,7 +289,7 @@ export default function VerifyEmail() {
               setNewEmail(user.email);
               setChangeEmailOpen(true);
             }}
-            className="-mt-1 -mb-3 py-3 inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+            className="-mt-1 -mb-3 py-3 inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 active:opacity-70 font-medium"
             data-testid="button-change-email"
           >
             <Pencil className="w-3.5 h-3.5" />
@@ -348,7 +348,7 @@ export default function VerifyEmail() {
                 ) : (
                   <button
                     onClick={handleResend}
-                    className="inline-block py-3 -my-3 text-primary-600 hover:text-primary-700 font-medium"
+                    className="inline-block py-3 -my-3 text-primary-600 hover:text-primary-700 active:opacity-70 font-medium"
                   >
                     {t('onboardingPanel.resendCode')}
                   </button>

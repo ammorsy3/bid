@@ -288,8 +288,8 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
               <div>
                 <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">"{slug}" {t('dashboard.slugTaken')}</p>
                 <p className="text-xs text-amber-600 max-md:text-amber-800 mt-0.5 max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-x-2">
-                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300 max-md:min-h-11" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
-                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300 max-md:min-h-11" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button> {t('dashboard.slugTakenSuggestion')}
+                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300 active:opacity-70 max-md:min-h-11" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
+                  <button className="underline font-medium hover:text-amber-800 dark:text-amber-300 active:opacity-70 max-md:min-h-11" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button> {t('dashboard.slugTakenSuggestion')}
                 </p>
               </div>
             </div>
@@ -2074,7 +2074,7 @@ function DashboardInner({ user, activeCompany }: {
               <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{t('settings.companyNotVerifiedDesc')}</p>
               <button
                 onClick={() => setLocation('/settings?tab=company')}
-                className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900 max-md:inline-flex max-md:min-h-11 max-md:items-center"
+                className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900 active:opacity-70 max-md:inline-flex max-md:min-h-11 max-md:items-center"
               >
                 {t('settings.verifyNow')}
               </button>
@@ -2098,7 +2098,7 @@ function DashboardInner({ user, activeCompany }: {
               )}
               <button
                 onClick={() => setLocation('/settings?tab=company')}
-                className="text-xs font-semibold text-red-800 dark:text-red-300 underline underline-offset-2 hover:text-red-900 max-md:inline-flex max-md:min-h-11 max-md:items-center"
+                className="text-xs font-semibold text-red-800 dark:text-red-300 underline underline-offset-2 hover:text-red-900 active:opacity-70 max-md:inline-flex max-md:min-h-11 max-md:items-center"
               >
                 {t('settings.reUploadDocuments')}
               </button>
@@ -2220,9 +2220,9 @@ function DashboardInner({ user, activeCompany }: {
                               }
                             }}
                             className={`w-full flex items-start gap-3 p-3 transition-colors text-start border-b last:border-b-0 ${
-                              offer.isViewed 
-                                ? 'hover:bg-accent opacity-60' 
-                                : 'bg-[var(--bid-orange)]/5 dark:bg-blue-900/20 hover:bg-[var(--bid-orange)]/10 dark:hover:bg-blue-900/30 font-medium'
+                              offer.isViewed
+                                ? 'hover:bg-accent active:bg-accent opacity-60'
+                                : 'bg-[var(--bid-orange)]/5 dark:bg-blue-900/20 hover:bg-[var(--bid-orange)]/10 dark:hover:bg-blue-900/30 active:bg-[var(--bid-orange)]/10 dark:active:bg-blue-900/30 font-medium'
                             }`}
                           >
                             <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -2247,7 +2247,7 @@ function DashboardInner({ user, activeCompany }: {
                       <div className="p-2 border-t">
                         <button 
                           onClick={() => setActiveTab('proposals')}
-                          className="w-full text-center text-sm text-[var(--bid-orange)] dark:text-blue-400 hover:underline py-1"
+                          className="w-full text-center text-sm text-[var(--bid-orange)] dark:text-blue-400 hover:underline active:opacity-70 py-1"
                         >
                           {t('settings.viewAllNotifications')}
                         </button>
@@ -2298,7 +2298,7 @@ function DashboardInner({ user, activeCompany }: {
                     <button
                       onClick={() => setLanguage('en')}
                       className={`w-full flex items-center gap-2 px-3 py-2 max-md:py-3 rounded-md text-sm transition-colors ${
-                        language === 'en' ? 'bg-accent font-medium' : 'hover:bg-accent'
+                        language === 'en' ? 'bg-accent font-medium' : 'hover:bg-accent active:bg-accent'
                       }`}
                       data-testid="lang-english"
                     >
@@ -2308,7 +2308,7 @@ function DashboardInner({ user, activeCompany }: {
                     <button
                       onClick={() => setLanguage('ar')}
                       className={`w-full flex items-center gap-2 px-3 py-2 max-md:py-3 rounded-md text-sm transition-colors ${
-                        language === 'ar' ? 'bg-accent font-medium' : 'hover:bg-accent'
+                        language === 'ar' ? 'bg-accent font-medium' : 'hover:bg-accent active:bg-accent'
                       }`}
                       data-testid="lang-arabic"
                     >
@@ -2331,8 +2331,8 @@ function DashboardInner({ user, activeCompany }: {
                     }}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2 max-md:py-3 px-3 rounded-md text-sm transition-colors ${
                       currentTheme === 'light'
-                        ? 'bg-background shadow-sm font-medium' 
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-background shadow-sm font-medium'
+                        : 'text-muted-foreground hover:text-foreground active:text-foreground'
                     }`}
                     data-testid="theme-light"
                   >
@@ -2347,8 +2347,8 @@ function DashboardInner({ user, activeCompany }: {
                     }}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2 max-md:py-3 px-3 rounded-md text-sm transition-colors ${
                       currentTheme === 'dark'
-                        ? 'bg-background shadow-sm font-medium' 
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-background shadow-sm font-medium'
+                        : 'text-muted-foreground hover:text-foreground active:text-foreground'
                     }`}
                     data-testid="theme-dark"
                   >
@@ -2368,8 +2368,8 @@ function DashboardInner({ user, activeCompany }: {
                     }}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2 max-md:py-3 px-3 rounded-md text-sm transition-colors ${
                       currentTheme === 'system'
-                        ? 'bg-background shadow-sm font-medium' 
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-background shadow-sm font-medium'
+                        : 'text-muted-foreground hover:text-foreground active:text-foreground'
                     }`}
                     data-testid="theme-system"
                   >
@@ -2482,7 +2482,7 @@ function DashboardInner({ user, activeCompany }: {
                       setTenderSearchQuery("");
                       setLocation(`/tenders/${tender.id}`);
                     }}
-                    className="w-full text-start p-6 hover:bg-muted dark:hover:bg-gray-800 transition-colors group"
+                    className="w-full text-start p-6 hover:bg-muted dark:hover:bg-gray-800 active:bg-muted dark:active:bg-gray-800 transition-colors group"
                     data-testid={`search-tender-result-${tender.id}`}
                   >
                     <div className="flex items-start justify-between gap-4 mb-2">
@@ -4549,7 +4549,7 @@ function DashboardInner({ user, activeCompany }: {
                             <button
                               key={v}
                               onClick={() => setProfileEmbedVariant(v)}
-                              className={`px-2 py-2 rounded-lg text-[10px] font-semibold transition-all ${
+                              className={`px-2 py-2 rounded-lg text-[10px] font-semibold transition-all active:opacity-70 ${
                                 profileEmbedVariant === v
                                   ? 'bg-card ring-2 ring-offset-1 text-foreground'
                                   : 'bg-muted border border-border text-muted-foreground hover:text-foreground'

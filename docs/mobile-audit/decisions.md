@@ -3,7 +3,7 @@
 Things the loop found that are a product or data decision rather than a layout
 fix. The newest are at the bottom. Answer in chat, or edit this file.
 
-**21 resolved, 1 in progress, 6 still need your answer** (#5, 17, 23, 24, 25, 26).
+**21 resolved, 1 in progress, 7 still need your answer** (#5, 17, 23, 24, 25, 26, 29).
 
 1. **✅ The two case-duplicate production accounts - merged (2026-09-25).**
    Ahmed confirmed they are the same person. In production
@@ -165,3 +165,12 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     said fix it).** Same `min-h-11` (44px) the phone version already had,
     now unconditional. Verified with the real capture harness across all 5
     pages it appears on: 0 fails.
+
+29. **One shared menu component has no tap feedback yet.** `DropdownMenuItem`
+    (`client/src/components/ui/dropdown-menu.tsx`, used by the workspace-switcher
+    dropdown and others) has a focus style but no `active:` state — found during
+    batch 9's press-feedback sweep. Left alone on purpose: it's a low-level shared
+    piece used across many pages that haven't had their base pass yet (2b, 4-8),
+    so fixing it now is outside batch 9's scope; worth a small dedicated pass once
+    more of the app is through its base fix.
+

@@ -60,4 +60,11 @@ Baseline (before fixes, 136 captures): 155 fails. Populated states use the Seet 
 | 6 | Owner's tender tabs, proposal comparison, edit | todo |
 | 7 | Settings, integrations, profile editors | todo |
 | 8 | Admin (first give AdminLayout a phone menu) | todo |
-| 9 | Dedicated "feels like an installed app" pass, scoped for now to the pages already fixed (batches 1, 2, 3 — not 2b/4-8, which haven't had their base pass yet): press states on any one-off controls, deliberate motion for content swaps (trying the View Transitions API first), re-check the manifest/icon still fits new screens. Safari/iOS is checked first throughout — see quality-bar.md. Global groundwork already shipped in batch 1 (icon/manifest, global press states, tap-highlight, overscroll). | in progress |
+| 9 | "Feels like an installed app" pass, scoped to the pages already fixed (batches 1, 2, 3) | done for now (see below); 2b/4-8 get their own pass once each has its base fix |
+
+### 9. What changed (three parts)
+| Part | Status | What it did |
+|---|---|---|
+| Press feedback on one-off controls | fixed | 20 hand-rolled clickable elements across batches 1-3 that gave no response to a tap (back-to-login, forgot-password, resend-code, skip-for-now, the onboarding account-type card, the sign-up modal's close button, and a dozen dashboard spots) now dim/shrink like every other button in the app. |
+| Deliberate motion for content swaps | fixed | Built a small reusable helper (`client/src/lib/view-transition.ts`) using the browser's View Transitions API; wired into the dashboard's 4 tab switches so they cross-fade instead of cutting instantly. Falls back to no animation (not broken) on older Safari or with motion turned off. Caught and fixed a real bug along the way: Radix's Tabs fires its change event twice per click, which was crashing the whole dev server on every single tab click until fixed. |
+| Manifest/icon recheck | checked, nothing to fix | Icons, manifest, and status-bar tinting are all still correct and nothing added since batch 1 reintroduced a stray browser-chrome moment. |

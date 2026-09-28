@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -118,10 +119,50 @@ export default function TeamInvite() {
     }
   };
 
+  // A blank screen with a spinner, then the whole card popping in at once,
+  // reads as a hard cut (quality-bar.md section 6). This card's shape never
+  // changes - company row, role row, one button - so it can be shown ahead
+  // of the real data instead of hidden behind a spinner.
   if (loading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-muted">
-        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+      <div className="min-h-dvh flex flex-col items-center justify-center bg-muted p-4" data-testid="skeleton-team-invite">
+        <div className="mb-8">
+          <BidLogo variant="orange" size={40} />
+        </div>
+        <div className="w-full max-w-md">
+          {/* On this page's own bg-muted backdrop, the default Skeleton fill
+              (also bg-muted) is invisible - same token, zero contrast. Use a
+              foreground-tinted fill instead wherever a skeleton sits directly
+              on that backdrop (here, and again inside the muted company-
+              details box below); the plain Skeleton default is fine once
+              it's on the white card body, like the button skeleton is. */}
+          <div className="text-center mb-8">
+            <Skeleton className="mx-auto w-16 h-16 rounded-2xl mb-6 bg-foreground/10" />
+            <Skeleton className="h-8 w-56 mx-auto mb-2 bg-foreground/10" />
+            <Skeleton className="h-4 w-40 mx-auto bg-foreground/10" />
+          </div>
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="bg-muted rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-10 h-10 rounded-lg shrink-0 bg-foreground/10" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-20 bg-foreground/10" />
+                    <Skeleton className="h-4 w-32 bg-foreground/10" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-10 h-10 rounded-lg shrink-0 bg-foreground/10" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-20 bg-foreground/10" />
+                    <Skeleton className="h-4 w-24 bg-foreground/10" />
+                  </div>
+                </div>
+              </div>
+              <Skeleton className="h-11 w-full" />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

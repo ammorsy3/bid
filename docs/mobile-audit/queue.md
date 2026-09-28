@@ -60,4 +60,4 @@ Baseline (before fixes, 136 captures): 155 fails. Populated states use the Seet 
 | 6 | Owner's tender tabs, proposal comparison, edit | todo |
 | 7 | Settings, integrations, profile editors | todo |
 | 8 | Admin (first give AdminLayout a phone menu) | todo |
-| 9 | Dedicated "feels like an installed app" pass over every page: press states on any one-off controls, deliberate motion for content swaps, re-check the manifest/icon still fits new screens. Safari/iOS is checked first throughout — see quality-bar.md. Global groundwork already shipped in batch 1 (icon/manifest, global press states, tap-highlight, overscroll). | todo |
+| 9 | Dedicated "feels like an installed app" pass, scoped for now to the pages already fixed (batches 1, 2, 3 — not 2b/4-8, which haven't had their base pass yet): press states on any one-off controls, deliberate motion for content swaps (trying the View Transitions API first), re-check the manifest/icon still fits new screens. Safari/iOS is checked first throughout — see quality-bar.md. Global groundwork already shipped in batch 1 (icon/manifest, global press states, tap-highlight, overscroll). | in progress |

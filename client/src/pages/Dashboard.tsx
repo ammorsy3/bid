@@ -3165,7 +3165,7 @@ function DashboardInner({ user, activeCompany }: {
                       </TabsList>
                     </Tabs>
                     <div className="grid grid-cols-2 gap-3 sm:contents">
-                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={tenderTypeFilter} onValueChange={setTenderTypeFilter}>
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={tenderTypeFilter} onValueChange={(v) => withViewTransition(() => setTenderTypeFilter(v))}>
                       <SelectTrigger className="w-full sm:w-[180px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-tender-type">
                         <SelectValue placeholder={t('dashboard.allTypes')} />
                       </SelectTrigger>
@@ -3176,7 +3176,7 @@ function DashboardInner({ user, activeCompany }: {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={tenderOffersFilter} onValueChange={setTenderOffersFilter}>
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={tenderOffersFilter} onValueChange={(v) => withViewTransition(() => setTenderOffersFilter(v))}>
                       <SelectTrigger className="w-full sm:w-[180px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-tender-offers">
                         <SelectValue placeholder={t('dashboard.offersReceived')} />
                       </SelectTrigger>
@@ -3225,7 +3225,7 @@ function DashboardInner({ user, activeCompany }: {
                       <Button
                         variant="outline"
                         className="w-full"
-                        onClick={() => { setTenderSearchQuery(""); setTenderFilter('all'); setTenderTypeFilter('all'); setTenderOffersFilter('all'); }}
+                        onClick={() => withViewTransition(() => { setTenderSearchQuery(""); setTenderFilter('all'); setTenderTypeFilter('all'); setTenderOffersFilter('all'); })}
                         data-testid="button-clear-rfp-filters"
                       >
                         {t('dashboard.rfpClearFilters')}
@@ -3396,7 +3396,7 @@ function DashboardInner({ user, activeCompany }: {
                         <Button
                           variant="outline"
                           className="h-12 w-full text-base"
-                          onClick={() => setRfpVisible((n) => n + RFP_PAGE_SIZE)}
+                          onClick={() => withViewTransition(() => setRfpVisible((n) => n + RFP_PAGE_SIZE))}
                           data-testid="button-show-more-rfps"
                         >
                           {t('dashboard.rfpShowMore', { count: filteredTenders.length - rfpVisible })}
@@ -3618,7 +3618,7 @@ function DashboardInner({ user, activeCompany }: {
                           <Button
                             variant="outline"
                             className="h-12 w-full text-base"
-                            onClick={() => setSentVisible((n) => n + RFP_PAGE_SIZE)}
+                            onClick={() => withViewTransition(() => setSentVisible((n) => n + RFP_PAGE_SIZE))}
                             data-testid="button-show-more-my-offers"
                           >
                             {t('dashboard.rfpShowMore', { count: myOffers.length - sentVisible })}
@@ -3849,7 +3849,7 @@ function DashboardInner({ user, activeCompany }: {
                           <Button
                             variant="outline"
                             className="h-12 w-full text-base"
-                            onClick={() => setIncomingVisible((n) => n + RFP_PAGE_SIZE)}
+                            onClick={() => withViewTransition(() => setIncomingVisible((n) => n + RFP_PAGE_SIZE))}
                             data-testid="button-show-more-incoming-offers"
                           >
                             {t('dashboard.rfpShowMore', { count: incomingOffers.length - incomingVisible })}
@@ -3978,7 +3978,7 @@ function DashboardInner({ user, activeCompany }: {
                     <div className="hidden items-center gap-1.5 text-sm text-muted-foreground sm:flex">
                       <Filter className="h-4 w-4" />
                     </div>
-                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={categoryFilter} onValueChange={(v) => withViewTransition(() => setCategoryFilter(v))}>
                       <SelectTrigger className="w-full sm:w-[160px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-category">
                         <SelectValue placeholder={t('dashboard.allCategories')} />
                       </SelectTrigger>
@@ -3989,7 +3989,7 @@ function DashboardInner({ user, activeCompany }: {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={cityFilter} onValueChange={setCityFilter}>
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={cityFilter} onValueChange={(v) => withViewTransition(() => setCityFilter(v))}>
                       <SelectTrigger className="w-full sm:w-[160px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-city">
                         <SelectValue placeholder={t('dashboard.allCities')} />
                       </SelectTrigger>
@@ -4000,7 +4000,7 @@ function DashboardInner({ user, activeCompany }: {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={verificationFilter} onValueChange={setVerificationFilter}>
+                    <Select dir={isPhone && isRtl ? 'rtl' : undefined} value={verificationFilter} onValueChange={(v) => withViewTransition(() => setVerificationFilter(v))}>
                       <SelectTrigger className="col-span-2 w-full sm:w-[160px] h-9 max-md:h-11 max-md:active:bg-accent" data-testid="filter-verification">
                         <SelectValue placeholder={t('dashboard.allStatuses')} />
                       </SelectTrigger>
@@ -4015,7 +4015,7 @@ function DashboardInner({ user, activeCompany }: {
                         variant="ghost"
                         size="sm"
                         className="col-span-2 h-9 px-2 text-muted-foreground hover:text-foreground max-md:h-11 max-md:text-[#6B635B] max-md:dark:text-muted-foreground"
-                        onClick={clearVendorFilters}
+                        onClick={() => withViewTransition(clearVendorFilters)}
                         data-testid="button-clear-filters"
                       >
                         <X className="h-3.5 w-3.5 me-1" />
@@ -4044,7 +4044,7 @@ function DashboardInner({ user, activeCompany }: {
                             <Badge variant="secondary" className="gap-1 pe-1">
                               {t('dashboard.filterByCategory')}: {vendorCategoryText(categoryFilter)}
                               <button
-                                onClick={() => setCategoryFilter('all')}
+                                onClick={() => withViewTransition(() => setCategoryFilter('all'))}
                                 className="ms-1 rounded-full hover:bg-muted p-0.5"
                                 data-testid="badge-remove-category"
                               >
@@ -4062,7 +4062,7 @@ function DashboardInner({ user, activeCompany }: {
                             <Badge variant="secondary" className="gap-1 pe-1">
                               {t('dashboard.filterByCity')}: {cityLabel(cityFilter, isRtl)}
                               <button
-                                onClick={() => setCityFilter('all')}
+                                onClick={() => withViewTransition(() => setCityFilter('all'))}
                                 className="ms-1 rounded-full hover:bg-muted p-0.5"
                                 data-testid="badge-remove-city"
                               >
@@ -4080,7 +4080,7 @@ function DashboardInner({ user, activeCompany }: {
                             <Badge variant="secondary" className="gap-1 pe-1">
                               {t('dashboard.filterByStatus')}: {t(`dashboard.${verificationFilter}`)}
                               <button
-                                onClick={() => setVerificationFilter('all')}
+                                onClick={() => withViewTransition(() => setVerificationFilter('all'))}
                                 className="ms-1 rounded-full hover:bg-muted p-0.5"
                                 data-testid="badge-remove-verification"
                               >
@@ -4124,7 +4124,7 @@ function DashboardInner({ user, activeCompany }: {
                           <Button
                             variant="outline"
                             className="mt-6 w-full"
-                            onClick={() => { setSearchQuery(""); clearVendorFilters(); }}
+                            onClick={() => withViewTransition(() => { setSearchQuery(""); clearVendorFilters(); })}
                             data-testid="button-clear-vendor-filters"
                           >
                             {t('dashboard.rfpClearFilters')}
@@ -4236,7 +4236,7 @@ function DashboardInner({ user, activeCompany }: {
                         <Button
                           variant="outline"
                           className="h-12 w-full text-base"
-                          onClick={() => setVendorVisible((n) => n + RFP_PAGE_SIZE)}
+                          onClick={() => withViewTransition(() => setVendorVisible((n) => n + RFP_PAGE_SIZE))}
                           data-testid="button-show-more-vendors"
                         >
                           {t('dashboard.rfpShowMore', { count: filteredVendors.length - vendorVisible })}

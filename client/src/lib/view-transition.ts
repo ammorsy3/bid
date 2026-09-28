@@ -1,3 +1,5 @@
+import type { AroundNavHandler } from "wouter";
+
 // Wraps a state update in the View Transitions API so the browser animates
 // between the two DOM states on its own — a soft cross-fade by default,
 // instead of a hard instant cut when content swaps (quality-bar.md section 6:
@@ -44,3 +46,14 @@ export function withViewTransition(update: () => void): void {
   transition.ready.catch(() => {});
   transition.finished.catch(() => {});
 }
+
+// wouter's Router accepts an `aroundNav` hook that wraps every navigate()
+// call — a <Link> click or an imperative setLocation — before it runs
+// (wouter/src/index.js: `aroundNav: (n, t, o) => n(t, o)` is the no-op
+// default). Passing this as `aroundNav` gives every page-to-page navigation
+// in the app the same soft cross-fade the dashboard's tab switches already
+// have, without touching each of the app's Link/setLocation call sites
+// individually.
+export const withViewTransitionNav: AroundNavHandler = (navigate, to, options) => {
+  withViewTransition(() => navigate(to, options));
+};

@@ -13,6 +13,7 @@ import { DesktopRecommendationModal } from "@/components/desktop-recommendation-
 import { RequireVerified } from "@/components/RequireVerified";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/auth";
+import { withViewTransitionNav } from "@/lib/view-transition";
 import Dashboard from "@/pages/Dashboard";
 import DashboardGuard from "@/pages/DashboardGuard";
 import Login from "@/pages/login";
@@ -115,7 +116,7 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <I18nProvider>
           <AriaLocaleProvider>
-            <Router>
+            <Router aroundNav={withViewTransitionNav}>
               <NavigationProgress />
               <ScrollToTopOnNavigate />
               <DesktopRecommendationModal />
@@ -145,7 +146,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <AriaLocaleProvider>
-          <Router>
+          <Router aroundNav={withViewTransitionNav}>
             <NavigationProgress />
             <ScrollToTopOnNavigate />
             <DesktopRecommendationModal />

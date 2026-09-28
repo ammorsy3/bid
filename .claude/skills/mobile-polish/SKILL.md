@@ -57,7 +57,9 @@ Read first: `docs/mobile-audit/README.md` (how the pieces fit), `queue.md`, `dec
    - `node tests/mobile/run.mjs --phase assert --batch <batch>` covers every state on
      every phone. Fix leftovers with mobile-fixer, or record them.
    - `npm run test:unit`, `npm run build`, `node scripts/check-i18n-parity.mjs`.
-   - `node tests/mobile/report.mjs --batch <batch>` writes `.mobile-audit/<batch>/report.html`.
+   - `node tests/mobile/report.mjs --batch <batch>` writes `.mobile-audit/<batch>/report-b<N>.html`
+     (named after the batch, e.g. `report-b3.html`, so a set of reports sent together don't
+     all look like the same file).
 5. **Tell the user**, in plain words and short:
    - what was broken, and on which phones
    - what's fixed

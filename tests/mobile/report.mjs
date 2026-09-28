@@ -1,7 +1,9 @@
 // Builds the before/after report for one batch of the mobile + Arabic audit:
 //   node tests/mobile/report.mjs [--batch batch-1]
-// → .mobile-audit/<batch>/report.html (images referenced relatively, so the
-// folder can be opened locally or published as a whole).
+// → .mobile-audit/<batch>/report-b1.html (named after the batch so a set of
+// reports don't all download as the same-looking "report.html"; images
+// referenced relatively, so the folder can be opened locally or published
+// as a whole).
 //
 // Sections: totals per phone, the "needs you" list (docs/mobile-audit/decisions.md),
 // then every page → screen state → language with the iPhone photos side by
@@ -17,6 +19,10 @@ const opt = (name, fallback) => {
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(HERE, "../..");
 const batch = opt("batch", "batch-1");
+// "batch-3" -> "B3". Generalizes to any future batch with no extra code, and
+// gives every report a distinct filename/title so a set of them doesn't all
+// download as the same-looking "report.html".
+const batchLabel = "B" + batch.replace(/^batch-/, "");
 const dir = path.join(ROOT, ".mobile-audit", batch);
 const MAIN = "iphone-chrome";
 const PROJECT_LABELS = {
@@ -303,7 +309,7 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mobile Audit Report</title>
+<title>Report ${batchLabel} — Mobile Audit</title>
 <style>
 :root{--bg:#faf7f2;--card:#ffffff;--ink:#1b1712;--muted:#6b6258;--line:#e8e1d6;--good:#1f7a4d;--bad:#c2410c;--warn:#a16207;--accent:#fe3c01}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15120f;--card:#1f1b17;--ink:#f3eee7;--muted:#a89e92;--line:#342d26;--good:#4ade80;--bad:#fb923c;--warn:#facc15}}
@@ -369,20 +375,20 @@ code{font-size:12px;overflow-wrap:anywhere}
 <body>
 <input type="checkbox" id="detail-toggle">
 <main>
-<h1>Mobile + Arabic check</h1>
+<h1>Report ${batchLabel} — Mobile + Arabic check</h1>
 <p class="lead">${allCleanNow ? "Every screen below now works correctly on phones and in Arabic." : "Progress on making every screen work correctly on phones and in Arabic."} Photos show a made-up sample account, not a real person's data.</p>
 <label class="toggle-bar" for="detail-toggle"><span class="toggle-track"></span><span>Show every detail (phone sizes, technical notes)</span></label>
 <div class="tech">
 <table><thead><tr><th>Phone</th><th>Fails before</th><th>Fails after</th><th>Warnings after</th></tr></thead><tbody>${totalRows}</tbody></table>
 <p class="tech-note" style="margin-top:8px">"Fails" were real, confirmed problems; "warns" are minor, optional suggestions. 0 fails means nothing broken was found.</p>
 </div>
-${decisions ? `<h2>Needs your decision</h2><div class="decisions">${md(decisions)}</div>` : ""}
+${decisions ? `<h2>Decisions log</h2><div class="decisions">${md(decisions)}</div>` : ""}
 <nav>${nav}</nav>
 ${body}
 </main>
 </body>
 </html>`;
 
-const out = path.join(dir, "report.html");
+const out = path.join(dir, `report-${batchLabel.toLowerCase()}.html`);
 fs.writeFileSync(out, html);
 console.log(`Report: ${path.relative(ROOT, out)} (${states.length} screen states, ${pages.length} pages)`);

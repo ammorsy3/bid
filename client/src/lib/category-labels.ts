@@ -56,6 +56,15 @@ const CITY_AR: Record<string, string> = {
   "jazan": "جازان",
   "yanbu": "ينبع",
   "jubail": "الجبيل",
+  // Spellings the marketplace city filter offers that the stored data above
+  // does not use ("Mecca" vs "Makkah", "Medina" vs "Al Madinah", ...).
+  "mecca": "مكة المكرمة",
+  "medina": "المدينة المنورة",
+  "dhahran": "الظهران",
+  "al kharj": "الخرج",
+  "buraydah": "بريدة",
+  "khamis mushait": "خميس مشيط",
+  "sakaka": "سكاكا",
 };
 
 /** Localised category name, falling back to the stored value. */

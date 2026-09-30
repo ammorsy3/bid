@@ -174,3 +174,20 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     so fixing it now is outside batch 9's scope; worth a small dedicated pass once
     more of the app is through its base fix.
 
+
+30. **Small grey and orange text on the cream pages is too faint (marketplace,
+    2026-09-30).** The warm grey (#8A8078) and the orange (#FE3C01) on the cream
+    background only reach about 3:1 to 3.9:1 contrast; small text should reach
+    4.5:1. This is a brand-colour decision, so I left it. A darker grey (about
+    #6B6259) and orange (about #D63300) for small text only would pass. It will
+    show up on every page that uses the cream look. Want me to change the text
+    colours (buttons and big headlines stay as they are)?
+
+31. **Marketplace: Arabic wording check + grid toggle.** (a) The new Arabic
+    strings (`marketplace.*` in `i18n.tsx`, plus seven city names in
+    `category-labels.ts`) need a native-speaker glance; the "no results" title
+    uses the everyday "ما فيه فرص تطابق بحثك", the formal alternative is "لا
+    توجد فرص تطابق بحثك" (one string). (b) The list/grid toggle is now hidden
+    on phones, because the phone layout is always one column; say if you want
+    a two-column phone grid instead. (c) Any new city added to the filter list
+    needs a matching Arabic name in `CITY_AR`.

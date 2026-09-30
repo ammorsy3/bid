@@ -1,0 +1,1374 @@
+{
+  "_about": "Public-page data for batch 2b (marketplace, company/people profiles, traction links, tender invite links). A logged-out visitor with deliberately stressful, fictional data: very long Arabic and English names, missing logos and headers, long unbroken words and URLs, many tags and portfolio items, mixed deadlines (today, past, far off) and statuses. All images are inline SVG data URLs, never network URLs. Dates are fixed: the 'closes today' items assume 2026-09-26 and turn into 'closed' after that. The guard reads one persona file plus _common.json (it does not merge persona files), so states that need a signed-in user use another persona and copy the public answers they need into `overrides`.",
+  "storage": {},
+  "me": null,
+  "routes": {
+    "GET /api/marketplace/categories": {
+      "status": 200,
+      "json": {
+        "categories": [
+          "Construction & Infrastructure",
+          "Energy & Utilities",
+          "Facility Management",
+          "Healthcare & Medical Supplies",
+          "Information Technology",
+          "Marketing & Advertising",
+          "Professional Services",
+          "Security Services",
+          "Specialised Industrial Cleaning, Decontamination & Hazardous Waste Handling Services",
+          "Transportation & Logistics"
+        ]
+      }
+    },
+    "GET /api/marketplace/tenders": {
+      "status": 200,
+      "json": {
+        "tenders": [
+          {
+            "id": "mk-tender-001",
+            "title": "توريد وتركيب أنظمة التكييف المركزي لمبنى المكاتب الإداري بالرياض",
+            "description": "نبحث عن مقاول متخصص لتوريد وتركيب وتشغيل أنظمة تكييف مركزي (شيلرات ووحدات مناولة هواء) لمبنى إداري من ثمانية طوابق، مع عقد صيانة لمدة ثلاث سنوات وتدريب فريق التشغيل على النظام الجديد.",
+            "category": "Construction & Infrastructure",
+            "deadline": "2026-10-08T20:59:00.000Z",
+            "budget": "2400000",
+            "budgetMin": 1200000,
+            "budgetMax": 2400000,
+            "status": "published",
+            "invitationToken": "hvac-riyadh-office",
+            "createdAt": "2026-09-14T08:30:00.000Z",
+            "referenceNumber": "RFP-2026-00412",
+            "documentFee": 500,
+            "tenderType": "open_tender",
+            "inquiryDeadline": null,
+            "scope": null,
+            "targetAudienceTypes": [
+              "company",
+              "team",
+              "individual"
+            ],
+            "company": {
+              "id": "co-ofoq",
+              "name": "شركة الأفق المتقدم للمقاولات العامة",
+              "city": "Riyadh",
+              "category": "Construction & Infrastructure"
+            },
+            "profile": {
+              "displayName": "شركة الأفق المتقدم للمقاولات العامة",
+              "logoUrl": null
+            }
+          },
+          {
+            "id": "mk-tender-002",
+            "title": "Supply and Installation of Fiber-Optic Backbone for Industrial City Phase 2",
+            "description": "Design, supply and installation of a 96-core single-mode fiber-optic backbone connecting 14 factory blocks, including trenching, ducting, splicing, testing and five years of maintenance. Bidders must have completed at least three comparable industrial-city projects.",
+            "category": "Information Technology",
+            "deadline": "2026-09-29T20:59:00.000Z",
+            "budget": "450000",
+            "budgetMin": 300000,
+            "budgetMax": 450000,
+            "status": "published",
+            "invitationToken": "fiber-backbone-phase-2",
+            "createdAt": "2026-09-10T11:00:00.000Z",
+            "referenceNumber": "RFP-2026-00398",
+            "documentFee": null,
+            "tenderType": "direct_purchase",
+            "inquiryDeadline": null,
+            "scope": null,
+            "targetAudienceTypes": [
+              "company",
+              "team",
+              "individual"
+            ],
+            "company": {
+              "id": "co-nour",
+              "name": "Nour Advanced Contracting & Technical Services Co. Ltd.",
+              "city": "Jeddah",
+              "category": "Information Technology"
+            },
+            "profile": {
+              "displayName": "Nour Advanced Contracting & Technical Services Co. Ltd.",
+              "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzIiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+TjwvdGV4dD48L3N2Zz4=#/company-logos/nour.svg"
+            }
+          },
+          {
+            "id": "mk-tender-003",
+            "title": "Comprehensive Multi-Year Integrated Facilities Management, Preventive and Corrective Maintenance, Soft Services, Security, Landscaping and Waste Management Contract for the Northern Region Governmental Complex Including All Ancillary Buildings and External Works",
+            "description": "A five-year framework agreement covering hard and soft facilities management for 46 buildings across the complex, with KPI-based payment, a 24/7 helpdesk, an on-site team of about 380 staff and quarterly performance reviews. Bidders will be evaluated on technical approach, mobilisation plan and localisation commitments.",
+            "category": "Facility Management",
+            "deadline": "2027-02-01T20:59:00.000Z",
+            "budget": "1250000000",
+            "budgetMin": 850000000,
+            "budgetMax": 1250000000,
+            "status": "published",
+            "invitationToken": "ifm-northern-complex",
+            "createdAt": "2026-09-20T07:15:00.000Z",
+            "referenceNumber": "RFP-2026-00377-REV-3-AMENDMENT-B-FRAMEWORK-2026-2031",
+            "documentFee": 1250000,
+            "tenderType": "framework_agreement",
+            "inquiryDeadline": null,
+            "scope": null,
+            "targetAudienceTypes": [
+              "company",
+              "team",
+              "individual"
+            ],
+            "company": {
+              "id": "co-gulf",
+              "name": "Gulf Horizon International Engineering, Procurement & Construction Holding Company (Eastern Province Regional Office)",
+              "city": "Khobar",
+              "category": "Specialised Industrial Cleaning, Decontamination & Hazardous Waste Handling Services"
+            },
+            "profile": {
+              "displayName": "Gulf Horizon International Engineering, Procurement & Construction Holding Company (Eastern Province Regional Office)",
+              "logoUrl": null
+            }
+          },
+          {
+            "id": "mk-tender-004",
+            "title": "Annual Supply of Medical Consumables and Disposables for Northern Region Hospitals",
+            "description": "Framework supply of gloves, syringes, dressings, IV sets and sterile packs to six hospitals, with monthly call-offs and a two-day delivery commitment.",
+            "category": "Healthcare & Medical Supplies",
+            "deadline": "2026-09-26T20:59:00.000Z",
+            "budget": "900000",
+            "budgetMin": 750000,
+            "budgetMax": 900000,
+            "status": "published",
+            "invitationToken": "medical-consumables-north",
+            "createdAt": "2026-09-05T09:00:00.000Z",
+            "referenceNumber": "RFP-2026-00350",
+            "documentFee": 250,
+            "tenderType": "open_tender",
+            "inquiryDeadline": null,
+            "scope": null,
+            "targetAudienceTypes": [
+              "company",
+              "team",
+              "individual"
+            ],
+            "company": {
+              "id": "co-shifa",
+              "name": "Al Shifa Medical Supplies",
+              "city": "Riyadh",
+              "category": "Healthcare & Medical Supplies"
+            },
+            "profile": {
+              "displayName": "Al Shifa Medical Supplies",
+              "logoUrl": null
+            }
+          },
+          {
+            "id": "mk-tender-005",
+            "title": "توريد وتركيب وتشغيل وصيانة أنظمة المراقبة بالكاميرات وأنظمة التحكم في الدخول لمجمع المباني الحكومية بالمنطقة الشرقية – المرحلة الثانية",
+            "description": "مناقصة مغلقة لتوريد وتركيب 420 كاميرا مراقبة وأجهزة تحكم في الدخول وغرفة تحكم مركزية، مع عقد صيانة لمدة سنتين. تم إغلاق باب التقديم وجارٍ تقييم العروض الواردة من الموردين المؤهلين.",
+            "category": "Security Services",
+            "deadline": "2026-08-30T20:59:00.000Z",
+            "budget": "180000",
+            "budgetMin": 90000,
+            "budgetMax": 180000,
+            "status": "closed",
+            "invitationToken": "cctv-eastern-phase-2",
+            "createdAt": "2026-07-25T10:00:00.000Z",
+            "referenceNumber": "RFP-2026-00301",
+            "documentFee": 1500,
+            "tenderType": "open_tender",
+            "inquiryDeadline": null,
+            "scope": null,
+            "targetAudienceTypes": [
+              "company",
+              "team",
+              "individual"
+            ],
+            "company": {
+              "id": "co-tamkeen",
+              "name": "مجموعة التمكين الوطنية للمشاريع الصناعية والخدمات اللوجستية والتشغيل والصيانة القابضة – فرع المنطقة الشرقية",
+              "city": "Dammam",
+              "category": "Facility Management"
+            },
+            "profile": {
+              "displayName": "مجموعة التمكين الوطنية",
+              "logoUrl": null
+            }
+          },
+          {
+            "id": "mk-tender-006",
+            "title": "تطوير تطبيق جوال (iOS/Android) لخدمة العملاء – Customer Mobile App v2",
+            "description": "المطلوب تطوير تطبيق جوال باستخدام React Native يتكامل مع الـ API الحالي، ويشمل تسجيل الدخول عبر نفاذ، والإشعارات الفورية، وتتبع الطلبات، ولوحة تحكم للإدارة، مع ضمان لمدة 12 شهراً.",
+            "category": "Information Technology",
+            "deadline": "2026-11-15T20:59:00.000Z",
+            "budget": "700000",
+            "budgetMin": 500000,
+            "budgetMax": 700000,
+            "status": "published",
+            "invitationToken": "customer-app-v2",
+            "createdAt": "2026-09-18T12:20:00.000Z",
+            "referenceNumber": "RFP-2026-00431",
+            "documentFee": 0,
+            "tenderType": "open_tender",
+            "inquiryDeadline": null,
+            "scope": null,
+            "targetAudienceTypes": [
+              "company",
+              "team",
+              "individual"
+            ],
+            "company": {
+              "id": "co-nour",
+              "name": "Nour Advanced Contracting & Technical Services Co. Ltd.",
+              "city": "Jeddah",
+              "category": "Information Technology"
+            },
+            "profile": {
+              "displayName": "Nour Advanced Contracting & Technical Services Co. Ltd.",
+              "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiB2aWV3Qm94PSIwIDAgMTI4IDEyOCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzIiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+TjwvdGV4dD48L3N2Zz4=#/company-logos/nour.svg"
+            }
+          },
+          {
+            "id": "mk-tender-007",
+            "title": "Tender",
+            "description": "",
+            "category": null,
+            "deadline": "2026-12-31T20:59:00.000Z",
+            "budget": null,
+            "budgetMin": null,
+            "budgetMax": null,
+            "status": "published",
+            "invitationToken": "bare-tender",
+            "createdAt": "2026-09-25T06:00:00.000Z",
+            "referenceNumber": null,
+            "documentFee": null,
+            "tenderType": null,
+            "inquiryDeadline": null,
+            "scope": null,
+            "targetAudienceTypes": [
+              "company",
+              "team",
+              "individual"
+            ],
+            "company": {
+              "id": "co-rawabi",
+              "name": "الروابي",
+              "city": null,
+              "category": null
+            },
+            "profile": {
+              "displayName": null,
+              "logoUrl": null
+            }
+          },
+          {
+            "id": "mk-tender-008",
+            "title": "SUPPLY_AND_INSTALLATION_OF_REINFORCED_CONCRETE_PRECAST_ELEMENTS_FOR_BRIDGE_ABUTMENTS_PHASE_3_CONTRACT_CT-2026-RYD-INFRA-000417",
+            "description": "Full technical specification and bill of quantities are available at https://tenders.example.com/documents/2026/q3/infrastructure/phase-3/annex-b/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf — please review before submitting.",
+            "category": "Construction & Infrastructure",
+            "deadline": "2026-11-30T20:59:00.000Z",
+            "budget": "6800000",
+            "budgetMin": 4200000,
+            "budgetMax": 6800000,
+            "status": "published",
+            "invitationToken": "precast-bridge-abutments",
+            "createdAt": "2026-09-22T13:45:00.000Z",
+            "referenceNumber": "CT-2026-RYD-INFRA-000417",
+            "documentFee": 2000,
+            "tenderType": "open_tender",
+            "inquiryDeadline": null,
+            "scope": null,
+            "targetAudienceTypes": [
+              "company",
+              "team",
+              "individual"
+            ],
+            "company": {
+              "id": "co-ofoq",
+              "name": "شركة الأفق المتقدم للمقاولات العامة",
+              "city": "Riyadh",
+              "category": "Construction & Infrastructure"
+            },
+            "profile": {
+              "displayName": "شركة الأفق المتقدم للمقاولات العامة",
+              "logoUrl": null
+            }
+          },
+          {
+            "id": "mk-tender-009",
+            "title": "Landscaping and Irrigation Works for Al-Nakheel Public Park",
+            "description": "Awarded. Soft and hard landscaping, smart irrigation and lighting for a 12-hectare public park in northern Riyadh.",
+            "category": "Construction & Infrastructure",
+            "deadline": "2026-09-01T20:59:00.000Z",
+            "budget": "2100000",
+            "budgetMin": 1800000,
+            "budgetMax": 2100000,
+            "status": "awarded",
+            "invitationToken": "nakheel-park-landscaping",
+            "createdAt": "2026-07-30T09:30:00.000Z",
+            "referenceNumber": "RFP-2026-00288",
+            "documentFee": 100,
+            "tenderType": "direct_purchase",
+            "inquiryDeadline": null,
+            "scope": null,
+            "targetAudienceTypes": [
+              "company",
+              "team",
+              "individual"
+            ],
+            "company": {
+              "id": "co-ofoq",
+              "name": "شركة الأفق المتقدم للمقاولات العامة",
+              "city": "Riyadh",
+              "category": "Construction & Infrastructure"
+            },
+            "profile": {
+              "displayName": "شركة الأفق المتقدم للمقاولات العامة",
+              "logoUrl": null
+            }
+          }
+        ],
+        "total": 47
+      }
+    },
+    "GET /api/companies/by-slug/nour-contracting/profile": {
+      "status": 200,
+      "json": {
+        "company": {
+          "id": "co-nour-full",
+          "name": "Nour Contracting",
+          "slug": "nour-contracting",
+          "legalName": "شركة نور الشرق للمقاولات والحلول الهندسية المتكاملة المحدودة",
+          "category": "Construction & Infrastructure",
+          "city": "Riyadh",
+          "accountType": "company",
+          "verificationStatus": "verified",
+          "certifications": [
+            "ISO 9001:2015",
+            "ISO 14001:2015",
+            "ISO 45001:2018",
+            "Saudi Contractors Authority – Grade 2 (Buildings)"
+          ],
+          "crNumber": "1010123456",
+          "vatNumber": "300123456700003",
+          "createdAt": "2023-05-14T10:00:00.000Z",
+          "verifiedAt": "2024-01-22T09:00:00.000Z",
+          "verifiedDocuments": [
+            "Commercial Registration",
+            "VAT Certificate",
+            "GOSI Certificate",
+            "National Address"
+          ]
+        },
+        "profile": {
+          "displayName": "Nour Al-Sharq Integrated Contracting & Engineering Solutions Company Limited",
+          "bio": "Nour Al-Sharq has delivered commercial, industrial and government buildings across the Kingdom since 1998. Our in-house engineering, procurement and site teams take a project from concept design through commissioning and a defect-free handover, with a single point of accountability for cost, schedule and quality.\n\nRecent work includes the fit-out of three metro station concourses, a 42,000 m² logistics hub with automated racking, and the mechanical, electrical and plumbing package for a 38-storey mixed-use tower. Our handover documentation is published openly, for example https://www.nour-contracting.example.com/projects/2025/riyadh-metro-station-fit-out/final-handover-report-rev-07-approved-by-client-and-consultant.pdf and every project keeps a live dashboard for the client.\n\nWe self-perform structural, MEP and finishing packages, which is why the reference token ProjectDeliveryManagementSystemPlatformIntegrationWorkflowAutomationFrameworkV12 appears on all of our drawings. We hold ISO 9001, 14001 and 45001 certification, maintain a Grade 2 building classification and operate a 24/7 helpdesk for the first 24 months after handover.\n\nWe are proud of an 84% repeat-client rate and welcome enquiries from developers, facility owners and main contractors who need a dependable delivery partner.",
+          "tags": [
+            "General Contracting",
+            "Design & Build",
+            "MEP Works",
+            "Structural Steel",
+            "Fit-out & Finishing",
+            "Project Management",
+            "HVAC",
+            "Fire Fighting Systems",
+            "Low Current Systems",
+            "Road Works",
+            "Water & Wastewater",
+            "Precast Concrete",
+            "Mechanical, Electrical & Plumbing (MEP) Design-and-Build Works for High-Rise Commercial Towers and Mixed-Use Developments",
+            "ProjectDeliveryManagementSystemPlatformIntegrationWorkflowAutomationFrameworkV12"
+          ],
+          "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjU2IDI1NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkUzQzAxIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMUExNjEzIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+TjwvdGV4dD48L3N2Zz4=",
+          "headerUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjU2MCIgdmlld0JveD0iMCAwIDE2MDAgNTYwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxQTE2MTMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNDMjMwMDAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSI1NjAiIGZpbGw9InVybCgjZykiLz48L3N2Zz4=",
+          "brochureUrl": "data:application/pdf;base64,JVBERi0xLjQK",
+          "companySize": "201-500",
+          "yearFounded": 1998,
+          "serviceAreas": [
+            "Riyadh",
+            "Jeddah",
+            "Dammam",
+            "Al Khobar",
+            "Makkah",
+            "Madinah",
+            "Tabuk",
+            "Abha",
+            "Taif",
+            "Buraidah",
+            "Hail",
+            "Jubail",
+            "Yanbu",
+            "NEOM and the Tabuk Province Special Economic Zones"
+          ],
+          "languages": [
+            "Arabic",
+            "English",
+            "Urdu",
+            "Hindi",
+            "French"
+          ],
+          "industriesServed": [
+            "Government",
+            "Real Estate Development",
+            "Oil & Gas",
+            "Healthcare",
+            "Education",
+            "Hospitality",
+            "Retail",
+            "Logistics & Warehousing",
+            "Transport Infrastructure",
+            "Giga-projects and Special Economic Zones"
+          ],
+          "availabilityStatus": "accepting",
+          "availabilityNote": "Accepting new commercial and government projects from Q1 2027, with mobilisation possible within 21 days of award; larger packages above SAR 50 million are discussed directly with our executive team.",
+          "portfolio": [
+            {
+              "title": "Riyadh Metro Station Concourse Fit-out (Stations 4, 5 and 6)",
+              "description": "Full architectural and MEP fit-out of three concourses delivered in 14 months with zero lost-time incidents.",
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkUzQzAxIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRkZDNDJBIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjE8L3RleHQ+PC9zdmc+",
+                  "caption": "Concourse level, station 4"
+                },
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjI8L3RleHQ+PC9zdmc+",
+                  "caption": "Ticket hall and retail frontage"
+                },
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjJDNTVFIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjM8L3RleHQ+PC9zdmc+",
+                  "caption": "Evening view of the main entrance with the new canopy structure"
+                }
+              ]
+            },
+            {
+              "title": "42,000 m² Logistics Hub",
+              "description": "Automated racking, cold rooms and a 6 MW rooftop solar array.",
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjQzIzMDAwIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMUExNjEzIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjQ8L3RleHQ+PC9zdmc+",
+                  "caption": "Aerial view"
+                }
+              ]
+            },
+            {
+              "title": "38-storey Mixed-Use Tower MEP Package",
+              "description": null,
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZDNDJBIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjU8L3RleHQ+PC9zdmc+"
+                },
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMjJDNTVFIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjY8L3RleHQ+PC9zdmc+"
+                }
+              ]
+            },
+            {
+              "title": "Northern Ring Road Interchange",
+              "description": "Pavement, drainage and lighting for a four-level interchange.",
+              "images": []
+            },
+            {
+              "title": "Legacy record: District Cooling Plant, Phase 1",
+              "imageUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjI8L3RleHQ+PC9zdmc+",
+              "description": "Older record that only has the legacy single image field."
+            },
+            {
+              "title": "Hospital Wing Extension – 220 beds",
+              "description": "Design-and-build extension with medical gas, isolation rooms and a rooftop helipad, delivered while the existing hospital stayed fully operational.",
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjJDNTVFIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjM8L3RleHQ+PC9zdmc+",
+                  "caption": "Completed east wing"
+                },
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkUzQzAxIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRkZDNDJBIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjE8L3RleHQ+PC9zdmc+",
+                  "caption": "Rooftop helipad"
+                }
+              ]
+            },
+            {
+              "title": "Prayer Hall and Community Centre",
+              "description": "Load-bearing masonry with a cast-in-place dome.",
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjQzIzMDAwIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMUExNjEzIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjQ8L3RleHQ+PC9zdmc+"
+                }
+              ]
+            },
+            {
+              "title": "Warehouse Racking Upgrade for a National Retailer",
+              "description": "Overnight-phased upgrade of 11 aisles.",
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZDNDJBIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjU8L3RleHQ+PC9zdmc+"
+                },
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMjJDNTVFIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjY8L3RleHQ+PC9zdmc+"
+                },
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjI8L3RleHQ+PC9zdmc+"
+                }
+              ]
+            }
+          ],
+          "socialLinks": {
+            "website": "https://www.nour-contracting.example.com/projects/2025/riyadh-metro-station-fit-out/final-handover-report-rev-07-approved-by-client-and-consultant.pdf",
+            "linkedin": "https://www.linkedin.com/company/nour-al-sharq-integrated-contracting-and-engineering-solutions",
+            "twitter": "https://x.com/nour_contracting"
+          },
+          "introVideoUrl": null,
+          "stats": {
+            "yearsInBusiness": 28,
+            "projectsCompleted": 1234567,
+            "clientsServed": 386,
+            "repeatClientPct": 84,
+            "citiesCovered": 22,
+            "teamSize": 4200
+          },
+          "certifications": [
+            {
+              "name": "ISO 9001:2015 Quality Management Systems",
+              "issuer": "Bureau Veritas Certification",
+              "expiryDate": "2027-06-30",
+              "documentUrl": "data:application/pdf;base64,JVBERi0xLjQK",
+              "documentName": "iso9001.pdf"
+            },
+            {
+              "name": "ISO 45001:2018 Occupational Health and Safety Management Systems for Construction and Engineering Activities",
+              "issuer": "TÜV Rheinland Middle East and North Africa Certification Services",
+              "expiryDate": "2028-01-15"
+            },
+            {
+              "name": "Saudi Contractors Authority – Grade 2 Building Classification",
+              "issuer": "Saudi Contractors Authority"
+            },
+            {
+              "name": "Expired certificate (should stay hidden)",
+              "issuer": "Old Body",
+              "expiryDate": "2024-01-01"
+            }
+          ],
+          "insurancePolicies": [
+            {
+              "type": "general_liability",
+              "provider": "Tawuniya Cooperative Insurance Company",
+              "coverageAmount": 25000000,
+              "currency": "SAR",
+              "expiryDate": "2027-03-31",
+              "documentUrl": "data:application/pdf;base64,JVBERi0xLjQK"
+            },
+            {
+              "type": "professional_indemnity",
+              "provider": "Medgulf Insurance and Reinsurance Middle East Region",
+              "coverageAmount": 10000000,
+              "currency": "SAR"
+            },
+            {
+              "type": "workers_compensation",
+              "provider": "Old Insurer",
+              "expiryDate": "2023-12-31"
+            }
+          ]
+        }
+      }
+    },
+    "GET /api/companies/by-slug/al-hudood-est/profile": {
+      "status": 200,
+      "json": {
+        "company": {
+          "id": "co-hudood",
+          "name": "Al Hudood Est.",
+          "slug": "al-hudood-est",
+          "legalName": "Al Hudood Est.",
+          "category": null,
+          "city": null,
+          "accountType": "team",
+          "verificationStatus": "under_review",
+          "certifications": [],
+          "crNumber": "7001234567",
+          "vatNumber": null,
+          "createdAt": "2026-09-20T10:00:00.000Z",
+          "verifiedAt": null,
+          "verifiedDocuments": []
+        },
+        "profile": {
+          "displayName": "Al Hudood Est.",
+          "bio": null,
+          "tags": [],
+          "logoUrl": null,
+          "headerUrl": null,
+          "brochureUrl": null,
+          "companySize": null,
+          "yearFounded": null,
+          "serviceAreas": null,
+          "languages": null,
+          "industriesServed": null,
+          "availabilityStatus": null,
+          "availabilityNote": null,
+          "portfolio": [],
+          "socialLinks": null,
+          "introVideoUrl": null,
+          "stats": null,
+          "certifications": null,
+          "insurancePolicies": null
+        }
+      }
+    },
+    "GET /api/companies/by-slug/al-ofoq-advanced/profile": {
+      "status": 200,
+      "json": {
+        "company": {
+          "id": "co-ofoq-adv",
+          "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتشغيل المرافق والخدمات اللوجستية والتجارة والاستثمار العقاري المحدودة – فرع المنطقة الغربية والشمالية",
+          "slug": "al-ofoq-advanced",
+          "legalName": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتشغيل المرافق والخدمات اللوجستية والتجارة والاستثمار العقاري المحدودة – فرع المنطقة الغربية والشمالية (شركة شخص واحد – مسجلة في المملكة العربية السعودية)",
+          "category": "Facility Management",
+          "city": "Jeddah",
+          "accountType": "company",
+          "verificationStatus": "verified",
+          "certifications": [],
+          "crNumber": "4030123456",
+          "vatNumber": "300987654300003",
+          "createdAt": "2022-11-02T10:00:00.000Z",
+          "verifiedAt": "2023-02-14T09:00:00.000Z",
+          "verifiedDocuments": [
+            "Commercial Registration",
+            "VAT Certificate",
+            "National Address"
+          ]
+        },
+        "profile": {
+          "displayName": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتشغيل المرافق والخدمات اللوجستية والتجارة والاستثمار العقاري المحدودة – فرع المنطقة الغربية والشمالية",
+          "bio": "تأسست الشركة عام 1999 في مدينة جدة، وتقدّم اليوم خدمات المقاولات العامة والصيانة وتشغيل المرافق والخدمات اللوجستية لعملاء من القطاعين الحكومي والخاص في مختلف مناطق المملكة. نؤمن بأن جودة التنفيذ والالتزام بالجدول الزمني والشفافية في التكلفة هي أساس الثقة طويلة الأمد مع عملائنا.\n\nمن أبرز أعمالنا الحديثة: تشغيل وصيانة مجمع إداري حكومي بمساحة تزيد على 120,000 متر مربع، وتنفيذ ثلاثة مستودعات لوجستية مبردة بالمنطقة الغربية، وأعمال التجديد الشامل لمبنى فندقي من 14 طابقاً دون إيقاف التشغيل. تتوفر تقارير التسليم على الرابط https://www.al-ofoq-advanced.example.com/ar/projects/2025/hotel-renovation/handover-report-final-approved-v07.pdf ويمكن لأي عميل الاطلاع عليها.\n\nنعمل وفق نظام جودة معتمد (ISO 9001) ونظام سلامة وصحة مهنية (ISO 45001)، ولدينا مركز اتصال يعمل على مدار الساعة لخدمة العملاء في أعمال الصيانة الطارئة. كما نلتزم بمتطلبات المحتوى المحلي وبرامج التوطين، ونوفر فرص تدريب وتوظيف للشباب السعودي.\n\nنرحب باستفساراتكم وطلبات التسعير من الجهات الحكومية والشركات والمطورين العقاريين.",
+          "tags": [
+            "مقاولات عامة",
+            "صيانة وتشغيل المرافق",
+            "خدمات لوجستية",
+            "أعمال الكهرباء والميكانيكا والسباكة",
+            "إدارة المشاريع",
+            "التبريد والتكييف",
+            "النظافة والخدمات المساندة",
+            "أنظمة السلامة ومكافحة الحريق",
+            "الأمن والحراسة",
+            "تجهيز المستودعات المبردة",
+            "تصميم وتنفيذ الحلول الهندسية المتكاملة للمشاريع الحكومية الكبرى والمجمعات السكنية والتجارية"
+          ],
+          "logoUrl": null,
+          "headerUrl": null,
+          "brochureUrl": "data:application/pdf;base64,JVBERi0xLjQK",
+          "companySize": "51-200",
+          "yearFounded": 1999,
+          "serviceAreas": [
+            "جدة",
+            "مكة المكرمة",
+            "المدينة المنورة",
+            "الطائف",
+            "ينبع",
+            "تبوك",
+            "الرياض",
+            "منطقة نيوم والمناطق الاقتصادية الخاصة بمنطقة تبوك"
+          ],
+          "languages": [
+            "العربية",
+            "الإنجليزية",
+            "الأوردية"
+          ],
+          "industriesServed": [
+            "القطاع الحكومي",
+            "التطوير العقاري",
+            "الضيافة",
+            "الرعاية الصحية",
+            "التجزئة",
+            "المستودعات والخدمات اللوجستية"
+          ],
+          "availabilityStatus": "limited",
+          "availabilityNote": "نستقبل عدداً محدوداً من المشاريع الجديدة هذا الربع، ويمكن للفريق التنفيذي مناقشة الحزم الكبيرة مباشرة.",
+          "portfolio": [
+            {
+              "title": "تشغيل وصيانة مجمع إداري حكومي بمساحة 120,000 متر مربع",
+              "description": "عقد تشغيل وصيانة متكامل لمدة خمس سنوات يشمل الأنظمة الكهروميكانيكية والنظافة والأمن.",
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkUzQzAxIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRkZDNDJBIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjE8L3RleHQ+PC9zdmc+",
+                  "caption": "المدخل الرئيسي للمجمع"
+                },
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjI8L3RleHQ+PC9zdmc+",
+                  "caption": "غرفة التحكم المركزية"
+                }
+              ]
+            },
+            {
+              "title": "ثلاثة مستودعات لوجستية مبردة",
+              "description": "تصميم وتنفيذ وتشغيل تجريبي خلال 11 شهراً.",
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMjJDNTVFIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjM8L3RleHQ+PC9zdmc+"
+                }
+              ]
+            },
+            {
+              "title": "تجديد شامل لمبنى فندقي من 14 طابقاً",
+              "description": null,
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjQzIzMDAwIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMUExNjEzIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjQ8L3RleHQ+PC9zdmc+",
+                  "caption": "الواجهة بعد التجديد"
+                },
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZDNDJBIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjU8L3RleHQ+PC9zdmc+"
+                }
+              ]
+            },
+            {
+              "title": "مشروع بلا صور",
+              "description": "مشروع مسجل دون صور مرفقة.",
+              "images": []
+            },
+            {
+              "title": "مركز تدريب وتأهيل الشباب السعودي",
+              "description": "بناء وتجهيز مركز تدريب بطاقة 600 متدرب.",
+              "images": [
+                {
+                  "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMjJDNTVFIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTUwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPjY8L3RleHQ+PC9zdmc+"
+                }
+              ]
+            }
+          ],
+          "socialLinks": {
+            "website": "https://www.al-ofoq-advanced.example.com/ar",
+            "linkedin": "https://www.linkedin.com/company/al-ofoq-advanced",
+            "twitter": "https://x.com/alofoq_adv"
+          },
+          "introVideoUrl": null,
+          "stats": {
+            "yearsInBusiness": 27,
+            "projectsCompleted": 640,
+            "clientsServed": 212,
+            "repeatClientPct": 78,
+            "citiesCovered": 9,
+            "teamSize": 950
+          },
+          "certifications": [
+            {
+              "name": "شهادة الأيزو 9001:2015 لأنظمة إدارة الجودة",
+              "issuer": "المنظمة الدولية للمعايير للاعتماد والتفتيش",
+              "expiryDate": "2027-09-30"
+            },
+            {
+              "name": "تصنيف المقاولين – الدرجة الثالثة (مباني)",
+              "issuer": "الهيئة السعودية للمقاولين"
+            }
+          ],
+          "insurancePolicies": [
+            {
+              "type": "public_liability",
+              "provider": "شركة التعاونية للتأمين",
+              "coverageAmount": 15000000,
+              "currency": "SAR",
+              "expiryDate": "2027-05-31"
+            }
+          ]
+        }
+      }
+    },
+    "GET /api/companies/by-slug/khalid-alotaibi/profile": {
+      "status": 200,
+      "json": {
+        "company": {
+          "id": "ind-khalid",
+          "name": "خالد العتيبي",
+          "slug": "khalid-alotaibi",
+          "legalName": null,
+          "category": "Professional Services",
+          "city": "Riyadh",
+          "accountType": "individual",
+          "verificationStatus": "verified",
+          "certifications": [],
+          "crNumber": null,
+          "vatNumber": null,
+          "createdAt": "2024-03-09T10:00:00.000Z",
+          "verifiedAt": "2024-03-12T09:00:00.000Z",
+          "verifiedDocuments": []
+        },
+        "profile": {
+          "displayName": "خالد بن عبدالله بن محمد العتيبي – مصمم واجهات ومستشار تجربة المستخدم ومدرّب معتمد",
+          "bio": "مصمم واجهات ومستشار تجربة مستخدم بخبرة تتجاوز 11 عاماً في تصميم المنتجات الرقمية للبنوك والجهات الحكومية وشركات التقنية الناشئة. أعمل مع فرق المنتج من مرحلة البحث وتحديد المشكلة وحتى تسليم ملفات التصميم الجاهزة للتطوير.\n\nأعمالي المنشورة متاحة على https://khalid-otaibi-portfolio-and-design-studio.example.com/work/branding/2025/annual-report-designs/case-study-final-version وأستقبل مشاريع بنظام العقد المحدد أو الساعات.\n\nأتحدث العربية والإنجليزية بطلاقة وأقدّم ورش عمل لفرق العمل داخل الشركات.",
+          "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZDNDJBIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRkUzQzAxIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAwIiBmaWxsPSJ3aGl0ZSIgZmlsbC1vcGFjaXR5PSIwLjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPks8L3RleHQ+PC9zdmc+",
+          "headerUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjU2MCIgdmlld0JveD0iMCAwIDE2MDAgNTYwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMwQjNCM0MiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM0QThGRTciLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSI1NjAiIGZpbGw9InVybCgjZykiLz48L3N2Zz4=",
+          "socialLinks": {
+            "website": "https://khalid-otaibi-portfolio-and-design-studio.example.com/work/branding/2025/annual-report-designs",
+            "linkedin": "https://www.linkedin.com/in/khalid-alotaibi",
+            "twitter": "https://x.com/khalid_design",
+            "instagram": "https://www.instagram.com/khalid.design",
+            "behance": "https://www.behance.net/khalidalotaibi",
+            "dribbble-portfolio-of-the-year-2025-finalist": "https://dribbble.com/khalid"
+          },
+          "whatsappNumber": "+966 50 123 4567",
+          "whatsappVisibility": "public",
+          "whatsappLocked": false
+        }
+      }
+    },
+    "GET /api/companies/by-slug/sara-m/profile": {
+      "status": 200,
+      "json": {
+        "company": {
+          "id": "ind-sara",
+          "name": "Sara",
+          "slug": "sara-m",
+          "legalName": null,
+          "category": null,
+          "city": null,
+          "accountType": "individual",
+          "verificationStatus": "unverified",
+          "certifications": [],
+          "crNumber": null,
+          "vatNumber": null,
+          "createdAt": "2026-09-21T10:00:00.000Z",
+          "verifiedAt": null,
+          "verifiedDocuments": []
+        },
+        "profile": {
+          "displayName": "Sara",
+          "bio": null,
+          "logoUrl": null,
+          "headerUrl": null,
+          "socialLinks": null,
+          "whatsappNumber": null,
+          "whatsappVisibility": "requesters",
+          "whatsappLocked": true
+        }
+      }
+    },
+    "GET /api/r/nour-contracting": {
+      "status": 200,
+      "json": {
+        "company": {
+          "id": "co-nour-full",
+          "name": "Nour Contracting",
+          "accountType": "company",
+          "slug": "nour-contracting",
+          "category": "Construction & Infrastructure",
+          "city": "Riyadh",
+          "verificationStatus": "verified"
+        },
+        "profile": {
+          "displayName": "Nour Al-Sharq Integrated Contracting & Engineering Solutions Company Limited",
+          "bio": "Nour Al-Sharq has delivered commercial, industrial and government buildings across the Kingdom since 1998. Our in-house engineering, procurement and site teams take a project from concept design through commissioning and a defect-free handover, with a single point of accountability for cost, schedule and quality.\n\nRecent work includes the fit-out of three metro station concourses, a 42,000 m² logistics hub with automated racking, and the mechanical, electrical and plumbing package for a 38-storey mixed-use tower. Our handover documentation is published openly, for example https://www.nour-contracting.example.com/projects/2025/riyadh-metro-station-fit-out/final-handover-report-rev-07-approved-by-client-and-consultant.pdf and every project keeps a live dashboard for the client.\n\nWe self-perform structural, MEP and finishing packages, which is why the reference token ProjectDeliveryManagementSystemPlatformIntegrationWorkflowAutomationFrameworkV12 appears on all of our drawings. We hold ISO 9001, 14001 and 45001 certification, maintain a Grade 2 building classification and operate a 24/7 helpdesk for the first 24 months after handover.\n\nWe are proud of an 84% repeat-client rate and welcome enquiries from developers, facility owners and main contractors who need a dependable delivery partner.",
+          "logoUrl": null,
+          "headerUrl": null,
+          "socialLinks": {
+            "website": "https://www.nour-contracting.example.com/projects/2025/riyadh-metro-station-fit-out/final-handover-report-rev-07-approved-by-client-and-consultant.pdf",
+            "linkedin": "https://www.linkedin.com/company/nour-al-sharq-integrated-contracting-and-engineering-solutions"
+          },
+          "tags": [
+            "General Contracting",
+            "Design & Build",
+            "MEP Works",
+            "Structural Steel",
+            "Fit-out & Finishing",
+            "Project Management",
+            "HVAC",
+            "Fire Fighting Systems",
+            "Low Current Systems",
+            "Road Works",
+            "Water & Wastewater",
+            "Precast Concrete",
+            "Mechanical, Electrical & Plumbing (MEP) Design-and-Build Works for High-Rise Commercial Towers and Mixed-Use Developments",
+            "ProjectDeliveryManagementSystemPlatformIntegrationWorkflowAutomationFrameworkV12"
+          ],
+          "tractionTheme": null
+        }
+      }
+    },
+    "GET /api/r/al-ofoq-advanced": {
+      "status": 200,
+      "json": {
+        "company": {
+          "id": "co-ofoq-adv",
+          "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتشغيل المرافق والخدمات اللوجستية والتجارة والاستثمار العقاري المحدودة – فرع المنطقة الغربية والشمالية",
+          "accountType": "company",
+          "slug": "al-ofoq-advanced",
+          "category": "Facility Management",
+          "city": "Jeddah",
+          "verificationStatus": "verified"
+        },
+        "profile": {
+          "displayName": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتشغيل المرافق والخدمات اللوجستية والتجارة والاستثمار العقاري المحدودة – فرع المنطقة الغربية والشمالية",
+          "bio": "تأسست الشركة عام 1999 في مدينة جدة، وتقدّم اليوم خدمات المقاولات العامة والصيانة وتشغيل المرافق والخدمات اللوجستية لعملاء من القطاعين الحكومي والخاص في مختلف مناطق المملكة. نؤمن بأن جودة التنفيذ والالتزام بالجدول الزمني والشفافية في التكلفة هي أساس الثقة طويلة الأمد مع عملائنا.\n\nمن أبرز أعمالنا الحديثة: تشغيل وصيانة مجمع إداري حكومي بمساحة تزيد على 120,000 متر مربع، وتنفيذ ثلاثة مستودعات لوجستية مبردة بالمنطقة الغربية، وأعمال التجديد الشامل لمبنى فندقي من 14 طابقاً دون إيقاف التشغيل. تتوفر تقارير التسليم على الرابط https://www.al-ofoq-advanced.example.com/ar/projects/2025/hotel-renovation/handover-report-final-approved-v07.pdf ويمكن لأي عميل الاطلاع عليها.\n\nنعمل وفق نظام جودة معتمد (ISO 9001) ونظام سلامة وصحة مهنية (ISO 45001)، ولدينا مركز اتصال يعمل على مدار الساعة لخدمة العملاء في أعمال الصيانة الطارئة. كما نلتزم بمتطلبات المحتوى المحلي وبرامج التوطين، ونوفر فرص تدريب وتوظيف للشباب السعودي.\n\nنرحب باستفساراتكم وطلبات التسعير من الجهات الحكومية والشركات والمطورين العقاريين.",
+          "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjU2IDI1NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+QTwvdGV4dD48L3N2Zz4=",
+          "headerUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAwIiBoZWlnaHQ9IjU2MCIgdmlld0JveD0iMCAwIDE2MDAgNTYwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxQTE2MTMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNDMjMwMDAiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTYwMCIgaGVpZ2h0PSI1NjAiIGZpbGw9InVybCgjZykiLz48L3N2Zz4=",
+          "socialLinks": {
+            "website": "https://www.al-ofoq-advanced.example.com/ar",
+            "linkedin": "https://www.linkedin.com/company/al-ofoq-advanced"
+          },
+          "tags": [
+            "مقاولات عامة",
+            "صيانة وتشغيل المرافق",
+            "خدمات لوجستية",
+            "أعمال الكهرباء والميكانيكا والسباكة",
+            "إدارة المشاريع"
+          ],
+          "tractionTheme": {
+            "themeId": "bold",
+            "primaryColor": "#FFC42A",
+            "accentColor": "#1A1613",
+            "headerStyle": "image",
+            "ctaText": "قدّم طلب الانضمام إلى قاعدة موردي الشركة الآن",
+            "welcomeHeading": "انضم إلى شبكة موردي شركة الأفق المتقدم للمقاولات العامة والصيانة وتشغيل المرافق",
+            "welcomeSubtext": "سجّل شركتك في دقائق لتصلك دعوات المنافسات والطلبات المناسبة لنشاطك، ويطّلع فريق المشتريات على ملفك التعريفي ومشاريعك السابقة."
+          }
+        }
+      }
+    },
+    "GET /api/tenders/demo-tender/invite": {
+      "status": 200,
+      "json": {
+        "id": "demo-tender",
+        "title": "توريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية للمجمع السكني والتجاري في شمال الرياض – المرحلة الأولى والثانية",
+        "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
+        "budget": "98765432100",
+        "budgetRange": null,
+        "deadline": "2026-11-05T20:59:00.000Z",
+        "duration": "6plus",
+        "status": "published",
+        "skills": [
+          "أنظمة إدارة المباني (BMS)",
+          "الطاقة الشمسية الكهروضوئية",
+          "الأنظمة الكهربائية منخفضة الجهد",
+          "التحكم والأتمتة",
+          "الشبكات وأمن المعلومات",
+          "الأنظمة الذكية للإضاءة",
+          "شحن المركبات الكهربائية",
+          "إدارة المشاريع (PMP)",
+          "الاستدامة وشهادة LEED",
+          "التشغيل التجريبي والتسليم",
+          "تكامل الأنظمة عبر بروتوكول BACnet/Modbus",
+          "التدريب ونقل المعرفة لفريق التشغيل"
+        ],
+        "scope": "large",
+        "pricingModel": "fixed",
+        "milestones": [
+          {
+            "id": "m1",
+            "name": "الدفعة المقدمة عند توقيع العقد",
+            "description": "بعد اعتماد ضمان حسن التنفيذ",
+            "amount": "150000",
+            "dueDate": "2026-12-01"
+          },
+          {
+            "id": "m2",
+            "name": "اعتماد التصميم التفصيلي والمخططات التنفيذية",
+            "description": "يشمل اعتماد الاستشاري والجهة المالكة",
+            "amount": "2500000",
+            "dueDate": "2027-02-15"
+          },
+          {
+            "id": "m3",
+            "name": "توريد المعدات إلى الموقع",
+            "description": null,
+            "amount": "98765432100",
+            "dueDate": "2027-06-30"
+          },
+          {
+            "id": "m4",
+            "name": "التركيب والاختبار والتشغيل التجريبي",
+            "description": "اختبارات القبول في الموقع بحضور المالك",
+            "amount": "12500000",
+            "dueDate": "2028-03-31"
+          },
+          {
+            "id": "m5",
+            "name": "التسليم النهائي وبدء فترة الضمان",
+            "description": null,
+            "amount": null,
+            "dueDate": "2028-06-30"
+          }
+        ],
+        "voiceNoteUrl": "/objects/uploads/demo-voice-note",
+        "videoUrl": "https://example.com/rfp-walkthrough",
+        "projectTimeline": null,
+        "startDate": "2026-12-01",
+        "endDate": "2028-06-30",
+        "submissionType": "tech_fin_with_video",
+        "videoRequired": true,
+        "inquiryType": "inside_bid",
+        "whatsappContact": null,
+        "emailContact": null,
+        "evaluationCriteria": {
+          "weights": [
+            {
+              "categoryId": "experience",
+              "weight": 30
+            },
+            {
+              "categoryId": "financial",
+              "weight": 40
+            },
+            {
+              "categoryId": "technical",
+              "weight": 20
+            }
+          ],
+          "requirements": [
+            {
+              "categoryId": "experience",
+              "requirementId": "years_in_market",
+              "value": "10"
+            },
+            {
+              "categoryId": "experience",
+              "requirementId": "similar_projects_count",
+              "value": "5"
+            },
+            {
+              "categoryId": "financial",
+              "requirementId": "min_project_value",
+              "value": "25000000"
+            },
+            {
+              "categoryId": "financial",
+              "requirementId": "bank_guarantee",
+              "value": true
+            },
+            {
+              "categoryId": "technical",
+              "requirementId": "methodology",
+              "value": true
+            },
+            {
+              "categoryId": "technical",
+              "requirementId": "team_cvs",
+              "value": true
+            }
+          ],
+          "customCriteria": [
+            {
+              "id": "cc1",
+              "text": "الالتزام بمتطلبات المحتوى المحلي وبرامج التوطين",
+              "weight": 10
+            }
+          ]
+        },
+        "objective": "إنشاء منظومة تشغيل موحّدة تخفّض استهلاك الطاقة بنسبة لا تقل عن 30% خلال السنة الأولى من التشغيل، وتوفّر لوحة متابعة لحظية لإدارة المجمع والمستأجرين.",
+        "deliverables": [
+          "التصميم التفصيلي والمخططات التنفيذية المعتمدة",
+          "توريد وتركيب 1,250 نقطة تحكم وحساس",
+          {
+            "id": "d1",
+            "name": "ألواح شمسية كهروضوئية بقدرة 5 ميجاواط",
+            "description": "مع العاكسات وأنظمة المراقبة وأنظمة التثبيت المقاومة للرمال",
+            "unit": "ميجاواط",
+            "quantity": 5
+          },
+          {
+            "id": "d2",
+            "name": "وحدات التحكم الرئيسية في الأبراج",
+            "description": "",
+            "unit": "وحدة",
+            "quantity": 6
+          },
+          {
+            "id": "d3",
+            "name": "التدريب الميداني لفريق التشغيل والصيانة على النظام الجديد لمدة أسبوعين",
+            "description": "يشمل المواد التدريبية باللغتين العربية والإنجليزية",
+            "unit": "يوم",
+            "quantity": 10
+          },
+          "أدلة التشغيل والصيانة",
+          "ضمان لمدة 24 شهراً على جميع المعدات"
+        ],
+        "vendorRequirements": [
+          {
+            "id": "r1",
+            "text": "سجل تجاري ساري المفعول في نشاط المقاولات أو أنظمة المباني الذكية",
+            "type": "mandatory"
+          },
+          {
+            "id": "r2",
+            "text": "شهادة تصنيف المقاولين بالدرجة الثانية أو أعلى في مجال المباني",
+            "type": "mandatory"
+          },
+          {
+            "id": "r3",
+            "text": "شهادة الزكاة والضريبة والجمارك سارية",
+            "type": "mandatory"
+          },
+          {
+            "id": "r4",
+            "text": "شهادة التأمينات الاجتماعية (GOSI) سارية",
+            "type": "mandatory"
+          },
+          {
+            "id": "r5",
+            "text": "خطاب ضمان ابتدائي بنسبة 2% من قيمة العرض صادر من بنك سعودي معتمد وساري لمدة 120 يوماً على الأقل من تاريخ التقديم",
+            "type": "mandatory"
+          },
+          {
+            "id": "r6",
+            "text": "خبرة سابقة في مشاريع الطاقة الشمسية بسعة تزيد على 5 ميجاواط",
+            "type": "preferred"
+          },
+          {
+            "id": "r7",
+            "text": "شهادات ISO 9001 وISO 45001 سارية",
+            "type": "preferred"
+          },
+          {
+            "id": "r8",
+            "text": "نسبة توطين لا تقل عن 40% ضمن فريق المشروع",
+            "type": "preferred"
+          }
+        ],
+        "showPriceToVendors": true,
+        "projectSize": "large",
+        "budgetMin": 1250000,
+        "budgetMax": 98765432100,
+        "category": "Construction & Infrastructure",
+        "attachments": [
+          {
+            "id": "a1",
+            "name": "المواصفات_الفنية_والكميات_النهائية_المعتمدة_من_الاستشاري_النسخة_12_مراجعة_4.pdf",
+            "url": "/objects/uploads/a1",
+            "size": 8493211,
+            "type": "application/pdf"
+          },
+          {
+            "id": "a2",
+            "name": "BOQ-Smart-Buildings-Phase-1-2-Final-Approved-By-Consultant-Rev4-2026-09-01.xlsx",
+            "url": "/objects/uploads/a2",
+            "size": 254311,
+            "type": "application/vnd.ms-excel"
+          },
+          {
+            "id": "a3",
+            "name": "site-plan.png",
+            "url": "/objects/uploads/a3",
+            "size": 812,
+            "type": "image/png"
+          }
+        ],
+        "formCards": [
+          {
+            "id": "fc1",
+            "type": "custom-text",
+            "label": "رقم رخصة البناء",
+            "isRequired": true,
+            "value": "RY-2026-0048817-B"
+          },
+          {
+            "id": "fc2",
+            "type": "custom-select",
+            "label": "نوع العقد",
+            "isRequired": false,
+            "options": [
+              "مبلغ مقطوع",
+              "قياس وحصر"
+            ],
+            "value": "عقد بمبلغ مقطوع (Lump Sum)"
+          },
+          {
+            "id": "fc3",
+            "type": "custom-date",
+            "label": "تاريخ الزيارة الميدانية الإلزامية للموقع",
+            "isRequired": true,
+            "value": "2026-10-12"
+          }
+        ],
+        "language": "ar",
+        "allowTranslation": true,
+        "translatedContent": null,
+        "createdAt": "2026-09-01T08:00:00.000Z",
+        "company": {
+          "id": "co-ofoq-invite",
+          "name": "شركة الأفق المتقدم للمقاولات العامة"
+        },
+        "profile": {
+          "displayName": "شركة الأفق المتقدم للمقاولات العامة",
+          "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjU2IDI1NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+QTwvdGV4dD48L3N2Zz4="
+        }
+      }
+    },
+    "GET /api/tenders/demo-tender/questions": {
+      "status": 200,
+      "json": [
+        {
+          "id": "q1",
+          "question": "هل يُسمح بتقديم عرض من تحالف بين شركتين، وكيف يتم توزيع المسؤولية النظامية بينهما أمام الشركة المالكة؟",
+          "answer": "نعم، يُسمح بالتحالف بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة وإرفاق اتفاقية التحالف مع العرض الفني.",
+          "answeredAt": "2026-09-12T10:00:00.000Z",
+          "createdAt": "2026-09-10T09:00:00.000Z"
+        },
+        {
+          "id": "q2",
+          "question": "Is the on-site training expected to be delivered in Arabic only?",
+          "answer": "Arabic and English materials are both required; live sessions may be delivered in either language.",
+          "answeredAt": "2026-09-13T08:30:00.000Z",
+          "createdAt": "2026-09-11T14:00:00.000Z"
+        },
+        {
+          "id": "q3",
+          "question": "هل يمكن تمديد موعد تقديم العروض أسبوعين إضافيين نظراً لحجم المتطلبات الفنية؟",
+          "answer": null,
+          "answeredAt": null,
+          "createdAt": "2026-09-15T16:20:00.000Z"
+        },
+        {
+          "id": "q4",
+          "question": "ما هي الجهة المسؤولة عن الحصول على تصاريح الربط الكهربائي مع الشبكة، وهل تدخل رسومها ضمن قيمة العرض؟",
+          "answer": "الجهة المالكة مسؤولة عن الحصول على التصاريح، وتدخل الرسوم الحكومية خارج قيمة العرض.",
+          "answeredAt": "2026-09-18T11:00:00.000Z",
+          "createdAt": "2026-09-16T09:10:00.000Z"
+        }
+      ]
+    },
+    "GET /api/companies/co-ofoq-invite/profile": {
+      "status": 200,
+      "json": {
+        "company": {
+          "id": "co-ofoq-invite",
+          "name": "شركة الأفق المتقدم للمقاولات العامة",
+          "slug": "al-ofoq",
+          "accountType": "company",
+          "verificationStatus": "verified"
+        },
+        "profile": {
+          "displayName": "شركة الأفق المتقدم للمقاولات العامة",
+          "logoUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiB2aWV3Qm94PSIwIDAgMjU2IDI1NiI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNEE4RkU3Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMEIwOTA3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIGZpbGw9InVybCgjZykiLz48dGV4dCB4PSI1MCUiIHk9IjUyJSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNjQiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+QTwvdGV4dD48L3N2Zz4="
+        }
+      }
+    },
+    "GET /api/tenders/closing-tender/invite": {
+      "status": 200,
+      "json": {
+        "id": "closing-tender",
+        "title": "Comprehensive Annual Supply, Delivery, Installation, Commissioning and Five-Year Warranty Support of Medical Imaging Equipment (MRI, CT, X-Ray and Ultrasound) for the Northern Region Hospitals Cluster",
+        "description": "Supply and commissioning of imaging equipment across six hospitals. Reference the full requirements at https://tenders.example.com/documents/2026/imaging/spec-v9.pdf and the token ProjectDeliveryManagementSystemPlatformIntegrationWorkflowAutomationFrameworkV12.",
+        "budget": null,
+        "budgetRange": null,
+        "deadline": "2026-09-26T20:59:00.000Z",
+        "duration": "3to6",
+        "status": "published",
+        "skills": [
+          "Biomedical Engineering",
+          "PACS Integration"
+        ],
+        "scope": null,
+        "pricingModel": null,
+        "milestones": [],
+        "voiceNoteUrl": null,
+        "videoUrl": null,
+        "projectTimeline": null,
+        "startDate": null,
+        "endDate": null,
+        "submissionType": "quote_only",
+        "videoRequired": false,
+        "inquiryType": "email_whatsapp",
+        "whatsappContact": "+966 55 987 6543",
+        "emailContact": "procurement.department.northern.region@very-long-company-domain-name-for-healthcare-holding.example.com",
+        "evaluationCriteria": [
+          "financial_offer",
+          "previous_work",
+          "clear_timeline"
+        ],
+        "objective": null,
+        "deliverables": [
+          "MRI 3T scanners (2)",
+          "CT 128-slice scanners (3)",
+          "Digital X-Ray rooms (6)"
+        ],
+        "vendorRequirements": [],
+        "showPriceToVendors": false,
+        "projectSize": "large",
+        "budgetMin": null,
+        "budgetMax": null,
+        "category": "Healthcare & Medical Supplies",
+        "attachments": [],
+        "formCards": [],
+        "language": "en",
+        "allowTranslation": false,
+        "translatedContent": null,
+        "createdAt": "2026-09-05T09:00:00.000Z",
+        "company": {
+          "id": "co-gulf-invite",
+          "name": "Gulf Horizon International Engineering, Procurement & Construction Holding Company (Eastern Province Regional Office)"
+        },
+        "profile": null
+      }
+    },
+    "GET /api/tenders/closing-tender/questions": {
+      "status": 200,
+      "json": []
+    },
+    "GET /api/companies/co-gulf-invite/profile": {
+      "status": 200,
+      "json": {
+        "profile": null
+      }
+    },
+    "GET /api/tenders/expired-tender/invite": {
+      "status": 200,
+      "json": {
+        "id": "expired-tender",
+        "title": "Annual Landscaping Maintenance Contract",
+        "description": "Routine maintenance of landscaped areas across three public parks, including irrigation checks, pruning and seasonal planting.",
+        "budget": "4500000",
+        "budgetRange": null,
+        "deadline": "2026-08-01T20:59:00.000Z",
+        "duration": "1to3",
+        "status": "published",
+        "skills": [],
+        "scope": null,
+        "pricingModel": null,
+        "milestones": [],
+        "voiceNoteUrl": null,
+        "videoUrl": null,
+        "projectTimeline": null,
+        "startDate": null,
+        "endDate": null,
+        "submissionType": "tech_fin_proposal",
+        "videoRequired": false,
+        "inquiryType": "inside_bid",
+        "whatsappContact": null,
+        "emailContact": null,
+        "evaluationCriteria": null,
+        "objective": null,
+        "deliverables": [],
+        "vendorRequirements": [],
+        "showPriceToVendors": true,
+        "projectSize": "small",
+        "budgetMin": null,
+        "budgetMax": null,
+        "category": "Facility Management",
+        "attachments": [],
+        "formCards": [],
+        "language": "en",
+        "allowTranslation": false,
+        "translatedContent": null,
+        "createdAt": "2026-06-15T09:00:00.000Z",
+        "company": {
+          "id": "co-park-invite",
+          "name": "Riyadh Parks Authority"
+        },
+        "profile": {
+          "displayName": "Riyadh Parks Authority",
+          "logoUrl": null
+        }
+      }
+    },
+    "GET /api/tenders/expired-tender/questions": {
+      "status": 200,
+      "json": []
+    },
+    "GET /api/companies/co-park-invite/profile": {
+      "status": 200,
+      "json": {
+        "profile": {
+          "displayName": "Riyadh Parks Authority",
+          "logoUrl": null
+        }
+      }
+    },
+    "POST /api/invitation-links/:token/opened": {
+      "status": 200,
+      "json": {
+        "ok": true
+      }
+    }
+  }
+}

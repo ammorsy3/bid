@@ -1306,6 +1306,318 @@
       "skipProjects": [
         "desktop"
       ]
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "marketplace-default",
+      "page": "marketplace",
+      "title": "Marketplace - first look (9 stressful tenders, logged out)",
+      "route": "/marketplace"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "marketplace-grid",
+      "page": "marketplace",
+      "title": "Marketplace - grid view",
+      "route": "/marketplace",
+      "actions": [
+        {
+          "click": "button:has(svg.lucide-layout-grid)"
+        },
+        {
+          "wait": 300
+        }
+      ]
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "marketplace-category-open",
+      "page": "marketplace",
+      "title": "Marketplace - category dropdown open",
+      "route": "/marketplace",
+      "actions": [
+        {
+          "click": ".no-scrollbar > div:nth-of-type(1) > button"
+        },
+        {
+          "waitFor": ".no-scrollbar .absolute"
+        },
+        {
+          "eval": "window.scrollTo(0, document.querySelector('.no-scrollbar').getBoundingClientRect().top + window.scrollY - 76)"
+        },
+        {
+          "wait": 300
+        }
+      ],
+      "expectDialog": true,
+      "fullPage": false
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "marketplace-city-open",
+      "page": "marketplace",
+      "title": "Marketplace - city dropdown open",
+      "route": "/marketplace",
+      "actions": [
+        {
+          "click": ".no-scrollbar > div:nth-of-type(2) > button"
+        },
+        {
+          "waitFor": ".no-scrollbar .absolute"
+        },
+        {
+          "eval": "window.scrollTo(0, document.querySelector('.no-scrollbar').getBoundingClientRect().top + window.scrollY - 76)"
+        },
+        {
+          "wait": 300
+        }
+      ],
+      "expectDialog": true,
+      "fullPage": false
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "marketplace-sort-open",
+      "page": "marketplace",
+      "title": "Marketplace - sort dropdown open",
+      "route": "/marketplace",
+      "actions": [
+        {
+          "click": "div.relative.flex.items-center.rounded-full ~ div.relative > button"
+        },
+        {
+          "waitFor": ".absolute.z-30"
+        },
+        {
+          "eval": "window.scrollTo(0, document.querySelector('.no-scrollbar').getBoundingClientRect().top + window.scrollY - 76)"
+        },
+        {
+          "wait": 300
+        }
+      ],
+      "expectDialog": true,
+      "fullPage": false
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "marketplace-filtered-long",
+      "page": "marketplace",
+      "title": "Marketplace - filtered by the longest category (chips row)",
+      "route": "/marketplace",
+      "actions": [
+        {
+          "click": ".no-scrollbar > div:nth-of-type(1) > button"
+        },
+        {
+          "waitFor": ".no-scrollbar .absolute"
+        },
+        {
+          "click": ".no-scrollbar > div:nth-of-type(1) .absolute button:nth-child(10)"
+        },
+        {
+          "wait": 500
+        }
+      ]
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": true,
+      "id": "marketplace-search-typing",
+      "page": "marketplace",
+      "title": "Marketplace - typing in the search box",
+      "route": "/marketplace",
+      "actions": [
+        {
+          "eval": "window.scrollTo(0, document.querySelector('.no-scrollbar').getBoundingClientRect().top + window.scrollY - 76)"
+        },
+        {
+          "click": "input[type=text]"
+        },
+        {
+          "type": "تكييف"
+        },
+        {
+          "wait": 600
+        }
+      ],
+      "fullPage": false
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "marketplace-empty",
+      "page": "marketplace",
+      "title": "Marketplace - search finds nothing",
+      "route": "/marketplace",
+      "overrides": {
+        "GET /api/marketplace/tenders": {
+          "status": 200,
+          "json": {
+            "tenders": [],
+            "total": 0
+          }
+        }
+      },
+      "actions": [
+        {
+          "fill": [
+            "input[type=text]",
+            "zzzz"
+          ]
+        },
+        {
+          "wait": 700
+        }
+      ]
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "marketplace-error",
+      "page": "marketplace",
+      "title": "Marketplace - the list fails to load",
+      "route": "/marketplace",
+      "overrides": {
+        "GET /api/marketplace/tenders": {
+          "status": 500,
+          "json": {
+            "message": "boom"
+          }
+        }
+      },
+      "allowBusy": true
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "company-nour",
+      "page": "company-profile",
+      "title": "Company profile - Nour Contracting",
+      "route": "/company/nour-contracting"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "company-hudood",
+      "page": "company-profile",
+      "title": "Company profile - Al Hudood Est.",
+      "route": "/company/al-hudood-est"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "company-ofoq",
+      "page": "company-profile",
+      "title": "Company profile - very long Arabic company name",
+      "route": "/company/al-ofoq-advanced"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "company-not-found",
+      "page": "company-profile",
+      "title": "Company profile - no such company",
+      "route": "/company/does-not-exist"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "people-khalid",
+      "page": "people-profile",
+      "title": "Person profile - Arabic name",
+      "route": "/people/khalid-alotaibi"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "people-sara",
+      "page": "people-profile",
+      "title": "Person profile - short English name",
+      "route": "/people/sara-m"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "traction-nour",
+      "page": "traction",
+      "title": "Traction link - Nour Contracting",
+      "route": "/traction/nour-contracting"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "traction-ofoq",
+      "page": "traction",
+      "title": "Traction link - very long Arabic company name",
+      "route": "/traction/al-ofoq-advanced"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "traction-not-found",
+      "page": "traction",
+      "title": "Traction link - no such company",
+      "route": "/traction/does-not-exist"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "invite-demo",
+      "page": "tender-invite",
+      "title": "Tender invite - open tender, long Arabic company",
+      "route": "/invite/demo-tender"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "invite-closing",
+      "page": "tender-invite",
+      "title": "Tender invite - closes today, long English company",
+      "route": "/invite/closing-tender"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "invite-expired",
+      "page": "tender-invite",
+      "title": "Tender invite - already closed",
+      "route": "/invite/expired-tender"
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
+      "id": "invite-not-found",
+      "page": "tender-invite",
+      "title": "Tender invite - link not found",
+      "route": "/invite/no-such-tender"
     }
   ]
 }

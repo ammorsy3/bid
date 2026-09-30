@@ -49,11 +49,20 @@ Baseline (before fixes, 136 captures): 155 fails. Populated states use the Seet 
 | dashboard-proposals | fixed (phone fails 0 → 0; warnings 152 → 100, all brand orange; reviewer PASS; desktop identical apart from Arabic dates/amounts) | 44px sub-tabs that fit at 360px; scannable rows for sent proposals and incoming offers (title, badges, amount, date, 2-column button grid); 10 at a time with "Show more"; empty states with one action; Arabic amounts, dates and "days left" wording. Open: decisions.md #22-#24. |
 | dashboard-vendors | fixed (phone fails 24 → 0; warnings 556 → 100, all brand orange; reviewer PASS; desktop identical) | Joining link reads left-to-right with a 44px Copy button; vendor and request rows no longer squeeze names or clip "Applied via Traction"; filters in two columns; 10 at a time with "Show more"; the "Not verified" filter (matched nothing) now works. Open: decisions.md #25-#27. |
 
+## Batch 2b — public pages that show data (fixture mode: made-up stress data, logged out)
+Baseline (before fixes, 308 captures, commit in `.mobile-audit/batch-2b/baseline-commit.txt`): phone fails are worst on the marketplace (4-18 per capture), then the tender invite page (up to 8) and the company/people profile pages (1). Traction links are warnings only.
+| Pages | Status | What to fix (known before the loop) |
+|---|---|---|
+| marketplace | todo | The Category / City / Type filter menus open but are invisible on every screen size, including desktop: they sit inside the scrolling pill row (`overflow-x-auto`), which also clips anything that hangs below it (checked live, the row is 39px tall and the menu is 240px). Also: page numbers are 36px taps, the pill row needs 44px targets, search box text size, Arabic letter-spacing, very long category names, company names cut off in the middle, "not settled" on first load. |
+| company-profile, people-profile | todo | One text-spills fail on every phone (a long unbroken word / URL pushes the page wide: the iPhone Chrome photo of Nour Contracting is 653px wide on a 393px screen). Long portfolio and certification names; check the Arabic-name person and the short-name person; "no such company" page. |
+| traction | todo | No fails, warnings only (11-25 per capture, mostly tap sizes and English on the Arabic page). Check the join-request area, long Arabic company name, "no such company" page. |
+| tender-invite | todo | Up to 8 phone fails: text spills, things covering other things, the page wider than the screen on the small Android in Arabic, the floating submit bar covering text. Closed-tender and closes-today variants, "link not found" page. |
+
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |
 |---|---|---|
 | 2a | Static public pages (fixture mode, no login needed): landing, pricing, faq, getting-started, terms, privacy, docs | in progress |
-| 2b | Public pages that show real data: marketplace, company/people/traction profiles, tender invite link (need sample-data fixtures, or your sign-in for session mode) | todo |
+| 2b | Public pages that show real data: marketplace, company/people/traction profiles, tender invite link (fixture mode, made-up stress data in `tests/mobile/fixtures/public-data.json`) | in progress (see the batch 2b table below) |
 | 3 | App shell + dashboard tabs (sidebar, bottom bar) | done, all five pages fixed (see the batch 3 table above); next: report to Ahmed |
 | 4 | Vendor side: tender page, submit offer, form fill | todo |
 | 5 | Tender wizard | todo |

@@ -7,9 +7,9 @@ import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { SUPPORT_WHATSAPP_URL } from "@/components/support-contact";
 import { SiteFooter } from "@/components/site-footer";
+import { MONTHLY_PRICE, YEARLY_DISCOUNT } from "@shared/billing-plans";
 import {
   Infinity as InfinityIcon,
-  Users,
   Sparkles,
   LayoutTemplate,
   MessageCircleQuestion,
@@ -40,7 +40,7 @@ const usd = (sar: number) => Math.round(sar / USD_PEG);
 type Term = { id: Billing; months: number; discount: number };
 const TERMS: Term[] = [
   { id: "monthly", months: 1, discount: 0 },
-  { id: "yearly", months: 12, discount: 0.2 },
+  { id: "yearly", months: 12, discount: YEARLY_DISCOUNT },
 ];
 
 const rateFor = (base: number, term: Term) => Math.round(base * (1 - term.discount));
@@ -49,14 +49,16 @@ const savedFor = (base: number, term: Term) => base * term.months - billedFor(ba
 
 type PlanId = "pro" | "business" | "enterprise";
 
-/* `base` is the undiscounted monthly rate in SAR; every term derives from it. */
+/* `base` is the undiscounted monthly rate in SAR, before VAT; every term
+   derives from it. Prices live in shared/billing-plans.ts, which is also what
+   checkout charges — so this page can't drift from the real price. */
 const PLANS: {
   id: PlanId;
   base: number | null;
   featured?: boolean;
 }[] = [
-  { id: "pro", base: 79 },
-  { id: "business", base: 179, featured: true },
+  { id: "pro", base: MONTHLY_PRICE.pro },
+  { id: "business", base: MONTHLY_PRICE.business, featured: true },
   { id: "enterprise", base: null },
 ];
 
@@ -70,7 +72,6 @@ const FEATURES: Record<PlanId, Feat[]> = {
   pro: [
     { key: "fUnlimitedTenders", Icon: InfinityIcon },
     { key: "fMarketplace", Icon: Store },
-    { key: "fVendorBase", Icon: Users },
     { key: "fAiBuilder", Icon: Sparkles },
     { key: "fTemplates", Icon: LayoutTemplate },
     { key: "fQa", Icon: MessageCircleQuestion },
@@ -115,7 +116,7 @@ const copy = {
     termNoteMonthly: "",
     termNoteYearly: "Save 20%",
 
-    perUserMo: "per user / month",
+    perUserMo: "/ month + VAT",
     billedMonthly: "billed monthly",
     billedYearly: "billed yearly",
     youSave: "You save",
@@ -138,9 +139,8 @@ const copy = {
     entCta: "Contact sales",
 
     fUnlimitedTenders: "Unlimited tenders and RFPs",
-    fVendorBase: "A private company network",
     fAiBuilder: "AI writes your tender from a brief",
-    fTemplates: "Reusable templates",
+    fTemplates: "Save your own templates",
     fQa: "Structured Q&A rounds",
     fTraction: "Traction Link for inbound connections",
     fEverythingPro: "Everything in Pro",
@@ -174,11 +174,11 @@ const copy = {
     q8: "What's the difference between private tenders and the marketplace?",
     a8: "A private tender goes only to the vendors you invite by link. Publishing to the marketplace puts it in front of vendors you have not met yet, which is where most new suppliers come from. The free plan covers private tenders; marketplace publishing starts on Pro.",
     q4: "Do you charge per user?",
-    a4: "Yes, per user per month. Your whole team works from one workspace, so you only pay for the seats you use.",
+    a4: "No. The price is per company, not per person. Your whole team works from one workspace. The free plan includes one seat; Pro and Business have no seat limit.",
     q5: "Which currency am I billed in?",
     a5: "Saudi riyals. The dollar figures here are a fixed reference conversion, since the riyal is pegged to the dollar.",
     q6: "Can I change or cancel my plan?",
-    a6: "Any time. Upgrades apply immediately and are prorated; downgrades take effect at the end of the current billing period.",
+    a6: "Cancel any time. Your plan keeps working until the end of the period you already paid for, then moves to Free. You can resume it before then.",
 
     ctaTitle: "Better sourcing starts here.",
     ctaSub: "Three tenders, no card required. Upgrade the day Bid pays for itself.",
@@ -207,7 +207,7 @@ const copy = {
     termNoteMonthly: "",
     termNoteYearly: "وفّر 20%",
 
-    perUserMo: "لكل مستخدم / شهرياً",
+    perUserMo: "شهرياً + الضريبة",
     billedMonthly: "تُحصّل شهرياً",
     billedYearly: "تُحصّل سنوياً",
     youSave: "توفّر",
@@ -231,9 +231,8 @@ const copy = {
     entCta: "تواصل مع المبيعات",
 
     fUnlimitedTenders: "مناقصات وطلبات عروض غير محدودة",
-    fVendorBase: "شبكة شركات خاصة",
     fAiBuilder: "الذكاء الاصطناعي يكتب مناقصتك من بريف",
-    fTemplates: "قوالب قابلة لإعادة الاستخدام",
+    fTemplates: "احفظ قوالبك الخاصة",
     fQa: "جولات أسئلة وأجوبة منظّمة",
     fTraction: "رابط انضمام للتواصل الوارد",
     fEverythingPro: "كل ما في برو",
@@ -267,11 +266,11 @@ const copy = {
     q8: "ما الفرق بين المناقصات الخاصة والسوق؟",
     a8: "المناقصة الخاصة تصل فقط للمورّدين الذين تدعوهم برابط. أما النشر في السوق فيضع مناقصتك أمام مورّدين لم تلتقِ بهم بعد، وهو مصدر معظم المورّدين الجدد. الباقة المجانية تغطي المناقصات الخاصة، والنشر في السوق يبدأ من باقة برو.",
     q4: "هل السعر لكل مستخدم؟",
-    a4: "نعم، لكل مستخدم شهرياً. فريقك كله يعمل في مساحة عمل واحدة، فلا تدفع إلا مقابل المقاعد التي تستخدمها.",
+    a4: "لا. السعر لكل شركة وليس لكل شخص. فريقك كله يعمل في مساحة عمل واحدة. الباقة المجانية تشمل مقعداً واحداً، وباقتا برو وبزنس بلا حد للمقاعد.",
     q5: "بأي عملة تتم الفوترة؟",
     a5: "بالريال السعودي. المبالغ بالدولار هنا تحويل مرجعي ثابت، لأن الريال مربوط بالدولار.",
     q6: "هل يمكنني تغيير باقتي أو إلغاؤها؟",
-    a6: "في أي وقت. الترقية تُطبّق فوراً وتُحتسب بالتناسب، والتخفيض يسري في نهاية دورة الفوترة الحالية.",
+    a6: "يمكنك الإلغاء في أي وقت. تبقى باقتك تعمل حتى نهاية الفترة التي دفعت عنها، ثم تعود إلى المجانية. ويمكنك استئنافها قبل ذلك.",
 
     ctaTitle: "توريد أفضل يبدأ من هنا.",
     ctaSub: "3 مناقصات، بدون بطاقة. ارتقِ يوم تُغطّي Bid تكلفتها.",
@@ -512,8 +511,13 @@ const Pricing = () => {
                     {pc.cta}
                   </a>
                 ) : (
-                  <Link href="/signup">
-                    <button className={`btn ${plan.featured ? "btn-orange" : "btn-primary"}`}>
+                  // Signed in → straight to checkout in Settings → Plans & Billing,
+                  // with this plan and term already picked. Signed out → sign up first.
+                  <Link href={user ? `/settings?tab=billing&plan=${plan.id}&term=${billing}` : "/signup"}>
+                    <button
+                      className={`btn ${plan.featured ? "btn-orange" : "btn-primary"}`}
+                      data-testid={`button-plan-${plan.id}`}
+                    >
                       {pc.cta}
                     </button>
                   </Link>

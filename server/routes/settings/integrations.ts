@@ -12,6 +12,7 @@ import { and, eq, isNull, desc } from "drizzle-orm";
 import { generateApiKey, ALL_SCOPES } from "../../lib/api-keys";
 import { logIntegrationEvent } from "../../lib/integration-logs";
 import type { AuthRequest } from "../../middleware/auth-types";
+import { requireFeature } from "../../lib/entitlements";
 
 interface MiddlewareDeps {
   authenticateToken: RequestHandler;
@@ -25,6 +26,9 @@ export function registerIntegrationsAdminRoutes(app: Express, deps: MiddlewareDe
   // API keys & integrations are a buyer/collaboration feature. Individuals can't
   // create tenders or use the AI copilot, so they get no API access either.
   const adminGate = [authenticateToken, requireCompanyContext, requireAccountType("company"), requireCompanyRole("admin")];
+  // Creating keys and integrations is a Business feature. Listing, deleting and
+  // the logs stay open, so a downgraded company can still see and revoke what it has.
+  const businessGate = [...adminGate, requireFeature("api")];
 
   const r = Router();
 
@@ -56,7 +60,7 @@ export function registerIntegrationsAdminRoutes(app: Express, deps: MiddlewareDe
   });
 
   // POST /api/api-keys — create a new key (returns the raw key EXACTLY ONCE)
-  r.post("/api-keys", ...adminGate, async (req: AuthRequest, res: Response) => {
+  r.post("/api-keys", ...businessGate, async (req: AuthRequest, res: Response) => {
     try {
       const { name, scopes } = req.body ?? {};
       if (typeof name !== "string" || !name.trim()) {
@@ -164,7 +168,7 @@ export function registerIntegrationsAdminRoutes(app: Express, deps: MiddlewareDe
   });
 
   // POST /api/integrations
-  r.post("/integrations", ...adminGate, async (req: AuthRequest, res: Response) => {
+  r.post("/integrations", ...businessGate, async (req: AuthRequest, res: Response) => {
     try {
       const { channel, name, config, externalIdentifier } = req.body ?? {};
       const ALLOWED_CHANNELS = new Set(["webhook", "mcp"]);

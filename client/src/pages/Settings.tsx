@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2, Palette, Eye, ExternalLink, History, FileText, Send, Activity, Plug, ChevronRight, Bell } from "lucide-react";
+import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2, Palette, Eye, ExternalLink, History, FileText, Send, Activity, Plug, ChevronRight, Bell, CreditCard } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -21,12 +21,16 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Language } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
+import { PlanBadge } from "@/components/billing/PlanBadge";
+import { openUpgrade } from "@/lib/upgrade-store";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTour } from "@/lib/tour";
 import { SETTINGS_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import type { UploadResult } from "@/components/ObjectUploader";
 import { SettingsNotifications } from "@/pages/SettingsNotifications";
+import { SettingsBilling } from "@/pages/SettingsBilling";
 import { displayRoleName } from "@/lib/roles";
 
 const TIMEZONES = [
@@ -47,7 +51,7 @@ const LANGUAGES = [
 
 type ThemeOption = "light" | "dark" | "system";
 
-type SettingsTab = "account" | "company" | "notifications";
+type SettingsTab = "account" | "company" | "billing" | "notifications";
 
 const VERIFICATION_DOCUMENT_SLOTS = [
   { type: 'cr_certificate', labelKey: 'docCrLabel', descriptionKey: 'docCrDesc', required: true },
@@ -487,12 +491,13 @@ export default function Settings() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { t, language, setLanguage, isRtl } = useI18n();
+  const { can: planCan } = usePlan();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const companyLogoInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<SettingsTab>(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    return (tab === 'company' ? 'company' : 'account') as SettingsTab;
+    return (tab === 'company' || tab === 'billing' || tab === 'notifications' ? tab : 'account') as SettingsTab;
   });
   const [highlightVerification, setHighlightVerification] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -937,6 +942,7 @@ export default function Settings() {
   };
 
   const handleSendInvites = () => {
+    if (!planCan('seats')) { openUpgrade('seats'); return; }
     const validInvites = inviteRows.filter(r => r.email.trim() && r.email.includes('@'));
     if (validInvites.length === 0) {
       toast({
@@ -1011,6 +1017,7 @@ export default function Settings() {
   const sidebarItems = [
     { id: "account" as const, label: user.name || user.username, icon: null, isUser: true },
     { id: "company" as const, label: workspaceTabLabel, icon: Building2, isCompany: true },
+    { id: "billing" as const, label: t('settings.plansBilling'), icon: CreditCard },
     { id: "notifications" as const, label: t('notifications.sidebar'), icon: Bell, isNotifications: true },
   ];
 
@@ -1558,11 +1565,12 @@ export default function Settings() {
                 <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
                   {t('settings.inviteTeamMembers')}
+                  {!planCan('seats') && <PlanBadge feature="seats" />}
                 </h2>
                 <Card>
                   <CardContent className="pt-6 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      {t('settings.inviteDesc', { company: activeCompany.name })}
+                      {planCan('seats') ? t('settings.inviteDesc', { company: activeCompany.name }) : t('upgrade.seatsNote')}
                     </p>
 
                     {/* Invite rows */}
@@ -1958,6 +1966,7 @@ export default function Settings() {
             </div>
           )}
 
+          {activeTab === "billing" && <SettingsBilling />}
           {activeTab === "notifications" && <SettingsNotifications />}
         </div>
       </div>

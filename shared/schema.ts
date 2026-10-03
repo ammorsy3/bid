@@ -116,6 +116,14 @@ export const companies = pgTable("companies", {
   // Soft Delete
   deletedAt: timestamp("deleted_at"),
 
+  // The company's customer record in StreamPay (payments). Set the first time
+  // someone starts a checkout. See migrations/0014_billing.sql.
+  streampayConsumerId: text("streampay_consumer_id").unique(),
+
+  // Features this company already used before plan limits went live and keeps on
+  // the free plan (see shared/entitlements.ts GRANDFATHERABLE, migration 0015).
+  grandfatheredFeatures: text("grandfathered_features").array().notNull().default(sql`'{}'::text[]`),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -1147,6 +1155,88 @@ export const attributionPayloadSchema = z.object({
 });
 
 export type AttributionPayload = z.infer<typeof attributionPayloadSchema>;
+
+// ============================================================================
+// BILLING (StreamPay) — see migrations/0014_billing.sql and server/lib/billing.ts
+// ============================================================================
+
+// What the payer typed in the checkout step, saved as they type. Every field
+// is optional: whatever is already known elsewhere in the app (user phone,
+// company legal name, CR, VAT) is used instead and never asked for twice.
+export const billingProfiles = pgTable("billing_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }).unique(),
+  billingName: text("billing_name"),
+  billingEmail: text("billing_email"),
+  billingPhone: text("billing_phone"), // E.164, +9665XXXXXXXX
+  vatNumber: text("vat_number"),
+  crNumber: text("cr_number"),
+  // Building + street. StreamPay needs it (with city) to bill a company as a
+  // business, i.e. a tax invoice in the company's name.
+  address: text("address"),
+  city: text("city"),
+  updatedByUserId: varchar("updated_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const CHECKOUT_STATUSES = ["draft", "redirected", "paid", "failed", "abandoned"] as const;
+export type CheckoutStatus = typeof CHECKOUT_STATUSES[number];
+
+// One row per checkout attempt. 'draft' while on Bid's details step,
+// 'redirected' once sent to StreamPay, then paid / failed. The follow-up job
+// turns a stale unfinished one into 'abandoned' when it emails about it.
+export const billingCheckouts = pgTable("billing_checkouts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  plan: varchar("plan", { length: 16 }).notNull(), // PaidPlan
+  term: varchar("term", { length: 16 }).notNull(), // BillingTerm
+  status: varchar("status", { length: 16 }).notNull().default("draft"),
+  paymentLinkId: text("payment_link_id").unique(),
+  failureReason: text("failure_reason"), // StreamPay's message, e.g. "INSUFFICIENT FUNDS"
+  lastActivityAt: timestamp("last_activity_at").defaultNow().notNull(),
+  followupSentAt: timestamp("followup_sent_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  companyIdx: index("billing_checkouts_company_idx").on(t.companyId, t.createdAt),
+}));
+
+// The company's plan as last read from StreamPay. Only syncCompanySubscription
+// writes here; StreamPay is the source of truth.
+export const companySubscriptions = pgTable("company_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }).unique(),
+  plan: varchar("plan", { length: 16 }).notNull(),
+  term: varchar("term", { length: 16 }).notNull(),
+  // StreamPay's status, lower-cased: active | trialing | canceled | expired | frozen | inactive | trial_pending
+  status: varchar("status", { length: 24 }).notNull(),
+  streampaySubscriptionId: text("streampay_subscription_id").notNull(),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Every verified StreamPay webhook. The unique index drops re-deliveries.
+export const billingEvents = pgTable("billing_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventType: varchar("event_type", { length: 64 }).notNull(),
+  entityType: varchar("entity_type", { length: 32 }),
+  entityId: text("entity_id").notNull(),
+  signatureTs: varchar("signature_ts", { length: 32 }).notNull(),
+  companyId: varchar("company_id").references(() => companies.id, { onDelete: "set null" }),
+  payload: jsonb("payload").notNull(),
+  receivedAt: timestamp("received_at").defaultNow().notNull(),
+}, (t) => ({
+  dedupe: uniqueIndex("billing_events_dedupe_idx").on(t.eventType, t.entityId, t.signatureTs),
+}));
+
+export type BillingProfile = typeof billingProfiles.$inferSelect;
+export type BillingCheckout = typeof billingCheckouts.$inferSelect;
+export type CompanySubscription = typeof companySubscriptions.$inferSelect;
+export type BillingEvent = typeof billingEvents.$inferSelect;
 
 // ============================================================================
 // RELATIONS

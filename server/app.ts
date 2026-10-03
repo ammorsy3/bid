@@ -6,6 +6,7 @@ import express, {
   type NextFunction,
 } from "express";
 import { registerRoutes } from "./routes";
+import { registerBillingWebhook } from "./routes/billing";
 // Must NOT come from ./vite: that module imports the `vite` package and
 // vite.config at load time, neither of which exists in a serverless runtime.
 import { log } from "./log";
@@ -20,6 +21,10 @@ import { log } from "./log";
  */
 export async function createApp(): Promise<Express> {
   const app = express();
+
+  // Before express.json(): StreamPay signs the raw body, so this route must
+  // see the exact bytes. It answers the request itself; nothing below runs.
+  registerBillingWebhook(app);
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));

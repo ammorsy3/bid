@@ -14,6 +14,7 @@ import { createTenderSchema, type CreateTender } from "@shared/schema";
 import { draftToTenderPayload, type DraftToTenderPayloadExtras } from "@shared/tender-mapping";
 import { suggestTenderCategory, buildTenderTranslation } from "./tender-ai";
 import { sendTenderCreatedNotification, getBaseUrl } from "../email";
+import { assertCanCreateTender } from "./entitlements";
 
 export type TenderCreationSource = "web" | "api_key" | "webhook" | "mcp";
 
@@ -86,6 +87,14 @@ export async function launchTenderFromPayload(
   }
 
   const tenderData = createTenderSchema.parse(payload);
+
+  // Plan limits (free-tender count, marketplace, in-app Q&A). Here, not in each
+  // route, so the web wizard, API keys, webhooks and MCP can't differ. Throws
+  // PlanRequiredError, which every caller turns into 403 PLAN_REQUIRED.
+  await assertCanCreateTender(ctx.company.id, {
+    marketplace: !!ctx.marketplace?.publishToMarketplace,
+    inquiryType: (tenderData as { inquiryType?: string | null }).inquiryType ?? null,
+  });
 
   const invitationToken =
     Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);

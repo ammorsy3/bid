@@ -18,6 +18,9 @@ import { SmartUnitDropdown, UNIT_LABELS_AR } from "@/components/ui/smart-unit-dr
 import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { usePlan } from "@/lib/usePlan";
+import { PlanBadge } from "@/components/billing/PlanBadge";
+import { openUpgrade } from "@/lib/upgrade-store";
 
 type InputMode = "text" | "voice";
 
@@ -44,6 +47,7 @@ export default function TenderProjectScopeStep() {
   const [, navigate] = useLocation();
   const { t, language, isRtl } = useI18n();
   const { toast } = useToast();
+  const { can: planCan } = usePlan();
   const dateLocale = language === 'ar' ? arLocale : undefined;
   const [keyDeliverables, setKeyDeliverables] = useState<Deliverable[]>([]);
   const [expandedDeliverableId, setExpandedDeliverableId] = useState<string | null>(null);
@@ -391,6 +395,7 @@ export default function TenderProjectScopeStep() {
   const namedDeliverables = keyDeliverables.filter((d) => d.name.trim());
 
   const handleSuggestDescription = async () => {
+    if (!planCan('aiBuilder')) { openUpgrade('aiBuilder'); return; }
     if (namedDeliverables.length === 0 || isSuggestingDescription) return;
     const previousDescription = projectDescription;
     setIsSuggestingDescription(true);
@@ -959,6 +964,7 @@ export default function TenderProjectScopeStep() {
                             <Sparkles className="h-3.5 w-3.5" />
                           )}
                           {isSuggestingDescription ? t('tenderFlow.suggestingDescription') : t('tenderFlow.suggestDescriptionWithAi')}
+                          {!planCan('aiBuilder') && <PlanBadge feature="aiBuilder" />}
                         </button>
                       </div>
                       <AutocompleteInput

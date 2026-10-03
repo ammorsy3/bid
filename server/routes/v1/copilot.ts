@@ -19,6 +19,7 @@ import {
 import { authenticateApiKeyOrJwt, requireScope } from "../../middleware/api-key";
 import type { AuthRequest } from "../../middleware/auth-types";
 import { takeToken } from "../../lib/rate-limit";
+import { sendPlanRequired } from "../../lib/entitlements";
 import { lookupIdempotent, storeIdempotent } from "../../lib/idempotency";
 import { getTenantSecret, TenantSecretKey } from "../../lib/tenant-env";
 
@@ -281,6 +282,7 @@ export function registerCopilotV1Routes(app: Express): void {
         if (err instanceof CompanyNotVerifiedError) {
           return res.status(403).json({ message: err.message, requiresVerification: true });
         }
+        if (sendPlanRequired(res, err)) return;
         if (err instanceof MarketplaceValidationError) {
           return res.status(400).json({ message: err.message });
         }

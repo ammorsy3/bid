@@ -5,6 +5,8 @@ import { useAuthStore } from "@/lib/auth";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useI18n } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
+import { openUpgrade } from "@/lib/upgrade-store";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -53,11 +55,18 @@ export default function TenderCreateChoice() {
   // unverified users back here). Only redirect when actually verified — never on
   // an undefined status — so we can't ping-pong with RequireVerified.
   const isVerified = isCompanyAccount && verificationStatus === 'verified';
+  // The free-tender limit is checked here too, so a typed-in or bookmarked
+  // /tenders/new shows the upgrade dialog up front instead of after the wizard.
+  const { settled: planSettled, loaded: planLoaded, canCreateTender } = usePlan();
   useEffect(() => {
-    if (isVerified) {
-      setLocation('/tenders/new/manual', { replace: true });
+    if (!isVerified || !planSettled) return;
+    if (planLoaded && !canCreateTender) {
+      openUpgrade('tenders');
+      setLocation('/dashboard', { replace: true });
+      return;
     }
-  }, [isVerified, setLocation]);
+    setLocation('/tenders/new/manual', { replace: true });
+  }, [isVerified, planSettled, planLoaded, canCreateTender, setLocation]);
 
   const { data: existingDocs = [] } = useQuery<{ id: string; documentType: string; originalName: string | null }[]>({
     queryKey: ['/api/companies', activeCompanyId, 'documents'],

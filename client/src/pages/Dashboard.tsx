@@ -27,6 +27,9 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
+import { SidebarPlanCard, MobileUpgradeChip, PlanUsageBanner } from "@/components/billing/DashboardPlanCard";
+import { usePlan } from "@/lib/usePlan";
+import { PlanBadge } from "@/components/billing/PlanBadge";
 import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark, User, Code2, CheckCircle2, MapPin } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { SupportContactLinks } from "@/components/support-contact";
@@ -233,6 +236,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
   const [slug, setSlug] = useState(defaultSlug);
   const [isEditing, setIsEditing] = useState(false);
   const [slugTaken, setSlugTaken] = useState(false);
+  const { can: planCan, gate: planGate } = usePlan();
 
   const createSlugMutation = useMutation({
     mutationFn: async (slugValue: string) => {
@@ -245,6 +249,8 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
       checkAuth();
     },
     onError: (error: Error) => {
+      // A plan limit already opened the upgrade dialog; don't pile a toast on top.
+      if ((error as { code?: string }).code === 'PLAN_REQUIRED') return;
       if (error.message.includes('already taken')) {
         setSlugTaken(true);
       } else {
@@ -312,12 +318,13 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setIsEditing(true)}
+          onClick={() => planGate('traction', () => setIsEditing(true))}
           className="border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/5 max-md:h-11 max-md:w-full max-md:border-transparent max-md:bg-[#FE3C01] max-md:text-white max-md:hover:bg-[#E83501] max-md:hover:text-white max-md:active:bg-[#C93000]"
           data-testid="button-setup-traction"
         >
           <Plus className={`h-4 w-4 me-1`} />
           {t('dashboard.setupTractionLink')}
+          {!planCan('traction') && <PlanBadge feature="traction" className="ms-2" />}
         </Button>
       )}
     </div>
@@ -1110,6 +1117,9 @@ function ChatHistorySidebar() {
   const [, setLocation] = useLocation();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  // Starting or resuming an AI chat is the AI builder: checked here, before the
+  // chat opens, rather than failing on the first message.
+  const { can: planCan, gate: planGate } = usePlan();
   const { data: chatSessions } = useQuery<any[]>({
     queryKey: ["/api/ai-chat-sessions"],
   });
@@ -1170,8 +1180,9 @@ function ChatHistorySidebar() {
           variant="ghost"
           size="icon"
           className="h-5 w-5"
-          aria-label={t('dashboard.createTender')}
-          onClick={() => setLocation("/tenders/new/ai")}
+          onClick={() => planGate('aiBuilder', () => setLocation("/tenders/new/ai"))}
+          aria-label={planCan('aiBuilder') ? t('dashboard.createTender') : t('upgrade.aiLocked')}
+          data-testid="button-new-ai-chat"
         >
           <Plus className="h-3 w-3" />
         </Button>
@@ -1182,7 +1193,7 @@ function ChatHistorySidebar() {
             <SidebarMenuItem key={session.id}>
               <SidebarMenuButton
                 tooltip={session.title}
-                onClick={() => setLocation(`/tenders/new/ai?session=${session.id}`)}
+                onClick={() => planGate('aiBuilder', () => setLocation(`/tenders/new/ai?session=${session.id}`))}
                 className="py-2 text-sm rounded-lg hover:bg-muted group/chat max-md:h-auto max-md:min-h-11 max-md:group-has-[[data-sidebar=menu-action]]/menu-item:pe-11"
               >
                 <MessageSquare className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -1505,11 +1516,14 @@ function DashboardInner({ user, activeCompany }: {
   const canActivateIndividual = !hasIndividualWorkspace;
   const hasProfileComplete = !!(activeCompany.profile?.bio && activeCompany.profile?.logoUrl);
 
+  // The free-tender limit is checked here, before the wizard opens, never on
+  // the last click after twelve steps of typing.
+  const { gateCreateTender, can: planCan, gate: planGate, gated: planGated } = usePlan();
   function handleCreateTender() {
     if (!isCompanyVerified) {
       setShowUnverifiedDialog(true);
     } else {
-      setLocation('/tenders/new');
+      gateCreateTender(() => setLocation('/tenders/new'));
     }
   }
 
@@ -2152,6 +2166,7 @@ function DashboardInner({ user, activeCompany }: {
         </SidebarContent>
 
         <SidebarFooter className="border-t px-4 py-4 max-md:pb-[max(1rem,env(safe-area-inset-bottom))] max-md:max-h-[45dvh] max-md:overflow-y-auto max-md:overscroll-contain">
+          <SidebarPlanCard />
           {/* Legal verification belongs to company workspaces only. */}
           {requiresLegalVerification && activeCompany.verificationStatus === 'not_verified' && (
             <div className="mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2.5 group-data-[collapsible=icon]:hidden">
@@ -2508,6 +2523,17 @@ function DashboardInner({ user, activeCompany }: {
                 </button>
                 )}
 
+                {planGated && (
+                <button
+                  onClick={() => setLocation('/settings?tab=billing')}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
+                  data-testid="menu-plans-billing"
+                >
+                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm">{t('settings.plansBilling')}</span>
+                </button>
+                )}
+
                 <button
                   onClick={() => setLocation('/settings')}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 max-md:py-3 hover:bg-accent active:bg-accent transition-colors ${isRtl ? 'text-right' : ''}`}
@@ -2617,6 +2643,7 @@ function DashboardInner({ user, activeCompany }: {
         <header className="md:hidden sticky top-0 z-30 flex items-center gap-3 h-14 px-4 border-b border-border bg-card">
           <SidebarTrigger className="h-9 w-9 -ms-1.5" aria-label={t('dashboard.openMenu')} data-testid="button-open-menu" />
           <BidLogo variant="orange" size={24} />
+          <MobileUpgradeChip />
         </header>
         {/* Main Content. data-audit-ok (phones only): the fixed bottom tab bar sits on top
             of whatever is scrolled to the bottom edge, and the last row always clears it
@@ -2646,6 +2673,8 @@ function DashboardInner({ user, activeCompany }: {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-10 w-full pt-2 px-1 sm:px-2">
+
+            <PlanUsageBanner />
 
             {/* ── Signal desk — heading + live stats fused into one ink panel ── */}
             <motion.section

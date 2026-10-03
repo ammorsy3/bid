@@ -28,6 +28,9 @@ import { useAuthStore } from "@/lib/auth";
 import { TourBanner } from "@/lib/tour";
 import { TOUR_BANNERS } from "@/lib/tour-steps";
 import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
+import { usePlan } from "@/lib/usePlan";
+import { openUpgrade } from "@/lib/upgrade-store";
+import { PlanBadge } from "@/components/billing/PlanBadge";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
@@ -51,6 +54,7 @@ function ReviewSectionHeader({ index, title }: { index: number; title: string })
 }
 
 export default function TenderReview() {
+  const { can: planCan } = usePlan();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { theme } = useTheme();
@@ -439,6 +443,8 @@ export default function TenderReview() {
       const createdTender = await response.json();
       localStorage.removeItem(TENDER_STATE_KEY);
       queryClient.invalidateQueries({ queryKey: ["/api/tenders"] });
+      // One more tender used: the plan card and the next "Create tender" must see it.
+      queryClient.invalidateQueries({ queryKey: ["/api/entitlements"] });
 
       const inviteLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
       toast({
@@ -897,16 +903,21 @@ export default function TenderReview() {
                   <div className="pt-5 space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <label className="text-sm font-medium text-gray-900 dark:text-foreground">
+                        <label className="text-sm font-medium text-gray-900 dark:text-foreground inline-flex items-center gap-2">
                           {t('tenderFlow.saveRfpAsTemplate')}
+                          {!planCan('ownTemplates') && <PlanBadge feature="ownTemplates" />}
                         </label>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                          {t('tenderFlow.templatesCanBeReused')}
+                          {planCan('ownTemplates') ? t('tenderFlow.templatesCanBeReused') : t('upgrade.templatesLocked')}
                         </p>
                       </div>
                       <Switch
                         checked={saveAsTemplate}
+                        data-testid="switch-save-template"
                         onCheckedChange={(checked) => {
+                          // Saving your own templates is a paid feature: checked on the
+                          // switch, before the name and description are typed.
+                          if (checked && !planCan('ownTemplates')) { openUpgrade('ownTemplates'); return; }
                           setSaveAsTemplate(checked);
                           if (!checked) {
                             setTemplateName("");

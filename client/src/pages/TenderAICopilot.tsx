@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useLocation, useSearch } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { openUpgradeIfPlanRequired } from "@/lib/plan-errors";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -685,6 +686,12 @@ export default function TenderAICopilot() {
   }, []);
 
   const processStreamResponse = async (response: Response, sid?: string | null) => {
+    // A plan limit answers with JSON, not a stream: show the upgrade dialog.
+    if (!response.ok && (await openUpgradeIfPlanRequired(response))) {
+      setIsLoading(false);
+      setOrbState("idle");
+      return;
+    }
     const reader = response.body?.getReader();
     if (!reader) return;
 
@@ -1021,7 +1028,10 @@ export default function TenderAICopilot() {
           ),
           duration: 10000,
         });
+        queryClient.invalidateQueries({ queryKey: ["/api/entitlements"] });
         setTimeout(() => navigate("/dashboard"), 3000);
+      } else if (await openUpgradeIfPlanRequired(response)) {
+        setOrbState("idle");
       } else {
         let serverMessage = "";
         try { serverMessage = (await response.json())?.message || ""; } catch {}

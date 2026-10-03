@@ -1533,3 +1533,64 @@ export async function sendMembershipDecisionNotification(params: {
 // profile was about to disappear from Discovery. Discovery has been removed, so
 // the warning describes a mechanism that no longer exists. It had zero callers
 // and no cron ever invoked it. See Q-023.
+
+// =============================================================================
+// BILLING — UNFINISHED CHECKOUT FOLLOW-UP
+// Sent once, a few hours after someone started upgrading and didn't finish.
+// Triggered by the daily cron (GET /api/cron/billing-followups, vercel.json); rules on who
+// qualifies live in runCheckoutFollowups (server/lib/billing.ts). Replies go to
+// info@bidapp.sa, which is the point: it asks what went wrong.
+// =============================================================================
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+export async function sendCheckoutFollowupEmail(params: {
+  email: string;
+  name?: string | null;
+  language?: Lang;
+  companyName: string;
+  plan: "pro" | "business";
+  term: "monthly" | "yearly";
+  /** StreamPay's decline message when the card was declined, e.g. "INSUFFICIENT FUNDS". */
+  failureReason?: string | null;
+  checkoutId: string;
+  appBaseUrl?: string;
+}): Promise<boolean> {
+  const { email, name, language = "en", plan, term, failureReason, checkoutId, appBaseUrl } = params;
+  const isAr = language === "ar";
+  const company = escapeHtml(params.companyName);
+  const planName = plan === "pro" ? "Pro" : "Business";
+  const termLabel = term === "yearly" ? (isAr ? "سنوي" : "yearly") : (isAr ? "شهري" : "monthly");
+  const resumeUrl = `${getBaseUrl(appBaseUrl)}/settings?tab=billing&resume=${encodeURIComponent(checkoutId)}`;
+  const declined = !!failureReason;
+
+  const subject = isAr
+    ? `لم تكتمل ترقيتك إلى باقة ${planName} — هل واجهت مشكلة؟`
+    : `You didn't finish upgrading to ${planName} — did something go wrong?`;
+
+  const bodyText = isAr
+    ? (declined
+        ? `حاولت ترقية <strong>${company}</strong> إلى باقة ${planName} لكن البطاقة لم تُقبل. يمكنك المحاولة ببطاقة أخرى أو ببطاقة مدى — بياناتك محفوظة ولن تحتاج إلى إدخالها من جديد.<br><br>وإن كان هناك ما منعك، فقط ردّ على هذا البريد وأخبرنا. نقرأ كل رد.`
+        : `بدأت ترقية <strong>${company}</strong> إلى باقة ${planName} ولم تكتمل. بياناتك محفوظة، ويمكنك المتابعة من حيث توقفت.<br><br>هل واجهت مشكلة أو لديك سؤال عن الباقات؟ فقط ردّ على هذا البريد وأخبرنا — نقرأ كل رد.`)
+    : (declined
+        ? `You tried to upgrade <strong>${company}</strong> to ${planName}, but the card was declined. You can try another card or mada — your details are saved, so there's nothing to retype.<br><br>If something else got in the way, just reply to this email and tell us. We read every reply.`
+        : `You started upgrading <strong>${company}</strong> to ${planName} but didn't finish. Your details are saved, so you can pick up where you left off.<br><br>Did something go wrong, or do you have a question about the plans? Just reply to this email and tell us — we read every reply.`);
+
+  const html = buildEmailHtml({
+    language,
+    iconEmoji: declined ? "&#128179;" : "&#128075;",
+    iconBg: "#FFF1EE",
+    headline: isAr ? "لم تكتمل الترقية" : "Your upgrade isn't finished",
+    subheadline: isAr ? `باقة ${planName} · ${termLabel}` : `${planName} plan · ${termLabel}`,
+    recipientName: name ? escapeHtml(name) : undefined,
+    bodyText,
+    ctaLabel: isAr ? "متابعة الترقية" : "Resume checkout",
+    ctaUrl: resumeUrl,
+    reasonText: isAr
+      ? `وصلك هذا البريد لأنك بدأت ترقية ${company} على Bid. نرسله مرة واحدة فقط. يمكنك إيقاف رسائل الفوترة من الإعدادات ← الإشعارات.`
+      : `You received this because you started upgrading ${company} on Bid. We send it once. You can turn off billing emails in Settings → Notifications.`,
+  });
+
+  return sendEmail(email, subject, html);
+}

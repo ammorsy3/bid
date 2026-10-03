@@ -7,6 +7,9 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/format-currency";
+import { usePlan } from "@/lib/usePlan";
+import { PlanBadge } from "@/components/billing/PlanBadge";
+import { openUpgrade } from "@/lib/upgrade-store";
 
 type BudgetMode = "manual" | "ai" | null;
 
@@ -28,6 +31,7 @@ const getProjectSize = (budget: number): ProjectSize => {
 export default function TenderAIBudgetStep() {
   const [, navigate] = useLocation();
   const { t, isRtl, language } = useI18n();
+  const { can: planCan } = usePlan();
   const [budgetMode, setBudgetMode] = useState<BudgetMode>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [aiEstimate, setAiEstimate] = useState<AIBudgetEstimate | null>(null);
@@ -108,6 +112,7 @@ export default function TenderAIBudgetStep() {
   };
 
   const handleAIEstimate = async () => {
+    if (!planCan('aiBuilder')) { openUpgrade('aiBuilder'); return; }
     setIsLoading(true);
     setError(null);
     setAiEstimate(null);
@@ -280,6 +285,7 @@ export default function TenderAIBudgetStep() {
                         >
                           <Sparkles className="h-4 w-4 mr-2" />
                           {t('tenderFlow.getAIEstimate')}
+                          {!planCan('aiBuilder') && <PlanBadge feature="aiBuilder" className="ml-2 bg-white/90" />}
                         </Button>
                       </div>
                     )}

@@ -69,6 +69,10 @@ import AdminErrors from "@/pages/AdminErrors";
 import AdminNotifications from "@/pages/AdminNotifications";
 import AdminJoinRequests from "@/pages/AdminJoinRequests";
 import AdminCampaigns from "@/pages/AdminCampaigns";
+import AdminCheckouts from "@/pages/AdminCheckouts";
+import Upgrade from "@/pages/Upgrade";
+import { UpgradeDialog } from "@/components/billing/UpgradeDialog";
+import { RequirePlan } from "@/components/billing/RequirePlan";
 import ClerkCallback from "@/pages/ClerkCallback";
 import Terms from "@/pages/Terms";
 import Privacy from "@/pages/Privacy";
@@ -182,7 +186,7 @@ export default function App() {
               <Route path="/admin/notifications" component={AdminNotifications} />
               <Route path="/admin/vendors" component={AdminVendors} />
               <Route path="/tenders/new" component={TenderCreateChoice} />
-              <Route path="/tenders/new/ai">{() => <RequireVerified><TenderAICopilot /></RequireVerified>}</Route>
+              <Route path="/tenders/new/ai">{() => <RequireVerified><RequirePlan feature="aiBuilder"><TenderAICopilot /></RequirePlan></RequireVerified>}</Route>
               <Route path="/tenders/new/manual">{() => <RequireVerified><TenderStartMethodStep /></RequireVerified>}</Route>
               <Route path="/tenders/new/title">{() => <RequireVerified><TenderTitleStep /></RequireVerified>}</Route>
               <Route path="/tenders/new/project-scope">{() => <RequireVerified><TenderProjectScopeStep /></RequireVerified>}</Route>
@@ -209,8 +213,10 @@ export default function App() {
               <Route path="/admin/users" component={AdminUsers} />
               <Route path="/admin/join-requests" component={AdminJoinRequests} />
               <Route path="/admin/campaigns" component={AdminCampaigns} />
+              <Route path="/admin/checkouts" component={AdminCheckouts} />
               <Route path="/admin/audit-logs" component={AdminAuditLogs} />
               <Route path="/admin/errors" component={AdminErrors} />
+              <Route path="/upgrade" component={Upgrade} />
               <Route path="/settings/integrations" component={SettingsIntegrations} />
               <Route path="/settings" component={Settings} />
               <Route path="/docs" component={DocsPage} />
@@ -222,6 +228,7 @@ export default function App() {
               <Route path="/cookies" component={Cookies} />
               <Route component={NotFound} />
             </Switch>
+            <UpgradeDialog />
             <Toaster />
             <Analytics />
             <SpeedInsights />

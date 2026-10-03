@@ -20,6 +20,7 @@ import {
 import { authenticateApiKey, requireScope } from "../../middleware/api-key";
 import type { AuthRequest } from "../../middleware/auth-types";
 import { takeToken } from "../../lib/rate-limit";
+import { PlanRequiredError, sendPlanRequired } from "../../lib/entitlements";
 import { lookupIdempotent, storeIdempotent } from "../../lib/idempotency";
 import { getTenantSecret, TenantSecretKey } from "../../lib/tenant-env";
 import { logIntegrationEvent } from "../../lib/integration-logs";
@@ -255,6 +256,8 @@ export function registerWebhookAdapter(app: Express): void {
             } catch (launchErr) {
               if (launchErr instanceof CompanyNotVerifiedError) {
                 validationErrors = ["company_not_verified"];
+              } else if (launchErr instanceof PlanRequiredError) {
+                validationErrors = [`plan_required:${launchErr.feature}`];
               } else if (launchErr instanceof MarketplaceValidationError) {
                 validationErrors = [`marketplace_invalid:${launchErr.message}`];
               } else {
@@ -400,6 +403,7 @@ export function registerWebhookAdapter(app: Express): void {
           if (launchErr instanceof CompanyNotVerifiedError) {
             return res.status(403).json({ message: launchErr.message, requiresVerification: true });
           }
+          if (sendPlanRequired(res, launchErr)) return;
           if (launchErr instanceof MarketplaceValidationError) {
             return res.status(400).json({ message: launchErr.message });
           }

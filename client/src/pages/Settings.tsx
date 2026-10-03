@@ -21,6 +21,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Language } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
+import { PlanBadge } from "@/components/billing/PlanBadge";
+import { openUpgrade } from "@/lib/upgrade-store";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTour } from "@/lib/tour";
 import { SETTINGS_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
@@ -488,6 +491,7 @@ export default function Settings() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { t, language, setLanguage, isRtl } = useI18n();
+  const { can: planCan } = usePlan();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const companyLogoInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<SettingsTab>(() => {
@@ -938,6 +942,7 @@ export default function Settings() {
   };
 
   const handleSendInvites = () => {
+    if (!planCan('seats')) { openUpgrade('seats'); return; }
     const validInvites = inviteRows.filter(r => r.email.trim() && r.email.includes('@'));
     if (validInvites.length === 0) {
       toast({
@@ -1560,11 +1565,12 @@ export default function Settings() {
                 <h2 className="font-display font-black text-xl tracking-[-0.02em] flex items-center gap-2">
                   <UserPlus className="h-5 w-5" />
                   {t('settings.inviteTeamMembers')}
+                  {!planCan('seats') && <PlanBadge feature="seats" />}
                 </h2>
                 <Card>
                   <CardContent className="pt-6 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      {t('settings.inviteDesc', { company: activeCompany.name })}
+                      {planCan('seats') ? t('settings.inviteDesc', { company: activeCompany.name }) : t('upgrade.seatsNote')}
                     </p>
 
                     {/* Invite rows */}

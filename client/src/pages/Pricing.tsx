@@ -10,7 +10,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { MONTHLY_PRICE, YEARLY_DISCOUNT } from "@shared/billing-plans";
 import {
   Infinity as InfinityIcon,
-  Users,
   Sparkles,
   LayoutTemplate,
   MessageCircleQuestion,
@@ -73,7 +72,6 @@ const FEATURES: Record<PlanId, Feat[]> = {
   pro: [
     { key: "fUnlimitedTenders", Icon: InfinityIcon },
     { key: "fMarketplace", Icon: Store },
-    { key: "fVendorBase", Icon: Users },
     { key: "fAiBuilder", Icon: Sparkles },
     { key: "fTemplates", Icon: LayoutTemplate },
     { key: "fQa", Icon: MessageCircleQuestion },
@@ -138,9 +136,8 @@ const copy = {
     entCta: "Contact sales",
 
     fUnlimitedTenders: "Unlimited tenders and RFPs",
-    fVendorBase: "A private company network",
     fAiBuilder: "AI writes your tender from a brief",
-    fTemplates: "Reusable templates",
+    fTemplates: "Save your own templates",
     fQa: "Structured Q&A rounds",
     fTraction: "Traction Link for inbound connections",
     fEverythingPro: "Everything in Pro",
@@ -174,11 +171,11 @@ const copy = {
     q8: "What's the difference between private tenders and the marketplace?",
     a8: "A private tender goes only to the vendors you invite by link. Publishing to the marketplace puts it in front of vendors you have not met yet, which is where most new suppliers come from. The free plan covers private tenders; marketplace publishing starts on Pro.",
     q4: "Do you charge per user?",
-    a4: "Yes, per user per month. Your whole team works from one workspace, so you only pay for the seats you use.",
+    a4: "No. The price is per company, not per person. Your whole team works from one workspace. The free plan includes one seat; Pro and Business have no seat limit.",
     q5: "Which currency am I billed in?",
     a5: "Saudi riyals. The dollar figures here are a fixed reference conversion, since the riyal is pegged to the dollar.",
     q6: "Can I change or cancel my plan?",
-    a6: "Any time. Upgrades apply immediately and are prorated; downgrades take effect at the end of the current billing period.",
+    a6: "Cancel any time. Your plan keeps working until the end of the period you already paid for, then moves to Free. You can resume it before then.",
 
     ctaTitle: "Better sourcing starts here.",
     ctaSub: "Three tenders, no card required. Upgrade the day Bid pays for itself.",
@@ -228,9 +225,8 @@ const copy = {
     entCta: "تواصل مع المبيعات",
 
     fUnlimitedTenders: "مناقصات وطلبات عروض غير محدودة",
-    fVendorBase: "شبكة شركات خاصة",
     fAiBuilder: "الذكاء الاصطناعي يكتب مناقصتك من بريف",
-    fTemplates: "قوالب قابلة لإعادة الاستخدام",
+    fTemplates: "احفظ قوالبك الخاصة",
     fQa: "جولات أسئلة وأجوبة منظّمة",
     fTraction: "رابط انضمام للتواصل الوارد",
     fEverythingPro: "كل ما في برو",
@@ -264,11 +260,11 @@ const copy = {
     q8: "ما الفرق بين المناقصات الخاصة والسوق؟",
     a8: "المناقصة الخاصة تصل فقط للمورّدين الذين تدعوهم برابط. أما النشر في السوق فيضع مناقصتك أمام مورّدين لم تلتقِ بهم بعد، وهو مصدر معظم المورّدين الجدد. الباقة المجانية تغطي المناقصات الخاصة، والنشر في السوق يبدأ من باقة برو.",
     q4: "هل السعر لكل مستخدم؟",
-    a4: "نعم، لكل مستخدم شهرياً. فريقك كله يعمل في مساحة عمل واحدة، فلا تدفع إلا مقابل المقاعد التي تستخدمها.",
+    a4: "لا. السعر لكل شركة وليس لكل شخص. فريقك كله يعمل في مساحة عمل واحدة. الباقة المجانية تشمل مقعداً واحداً، وباقتا برو وبزنس بلا حد للمقاعد.",
     q5: "بأي عملة تتم الفوترة؟",
     a5: "بالريال السعودي. المبالغ بالدولار هنا تحويل مرجعي ثابت، لأن الريال مربوط بالدولار.",
     q6: "هل يمكنني تغيير باقتي أو إلغاؤها؟",
-    a6: "في أي وقت. الترقية تُطبّق فوراً وتُحتسب بالتناسب، والتخفيض يسري في نهاية دورة الفوترة الحالية.",
+    a6: "يمكنك الإلغاء في أي وقت. تبقى باقتك تعمل حتى نهاية الفترة التي دفعت عنها، ثم تعود إلى المجانية. ويمكنك استئنافها قبل ذلك.",
 
     ctaTitle: "توريد أفضل يبدأ من هنا.",
     ctaSub: "٣ مناقصات، بدون بطاقة. ارتقِ يوم تُغطّي Bid تكلفتها.",

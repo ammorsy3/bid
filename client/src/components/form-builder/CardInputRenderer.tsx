@@ -15,6 +15,9 @@ import VoiceRecorder from "@/components/voice-recorder";
 import VendorRequirementsEditor from "@/components/VendorRequirementsEditor";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
+import { PlanBadge } from "@/components/billing/PlanBadge";
+import { openUpgrade } from "@/lib/upgrade-store";
 import { useToast } from "@/hooks/use-toast";
 
 interface CardInputRendererProps {
@@ -703,6 +706,7 @@ function ProjectDescriptionInput({
 }) {
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const { can: planCan } = usePlan();
   const [tab, setTab] = useState<"text" | "voice">("text");
   const [isSuggesting, setIsSuggesting] = useState(false);
   const val: DescriptionValue = value && typeof value === "object" && "text" in value
@@ -718,6 +722,7 @@ function ProjectDescriptionInput({
   const namedDeliverables = deliverables.filter((d) => d.name.trim());
 
   const handleSuggestDescription = async () => {
+    if (!planCan('aiBuilder')) { openUpgrade('aiBuilder'); return; }
     if (namedDeliverables.length === 0 || isSuggesting) return;
     setIsSuggesting(true);
     try {
@@ -811,6 +816,7 @@ function ProjectDescriptionInput({
                 <Sparkles className="h-3.5 w-3.5" />
               )}
               {isSuggesting ? t('tenderFlow.suggestingDescription') : t('tenderFlow.suggestDescriptionWithAi')}
+              {!planCan('aiBuilder') && <PlanBadge feature="aiBuilder" />}
             </button>
           </div>
           <textarea

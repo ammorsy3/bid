@@ -2,6 +2,7 @@ import type { Express, Request, Response, RequestHandler } from "express";
 import { runCopilotTurnStream } from "./engine";
 import { getTenantSecret, TenantSecretKey } from "../../lib/tenant-env";
 import type { AuthRequest } from "../../middleware/auth-types";
+import { requireFeature } from "../../lib/entitlements";
 
 export {
   runCopilotTurn,
@@ -18,7 +19,7 @@ export type {
 } from "./engine";
 
 export function registerCopilotRoutes(app: Express, authenticateToken: RequestHandler): void {
-  app.post("/api/copilot/chat", authenticateToken, async (req: Request, res: Response) => {
+  app.post("/api/copilot/chat", authenticateToken, requireFeature("aiBuilder"), async (req: Request, res: Response) => {
     try {
       const { message, companyData, chatHistory, tenderDraft, language } = req.body;
 

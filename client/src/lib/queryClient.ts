@@ -1,14 +1,19 @@
 import { QueryClient, QueryFunction, MutationCache } from "@tanstack/react-query";
 import { reportError } from "./errorLogger";
 import { toast } from "@/hooks/use-toast";
+import { openUpgrade } from "./upgrade-store";
+import { isFeature } from "@shared/entitlements";
 
 export class ApiError extends Error {
   code?: string;
   statusCode: number;
-  constructor(message: string, statusCode: number, code?: string) {
+  /** The rest of the server's JSON body (e.g. `feature`, `requiredPlan`, `missing`). */
+  details?: Record<string, unknown>;
+  constructor(message: string, statusCode: number, code?: string, details?: Record<string, unknown>) {
     super(message);
     this.code = code;
     this.statusCode = statusCode;
+    this.details = details;
   }
 }
 
@@ -27,7 +32,8 @@ async function throwIfResNotOk(res: Response) {
       }
     }
 
-    if (!res.url.includes('/api/errors')) {
+    // A plan limit is an expected answer (it opens the upgrade dialog), not an error to log.
+    if (!res.url.includes('/api/errors') && !text.includes('"PLAN_REQUIRED"')) {
       reportError({
         message: text || res.statusText || `HTTP ${res.status}`,
         statusCode: res.status,
@@ -39,6 +45,7 @@ async function throwIfResNotOk(res: Response) {
     // Extract a user-friendly message from the response body
     let userMessage = res.statusText || 'Something went wrong';
     let code: string | undefined;
+    let details: Record<string, unknown> | undefined;
     if (text) {
       try {
         const parsed = JSON.parse(text);
@@ -48,11 +55,20 @@ async function throwIfResNotOk(res: Response) {
         if (parsed.code) {
           code = parsed.code;
         }
+        if (parsed && typeof parsed === 'object') details = parsed;
       } catch {
         userMessage = text;
       }
     }
-    throw new ApiError(userMessage, res.status, code);
+
+    // A plan limit, from ANY request: open the upgrade dialog right here, so
+    // every gated action behaves the same without each caller handling it.
+    if (res.status === 403 && code === 'PLAN_REQUIRED' && details) {
+      const f = details.feature;
+      if (f === 'tenders' || isFeature(f)) openUpgrade(f, userMessage);
+    }
+
+    throw new ApiError(userMessage, res.status, code, details);
   }
 }
 

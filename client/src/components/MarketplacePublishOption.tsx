@@ -11,6 +11,10 @@ import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
+import { openUpgrade } from "@/lib/upgrade-store";
+import { PlanBadge } from "@/components/billing/PlanBadge";
 
 export interface MarketplacePoFile {
   fileUrl: string;
@@ -44,6 +48,10 @@ export function MarketplacePublishOption({
   t,
 }: MarketplacePublishOptionProps) {
   const { toast } = useToast();
+  const { t: tr } = useI18n();
+  const { can } = usePlan();
+  // Checked when the switch is flipped, before any marketplace field is filled in.
+  const locked = !can('marketplace');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -114,17 +122,24 @@ export function MarketplacePublishOption({
             <Store className="h-4 w-4 text-[#FE3C01]" />
           </div>
           <div>
-            <span className="text-sm font-medium text-foreground">
+            <span className="text-sm font-medium text-foreground inline-flex items-center gap-2">
               {t('marketplace.publishToMarketplace') || 'Publish to Marketplace'}
+              {locked && <PlanBadge feature="marketplace" />}
             </span>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {t('marketplace.createFlowDesc') || 'Also submit to the public marketplace for admin review'}
+              {locked
+                ? tr('upgrade.marketplaceLocked')
+                : (t('marketplace.createFlowDesc') || 'Also submit to the public marketplace for admin review')}
             </p>
           </div>
         </div>
         <Switch
           checked={value.enabled}
-          onCheckedChange={(checked) => update({ enabled: checked, confirmed: false })}
+          onCheckedChange={(checked) => {
+            if (checked && locked) { openUpgrade('marketplace'); return; }
+            update({ enabled: checked, confirmed: false });
+          }}
+          data-testid="switch-marketplace"
         />
       </div>
 

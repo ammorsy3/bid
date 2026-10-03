@@ -35,7 +35,8 @@ async function main() {
       const externalId = productExternalId(plan, term);
       const price = periodPrice(plan, term);
       const name = `Bid ${plan === "pro" ? "Pro" : "Business"} — ${term === "yearly" ? "Yearly" : "Monthly"}`;
-      const found = existing.find((p) => productPlanKey(p) === externalId);
+      // An old product may still carry this key after a price change; only the active one counts.
+      const found = existing.find((p) => productPlanKey(p) === externalId && p.is_active !== false);
 
       if (found) {
         // `price` is what the customer pays (VAT included); compare the pre-VAT one.

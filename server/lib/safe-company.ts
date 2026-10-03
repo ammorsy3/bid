@@ -13,9 +13,9 @@
 
 import type { Company } from "@shared/schema";
 
-export type SafeCompany = Omit<Company, "joinCode" | "documents" | "ownerUserId" | "streampayConsumerId">;
+export type SafeCompany = Omit<Company, "joinCode" | "documents" | "ownerUserId" | "streampayConsumerId" | "grandfatheredFeatures">;
 
 export function safeCompany(company: Company): SafeCompany {
-  const { joinCode, documents, ownerUserId, streampayConsumerId, ...rest } = company;
+  const { joinCode, documents, ownerUserId, streampayConsumerId, grandfatheredFeatures, ...rest } = company;
   return rest;
 }

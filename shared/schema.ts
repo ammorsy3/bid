@@ -120,6 +120,10 @@ export const companies = pgTable("companies", {
   // someone starts a checkout. See migrations/0014_billing.sql.
   streampayConsumerId: text("streampay_consumer_id").unique(),
 
+  // Features this company already used before plan limits went live and keeps on
+  // the free plan (see shared/entitlements.ts GRANDFATHERABLE, migration 0015).
+  grandfatheredFeatures: text("grandfathered_features").array().notNull().default(sql`'{}'::text[]`),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -221,10 +221,22 @@ export async function openCheckout(companyId: string, userId: string, plan: Paid
 }
 
 /**
+ * Where StreamPay sends the payer back to. A fixed allowlist of Bid pages, never
+ * a path from the request, so this can't be turned into an open redirect.
+ */
+export const RETURN_PAGES = { settings: "/settings?tab=billing", upgrade: "/upgrade" } as const;
+export type ReturnPage = keyof typeof RETURN_PAGES;
+
+/**
  * Turns a checkout into a StreamPay payment link and returns its URL.
  * `returnBase` is the origin the payer comes back to (bidapp.sa in production).
  */
-export async function startPayment(checkout: BillingCheckout, userId: string, returnBase: string): Promise<{ url: string }> {
+export async function startPayment(
+  checkout: BillingCheckout,
+  userId: string,
+  returnBase: string,
+  returnTo: ReturnPage = "settings",
+): Promise<{ url: string }> {
   const current = await getCompanySubscription(checkout.companyId);
   if (isLiveSubscription(current)) {
     throw new BillingError("This workspace already has an active plan.", 409, "ALREADY_SUBSCRIBED");
@@ -245,7 +257,8 @@ export async function startPayment(checkout: BillingCheckout, userId: string, re
   ]);
   const product = products[`${plan}:${term}`];
 
-  const back = `${returnBase}/settings?tab=billing&checkout=${encodeURIComponent(checkout.id)}`;
+  const page = RETURN_PAGES[returnTo];
+  const back = `${returnBase}${page}${page.includes("?") ? "&" : "?"}checkout=${encodeURIComponent(checkout.id)}`;
   const planName = plan === "pro" ? "Pro" : "Business";
   const link = await createPaymentLink({
     name: `Bid ${planName} (${term === "yearly" ? "yearly" : "monthly"})`,

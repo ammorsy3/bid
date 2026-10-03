@@ -32,6 +32,7 @@ import { registerMcpAdapter } from "./routes/integrations/mcp";
 import { registerIntegrationsAdminRoutes } from "./routes/settings/integrations";
 import { registerMarketingRoutes } from "./routes/marketing";
 import { registerBillingRoutes } from "./routes/billing";
+import { sendPlanRequired, assertFeature, assertSeatAvailable, requireFeature, PlanRequiredError } from "./lib/entitlements";
 import { attributeSignup } from "./lib/campaigns";
 import { normalizeEmail } from "./lib/email-address";
 import { rateLimiter } from "./middleware/rate-limit";
@@ -1395,7 +1396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Set/update traction slug
-  app.patch("/api/company/traction-slug", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
+  app.patch("/api/company/traction-slug", authenticateToken, requireCompanyContext, requireFeature('traction'), async (req: AuthRequest, res) => {
     try {
       const companyId = req.auth!.activeCompanyId!;
       const role = req.auth!.roleInCompany;
@@ -1923,6 +1924,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const { decision, reason, role } = decideMembershipRequestSchema.parse(req.body);
 
+        // Approving adds a person, so it needs a free seat (the free plan is one person).
+        if (decision === 'approved') {
+          try {
+            await assertSeatAvailable(companyId);
+          } catch (seatErr) {
+            if (sendPlanRequired(res, seatErr)) return;
+            throw seatErr;
+          }
+        }
+
         const reqRow = await storage.getMembershipRequestById(reqId);
         if (!reqRow || reqRow.companyId !== companyId) {
           return res.status(404).json({ message: 'Membership request not found' });
@@ -2358,6 +2369,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Company not found" });
       }
 
+      // Checked when the invite is SENT. An invitation already out is never
+      // refused at accept time, and a pending one holds its seat meanwhile.
+      try {
+        await assertSeatAvailable(companyId, invitations.length);
+      } catch (seatErr) {
+        if (sendPlanRequired(res, seatErr)) return;
+        throw seatErr;
+      }
+
       const inviter = await storage.getUser(req.auth!.userId);
       if (!inviter) {
         return res.status(404).json({ message: "User not found" });
@@ -2739,6 +2759,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let role = await storage.getUserRoleInCompany(req.auth!.userId, company.id);
       if (!role) {
+        // The person typing the code isn't the one who can upgrade, so this is
+        // a plain refusal with a message for them, not the owner's upgrade dialog.
+        try {
+          await assertSeatAvailable(company.id);
+        } catch (seatErr) {
+          if (seatErr instanceof PlanRequiredError) {
+            return res.status(403).json({
+              code: 'WORKSPACE_SEAT_LIMIT',
+              message: "This workspace is on the free plan, which is for one person. Ask the workspace owner to upgrade so they can add you.",
+            });
+          }
+          throw seatErr;
+        }
         await storage.addUserToCompany({
           userId: req.auth!.userId,
           companyId: company.id,
@@ -3371,6 +3404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (error instanceof CompanyNotVerifiedError) {
           return res.status(403).json({ message: error.message, requiresVerification: true });
         }
+        if (sendPlanRequired(res, error)) return;
         if (error instanceof MarketplaceValidationError) {
           return res.status(400).json({ message: error.message });
         }
@@ -3873,7 +3907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Suggest a project description from the title + deliverables (custom form builder
   // and Bid Recommended template's "Suggest with AI" option on the description field)
-  app.post("/api/tenders/suggest-description", authenticateToken, suggestDescriptionRateLimit, async (req: AuthRequest, res) => {
+  app.post("/api/tenders/suggest-description", authenticateToken, requireFeature('aiBuilder'), suggestDescriptionRateLimit, async (req: AuthRequest, res) => {
     try {
       const { title, deliverables, startDate, endDate, milestones, language } = req.body;
 
@@ -4134,6 +4168,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const updates = createTenderSchema.partial().parse(req.body);
+        if ((updates as { inquiryType?: string | null }).inquiryType === 'inside_bid' && tender.inquiryType !== 'inside_bid') {
+          await assertFeature(tender.companyId!, 'qa');
+        }
         const updatedTender = await storage.updateTender(req.params.id, updates);
         await storage.logMemberActivity({
           companyId: tender.companyId!,
@@ -4146,6 +4183,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         res.json(updatedTender);
       } catch (error) {
+        if (sendPlanRequired(res, error)) return;
         console.error('Update tender error:', error);
         res.status(400).json({ message: "Invalid tender data" });
       }
@@ -4310,6 +4348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Estimate budget using AI
   app.post("/api/ai/estimate-budget",
     authenticateToken,
+    requireFeature('aiBuilder'),
     async (req: AuthRequest, res) => {
       try {
         const { title, projectType, projectObjective, keyDeliverables, projectDescription, voiceNoteUrl } = req.body;
@@ -4974,6 +5013,7 @@ Respond with ONLY a JSON object. Example:
   app.post("/api/ai/analyze-offer/:offerId",
     authenticateToken,
     requireCompanyContext,
+    requireFeature('aiAnalysis'),
     async (req: AuthRequest, res) => {
       try {
         const config = getOpenAIConfig();
@@ -5009,6 +5049,7 @@ Respond with ONLY a JSON object. Example:
   app.post("/api/ai/analyze-proposals/:tenderId",
     authenticateToken,
     requireCompanyContext,
+    requireFeature('aiAnalysis'),
     async (req: AuthRequest, res) => {
       try {
         const config = getOpenAIConfig();
@@ -6873,7 +6914,7 @@ Respond with ONLY a JSON object. Example:
   // ============================================================================
 
   // Create a new template
-  app.post("/api/templates", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), async (req: AuthRequest, res) => {
+  app.post("/api/templates", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), requireFeature('ownTemplates'), async (req: AuthRequest, res) => {
     try {
       const validatedData = createTenderTemplateSchema.parse(req.body);
 
@@ -7036,7 +7077,7 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  app.post("/api/ai-chat-sessions", authenticateToken, async (req: AuthRequest, res) => {
+  app.post("/api/ai-chat-sessions", authenticateToken, requireFeature('aiBuilder'), async (req: AuthRequest, res) => {
     try {
       const MAX_SESSIONS_PER_USER = 100;
       const userId = req.auth!.userId;
@@ -7359,7 +7400,7 @@ Respond with ONLY a JSON object. Example:
   // MARKETPLACE ROUTES (AUTHENTICATED)
   // ==========================================================================
 
-  app.post("/api/tenders/:id/marketplace-submit", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), async (req: AuthRequest, res) => {
+  app.post("/api/tenders/:id/marketplace-submit", authenticateToken, requireCompanyContext, requireCompanyRole('admin'), requireFeature('marketplace'), async (req: AuthRequest, res) => {
     try {
       const tender = await storage.getTender(req.params.id);
       if (!tender) return res.status(404).json({ message: "Tender not found" });

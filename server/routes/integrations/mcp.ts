@@ -20,6 +20,7 @@ import {
 import { authenticateApiKey } from "../../middleware/api-key";
 import type { AuthRequest } from "../../middleware/auth-types";
 import { takeToken } from "../../lib/rate-limit";
+import { PlanRequiredError } from "../../lib/entitlements";
 
 const MAX_MESSAGE_BYTES = 8 * 1024;
 const RATE_LIMIT_CAPACITY = 30;
@@ -222,6 +223,9 @@ async function toolLaunchTender(args: any, auth: AuthRequest["auth"]) {
   } catch (err) {
     if (err instanceof CompanyNotVerifiedError) {
       throw new McpError(ERR.INVALID_PARAMS, err.message);
+    }
+    if (err instanceof PlanRequiredError) {
+      throw new McpError(ERR.INVALID_PARAMS, err.message, err.toBody());
     }
     if (err instanceof MarketplaceValidationError) {
       throw new McpError(ERR.INVALID_PARAMS, err.message);

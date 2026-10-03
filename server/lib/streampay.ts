@@ -265,6 +265,39 @@ export function getInvoice(id: string) {
   return streamPayRequest<StreamPayInvoice>("GET", `/api/v2/invoices/${encodeURIComponent(id)}`);
 }
 
+export interface StreamPayInvoiceRow {
+  id: string;
+  invoice_number?: number | null;
+  status: string; // DRAFT | CREATED | SENT | ACCEPTED | REJECTED | COMPLETED | CANCELED | EXPIRED
+  total_amount?: string | null;
+  total_vat_amount?: string | null;
+  currency?: string | null;
+  period_start?: string | null;
+  period_end?: string | null;
+  created_at?: string | null;
+  url?: string | null;
+  subscription_id?: string | null;
+}
+
+export function listConsumerInvoices(consumerId: string) {
+  const q = new URLSearchParams({ organization_consumer_id: consumerId, limit: "50", sort_direction: "desc" });
+  return streamPayRequest<StreamPayList<StreamPayInvoiceRow>>("GET", `/api/v2/invoices?${q}`);
+}
+
+/** ACTIVE subscriptions are cancelled at the END of the paid period, not immediately. */
+export function cancelSubscription(id: string) {
+  return streamPayRequest<StreamPaySubscription>(
+    "POST",
+    `/api/v2/subscriptions/${encodeURIComponent(id)}/cancel`,
+    { cancel_related_invoices: false },
+  );
+}
+
+/** Withdraws a scheduled cancellation. A no-op if none is scheduled. */
+export function uncancelSubscription(id: string) {
+  return streamPayRequest<StreamPaySubscription>("PUT", `/api/v2/subscriptions/${encodeURIComponent(id)}/uncancel`, {});
+}
+
 export function getPayment(id: string) {
   return streamPayRequest<{ id: string; current_status?: string }>("GET", `/api/v2/payments/${encodeURIComponent(id)}`);
 }

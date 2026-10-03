@@ -10,6 +10,7 @@ import { eq, and, isNull } from "drizzle-orm";
 import { storage } from "../storage";
 import { extractKeyPrefix, verifyApiKey, type ApiKeyScope } from "../lib/api-keys";
 import type { AuthRequest, JWTPayload } from "./auth-types";
+import { assertFeature, sendPlanRequired } from "../lib/entitlements";
 
 // Hard-fail at startup if JWT_SECRET is missing — a literal default would let
 // anyone forge JWTs in any environment where the env var was forgotten.
@@ -74,6 +75,18 @@ export async function authenticateApiKey(
 
   if (!creator || !company) {
     res.status(401).json({ message: "API key references a missing user or company" });
+    return;
+  }
+
+  // API access is a Business feature, checked on EVERY request: a company that
+  // drops below Business stops its keys working, not just creating new ones.
+  // (A company that already had an active key when limits launched keeps it.)
+  try {
+    await assertFeature(company.id, "api");
+  } catch (err) {
+    if (sendPlanRequired(res, err)) return;
+    console.error("[api-key] plan check failed:", err);
+    res.status(500).json({ message: "Server error" });
     return;
   }
 
@@ -143,6 +156,16 @@ export async function authenticateApiKeyOrJwt(
       isAdmin: user.isAdmin,
       authMethod: "jwt",
     };
+    // These routes drive the AI copilot, so a login token needs the AI builder
+    // too — otherwise /api/v1/copilot would be a free back door to it.
+    if (payload.activeCompanyId) {
+      try {
+        await assertFeature(payload.activeCompanyId, "aiBuilder");
+      } catch (err) {
+        if (sendPlanRequired(res, err)) return;
+        throw err;
+      }
+    }
     next();
   } catch {
     res.status(403).json({ message: "Invalid token" });

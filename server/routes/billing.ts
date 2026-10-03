@@ -22,6 +22,7 @@ import {
   getBillingSummary,
   getCheckout,
   getCompanySubscription,
+  isLiveSubscription,
   handleWebhookEvent,
   listCheckoutsForAdmin,
   openCheckout,
@@ -34,10 +35,14 @@ import {
 } from "../lib/billing";
 import {
   StreamPayError,
+  cancelSubscription,
   createPortalSession,
   getStreamPayWebhookSecret,
+  listConsumerInvoices,
+  uncancelSubscription,
   verifyWebhookSignature,
 } from "../lib/streampay";
+import { getEntitlements } from "../lib/entitlements";
 import { publicOrigin } from "../lib/campaigns";
 import { sendCheckoutFollowupEmail } from "../email";
 import { storage } from "../storage";
@@ -53,6 +58,10 @@ interface MiddlewareDeps {
 const checkoutBodySchema = z.object({
   plan: z.enum(PAID_PLANS),
   term: z.enum(BILLING_TERMS),
+});
+
+const payBodySchema = z.object({
+  returnTo: z.enum(["settings", "upgrade"]).default("settings"),
 });
 
 const confirmBodySchema = z.object({
@@ -131,7 +140,8 @@ export function registerBillingRoutes(app: Express, deps: MiddlewareDeps): void 
       if (checkout.status === "paid") {
         throw new BillingError("This checkout is already paid.", 409, "ALREADY_PAID");
       }
-      const { url } = await startPayment(checkout, userId, publicOrigin(req));
+      const { returnTo } = payBodySchema.parse(req.body ?? {});
+      const { url } = await startPayment(checkout, userId, publicOrigin(req), returnTo);
       res.json({ url });
     } catch (err) {
       sendError(res, err, "POST /api/billing/checkouts/:id/pay");
@@ -162,6 +172,77 @@ export function registerBillingRoutes(app: Express, deps: MiddlewareDeps): void 
       res.json(await getBillingSummary(req.auth!.activeCompanyId!, req.auth!.userId));
     } catch (err) {
       sendError(res, err, "POST /api/billing/refresh");
+    }
+  });
+
+  // What this workspace's plan includes right now. The client's locks and the
+  // dashboard plan card read this; the server enforces the same rules itself.
+  app.get("/api/entitlements", ...member, async (req: AuthRequest, res) => {
+    try {
+      const { activeCompanyId, roleInCompany } = req.auth!;
+      res.json(await getEntitlements(activeCompanyId!, roleInCompany));
+    } catch (err) {
+      sendError(res, err, "GET /api/entitlements");
+    }
+  });
+
+  // Cancel at the end of the paid period (StreamPay schedules it; the plan keeps
+  // working until then). Re-reads StreamPay afterwards rather than assuming.
+  app.post("/api/billing/subscription/cancel", ...manager, async (req: AuthRequest, res) => {
+    try {
+      const companyId = req.auth!.activeCompanyId!;
+      const sub = await getCompanySubscription(companyId);
+      if (!sub || !isLiveSubscription(sub)) {
+        throw new BillingError("There's no active plan to cancel.", 409, "NO_ACTIVE_PLAN");
+      }
+      await cancelSubscription(sub.streampaySubscriptionId);
+      await syncCompanySubscription(companyId);
+      res.json(await getBillingSummary(companyId, req.auth!.userId));
+    } catch (err) {
+      sendError(res, err, "POST /api/billing/subscription/cancel");
+    }
+  });
+
+  app.post("/api/billing/subscription/resume", ...manager, async (req: AuthRequest, res) => {
+    try {
+      const companyId = req.auth!.activeCompanyId!;
+      const sub = await getCompanySubscription(companyId);
+      if (!sub || !isLiveSubscription(sub)) {
+        throw new BillingError("There's no active plan to resume.", 409, "NO_ACTIVE_PLAN");
+      }
+      await uncancelSubscription(sub.streampaySubscriptionId);
+      await syncCompanySubscription(companyId);
+      res.json(await getBillingSummary(companyId, req.auth!.userId));
+    } catch (err) {
+      sendError(res, err, "POST /api/billing/subscription/resume");
+    }
+  });
+
+  // Billing history: owners and admins only (amounts and invoice links).
+  app.get("/api/billing/invoices", ...manager, async (req: AuthRequest, res) => {
+    try {
+      const company = await storage.getCompany(req.auth!.activeCompanyId!);
+      if (!company?.streampayConsumerId) return res.json([]);
+      const { data } = await listConsumerInvoices(company.streampayConsumerId);
+      res.json(
+        (data ?? [])
+          // Drafts and cancelled/expired invoices were never owed; showing them is noise.
+          .filter((i) => !["DRAFT", "CANCELED", "EXPIRED"].includes(i.status))
+          .map((i) => ({
+            id: i.id,
+            number: i.invoice_number ?? null,
+            status: i.status === "COMPLETED" ? "paid" : i.status === "REJECTED" ? "failed" : "open",
+            total: i.total_amount ?? null,
+            vat: i.total_vat_amount ?? null,
+            currency: i.currency ?? "SAR",
+            periodStart: i.period_start ?? null,
+            periodEnd: i.period_end ?? null,
+            createdAt: i.created_at ?? null,
+            url: i.url ?? null,
+          })),
+      );
+    } catch (err) {
+      sendError(res, err, "GET /api/billing/invoices");
     }
   });
 

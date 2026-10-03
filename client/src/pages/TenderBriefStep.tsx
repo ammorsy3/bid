@@ -215,6 +215,7 @@ export default function TenderBriefStep() {
     onSuccess: (data: any) => {
       localStorage.removeItem("tenderDraft");
       queryClient.invalidateQueries({ queryKey: ['/api/tenders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/entitlements'] });
       const inviteLink = `${window.location.origin}/invite/${data.invitationToken}`;
       toast({
         title: t('tenderFlow.rfpPublished'),

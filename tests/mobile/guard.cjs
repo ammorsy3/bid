@@ -34,9 +34,22 @@ function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
 }
 
+// {{in:Nd}} in a fixture becomes "N days from today" at 23:59 Riyadh time (20:59Z),
+// so "closes today" examples never go stale.
+function fillRelativeDates(text) {
+  return text.replace(/\{\{in:(-?\d+)d\}\}/g, (_, n) => {
+    const d = new Date();
+    d.setUTCHours(20, 59, 0, 0);
+    d.setUTCDate(d.getUTCDate() + Number(n));
+    return d.toISOString();
+  });
+}
+
 function loadPersona(name) {
   const file = path.join(FIXTURE_DIR, `${name}.json`);
-  return fs.existsSync(file) ? readJson(file) : null;
+  return fs.existsSync(file)
+    ? JSON.parse(fillRelativeDates(fs.readFileSync(file, "utf8")))
+    : null;
 }
 
 function loadCommon() {

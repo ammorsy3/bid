@@ -1241,7 +1241,7 @@
         "description": "Supply and commissioning of imaging equipment across six hospitals. Reference the full requirements at https://tenders.example.com/documents/2026/imaging/spec-v9.pdf and the token ProjectDeliveryManagementSystemPlatformIntegrationWorkflowAutomationFrameworkV12.",
         "budget": null,
         "budgetRange": null,
-        "deadline": "2026-09-26T20:59:00.000Z",
+        "deadline": "2026-10-03T20:59:00.000Z",
         "duration": "3to6",
         "status": "published",
         "skills": [

@@ -9,7 +9,7 @@ import {
   Mail, Phone, MessageSquare, Flag, HelpCircle, Shield, Layers,
   Tag, Mic, ExternalLink, EyeOff, CheckCircle2, ChevronRight,
   Hash, ClipboardCheck, AlertTriangle, BarChart3, Paperclip, ChevronDown, Languages,
-  ArrowLeft
+  ArrowLeft, FileSearch
 } from "lucide-react";
 import { useState, useRef, useEffect, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -17,8 +17,9 @@ import { useAuthStore } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { BidLogo } from "@/components/brand/BidLogo";
 import SubmitOfferModal from "@/components/submit-offer-modal";
-import { formatCurrency } from "@/lib/format-currency";
+import { formatSAREnglish } from "@/lib/format-currency";
 import { useI18n } from "@/lib/i18n";
+import { isolateLtr, withLtrUrls } from "@/lib/bidi";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Milestone {
@@ -102,7 +103,17 @@ interface TenderQA {
 const CATEGORY_BAR_COLORS = ['bg-[var(--bid-orange)]', 'bg-[var(--state-won)]', 'bg-[var(--bid-orange)]', 'bg-amber-500', 'bg-rose-500', 'bg-orange-500', 'bg-cyan-500', 'bg-teal-500', 'bg-indigo-500', 'bg-fuchsia-500'];
 const CATEGORY_DOT_COLORS = ['bg-[var(--bid-orange)]', 'bg-[var(--state-won)]', 'bg-[var(--bid-orange)]', 'bg-amber-500', 'bg-rose-500', 'bg-orange-500', 'bg-cyan-500', 'bg-teal-500', 'bg-indigo-500', 'bg-fuchsia-500'];
 const CATEGORY_TEXT_COLORS = ['text-[var(--bid-orange)]', 'text-[var(--state-won)]', 'text-[var(--bid-orange)]', 'text-amber-600', 'text-rose-600', 'text-orange-600', 'text-cyan-600', 'text-teal-600', 'text-indigo-600', 'text-fuchsia-600'];
+// The same colours for the small percentage figures next to the chart legend (the plain 600 shades are too pale for small type)
+const CATEGORY_LEGEND_TEXT_COLORS = ['text-[#C23000] dark:text-[#FF7A52]', 'text-emerald-700 dark:text-emerald-400', 'text-[#C23000] dark:text-[#FF7A52]', 'text-amber-700 dark:text-amber-400', 'text-rose-700 dark:text-rose-400', 'text-orange-700 dark:text-orange-400', 'text-cyan-700 dark:text-cyan-400', 'text-teal-700 dark:text-teal-400', 'text-indigo-700 dark:text-indigo-400', 'text-fuchsia-700 dark:text-fuchsia-400'];
 const CATEGORY_LIGHT_COLORS = ['bg-[var(--bid-orange)]/5 border-blue-100', 'bg-[var(--state-won)]/5 border-emerald-100', 'bg-[var(--bid-orange)]/5 border-purple-100', 'bg-amber-50 border-amber-100'];
+
+// Small text in the brand orange: the plain brand orange only reaches about 3:1 on the
+// light cards, so small TEXT uses a darker shade (and a lighter one on dark). This is for
+// text only - buttons, fills and big numbers keep the exact brand orange #FE3C01.
+const ORANGE_INK = 'text-[#C23000] dark:text-[#FF7A52]';
+
+// True when the text holds Arabic letters (so it gets Arabic-friendly line height).
+const hasArabic = (s?: string | null) => !!s && /[؀-ۿ]/.test(s);
 
 function AudioPlayer({ src }: { src: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -162,8 +173,8 @@ function AudioPlayer({ src }: { src: string }) {
 
   if (error || !audioUrl) {
     return (
-      <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg text-red-600">
-        <AlertCircle className="h-5 w-5" />
+      <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/30 rounded-lg text-red-600 dark:text-red-300">
+        <AlertCircle className="h-5 w-5 flex-shrink-0" />
         <span className="text-sm">{error || t('tenderFlow.failedLoadVoiceNote')}</span>
       </div>
     );
@@ -177,13 +188,15 @@ function AudioPlayer({ src }: { src: string }) {
         variant="ghost"
         size="icon"
         onClick={togglePlay}
-        className="h-10 w-10 rounded-full bg-[#FE3C01] text-white hover:bg-[#d54d35]"
+        aria-label={t('tenderFlow.voiceNoteLabel')}
+        className="h-11 w-11 rounded-full bg-[#FE3C01] text-white hover:bg-[#1A1613] hover:text-white"
       >
         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ms-0.5" />}
       </Button>
-      <div className="flex-1">
+      {/* A recording's timeline always runs left to right, also on Arabic pages */}
+      <div className="flex-1 min-w-0" dir="ltr">
         <div
-          className="relative h-2 bg-gray-300 rounded-full cursor-pointer"
+          className="relative h-2 bg-gray-300 dark:bg-muted rounded-full cursor-pointer before:absolute before:-inset-y-3 before:inset-x-0 before:content-['']"
           onClick={(e) => {
             if (!audioRef.current || !duration || !isFinite(duration)) return;
             const rect = e.currentTarget.getBoundingClientRect();
@@ -224,6 +237,7 @@ function MobileAtAGlance({
   deadlineSubtext,
   getBudgetDisplay,
   durationDisplay,
+  categoryText,
 }: {
   tender: TenderInvite;
   isDeadlinePassed: boolean;
@@ -233,6 +247,7 @@ function MobileAtAGlance({
   deadlineSubtext: () => string | null;
   getBudgetDisplay: () => string;
   durationDisplay: string | null;
+  categoryText: string;
 }) {
   const [open, setOpen] = useState(true);
   const { t } = useI18n();
@@ -245,65 +260,83 @@ function MobileAtAGlance({
     both: t('tenderFlow.inviteSubmissionBoth'),
   };
 
+  const deadlineTile = isDeadlineToday
+    ? 'bg-orange-50 border-orange-200 dark:bg-orange-950/30 dark:border-orange-900/50'
+    : isDeadlinePassed
+    ? 'bg-red-50 border-red-100 dark:bg-red-950/30 dark:border-red-900/40'
+    : daysRemaining <= 3
+    ? 'bg-orange-50/50 border-orange-100 dark:bg-orange-950/20 dark:border-orange-900/40'
+    : 'bg-muted border-border';
+  const deadlineValue = isDeadlinePassed
+    ? 'text-red-700 dark:text-red-300'
+    : isDeadlineToday || daysRemaining <= 3
+    ? 'text-orange-700 dark:text-orange-300'
+    : 'text-foreground';
+  const subtext = deadlineSubtext();
+  // Small caps-style captions: a touch bigger on phones and for Arabic, which has no tiny-text tolerance
+  const captionCls = 'text-muted-foreground text-[11px] rtl:text-xs font-medium uppercase tracking-wide leading-none';
+  const valueCls = 'text-sm font-bold text-foreground leading-snug [overflow-wrap:anywhere]';
+
   return (
     <div className="lg:hidden mb-4">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between bg-card rounded-xl border border-border shadow-sm px-4 py-3"
+        aria-expanded={open}
+        className="w-full min-h-11 flex items-center justify-between bg-card rounded-xl border border-border shadow-sm px-4 py-3 transition-[background-color,transform] duration-100 active:scale-[0.99] active:bg-muted"
       >
         <div className="flex items-center gap-2">
           <BarChart3 className="h-4 w-4 text-[#FE3C01]" />
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('tenderFlow.atAGlance')}</span>
         </div>
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <div className="bg-card rounded-b-xl border border-t-0 border-border shadow-sm px-4 pb-4 -mt-1">
           <div className="grid grid-cols-2 gap-2 pt-2">
-            <div className={`rounded-lg p-2.5 border ${isDeadlineToday ? 'bg-orange-50 border-orange-200' : isDeadlinePassed ? 'bg-red-50 border-red-100' : daysRemaining <= 3 ? 'bg-orange-50/50 border-orange-100' : 'bg-muted border-border'}`}>
+            <div className={`rounded-lg p-2.5 border min-w-0 ${deadlineTile}`}>
               <div className="flex items-center gap-1.5 mb-1">
                 <Calendar className={`h-3 w-3 flex-shrink-0 ${isDeadlineToday ? 'text-orange-500' : isDeadlinePassed ? 'text-red-500' : 'text-[#FE3C01]'}`} />
-                <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.deadlineLabel')}</span>
+                <span className={captionCls}>{t('tenderFlow.deadlineLabel')}</span>
               </div>
-              <p className={`text-xs font-bold leading-tight ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday || daysRemaining <= 3 ? 'text-orange-600' : 'text-foreground'}`}>
+              <p className={`text-sm font-bold leading-snug ${deadlineValue}`}>
                 {formatDate(tender.deadline)}
               </p>
-              {deadlineSubtext() && (
-                <p className={`text-[10px] mt-0.5 ${isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`}>{deadlineSubtext()}</p>
+              {subtext && (
+                <p className={`text-xs mt-0.5 ${isDeadlineToday ? 'text-orange-700 dark:text-orange-300 font-medium' : 'text-muted-foreground'}`}>{subtext}</p>
               )}
             </div>
-            <div className="bg-muted rounded-lg p-2.5 border border-border">
+            <div className="bg-muted rounded-lg p-2.5 border border-border min-w-0">
               <div className="flex items-center gap-1.5 mb-1">
                 <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
-                <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.budgetColumn')}</span>
+                <span className={captionCls}>{t('tenderFlow.budgetColumn')}</span>
               </div>
-              <p className="text-xs font-bold text-foreground leading-tight">{getBudgetDisplay()}</p>
+              <p className={valueCls}>{getBudgetDisplay()}</p>
             </div>
             {durationDisplay && (
-              <div className="bg-muted rounded-lg p-2.5 border border-border">
+              <div className="bg-muted rounded-lg p-2.5 border border-border min-w-0">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Clock className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                  <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.durationLabel')}</span>
+                  <span className={captionCls}>{t('tenderFlow.durationLabel')}</span>
                 </div>
-                <p className="text-xs font-bold text-foreground leading-tight">{durationDisplay}</p>
+                <p className={valueCls}>{durationDisplay}</p>
               </div>
             )}
             {tender.submissionType && (
-              <div className="bg-muted rounded-lg p-2.5 border border-border">
+              <div className="bg-muted rounded-lg p-2.5 border border-border min-w-0">
                 <div className="flex items-center gap-1.5 mb-1">
                   <FileText className="h-3 w-3 flex-shrink-0 text-purple-500" />
-                  <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.formatLabel')}</span>
+                  <span className={captionCls}>{t('tenderFlow.formatLabel')}</span>
                 </div>
-                <p className="text-xs font-bold text-foreground leading-tight">{localSubmissionTypeLabels[tender.submissionType] || tender.submissionType}</p>
+                <p className={valueCls}>{localSubmissionTypeLabels[tender.submissionType] || tender.submissionType}</p>
               </div>
             )}
             {tender.category && (
-              <div className="bg-muted rounded-lg p-2.5 border border-border">
+              <div className="bg-muted rounded-lg p-2.5 border border-border min-w-0">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
-                  <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.categoryLabel')}</span>
+                  <span className={captionCls}>{t('tenderFlow.categoryLabel')}</span>
                 </div>
-                <p className="text-xs font-bold text-foreground leading-tight">{tender.category}</p>
+                <p className={valueCls} dir="auto">{categoryText}</p>
               </div>
             )}
           </div>
@@ -376,7 +409,7 @@ export default function TenderInviteLink() {
   const translatedEvalRequirementInfo: Record<string, { label: string; description: string; formatValue?: (v: string) => string }> = {
     years_in_market: { label: t('tenderFlow.inviteReqYearsLabel'), description: t('tenderFlow.inviteReqYearsDesc'), formatValue: (v) => `${v}${t('tenderFlow.inviteReqYearsFormat')}` },
     similar_projects_count: { label: t('tenderFlow.inviteReqSimilarLabel'), description: t('tenderFlow.inviteReqSimilarDesc'), formatValue: (v) => `${t('tenderFlow.inviteReqSimilarFormat1')} ${v} ${Number(v) > 1 ? t('tenderFlow.inviteReqSimilarFormatPlural') : t('tenderFlow.inviteReqSimilarFormat2')}` },
-    min_project_value: { label: t('tenderFlow.inviteReqMinValLabel'), description: t('tenderFlow.inviteReqMinValDesc'), formatValue: (v) => `${Number(v).toLocaleString()} ${t('tenderFlow.inviteReqMinValFormat')}` },
+    min_project_value: { label: t('tenderFlow.inviteReqMinValLabel'), description: t('tenderFlow.inviteReqMinValDesc'), formatValue: (v) => `${Number(v).toLocaleString('en-US')} ${t('tenderFlow.inviteReqMinValFormat')}` },
     client_references: { label: t('tenderFlow.inviteReqRefLabel'), description: t('tenderFlow.inviteReqRefDesc') },
     financial_statements: { label: t('tenderFlow.inviteReqStatementsLabel'), description: t('tenderFlow.inviteReqStatementsDesc') },
     bank_guarantee: { label: t('tenderFlow.inviteReqBankLabel'), description: t('tenderFlow.inviteReqBankDesc') },
@@ -471,13 +504,37 @@ export default function TenderInviteLink() {
     }
   }, [tender, langInitialized]);
 
+  // The phone layout shows the submit button inline near the top of the page. Once it has
+  // scrolled out of view (or does not fit on the first screen), a compact bar keeps it reachable
+  // at the bottom of the screen.
+  const inlineCtaRef = useRef<HTMLButtonElement>(null);
+  const [inlineCtaVisible, setInlineCtaVisible] = useState(true);
+  // The bottom bar steps aside while the question box is being typed in, so the keyboard never leaves it on top of the text
+  const [questionFocused, setQuestionFocused] = useState(false);
+  const hasTender = !!tender;
+  useEffect(() => {
+    const el = inlineCtaRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    // -64px at the top: the sticky top bar hides the first 64px of the screen. Half of the button showing counts as visible.
+    const observer = new IntersectionObserver(([entry]) => setInlineCtaVisible(entry.isIntersecting), { threshold: 0.5, rootMargin: '-64px 0px 0px 0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasTender]);
+
+  // A logged-out visitor is sent to sign in or sign up. A new tab is kept when the browser allows
+  // it; some in-app browsers (WhatsApp, Instagram) block it, and then the same tab is used.
+  const openAuthPage = (path: '/login' | '/signup') => {
+    const opened = window.open(path, "_blank");
+    if (!opened) navigate(path);
+  };
+
   if (!tenderId) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+      <div className="min-h-dvh flex items-center justify-center bg-muted p-4">
         <div className="max-w-md w-full bg-card rounded-2xl border border-border p-5 sm:p-8 text-center">
-          <h2 className="text-xl font-bold text-red-600 mb-2">{t('tenderFlow.invalidLink')}</h2>
+          <h2 className="text-xl font-bold text-red-600 dark:text-red-300 mb-2">{t('tenderFlow.invalidLink')}</h2>
           <p className="text-sm text-muted-foreground mb-4">{t('tenderFlow.noTenderId')}</p>
-          <Button onClick={() => navigate("/")} className="w-full">{t('tenderFlow.goToHome')}</Button>
+          <Button onClick={() => navigate("/")} className="w-full bg-[#FE3C01] hover:bg-[#1A1613] text-white">{t('tenderFlow.goToHome')}</Button>
         </div>
       </div>
     );
@@ -485,7 +542,7 @@ export default function TenderInviteLink() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-muted" data-testid="loader-page">
+      <div className="min-h-dvh bg-muted" data-testid="loader-page">
         {/* Nav skeleton */}
         <nav className="bg-card border-b border-border sticky top-0 z-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
@@ -562,12 +619,34 @@ export default function TenderInviteLink() {
   }
 
   if (error || !tender) {
+    // The server's own message is English-only ("Tender not found"), so the page always shows
+    // its translated text instead.
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-        <div className="max-w-md w-full bg-card rounded-2xl border border-border p-5 sm:p-8 text-center">
-          <h2 className="text-xl font-bold text-red-600 mb-2">{t('tenderFlow.tenderNotFound')}</h2>
-          <p className="text-sm text-muted-foreground mb-4">{(error as any)?.message || t('tenderFlow.tenderNotFoundDesc')}</p>
-          <Button onClick={() => navigate("/")} className="w-full">{t('tenderFlow.goToHome')}</Button>
+      <div className="min-h-dvh flex items-center justify-center bg-muted px-4 py-10" data-testid="page-invite-not-found">
+        <div className="max-w-md w-full bg-card rounded-2xl border border-border p-6 sm:p-8 text-center shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center mx-auto mb-5">
+            <FileSearch className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <h1 className="text-xl font-bold text-foreground mb-2">{t('tenderFlow.tenderNotFound')}</h1>
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">{t('tenderFlow.tenderNotFoundDesc')}</p>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/marketplace")}
+              className="inline-flex w-full items-center justify-center rounded-full bg-[#FE3C01] hover:bg-[#1A1613] px-6 min-h-11 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97]"
+              data-testid="button-invite-browse-tenders"
+            >
+              {t('tenderFlow.browseOpenTenders')}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="inline-flex items-center justify-center min-h-11 px-4 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-70"
+              data-testid="button-invite-go-home"
+            >
+              {t('tenderFlow.goToHome')}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -586,6 +665,7 @@ export default function TenderInviteLink() {
     if (isDeadlinePassed) return null;
     if (isDeadlineToday) return t('tenderFlow.closesToday');
     if (daysRemaining === 1) return t('tenderFlow.oneDayLeft');
+    if (daysRemaining === 2) return t('tenderFlow.twoDaysLeft');
     if (daysRemaining <= 7) return `${daysRemaining} ${t('tenderFlow.daysLeft')}`;
     return null;
   };
@@ -624,19 +704,20 @@ export default function TenderInviteLink() {
       if (tender.projectSize) return translatedProjectSizeLabels[tender.projectSize] || tender.projectSize;
       return t('tenderFlow.disclosedUponQualification');
     }
-    if (tender.budgetMin && tender.budgetMax) return `SAR ${tender.budgetMin.toLocaleString()} – ${tender.budgetMax.toLocaleString()}`;
-    if (tender.budget) return formatCurrency(tender.budget);
+    // Western digits in both languages, and kept left-to-right so "SAR 1,000 – 2,000" never reads back to front
+    if (tender.budgetMin && tender.budgetMax) return isolateLtr(`SAR ${tender.budgetMin.toLocaleString('en-US')} – ${tender.budgetMax.toLocaleString('en-US')}`);
+    if (tender.budget) return isolateLtr(formatSAREnglish(tender.budget));
     return tender.budgetRange || t('tenderFlow.notSpecified');
   };
 
   const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    new Date(dateStr).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   const handleSubmitOffer = () => {
     if (!user) {
       toast({ title: t('tenderFlow.loginRequired'), description: t('tenderFlow.loginRequiredDesc') });
       localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`);
-      window.open("/login", "_blank");
+      openAuthPage("/login");
       return;
     }
     setShowOfferModal(true);
@@ -819,65 +900,93 @@ export default function TenderInviteLink() {
 
   const activeLanguage = viewLanguage || language || tenderOriginalLang;
   const isActiveRtl = language === 'ar';
+  const titleText = tx('title', tender.title);
+
+  // EN / AR switch for tenders that allow translation. It sits in the top bar from tablets up,
+  // and in the header on phones (the phone top bar has no room for it next to Log in / Sign up).
+  const langToggle = canTranslate ? (
+    <div className="flex items-center gap-1 bg-muted rounded-full p-0 sm:p-0.5">
+      {(['en', 'ar'] as const).map((code) => (
+        <button
+          key={code}
+          type="button"
+          onClick={() => { setViewLanguage(code); translateContent(code); }}
+          disabled={isTranslating}
+          aria-pressed={activeLanguage === code}
+          className={`min-h-11 min-w-12 sm:min-h-0 sm:min-w-0 px-3 sm:py-1 rounded-full text-xs font-medium transition-[color,background-color,box-shadow,transform] duration-200 active:scale-[0.95] ${
+            activeLanguage === code
+              ? 'bg-[#FE3C01] text-white shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          {code.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  ) : null;
+  const translatingNote = isTranslating ? (
+    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <Loader2 className="h-3 w-3 animate-spin" />
+      <span>{t('tenderFlow.translating')}</span>
+    </div>
+  ) : null;
+
+  // Phone deadline line (used inline and in the bottom bar): "Closes today" / "3 days left" / "Due 5 November 2026"
+  const mobileDeadlineText = isDeadlinePassed
+    ? t('tenderFlow.closedMobile')
+    : isDeadlineToday
+    ? t('tenderFlow.closesToday')
+    : daysRemaining === 1
+    ? t('tenderFlow.oneDayLeft')
+    : daysRemaining === 2
+    ? t('tenderFlow.twoDaysLeft')
+    : daysRemaining <= 7
+    ? `${daysRemaining} ${t('tenderFlow.daysLeft')}`
+    : `${t('tenderFlow.dueDatePrefix')} ${formatDate(tender.deadline)}`;
+  const mobileDeadlineCls = isDeadlinePassed
+    ? 'text-red-700 dark:text-red-300'
+    : isDeadlineToday || daysRemaining <= 3
+    ? 'text-orange-700 dark:text-orange-300'
+    : 'text-muted-foreground';
+  const showStickyCta = !inlineCtaVisible && !isDeadlinePassed && !questionFocused;
 
   return (
-    <div className="min-h-screen bg-muted" dir={isActiveRtl ? "rtl" : "ltr"}>
+    <div className="min-h-dvh bg-muted" dir={isActiveRtl ? "rtl" : "ltr"}>
 
       {/* ── Top Nav ─────────────────────────────────────────────────────────── */}
       <nav className="bg-card border-b border-border sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <button
               onClick={() => window.history.length > 1 ? window.history.back() : navigate("/marketplace")}
               className="max-lg:hidden flex items-center gap-1.5 text-sm text-[#FE3C01] hover:text-[#E83501] transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
               <span className="hidden sm:inline">{t('common.back')}</span>
             </button>
             <div className="h-5 w-px bg-gray-200 hidden lg:block" />
-            <BidLogo variant="orange" size={36} className="cursor-pointer hover:opacity-80 transition-opacity" onClick={() => navigate("/")} />
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              aria-label="Bid"
+              className="inline-flex items-center justify-center min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 rounded-lg transition-[opacity,transform] duration-100 hover:opacity-80 active:opacity-60 active:scale-[0.97]"
+            >
+              <BidLogo variant="orange" size={36} />
+            </button>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Language toggle for vendors (only if allowed) */}
-            {canTranslate && (
-              <div className="flex items-center gap-1 bg-muted rounded-full p-0.5">
-                <button
-                  onClick={() => { setViewLanguage('en'); translateContent('en'); }}
-                  disabled={isTranslating}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
-                    activeLanguage === 'en'
-                      ? 'bg-[#FE3C01] text-white shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  EN
-                </button>
-                <button
-                  onClick={() => { setViewLanguage('ar'); translateContent('ar'); }}
-                  disabled={isTranslating}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
-                    activeLanguage === 'ar'
-                      ? 'bg-[#FE3C01] text-white shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  AR
-                </button>
-              </div>
-            )}
-            {isTranslating && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                <span>{t('tenderFlow.translating')}</span>
-              </div>
-            )}
+            <div className="hidden sm:flex items-center gap-3">
+              {langToggle}
+              {translatingNote}
+            </div>
             {!user ? (
               <>
-                <Button variant="ghost" size="sm" onClick={() => window.open("/login", "_blank")} data-testid="button-login">{t('tenderFlow.loginBtn')}</Button>
-                <Button size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35] text-white" onClick={() => window.open("/signup", "_blank")} data-testid="button-signup">{t('tenderFlow.signUpBtn')}</Button>
+                <Button variant="ghost" size="sm" className="px-2.5 sm:px-3 max-md:h-11" onClick={() => openAuthPage("/login")} data-testid="button-login">{t('tenderFlow.loginBtn')}</Button>
+                <Button size="sm" className="px-3 max-md:h-11 bg-[#FE3C01] hover:bg-[#1A1613] text-white" onClick={() => openAuthPage("/signup")} data-testid="button-signup">{t('tenderFlow.signUpBtn')}</Button>
               </>
             ) : (
-              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} data-testid="button-dashboard">{t('tenderFlow.dashboardBtn')}</Button>
+              <Button variant="ghost" size="sm" className="max-md:h-11" onClick={() => navigate("/dashboard")} data-testid="button-dashboard">{t('tenderFlow.dashboardBtn')}</Button>
             )}
           </div>
         </div>
@@ -885,7 +994,7 @@ export default function TenderInviteLink() {
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div className="bg-card border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-4 sm:pt-6 sm:pb-6">
 
           {/* Company & Status */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -894,39 +1003,50 @@ export default function TenderInviteLink() {
                 <img src={logoUrl} alt={displayName} className="w-14 h-14 rounded-xl object-cover border border-border shadow-sm flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
               ) : null}
               <div className={`w-14 h-14 rounded-xl bg-muted border border-border flex items-center justify-center shadow-sm flex-shrink-0 ${logoUrl ? 'hidden' : ''}`}>
-                <Building2 className="h-7 w-7 text-gray-400" />
+                <Building2 className="h-7 w-7 text-muted-foreground" />
               </div>
               <div className="min-w-0">
-                <p className="text-foreground font-bold text-lg truncate">{displayName}</p>
-                <p className="text-gray-400 text-sm">{t('tenderFlow.requestingOrganization')}</p>
+                {/* A long company name wraps (it is not cut off); <bdi> keeps an English name in order on an Arabic page */}
+                <p className="text-foreground font-bold text-base sm:text-lg leading-snug sm:truncate [overflow-wrap:anywhere]"><bdi>{displayName}</bdi></p>
+                <p className="text-muted-foreground text-sm">{t('tenderFlow.requestingOrganization')}</p>
               </div>
             </div>
-            <div className="flex-shrink-0">
-              {tender.status === 'published' && !isDeadlinePassed && !isDeadlineToday && (
-                <Badge className="bg-[var(--state-won)]/5 text-[var(--state-won)] border border-emerald-200 text-xs px-3 py-1" data-testid="badge-status">
-                  {t('tenderFlow.openForSubmissions')}
-                </Badge>
-              )}
-              {isDeadlineToday && (
-                <Badge className="bg-orange-50 text-orange-700 dark:text-orange-300 border border-orange-200 text-xs px-3 py-1">
-                  {t('tenderFlow.closesToday')}
-                </Badge>
-              )}
-              {isDeadlinePassed && (
-                <Badge className="bg-red-50 text-red-700 dark:text-red-300 border border-red-200 text-xs px-3 py-1">{t('tenderFlow.closedStatus')}</Badge>
-              )}
+            <div className="flex-shrink-0 flex items-center justify-between gap-3">
+              <div>
+                {tender.status === 'published' && !isDeadlinePassed && !isDeadlineToday && (
+                  <Badge className="bg-[var(--state-won)]/5 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50 text-xs px-3 py-1" data-testid="badge-status">
+                    {t('tenderFlow.openForSubmissions')}
+                  </Badge>
+                )}
+                {isDeadlineToday && (
+                  <Badge className="bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-900/50 text-xs px-3 py-1">
+                    {t('tenderFlow.closesToday')}
+                  </Badge>
+                )}
+                {isDeadlinePassed && (
+                  <Badge className="bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900/50 text-xs px-3 py-1">{t('tenderFlow.closedStatus')}</Badge>
+                )}
+              </div>
+              <div className="sm:hidden flex items-center gap-2">
+                {translatingNote}
+                {langToggle}
+              </div>
             </div>
           </div>
 
           {/* Title */}
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{t('tenderFlow.projectTitleLabel')}</p>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-foreground leading-[0.95] mb-2 tracking-[-0.04em]" data-testid="text-tender-title">
-            {tx('title', tender.title)}
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t('tenderFlow.projectTitleLabel')}</p>
+          <h1
+            dir="auto"
+            className={`font-display font-black text-2xl sm:text-3xl text-foreground mb-2 tracking-[-0.04em] [overflow-wrap:anywhere] ${hasArabic(titleText) ? 'leading-[1.35]' : 'leading-[0.95] max-sm:leading-[1.08]'}`}
+            data-testid="text-tender-title"
+          >
+            {titleText}
           </h1>
-          <div className="flex items-center gap-3 max-sm:flex-wrap max-sm:gap-y-1 text-gray-400 text-sm mb-5">
-            {tender.createdAt && <span>{t('tenderFlow.publishedOn')} <span className="font-mono">{formatDate(tender.createdAt)}</span></span>}
+          <div className="flex items-center gap-3 max-sm:flex-wrap max-sm:gap-y-1 text-muted-foreground text-sm mb-1 sm:mb-5">
+            {tender.createdAt && <span>{t('tenderFlow.publishedOn')} <span className="font-mono rtl:font-sans">{formatDate(tender.createdAt)}</span></span>}
             <span className="max-sm:hidden">·</span>
-            <span className="font-mono text-xs">RFP-{tenderId?.slice(0, 8).toUpperCase()}</span>
+            <bdi dir="ltr" className="font-mono text-xs">RFP-{tenderId?.slice(0, 8).toUpperCase()}</bdi>
           </div>
 
 
@@ -935,11 +1055,49 @@ export default function TenderInviteLink() {
 
       {/* ── Content Area ────────────────────────────────────────────────────── */}
       <div className="bg-muted min-h-[60vh]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_288px] gap-6">
 
             {/* ── Main document column ─────────────────────────────────────── */}
             <div>
+
+              {/* Phone only: the submit action right under the header, with the deadline.
+                  Once it scrolls out of view a compact bar at the bottom of the screen takes over. */}
+              <div className="lg:hidden mb-4 bg-card rounded-xl border border-border shadow-sm p-4" data-testid="card-submit-inline">
+                {isDeadlinePassed ? (
+                  <>
+                    <p className="text-sm font-semibold text-foreground mb-1">{t('tenderFlow.submissionsClosed')}</p>
+                    <p className="text-xs text-muted-foreground mb-3 leading-relaxed">{t('tenderFlow.submissionsClosedDesc')}</p>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate("/marketplace")}
+                      data-testid="button-browse-open-tenders"
+                    >
+                      {t('tenderFlow.browseOpenTenders')}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-center gap-1.5 mb-3">
+                      <Calendar className={`h-3.5 w-3.5 flex-shrink-0 ${isDeadlineToday ? 'text-orange-500' : 'text-muted-foreground'}`} />
+                      <span className={`text-sm font-medium ${mobileDeadlineCls}`}>{mobileDeadlineText}</span>
+                    </div>
+                    <Button
+                      ref={inlineCtaRef}
+                      className="w-full bg-[#FE3C01] hover:bg-[#1A1613] text-white min-h-12 text-base font-semibold rounded-xl"
+                      onClick={handleSubmitOffer}
+                      data-testid="button-submit-offer-inline"
+                    >
+                      <Send className="h-5 w-5 me-2 rtl:-scale-x-100" />
+                      {t('tenderFlow.submitProposal')}
+                    </Button>
+                    {!user && (
+                      <p className="text-xs text-muted-foreground text-center mt-2.5">{t('tenderFlow.needToLogIn')}</p>
+                    )}
+                  </>
+                )}
+              </div>
 
               {/* Mobile At a Glance (collapsible) */}
               <MobileAtAGlance
@@ -951,11 +1109,13 @@ export default function TenderInviteLink() {
                 deadlineSubtext={deadlineSubtext}
                 getBudgetDisplay={getBudgetDisplay}
                 durationDisplay={durationDisplay}
+                categoryText={tx('category', tender.category)}
               />
 
               {/* Table of Contents */}
               <div className="bg-card rounded-xl border border-border shadow-sm mb-6 overflow-hidden">
-                <div className="flex max-sm:overflow-x-auto max-sm:bg-muted max-sm:[scrollbar-width:none] max-sm:[&::-webkit-scrollbar]:hidden">
+                {/* On phones the sections wrap into rows of three (no sideways scrolling) */}
+                <div className="flex max-sm:flex-wrap max-sm:bg-muted max-sm:-mb-px max-sm:-me-px">
                   {sections.map((section, idx) => {
                     const Icon = section.icon;
                     const isActive = activeSection === section.id;
@@ -964,16 +1124,16 @@ export default function TenderInviteLink() {
                       <button
                         key={section.id}
                         onClick={() => scrollToSection(section.id)}
-                        className={`flex-1 max-sm:flex-col max-sm:min-w-0 inline-flex items-center justify-center gap-1.5 max-sm:gap-0.5 px-3 max-sm:px-1.5 py-3 max-sm:py-2.5 text-sm font-medium transition-all ${
+                        className={`flex-1 max-sm:flex-col max-sm:basis-1/3 max-sm:min-w-0 max-sm:min-h-14 max-sm:border-b max-sm:border-e max-sm:border-border inline-flex items-center justify-center gap-1.5 max-sm:gap-1 px-3 max-sm:px-1.5 py-3 max-sm:py-2 text-sm font-medium transition-[color,background-color,box-shadow,transform] duration-100 active:scale-[0.97] ${
                           isActive
                             ? 'bg-[#FE3C01] text-white'
-                            : `bg-muted text-muted-foreground hover:bg-card hover:shadow-sm hover:text-foreground ${isLast ? '' : 'border-r border-border'}`
+                            : `bg-muted text-muted-foreground hover:bg-card hover:shadow-sm hover:text-foreground active:bg-card ${isLast ? '' : 'sm:border-e sm:border-border'}`
                         }`}
                       >
-                        <span className={`text-xs font-mono hidden sm:inline ${isActive ? 'text-white/70' : 'text-gray-300'}`}>{idx + 1}</span>
+                        <span className={`text-xs font-mono hidden sm:inline ${isActive ? 'text-white/70' : 'text-muted-foreground'}`}>{idx + 1}</span>
                         <Icon className="h-3.5 w-3.5 flex-shrink-0" />
                         <span className="hidden sm:inline">{section.label}</span>
-                        <span className="sm:hidden text-[9px] text-center leading-tight whitespace-normal max-w-[60px]">{section.label}</span>
+                        <span className="sm:hidden text-[11px] rtl:text-xs text-center leading-tight whitespace-normal">{section.label}</span>
                       </button>
                     );
                   })}
@@ -990,9 +1150,9 @@ export default function TenderInviteLink() {
 
                     {/* Description */}
                     <div className="prose prose-sm max-w-none mb-6">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{t('tenderFlow.projectDescriptionLabel')}</p>
-                      <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-[15px]" data-testid="text-description">
-                        {tx('description', tender.description)}
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('tenderFlow.projectDescriptionLabel')}</p>
+                      <p dir="auto" className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-[15px] [overflow-wrap:anywhere]" data-testid="text-description">
+                        {withLtrUrls(tx('description', tender.description))}
                       </p>
                     </div>
 
@@ -1010,15 +1170,15 @@ export default function TenderInviteLink() {
                             <div className="h-2 bg-[var(--bid-orange)]/10 rounded-full overflow-hidden">
                               <div className="h-full bg-gradient-to-r from-blue-400 to-blue-500 rounded-full" style={{ width: '100%' }} />
                             </div>
-                            <div className="flex justify-between mt-2.5">
+                            <div className="flex justify-between gap-3 mt-2.5">
                               <div className="flex flex-col items-start">
-                                <span className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide">{t('tenderFlow.startLabel')}</span>
+                                <span className="text-[11px] rtl:text-xs font-semibold text-blue-600 dark:text-blue-300 uppercase tracking-wide">{t('tenderFlow.startLabel')}</span>
                                 <span className="text-xs font-semibold text-muted-foreground">
                                   {tender.startDate ? formatDate(tender.startDate) : tender.createdAt ? formatDate(tender.createdAt) : t('tenderFlow.notSpecified')}
                                 </span>
                               </div>
                               <div className="flex flex-col items-end">
-                                <span className="text-[10px] font-semibold text-[#FE3C01] uppercase tracking-wide">{t('tenderFlow.endLabel')}</span>
+                                <span className={`text-[11px] rtl:text-xs font-semibold uppercase tracking-wide ${ORANGE_INK}`}>{t('tenderFlow.endLabel')}</span>
                                 <span className="text-xs font-semibold text-muted-foreground">
                                   {tender.endDate ? formatDate(tender.endDate) : formatDate(tender.deadline)}
                                 </span>
@@ -1035,8 +1195,8 @@ export default function TenderInviteLink() {
                         <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                           <Target className="h-4 w-4" /> {t('tenderFlow.projectObjectiveLabel')}
                         </h3>
-                        <div className="p-5 bg-[var(--bid-orange)]/5 border border-blue-100 rounded-xl">
-                          <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{tx('objective', tender.objective)}</p>
+                        <div className="p-5 bg-[var(--bid-orange)]/5 border border-blue-100 dark:border-border rounded-xl">
+                          <p dir="auto" className="text-muted-foreground whitespace-pre-wrap leading-relaxed [overflow-wrap:anywhere]">{withLtrUrls(tx('objective', tender.objective))}</p>
                         </div>
                       </div>
                     )}
@@ -1047,30 +1207,30 @@ export default function TenderInviteLink() {
                         <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
                           <ListChecks className="h-4 w-4" /> {t('tenderFlow.deliverablesLabel')}
                         </h3>
-                        <p className="text-xs text-gray-400 mb-4">{t('tenderFlow.deliverablesHint')}</p>
+                        <p className="text-xs text-muted-foreground mb-4">{t('tenderFlow.deliverablesHint')}</p>
                         <div className="space-y-2.5">
                           {tender.deliverables!.map((deliverable, index) => {
                             if (typeof deliverable === 'string') {
                               return (
                                 <div key={index} className="flex items-start gap-3 p-4 bg-muted rounded-xl border border-border">
                                   <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#FE3C01] text-white text-xs font-bold flex items-center justify-center">{index + 1}</span>
-                                  <span className="text-foreground pt-0.5 leading-relaxed">{deliverable}</span>
+                                  <span dir="auto" className="text-foreground pt-0.5 leading-relaxed min-w-0 flex-1 [overflow-wrap:anywhere]">{deliverable}</span>
                                 </div>
                               );
                             }
                             return (
                               <div key={deliverable.id || index} className="p-4 bg-muted rounded-xl border border-border">
-                                <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-start justify-between gap-3 sm:gap-4">
                                   <div className="flex items-start gap-3 flex-1 min-w-0">
                                     <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#FE3C01] text-white text-xs font-bold flex items-center justify-center mt-0.5">{index + 1}</span>
-                                    <div>
-                                      <p className="font-semibold text-foreground">{tx(`deliverable_name_${index}`, deliverable.name)}</p>
-                                      {deliverable.description && <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{tx(`deliverable_desc_${index}`, deliverable.description)}</p>}
+                                    <div className="min-w-0">
+                                      <p dir="auto" className="font-semibold text-foreground [overflow-wrap:anywhere]">{tx(`deliverable_name_${index}`, deliverable.name)}</p>
+                                      {deliverable.description && <p dir="auto" className="text-sm text-muted-foreground mt-1 leading-relaxed [overflow-wrap:anywhere]">{tx(`deliverable_desc_${index}`, deliverable.description)}</p>}
                                     </div>
                                   </div>
                                   {(deliverable.quantity || deliverable.unit) && (
-                                    <span className="flex-shrink-0 inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold bg-[#FE3C01]/10 text-[#FE3C01]">
-                                      {deliverable.quantity} × {deliverable.unit}
+                                    <span className={`flex-shrink-0 max-w-[40%] inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold bg-[#FE3C01]/10 [overflow-wrap:anywhere] ${ORANGE_INK}`}>
+                                      {isolateLtr([deliverable.quantity, deliverable.unit].filter(Boolean).join(' × '))}
                                     </span>
                                   )}
                                 </div>
@@ -1087,7 +1247,7 @@ export default function TenderInviteLink() {
                         <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
                           <Paperclip className="h-4 w-4" /> {t('tenderFlow.attachmentsLabel')}
                         </h3>
-                        <p className="text-xs text-gray-400 mb-4">{t('tenderFlow.attachmentsHint')}</p>
+                        <p className="text-xs text-muted-foreground mb-4">{t('tenderFlow.attachmentsHint')}</p>
                         <div className="space-y-2">
                           {tender.attachments.map((file) => {
                             const icon = file.type?.includes('pdf') ? <FileText className="h-5 w-5 text-red-500" />
@@ -1099,16 +1259,17 @@ export default function TenderInviteLink() {
                               : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
                             if (!user) {
                               return (
-                                <div key={file.id} className="flex items-center gap-3 p-4 bg-muted rounded-xl border border-border">
+                                <div key={file.id} className="flex flex-wrap items-center gap-x-3 gap-y-3 p-4 bg-muted rounded-xl border border-border">
                                   {icon}
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-foreground truncate">{file.name}</p>
-                                    <p className="text-xs text-gray-400">{sizeStr}</p>
+                                  <div className="flex-1 min-w-0" dir={hasArabic(file.name) ? 'rtl' : 'ltr'}>
+                                    <p className="text-sm font-semibold text-foreground line-clamp-2 [overflow-wrap:anywhere]">{file.name}</p>
+                                    <p className="text-xs text-muted-foreground"><bdi dir="ltr">{sizeStr}</bdi></p>
                                   </div>
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); window.open("/login", "_blank"); }}
+                                    className="w-full sm:w-auto max-md:h-11"
+                                    onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); openAuthPage("/login"); }}
                                   >
                                     {t('tenderFlow.logInToDownload')}
                                   </Button>
@@ -1138,14 +1299,14 @@ export default function TenderInviteLink() {
                                     toast({ title: t('tenderFlow.downloadFailed'), description: t('tenderFlow.downloadFailedDesc'), variant: "destructive" });
                                   }
                                 }}
-                                className="w-full flex items-center gap-3 p-4 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-colors group text-start"
+                                className="w-full flex items-center gap-3 p-4 min-h-11 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.99] active:bg-card group text-start"
                               >
                                 {icon}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-foreground truncate group-hover:text-[#FE3C01] transition-colors">{file.name}</p>
-                                  <p className="text-xs text-gray-400">{sizeStr}</p>
+                                <div className="flex-1 min-w-0" dir={hasArabic(file.name) ? 'rtl' : 'ltr'}>
+                                  <p className="text-sm font-semibold text-foreground line-clamp-2 [overflow-wrap:anywhere] group-hover:text-[#FE3C01] transition-colors">{file.name}</p>
+                                  <p className="text-xs text-muted-foreground"><bdi dir="ltr">{sizeStr}</bdi></p>
                                 </div>
-                                <ExternalLink className="h-4 w-4 text-gray-300 group-hover:text-[#FE3C01] transition-colors flex-shrink-0" />
+                                <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-[#FE3C01] transition-colors flex-shrink-0" />
                               </button>
                             );
                           })}
@@ -1161,7 +1322,7 @@ export default function TenderInviteLink() {
                         </h3>
                         <div className="flex flex-wrap gap-2">
                           {tender.skills.map((skill, index) => (
-                            <span key={index} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 dark:text-indigo-300 text-sm font-medium border border-indigo-100" data-testid={`badge-skill-${index}`}>
+                            <span key={index} dir="auto" className="inline-flex items-center max-w-full px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-sm font-medium border border-indigo-100 dark:border-indigo-900/40 [overflow-wrap:anywhere]" data-testid={`badge-skill-${index}`}>
                               {tx(`skill_${index}`, skill)}
                             </span>
                           ))}
@@ -1175,18 +1336,18 @@ export default function TenderInviteLink() {
                         <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
                           <Flag className="h-4 w-4" /> {t('tenderFlow.milestonesPayments')}
                         </h3>
-                        <p className="text-xs text-gray-400 mb-4">{t('tenderFlow.milestonesPaymentsHint')}</p>
+                        <p className="text-xs text-muted-foreground mb-4">{t('tenderFlow.milestonesPaymentsHint')}</p>
                         <div className="space-y-3">
                           {tender.milestones!.map((milestone, index) => (
                             <div key={milestone.id || index} className="relative flex gap-4">
                               {index < tender.milestones!.length - 1 && (
-                                <div className="absolute left-[19px] top-10 bottom-0 w-0.5 bg-gradient-to-b from-[#FE3C01]/30 to-transparent" />
+                                <div className="absolute start-[19px] top-10 bottom-0 w-0.5 bg-gradient-to-b from-[#FE3C01]/30 to-transparent" />
                               )}
                               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#FE3C01] text-white font-bold text-sm flex items-center justify-center z-10 shadow-sm">{index + 1}</div>
-                              <div className="flex-1 pb-2">
+                              <div className="flex-1 min-w-0 pb-2">
                                 <div className="bg-muted rounded-xl border border-border p-4">
-                                  <p className="font-semibold text-foreground">{tx(`milestone_name_${index}`, milestone.name)}</p>
-                                  {milestone.description && <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{tx(`milestone_desc_${index}`, milestone.description)}</p>}
+                                  <p dir="auto" className="font-semibold text-foreground [overflow-wrap:anywhere]">{tx(`milestone_name_${index}`, milestone.name)}</p>
+                                  {milestone.description && <p dir="auto" className="text-sm text-muted-foreground mt-1 leading-relaxed [overflow-wrap:anywhere]">{tx(`milestone_desc_${index}`, milestone.description)}</p>}
                                   <div className="flex items-center gap-3 mt-3 flex-wrap">
                                     {milestone.dueDate && (
                                       <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-card px-3 py-1.5 rounded-lg border border-border">
@@ -1194,8 +1355,8 @@ export default function TenderInviteLink() {
                                       </span>
                                     )}
                                     {milestone.amount && (
-                                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FE3C01] bg-[#FE3C01]/8 px-3 py-1.5 rounded-lg">
-                                        <DollarSign className="h-3.5 w-3.5" /> SAR {Number(milestone.amount).toLocaleString()}
+                                      <span className={`inline-flex items-center gap-1.5 text-xs font-bold bg-[#FE3C01]/8 px-3 py-1.5 rounded-lg ${ORANGE_INK}`}>
+                                        <DollarSign className="h-3.5 w-3.5" /> <bdi dir="ltr">SAR {Number(milestone.amount).toLocaleString('en-US')}</bdi>
                                       </span>
                                     )}
                                   </div>
@@ -1205,11 +1366,11 @@ export default function TenderInviteLink() {
                           ))}
                         </div>
                         {tender.milestones!.some(m => m.amount) && (
-                          <div className="mt-4 p-4 bg-[#FE3C01]/5 rounded-xl border border-[#FE3C01]/10 flex items-center justify-between">
+                          <div className="mt-4 p-4 bg-[#FE3C01]/5 rounded-xl border border-[#FE3C01]/10 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                             <span className="text-sm text-muted-foreground font-medium">{t('tenderFlow.totalMilestoneValue')}</span>
-                            <span className="text-lg font-bold text-foreground">
-                              SAR {tender.milestones!.reduce((sum, m) => sum + (Number(m.amount) || 0), 0).toLocaleString()}
-                            </span>
+                            <bdi dir="ltr" className="text-lg font-bold text-foreground [overflow-wrap:anywhere]">
+                              SAR {tender.milestones!.reduce((sum, m) => sum + (Number(m.amount) || 0), 0).toLocaleString('en-US')}
+                            </bdi>
                           </div>
                         )}
                       </div>
@@ -1224,7 +1385,7 @@ export default function TenderInviteLink() {
                     <SectionObserver id="custom" onVisible={() => setActiveSection('custom')}>
                       <div id="section-custom" className="p-6 sm:p-8 scroll-mt-24">
                         <SectionHeader index={sections.findIndex(s => s.id === 'custom') + 1} title={t('tenderFlow.additionalRequirementsSection')} />
-                        <p className="text-sm text-gray-400 mb-6">
+                        <p className="text-sm text-muted-foreground mb-6">
                           {t('tenderFlow.additionalReqHint')}
                         </p>
                         <div className="space-y-4">
@@ -1239,25 +1400,25 @@ export default function TenderInviteLink() {
                                     : card.type === 'custom-select'
                                     ? <Layers className="h-3.5 w-3.5 text-indigo-500 flex-shrink-0" />
                                     : <Hash className="h-3.5 w-3.5 text-[#FE3C01] flex-shrink-0" />}
-                                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                  <span dir="auto" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide min-w-0 [overflow-wrap:anywhere]">
                                     {tx(`card_label_${cardIdx}`, card.label)}
                                   </span>
                                   {card.isRequired && (
-                                    <span className="ms-auto text-[10px] font-bold text-red-400 uppercase tracking-wider">{t('tenderFlow.requiredBadge')}</span>
+                                    <span className="ms-auto ps-2 flex-shrink-0 text-[11px] rtl:text-xs font-bold text-red-700 dark:text-red-300 uppercase tracking-wider">{t('tenderFlow.requiredBadge')}</span>
                                   )}
                                 </div>
                                 <div className="px-4 py-3 bg-card">
                                   {card.type === 'custom-date' ? (
                                     <div className="flex items-center gap-2">
-                                      <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                      <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                       <span className="text-foreground font-medium">{formatDate(card.value)}</span>
                                     </div>
                                   ) : card.type === 'custom-select' ? (
-                                    <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 dark:text-indigo-300 text-sm font-medium border border-indigo-100">
+                                    <span dir="auto" className="inline-flex items-center max-w-full px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-sm font-medium border border-indigo-100 dark:border-indigo-900/40 [overflow-wrap:anywhere]">
                                       {tx(`card_value_${cardIdx}`, card.value)}
                                     </span>
                                   ) : (
-                                    <p className="text-foreground whitespace-pre-wrap leading-relaxed">{tx(`card_value_${cardIdx}`, card.value)}</p>
+                                    <p dir="auto" className="text-foreground whitespace-pre-wrap leading-relaxed [overflow-wrap:anywhere]">{tx(`card_value_${cardIdx}`, card.value)}</p>
                                   )}
                                 </div>
                               </div>
@@ -1276,7 +1437,7 @@ export default function TenderInviteLink() {
                     <SectionObserver id="evaluation" onVisible={() => setActiveSection('evaluation')}>
                       <div id="section-evaluation" className="p-6 sm:p-8 scroll-mt-24">
                         <SectionHeader index={sections.findIndex(s => s.id === 'evaluation') + 1} title={t('tenderFlow.evaluationCriteriaSection')} />
-                        <p className="text-sm text-gray-400 mb-6">
+                        <p className="text-sm text-muted-foreground mb-6">
                           {t('tenderFlow.evaluationHint')}
                         </p>
 
@@ -1285,7 +1446,7 @@ export default function TenderInviteLink() {
                           <div>
                             {/* Visual weight bar */}
                             <div className="mb-6">
-                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                                 <BarChart3 className="h-3.5 w-3.5" /> {t('tenderFlow.scoreDistribution')}
                               </p>
                               <div className="flex rounded-full overflow-hidden h-3 mb-3 gap-0.5">
@@ -1293,7 +1454,7 @@ export default function TenderInviteLink() {
                                   <div
                                     key={w.categoryId}
                                     style={{ width: `${w.weight}%` }}
-                                    className={`${CATEGORY_BAR_COLORS[i % CATEGORY_BAR_COLORS.length]} first:rounded-l-full last:rounded-r-full`}
+                                    className={`${CATEGORY_BAR_COLORS[i % CATEGORY_BAR_COLORS.length]} first:rounded-s-full last:rounded-e-full`}
                                     title={`${translatedEvalCategoryInfo[w.categoryId]?.name || w.categoryId}: ${w.weight}%`}
                                   />
                                 ))}
@@ -1303,7 +1464,7 @@ export default function TenderInviteLink() {
                                     <div
                                       key={c.id}
                                       style={{ width: `${c.weight}%` }}
-                                      className={`${CATEGORY_BAR_COLORS[i % CATEGORY_BAR_COLORS.length]} first:rounded-l-full last:rounded-r-full`}
+                                      className={`${CATEGORY_BAR_COLORS[i % CATEGORY_BAR_COLORS.length]} first:rounded-s-full last:rounded-e-full`}
                                       title={`${c.text}: ${c.weight}%`}
                                     />
                                   );
@@ -1317,7 +1478,7 @@ export default function TenderInviteLink() {
                                       <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${CATEGORY_DOT_COLORS[i % CATEGORY_DOT_COLORS.length]}`} />
                                       <span className="text-sm text-muted-foreground">
                                         {catInfo?.name || w.categoryId}
-                                        <span className={`font-bold ms-1.5 ${CATEGORY_TEXT_COLORS[i % CATEGORY_TEXT_COLORS.length]}`}>{w.weight}%</span>
+                                        <span className={`font-bold ms-1.5 ${CATEGORY_LEGEND_TEXT_COLORS[i % CATEGORY_LEGEND_TEXT_COLORS.length]}`}>{w.weight}%</span>
                                       </span>
                                     </div>
                                   );
@@ -1325,11 +1486,11 @@ export default function TenderInviteLink() {
                                 {(tender.evaluationCriteria.customCriteria || []).map((c: any, j: number) => {
                                   const i = tender.evaluationCriteria.weights.length + j;
                                   return (
-                                    <div key={c.id} className="flex items-center gap-2">
+                                    <div key={c.id} className="flex items-center gap-2 min-w-0">
                                       <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${CATEGORY_DOT_COLORS[i % CATEGORY_DOT_COLORS.length]}`} />
-                                      <span className="text-sm text-muted-foreground">
+                                      <span dir="auto" className="text-sm text-muted-foreground [overflow-wrap:anywhere]">
                                         {c.text}
-                                        <span className={`font-bold ms-1.5 ${CATEGORY_TEXT_COLORS[i % CATEGORY_TEXT_COLORS.length]}`}>{c.weight}%</span>
+                                        <span className={`font-bold ms-1.5 ${CATEGORY_LEGEND_TEXT_COLORS[i % CATEGORY_LEGEND_TEXT_COLORS.length]}`}>{c.weight}%</span>
                                       </span>
                                     </div>
                                   );
@@ -1349,16 +1510,17 @@ export default function TenderInviteLink() {
                                     <button
                                       type="button"
                                       onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
-                                      className="w-full flex items-center gap-3 px-5 py-4 bg-muted hover:bg-muted/80 transition-colors text-start"
+                                      aria-expanded={isExpanded}
+                                      className="w-full flex items-center gap-3 px-5 py-4 min-h-11 bg-muted hover:bg-muted/80 active:bg-card transition-[color,background-color] duration-100 text-start"
                                     >
-                                      <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
+                                      <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-90' : 'rtl:-scale-x-100'}`} />
                                       <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-foreground">{catInfo?.name || w.categoryId}</p>
-                                        {catInfo?.description && <p className="text-xs text-gray-400 mt-0.5">{catInfo.description}</p>}
+                                        {catInfo?.description && <p className="text-xs text-muted-foreground mt-0.5">{catInfo.description}</p>}
                                       </div>
                                       <div className="flex-shrink-0 flex items-baseline gap-0.5">
                                         <span className={`text-2xl font-black ${CATEGORY_TEXT_COLORS[i % CATEGORY_TEXT_COLORS.length]}`}>{w.weight}</span>
-                                        <span className="text-xs text-gray-400">%</span>
+                                        <span className="text-xs text-muted-foreground">%</span>
                                       </div>
                                     </button>
                                     <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
@@ -1380,9 +1542,9 @@ export default function TenderInviteLink() {
                                                 <div key={j} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
                                                   <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                                                   <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-foreground">{reqInfo?.label || req.requirementId}</p>
+                                                    <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{reqInfo?.label || req.requirementId}</p>
                                                     <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{reqInfo?.description || ''}</p>
-                                                    {displayValue && <p className="text-xs font-semibold text-[#FE3C01] mt-1.5">{displayValue}</p>}
+                                                    {displayValue && <p className={`text-xs font-semibold mt-1.5 ${ORANGE_INK}`}>{displayValue}</p>}
                                                   </div>
                                                 </div>
                                               );
@@ -1390,7 +1552,7 @@ export default function TenderInviteLink() {
                                           </div>
                                         ) : (
                                           <div className="px-5 py-4 border-t border-border">
-                                            <p className="text-sm text-gray-400 italic">{t('tenderFlow.noSubRequirements')}</p>
+                                            <p className="text-sm text-muted-foreground italic">{t('tenderFlow.noSubRequirements')}</p>
                                           </div>
                                         )}
                                       </div>
@@ -1402,12 +1564,12 @@ export default function TenderInviteLink() {
                               {/* Custom criteria */}
                               {tender.evaluationCriteria.customCriteria?.length > 0 && (
                                 <div className="pt-2">
-                                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{t('tenderFlow.additionalCriteriaLabel')}</p>
+                                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{t('tenderFlow.additionalCriteriaLabel')}</p>
                                   <div className="space-y-2">
                                     {tender.evaluationCriteria.customCriteria.map((c: any) => (
-                                      <div key={c.id} className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
-                                        <span className="text-sm font-medium text-foreground">{c.text}</span>
-                                        <span className="text-sm font-bold text-[#FE3C01]">{c.weight}%</span>
+                                      <div key={c.id} className="flex items-center justify-between gap-3 p-4 bg-muted rounded-xl border border-border">
+                                        <span dir="auto" className="text-sm font-medium text-foreground min-w-0 [overflow-wrap:anywhere]">{c.text}</span>
+                                        <span className={`text-sm font-bold flex-shrink-0 ${ORANGE_INK}`}>{c.weight}%</span>
                                       </div>
                                     ))}
                                   </div>
@@ -1421,11 +1583,11 @@ export default function TenderInviteLink() {
                             {(tender.evaluationCriteria as any[]).map((criteria: any, index: number) => {
                               const label = typeof criteria === 'string' ? (translatedCriteriaLabels[criteria] || criteria) : (criteria.name || criteria);
                               return (
-                                <div key={index} className="flex items-center gap-3 p-4 bg-amber-50/60 rounded-xl border border-amber-100">
-                                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                <div key={index} className="flex items-center gap-3 p-4 bg-amber-50/60 dark:bg-amber-950/20 rounded-xl border border-amber-100 dark:border-amber-900/40">
+                                  <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0">
                                     <Star className="h-4 w-4 text-amber-600" />
                                   </div>
-                                  <span className="font-medium text-foreground text-sm">{label}</span>
+                                  <span dir="auto" className="font-medium text-foreground text-sm min-w-0 [overflow-wrap:anywhere]">{label}</span>
                                 </div>
                               );
                             })}
@@ -1466,19 +1628,19 @@ export default function TenderInviteLink() {
 
                             {/* Video requirement notice */}
                             {tender.videoRequired && (
-                              <div className="flex items-center gap-2.5 px-4 py-3 bg-orange-50 rounded-xl border border-orange-200">
+                              <div className="flex items-center gap-2.5 px-4 py-3 bg-orange-50 dark:bg-orange-950/30 rounded-xl border border-orange-200 dark:border-orange-900/50">
                                 <Video className="h-4 w-4 text-orange-500 flex-shrink-0" />
                                 <span className="text-sm font-medium text-orange-800 dark:text-orange-300">{t('tenderFlow.videoMandatory')}</span>
                               </div>
                             )}
 
                             {/* Deadline reminder */}
-                            <div className="mt-3 flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 p-4 bg-muted rounded-xl border border-border">
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Calendar className="h-4 w-4 text-[#FE3C01]" />
                                 <span>{t('tenderFlow.submissionDeadlineLabel')}</span>
                               </div>
-                              <span className={`text-sm font-bold ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday ? 'text-orange-600' : daysRemaining <= 3 ? 'text-orange-600' : 'text-foreground'}`}>
+                              <span className={`text-sm font-bold ${isDeadlinePassed ? 'text-red-700 dark:text-red-300' : isDeadlineToday ? 'text-orange-700 dark:text-orange-300' : daysRemaining <= 3 ? 'text-orange-700 dark:text-orange-300' : 'text-foreground'}`}>
                                 {formatDate(tender.deadline)}
                                 {deadlineSubtext() && <span className="ms-2 font-normal text-xs">({deadlineSubtext()})</span>}
                               </span>
@@ -1492,25 +1654,25 @@ export default function TenderInviteLink() {
                             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-2">
                               <Shield className="h-4 w-4" /> {t('tenderFlow.eligibilityRequirements')}
                             </h3>
-                            <p className="text-xs text-gray-400 mb-5">
+                            <p className="text-xs text-muted-foreground mb-5">
                               {t('tenderFlow.eligibilityHint')}
                             </p>
 
                             {mandatoryRequirements.length > 0 && (
                               <div className="mb-5">
-                                <div className="flex items-center gap-2 mb-3">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3">
                                   <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-                                  <span className="text-xs font-bold text-red-600 uppercase tracking-wider">{t('tenderFlow.mandatoryLabel')}</span>
-                                  <span className="text-xs text-gray-400">— {t('tenderFlow.mandatoryHint')}</span>
+                                  <span className="text-xs font-bold text-red-700 dark:text-red-300 uppercase tracking-wider">{t('tenderFlow.mandatoryLabel')}</span>
+                                  <span className="text-xs text-muted-foreground">— {t('tenderFlow.mandatoryHint')}</span>
                                 </div>
                                 <div className="space-y-2">
                                   {mandatoryRequirements.map((req) => {
                                     const reqIdx = tender.vendorRequirements?.findIndex(r => r.id === req.id) ?? -1;
                                     return (
-                                    <div key={req.id} className="flex items-center gap-3 p-3.5 bg-red-50 border border-red-100 rounded-xl">
+                                    <div key={req.id} className="flex items-center gap-3 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/40 rounded-xl">
                                       <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                                      <span className="text-sm text-foreground flex-1">{reqIdx >= 0 ? tx(`vendor_req_${reqIdx}`, req.text) : req.text}</span>
-                                      <span className="flex-shrink-0 text-xs font-semibold text-red-600 bg-red-100 px-2.5 py-1 rounded-full">{t('tenderFlow.requiredBadge')}</span>
+                                      <span dir="auto" className="text-sm text-foreground flex-1 min-w-0 [overflow-wrap:anywhere]">{reqIdx >= 0 ? tx(`vendor_req_${reqIdx}`, req.text) : req.text}</span>
+                                      <span className="flex-shrink-0 text-xs font-semibold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/40 px-2.5 py-1 rounded-full">{t('tenderFlow.requiredBadge')}</span>
                                     </div>
                                     );
                                   })}
@@ -1520,19 +1682,19 @@ export default function TenderInviteLink() {
 
                             {preferredRequirements.length > 0 && (
                               <div>
-                                <div className="flex items-center gap-2 mb-3">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3">
                                   <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
-                                  <span className="text-xs font-bold text-amber-600 uppercase tracking-wider">{t('tenderFlow.preferredLabel')}</span>
-                                  <span className="text-xs text-gray-400">— {t('tenderFlow.preferredHint')}</span>
+                                  <span className="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">{t('tenderFlow.preferredLabel')}</span>
+                                  <span className="text-xs text-muted-foreground">— {t('tenderFlow.preferredHint')}</span>
                                 </div>
                                 <div className="space-y-2">
                                   {preferredRequirements.map((req) => {
                                     const reqIdx = tender.vendorRequirements?.findIndex(r => r.id === req.id) ?? -1;
                                     return (
-                                    <div key={req.id} className="flex items-center gap-3 p-3.5 bg-amber-50 border border-amber-100 rounded-xl">
+                                    <div key={req.id} className="flex items-center gap-3 p-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 rounded-xl">
                                       <CheckCircle2 className="h-4 w-4 text-amber-500 flex-shrink-0" />
-                                      <span className="text-sm text-foreground flex-1">{reqIdx >= 0 ? tx(`vendor_req_${reqIdx}`, req.text) : req.text}</span>
-                                      <span className="flex-shrink-0 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 px-2.5 py-1 rounded-full">{t('tenderFlow.preferredBadge')}</span>
+                                      <span dir="auto" className="text-sm text-foreground flex-1 min-w-0 [overflow-wrap:anywhere]">{reqIdx >= 0 ? tx(`vendor_req_${reqIdx}`, req.text) : req.text}</span>
+                                      <span className="flex-shrink-0 text-xs font-semibold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/40 px-2.5 py-1 rounded-full">{t('tenderFlow.preferredBadge')}</span>
                                     </div>
                                     );
                                   })}
@@ -1548,15 +1710,15 @@ export default function TenderInviteLink() {
                             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
                               <HelpCircle className="h-4 w-4" /> {t('tenderFlow.questionsContact')}
                             </h3>
-                            <div className="p-4 bg-muted rounded-xl border border-border space-y-2">
+                            <div className="p-2 bg-muted rounded-xl border border-border">
                               {tender.emailContact && (
-                                <a href={`mailto:${tender.emailContact}`} className="flex items-center gap-2.5 text-sm text-[var(--bid-orange)] hover:text-[var(--bid-orange)] hover:underline">
-                                  <Mail className="h-4 w-4" /> {tender.emailContact}
+                                <a href={`mailto:${tender.emailContact}`} className={`flex items-center gap-2.5 min-h-11 px-2 rounded-lg text-sm hover:underline transition-[opacity,transform] duration-100 active:opacity-70 active:scale-[0.99] ${ORANGE_INK}`}>
+                                  <Mail className="h-4 w-4 flex-shrink-0" /> <bdi dir="ltr" className="min-w-0 [overflow-wrap:anywhere]">{tender.emailContact}</bdi>
                                 </a>
                               )}
                               {tender.whatsappContact && (
-                                <a href={`https://wa.me/${tender.whatsappContact.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-sm text-[var(--state-won)] hover:text-[var(--state-won)] hover:underline">
-                                  <Phone className="h-4 w-4" /> {tender.whatsappContact}
+                                <a href={`https://wa.me/${tender.whatsappContact.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 min-h-11 px-2 rounded-lg text-sm text-emerald-700 dark:text-emerald-400 hover:underline transition-[opacity,transform] duration-100 active:opacity-70 active:scale-[0.99]">
+                                  <Phone className="h-4 w-4 flex-shrink-0" /> <bdi dir="ltr" className="min-w-0 [overflow-wrap:anywhere]">{tender.whatsappContact}</bdi>
                                 </a>
                               )}
                             </div>
@@ -1574,7 +1736,7 @@ export default function TenderInviteLink() {
                     <SectionObserver id="context" onVisible={() => setActiveSection('context')}>
                       <div id="section-context" className="p-6 sm:p-8 scroll-mt-24">
                         <SectionHeader index={sections.findIndex(s => s.id === 'context') + 1} title={t('tenderFlow.additionalContextSection')} />
-                        <p className="text-sm text-gray-400 mb-6">{t('tenderFlow.additionalMediaHint')}</p>
+                        <p className="text-sm text-muted-foreground mb-6">{t('tenderFlow.additionalMediaHint')}</p>
                         <div className="space-y-6">
                           {tender.voiceNoteUrl && (
                             <div>
@@ -1584,17 +1746,17 @@ export default function TenderInviteLink() {
                               {user ? (
                                 <AudioPlayer src={tender.voiceNoteUrl} />
                               ) : (
-                                <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
-                                  <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                      <Play className="h-5 w-5 text-gray-400" />
+                                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3 p-4 bg-muted rounded-xl border border-border">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-200 dark:bg-card flex items-center justify-center">
+                                      <Play className="h-5 w-5 text-muted-foreground" />
                                     </div>
                                     <div>
                                       <p className="font-medium text-foreground">{t('tenderFlow.voiceNoteAvailable')}</p>
                                       <p className="text-sm text-muted-foreground">{t('tenderFlow.logInToListen')}</p>
                                     </div>
                                   </div>
-                                  <Button size="sm" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); window.open("/login", "_blank"); }} data-testid="button-login-voice">{t('tenderFlow.loginBtn')}</Button>
+                                  <Button size="sm" className="max-sm:w-full max-md:h-11 bg-[#FE3C01] hover:bg-[#1A1613] text-white" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); openAuthPage("/login"); }} data-testid="button-login-voice">{t('tenderFlow.loginBtn')}</Button>
                                 </div>
                               )}
                             </div>
@@ -1604,7 +1766,7 @@ export default function TenderInviteLink() {
                               <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
                                 <Video className="h-4 w-4 text-blue-500" /> {t('tenderFlow.videoExplanation')}
                               </h3>
-                              <a href={tender.videoUrl.startsWith('http') ? tender.videoUrl : `https://${tender.videoUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 bg-[var(--bid-orange)]/5 text-[var(--bid-orange)] rounded-xl hover:bg-[var(--bid-orange)]/10 transition-colors font-medium">
+                              <a href={tender.videoUrl.startsWith('http') ? tender.videoUrl : `https://${tender.videoUrl}`} target="_blank" rel="noopener noreferrer" className={`inline-flex items-center gap-2 px-5 min-h-11 py-3 max-w-full bg-[var(--bid-orange)]/5 rounded-xl hover:bg-[var(--bid-orange)]/10 transition-[background-color,transform,opacity] duration-100 active:scale-[0.97] active:opacity-70 font-medium ${ORANGE_INK}`}>
                                 <ExternalLink className="h-4 w-4" /> {t('tenderFlow.watchVideo')}
                               </a>
                             </div>
@@ -1626,24 +1788,24 @@ export default function TenderInviteLink() {
 
                 {/* At a Glance */}
                 <div className="bg-card rounded-2xl border border-border shadow-sm p-4">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{t('tenderFlow.atAGlance')}</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">{t('tenderFlow.atAGlance')}</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className={`rounded-lg p-2.5 border ${isDeadlineToday ? 'bg-orange-50 border-orange-200' : isDeadlinePassed ? 'bg-red-50 border-red-100' : daysRemaining <= 3 ? 'bg-orange-50/50 border-orange-100' : 'bg-muted border-border'}`}>
+                    <div className={`rounded-lg p-2.5 border ${isDeadlineToday ? 'bg-orange-50 border-orange-200 dark:bg-orange-950/30 dark:border-orange-900/50' : isDeadlinePassed ? 'bg-red-50 border-red-100 dark:bg-red-950/30 dark:border-red-900/40' : daysRemaining <= 3 ? 'bg-orange-50/50 border-orange-100 dark:bg-orange-950/20 dark:border-orange-900/40' : 'bg-muted border-border'}`}>
                       <div className="flex items-center gap-1.5 mb-1">
                         <Calendar className={`h-3 w-3 flex-shrink-0 ${isDeadlineToday ? 'text-orange-500' : isDeadlinePassed ? 'text-red-500' : 'text-[#FE3C01]'}`} />
-                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.deadlineLabel')}</span>
+                        <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.deadlineLabel')}</span>
                       </div>
-                      <p className={`text-xs font-bold leading-tight ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday || daysRemaining <= 3 ? 'text-orange-600' : 'text-foreground'}`}>
+                      <p className={`text-xs font-bold leading-tight ${isDeadlinePassed ? 'text-red-600 dark:text-red-300' : isDeadlineToday || daysRemaining <= 3 ? 'text-orange-600 dark:text-orange-300' : 'text-foreground'}`}>
                         {formatDate(tender.deadline)}
                       </p>
                       {deadlineSubtext() && (
-                        <p className={`text-[10px] mt-0.5 ${isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`}>{deadlineSubtext()}</p>
+                        <p className={`text-[10px] mt-0.5 ${isDeadlineToday ? 'text-orange-500' : 'text-muted-foreground'}`}>{deadlineSubtext()}</p>
                       )}
                     </div>
                     <div className="bg-muted rounded-lg p-2.5 border border-border">
                       <div className="flex items-center gap-1.5 mb-1">
                         <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
-                        <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.budgetColumn')}</span>
+                        <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.budgetColumn')}</span>
                       </div>
                       <p className="text-xs font-bold text-foreground leading-tight">{getBudgetDisplay()}</p>
                     </div>
@@ -1651,7 +1813,7 @@ export default function TenderInviteLink() {
                       <div className="bg-muted rounded-lg p-2.5 border border-border">
                         <div className="flex items-center gap-1.5 mb-1">
                           <Clock className="h-3 w-3 flex-shrink-0 text-blue-500" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.durationLabel')}</span>
+                          <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.durationLabel')}</span>
                         </div>
                         <p className="text-xs font-bold text-foreground leading-tight">{durationDisplay}</p>
                       </div>
@@ -1660,7 +1822,7 @@ export default function TenderInviteLink() {
                       <div className="bg-muted rounded-lg p-2.5 border border-border">
                         <div className="flex items-center gap-1.5 mb-1">
                           <FileText className="h-3 w-3 flex-shrink-0 text-purple-500" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.formatLabel')}</span>
+                          <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.formatLabel')}</span>
                         </div>
                         <p className="text-xs font-bold text-foreground leading-tight">{translatedSubmissionTypeLabels[tender.submissionType] || tender.submissionType}</p>
                       </div>
@@ -1669,7 +1831,7 @@ export default function TenderInviteLink() {
                       <div className="bg-muted rounded-lg p-2.5 border border-border">
                         <div className="flex items-center gap-1.5 mb-1">
                           <Tag className="h-3 w-3 flex-shrink-0 text-indigo-500" />
-                          <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.categoryLabel')}</span>
+                          <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.categoryLabel')}</span>
                         </div>
                         <p className="text-xs font-bold text-foreground leading-tight">{tx('category', tender.category)}</p>
                       </div>
@@ -1682,7 +1844,7 @@ export default function TenderInviteLink() {
                   {isDeadlinePassed ? (
                     <>
                       <p className="text-sm font-semibold text-foreground mb-1">{t('tenderFlow.submissionsClosed')}</p>
-                      <p className="text-xs text-gray-400 mb-4">{t('tenderFlow.submissionsClosedDesc')}</p>
+                      <p className="text-xs text-muted-foreground mb-4">{t('tenderFlow.submissionsClosedDesc')}</p>
                     </>
                   ) : isDeadlineToday ? (
                     <>
@@ -1692,31 +1854,31 @@ export default function TenderInviteLink() {
                   ) : (
                     <>
                       <p className="text-sm font-semibold text-foreground mb-1">{t('tenderFlow.readyToSubmit')}</p>
-                      <p className="text-xs text-gray-400 mb-4">
+                      <p className="text-xs text-muted-foreground mb-4">
                         {daysRemaining <= 7
-                          ? (daysRemaining === 1 ? t('tenderFlow.oneDayRemaining') : `${daysRemaining} ${t('tenderFlow.daysRemaining')}`)
+                          ? (daysRemaining === 1 ? t('tenderFlow.oneDayRemaining') : daysRemaining === 2 ? t('tenderFlow.twoDaysRemaining') : `${daysRemaining} ${t('tenderFlow.daysRemaining')}`)
                           : `${t('tenderFlow.deadlinePrefix')} ${formatDate(tender.deadline)}`}
                       </p>
                     </>
                   )}
                   <Button
-                    className="w-full bg-[#FE3C01] hover:bg-[#d54d35] text-white py-5 text-sm font-semibold rounded-xl"
+                    className="w-full bg-[#FE3C01] hover:bg-[#1A1613] text-white py-5 text-sm font-semibold rounded-xl"
                     onClick={handleSubmitOffer}
                     disabled={isDeadlinePassed}
                     data-testid="button-submit-offer"
                   >
-                    <Send className="h-4 w-4 me-2" />
+                    <Send className="h-4 w-4 me-2 rtl:-scale-x-100" />
                     {t('tenderFlow.submitProposal')}
                   </Button>
                   {!user && (
-                    <p className="text-xs text-gray-400 text-center mt-2.5">{t('tenderFlow.needToLogIn')}</p>
+                    <p className="text-xs text-muted-foreground text-center mt-2.5">{t('tenderFlow.needToLogIn')}</p>
                   )}
                 </div>
 
                 {/* Proposal Prep Checklist */}
                 {proposalChecklist.length > 0 && (
                   <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">{t('tenderFlow.prepareSubmission')}</h4>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{t('tenderFlow.prepareSubmission')}</h4>
 
                     {/* Group: Documents & Media */}
                     {proposalChecklist.filter(i => i.category === 'document' || i.category === 'video').length > 0 && (
@@ -1730,7 +1892,7 @@ export default function TenderInviteLink() {
                                 <div className={`flex-shrink-0 mt-1.5 w-2 h-2 rounded-full ${item.category === 'video' ? 'bg-orange-400' : 'bg-blue-400'}`} />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm text-muted-foreground leading-snug">{item.text}</p>
-                                  {item.hint && <p className={`text-xs mt-0.5 ${item.hint === t('tenderFlow.checklistRequired') ? 'text-orange-500 font-medium' : 'text-gray-400'}`}>{item.hint}</p>}
+                                  {item.hint && <p className={`text-xs mt-0.5 ${item.hint === t('tenderFlow.checklistRequired') ? 'text-orange-500 font-medium' : 'text-muted-foreground'}`}>{item.hint}</p>}
                                 </div>
                               </div>
                             ))}
@@ -1756,7 +1918,7 @@ export default function TenderInviteLink() {
                               onClick={() => scrollToSection('submission')}
                               className="text-xs text-[#FE3C01] hover:underline ps-6"
                             >
-                              +{remainingReqCount} {remainingReqCount !== 1 ? t('tenderFlow.moreRequirements') : t('tenderFlow.moreRequirement')} →
+                              +{remainingReqCount} {remainingReqCount !== 1 ? t('tenderFlow.moreRequirements') : t('tenderFlow.moreRequirement')} <span className="inline-block rtl:-scale-x-100">→</span>
                             </button>
                           )}
                         </div>
@@ -1777,18 +1939,18 @@ export default function TenderInviteLink() {
       {showQA && (
         <div id="section-qa" className="bg-card border-t border-border">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[var(--bid-orange)]/5 rounded-xl">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 bg-[var(--bid-orange)]/5 rounded-xl flex-shrink-0">
                   <MessageSquare className="h-5 w-5 text-blue-500" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h2 className="text-xl font-bold text-foreground">{t('tenderFlow.vendorInquiries')}</h2>
-                  <p className="text-sm text-gray-400">{t('tenderFlow.vendorInquiriesDesc')}</p>
+                  <p className="text-sm text-muted-foreground">{t('tenderFlow.vendorInquiriesDesc')}</p>
                 </div>
               </div>
               {questions.length > 0 && (
-                <Badge className="bg-[var(--bid-orange)]/5 text-[var(--bid-orange)] border border-[var(--bid-orange)]/20 text-xs">
+                <Badge className={`flex-shrink-0 whitespace-nowrap bg-[var(--bid-orange)]/5 border border-[var(--bid-orange)]/20 text-xs ${ORANGE_INK}`}>
                   {questions.length} {questions.length !== 1 ? t('tenderFlow.questionsCount') : t('tenderFlow.questionCount')}
                 </Badge>
               )}
@@ -1806,31 +1968,31 @@ export default function TenderInviteLink() {
                             <HelpCircle className="h-4 w-4 text-[var(--bid-orange)]" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-foreground font-medium">{qa.question}</p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {t('tenderFlow.askedOn')} {new Date(qa.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
+                            <p dir="auto" className="text-sm text-foreground font-medium [overflow-wrap:anywhere]">{qa.question}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {t('tenderFlow.askedOn')} {new Date(qa.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', { month: 'short', day: 'numeric' })}
                             </p>
                           </div>
                         </div>
                         {qa.answer ? (
-                          <div className="mt-3 ms-10 p-3 bg-[var(--state-won)]/5 rounded-xl border border-emerald-100">
-                            <p className="text-sm text-muted-foreground">{qa.answer}</p>
+                          <div className="mt-3 ms-10 p-3 bg-[var(--state-won)]/5 rounded-xl border border-emerald-100 dark:border-emerald-900/40">
+                            <p dir="auto" className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{qa.answer}</p>
                             {qa.answeredAt && (
-                              <p className="text-xs text-[var(--state-won)] mt-1 font-medium">
-                                {t('tenderFlow.answeredOn')} {new Date(qa.answeredAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
+                              <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 font-medium">
+                                {t('tenderFlow.answeredOn')} {new Date(qa.answeredAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', { month: 'short', day: 'numeric' })}
                               </p>
                             )}
                           </div>
                         ) : (
                           <div className="mt-3 ms-10">
-                            <span className="text-xs text-gray-400 italic">{t('tenderFlow.awaitingResponse')}</span>
+                            <span className="text-xs text-muted-foreground italic">{t('tenderFlow.awaitingResponse')}</span>
                           </div>
                         )}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 text-gray-400 border border-dashed border-border rounded-2xl bg-muted">
+                  <div className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-2xl bg-muted">
                     <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-25" />
                     <p className="text-sm font-medium">{t('tenderFlow.noQuestionsYet')}</p>
                     <p className="text-xs mt-1 opacity-60">{t('tenderFlow.beFirstToAsk')}</p>
@@ -1841,37 +2003,40 @@ export default function TenderInviteLink() {
               {/* Ask a question form */}
               <div>
                 {user ? (
-                  <div className="p-5 bg-[var(--bid-orange)]/5 border border-blue-100 rounded-2xl">
+                  <div className="p-5 bg-[var(--bid-orange)]/5 border border-blue-100 dark:border-border rounded-2xl">
                     <div className="flex items-center gap-2 mb-4">
-                      <Shield className="h-4 w-4 text-emerald-500" />
-                      <span className="text-xs font-semibold text-[var(--state-won)]">{t('tenderFlow.identityHidden')}</span>
+                      <Shield className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+                      <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{t('tenderFlow.identityHidden')}</span>
                     </div>
                     <Textarea
                       value={newQuestion}
                       onChange={(e) => setNewQuestion(e.target.value)}
+                      onFocus={() => setQuestionFocused(true)}
+                      onBlur={() => setQuestionFocused(false)}
+                      dir="auto"
                       placeholder={t('tenderFlow.questionPlaceholder')}
                       className="min-h-[90px] bg-card border-[var(--bid-orange)]/20 resize-none mb-3 focus:ring-blue-300 focus:border-blue-300"
                       data-testid="input-question"
                     />
                     <Button
-                      className="w-full bg-[#FE3C01] hover:bg-[#d54d35]"
+                      className="w-full bg-[#FE3C01] hover:bg-[#1A1613]"
                       onClick={() => newQuestion.trim() && askQuestion.mutate(newQuestion.trim())}
                       disabled={askQuestion.isPending || !newQuestion.trim()}
                       data-testid="button-ask"
                     >
-                      {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : <Send className="h-4 w-4 me-2" />}
+                      {askQuestion.isPending ? <Loader2 className="h-4 w-4 animate-spin me-2" /> : <Send className="h-4 w-4 me-2 rtl:-scale-x-100" />}
                       {t('tenderFlow.submitQuestion')}
                     </Button>
                   </div>
                 ) : (
-                  <div className="p-6 bg-[var(--bid-orange)]/5 border border-blue-100 rounded-2xl text-center">
+                  <div className="p-6 bg-[var(--bid-orange)]/5 border border-blue-100 dark:border-border rounded-2xl text-center">
                     <MessageSquare className="h-8 w-8 mx-auto mb-3 text-blue-300" />
                     <p className="text-sm font-semibold text-foreground mb-1">{t('tenderFlow.haveAQuestion')}</p>
                     <p className="text-xs text-muted-foreground mb-4">{t('tenderFlow.logInToAsk')}</p>
                     <Button
                       size="sm"
-                      className="bg-[#FE3C01] hover:bg-[#d54d35]"
-                      onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); window.open("/login", "_blank"); }}
+                      className="bg-[#FE3C01] hover:bg-[#1A1613] max-md:h-11"
+                      onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); openAuthPage("/login"); }}
                     >
                       {t('tenderFlow.loginToAskBtn')}
                     </Button>
@@ -1883,27 +2048,31 @@ export default function TenderInviteLink() {
         </div>
       )}
 
-      {/* Mobile bottom spacer so content isn't hidden behind sticky CTA */}
-      <div className="lg:hidden h-24" />
+      {/* Room at the very bottom of the page so the compact bar below never hides the last lines.
+          Bar height (about 7rem) + the iPhone home-bar area. */}
+      <div className={`lg:hidden ${isDeadlinePassed ? 'h-6' : 'h-[calc(7rem+env(safe-area-inset-bottom,0px))]'}`} />
 
-      {/* Mobile bottom CTA */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t px-4 pt-2 pb-4 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}>
-        <div className="flex items-center justify-center gap-1.5 mb-2">
-          <Calendar className={`h-3 w-3 ${isDeadlinePassed ? 'text-red-500' : isDeadlineToday ? 'text-orange-500' : 'text-gray-400'}`} />
-          <span className={`text-xs font-medium ${isDeadlinePassed ? 'text-red-600' : isDeadlineToday ? 'text-orange-600' : 'text-muted-foreground'}`}>
-            {isDeadlinePassed ? t('tenderFlow.closedMobile') : isDeadlineToday ? t('tenderFlow.closesToday') : daysRemaining === 1 ? t('tenderFlow.oneDayLeft') : daysRemaining <= 7 ? `${daysRemaining} ${t('tenderFlow.daysLeft')}` : `${t('tenderFlow.dueDatePrefix')} ${formatDate(tender.deadline)}`}
-          </span>
-        </div>
-        <Button
-          className="w-full bg-[#FE3C01] hover:bg-[#d54d35] text-white py-5 text-base font-semibold rounded-xl"
-          onClick={handleSubmitOffer}
-          disabled={isDeadlinePassed}
-          data-testid="button-submit-offer-mobile"
+      {/* Phone bottom bar - shown once the inline submit button has scrolled out of view */}
+      {showStickyCta && (
+        <div
+          className="lg:hidden fixed bottom-0 inset-x-0 bg-card border-t border-border px-4 pt-2 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] animate-in fade-in slide-in-from-bottom-4 duration-200"
+          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}
+          data-testid="bar-submit-sticky"
         >
-          <Send className="h-5 w-5 me-2" />
-          {t('tenderFlow.submitProposal')}
-        </Button>
-      </div>
+          <div className="flex items-center justify-center gap-1.5 mb-2">
+            <Calendar className={`h-3 w-3 flex-shrink-0 ${isDeadlineToday ? 'text-orange-500' : 'text-muted-foreground'}`} />
+            <span className={`text-xs font-medium ${mobileDeadlineCls}`}>{mobileDeadlineText}</span>
+          </div>
+          <Button
+            className="w-full bg-[#FE3C01] hover:bg-[#1A1613] text-white min-h-12 text-base font-semibold rounded-xl"
+            onClick={handleSubmitOffer}
+            data-testid="button-submit-offer-mobile"
+          >
+            <Send className="h-5 w-5 me-2 rtl:-scale-x-100" />
+            {t('tenderFlow.submitProposal')}
+          </Button>
+        </div>
+      )}
 
       {showOfferModal && (
         <SubmitOfferModal
@@ -1937,7 +2106,7 @@ function SectionDivider() {
 function SectionHeader({ index, title }: { index: number; title: string }) {
   return (
     <div className="flex items-center gap-3 mb-5">
-      <span className="text-xs font-mono text-gray-300 bg-muted px-2 py-1 rounded border border-border">
+      <span dir="ltr" className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded border border-border">
         {index}.0
       </span>
       <h2 className="text-xl font-bold text-foreground">{title}</h2>

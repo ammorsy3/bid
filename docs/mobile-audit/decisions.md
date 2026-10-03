@@ -211,3 +211,21 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     already a member) can't be photographed in fixture mode; they were fixed from
     the code and compile. Rule kept for the whole audit: Bid-orange buttons stay
     exactly #FE3C01; only text in the brand/company colour is ever darkened.
+
+34. **Tender invite page (2026-10-03): five product questions.**
+    (a) The top-bar Log in / Sign up buttons don't remember which invite you came
+    from, so after logging in people land on the dashboard, not back on the
+    tender. Want me to save the invite and send them back?
+    (b) Tender text now lines up with its own language (Arabic text on an English
+    page is right-aligned, and the reverse), also on desktop. Keep, or restore the
+    old whole-page alignment?
+    (c) The Log in buttons open a new tab; inside WhatsApp / Instagram browsers
+    that is blocked, so it now falls back to the same tab. Same-tab everywhere?
+    (d) Can't be photographed without a login, fixed from the code only, please
+    re-check in the signed-in batch: the voice-note player, download buttons, the
+    question box with the keyboard open, and the "submit offer" popup.
+    (e) Arabic wording to glance at: يومان متبقيان; "لم يعد متاح" should be "لم
+    يعد متاحًا"; the single budget now reads "SAR 4,500,000" instead of "ر.س" with
+    Arabic digits (worth making consistent).
+    Also: the "closes today" example in the test data goes stale each day; see the
+    next commit.

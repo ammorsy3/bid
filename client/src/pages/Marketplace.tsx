@@ -908,7 +908,7 @@ export default function Marketplace() {
               <button
                 type="button"
                 onClick={() => refetch()}
-                className="inline-flex items-center justify-center min-h-11 rounded-full bg-[var(--bid-orange)] px-6 py-2.5 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-[#E33600]"
+                className="inline-flex items-center justify-center min-h-11 rounded-full bg-[var(--bid-orange)] px-6 py-2.5 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-[#1A1613]"
               >
                 {t("marketplace.retry")}
               </button>
@@ -925,7 +925,7 @@ export default function Marketplace() {
                 <button
                   type="button"
                   onClick={() => { setCategory(""); setTenderType(""); setCity(""); setSort("newest"); setSearch(""); setDebouncedSearch(""); setPage(1); }}
-                  className="inline-flex items-center justify-center min-h-11 rounded-full bg-[var(--bid-orange)] px-6 py-2.5 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-[#E33600]"
+                  className="inline-flex items-center justify-center min-h-11 rounded-full bg-[var(--bid-orange)] px-6 py-2.5 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-[#1A1613]"
                 >
                   {t("marketplace.clearFilters")}
                 </button>
@@ -941,7 +941,7 @@ export default function Marketplace() {
               isVendorAccount ? undefined : (
                 <Link
                   href={user ? "/tenders/new" : "/signup"}
-                  className="inline-flex items-center justify-center gap-2 min-h-11 rounded-full bg-[var(--bid-orange)] px-5 py-2.5 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-[#E33600]"
+                  className="inline-flex items-center justify-center gap-2 min-h-11 rounded-full bg-[var(--bid-orange)] px-5 py-2.5 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-[#1A1613]"
                 >
                   {t("marketplace.postTender")}
                   <ArrowRight className="h-4 w-4 rtl:rotate-180" />

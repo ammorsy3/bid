@@ -204,3 +204,10 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     Also changed on desktop (can't be phone-only): the back arrow flips in
     Arabic, digits are Western, Arabic names show one initial instead of two,
     and the Verified Credentials box uses a darker green.
+
+33. **Traction link page (2026-10-03): two Arabic strings to check, nothing else.**
+    New: تصفّح سوق المناقصات and تغيير اللغة; also "أو تم إزالته" became "أو تمت
+    إزالته" on the dead-link page. The signed-in screens (Apply as…, success,
+    already a member) can't be photographed in fixture mode; they were fixed from
+    the code and compile. Rule kept for the whole audit: Bid-orange buttons stay
+    exactly #FE3C01; only text in the brand/company colour is ever darkened.

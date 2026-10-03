@@ -1153,6 +1153,8 @@ const translations = {
       applyingAs: "Applying as",
       contact: "Contact",
       noCompanyBio: "This company hasn't added a description yet.",
+      goToMarketplace: "Browse the Marketplace",
+      switchLanguage: "Switch language",
       // Editor
       editorTitle: "Edit Traction Page",
       editorBackToPage: "Back to page",
@@ -5439,7 +5441,7 @@ const translations = {
     },
     tractionPage: {
       pageNotFound: "الصفحة غير موجودة",
-      pageNotFoundDesc: "رابط تسجيل الموردين هذا غير موجود أو تم إزالته.",
+      pageNotFoundDesc: "رابط تسجيل الموردين هذا غير موجود أو تمت إزالته.",
       goHome: "العودة للرئيسية",
       about: "نبذة",
       companyInfo: "معلومات الشركة",
@@ -5490,6 +5492,8 @@ const translations = {
       applyingAs: "التقديم بصفة",
       contact: "تواصل",
       noCompanyBio: "ما أضافت الشركة وصف حتى الآن",
+      goToMarketplace: "تصفّح سوق المناقصات",
+      switchLanguage: "تغيير اللغة",
       // Editor
       editorTitle: "تعديل صفحة الانضمام",
       editorBackToPage: "العودة للصفحة",

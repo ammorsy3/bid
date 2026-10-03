@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useRoute, useLocation } from "wouter";
+import { Link, useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -10,6 +10,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
 import { categoryLabel, cityLabel } from "@/lib/category-labels";
+import { isolateAuto, isolateLtr, withLtrUrls } from "@/lib/bidi";
 import { StatusBadge } from "@/components/brand/StatusDot";
 import { verificationStatusToState } from "@/components/brand/statusMap";
 import IndividualProfilePage from "@/pages/IndividualProfilePage";
@@ -136,11 +137,27 @@ const COMPANY_SIZE_KEYS: Record<string, string> = {
   '500+': 'sizeLabelOver500',
 };
 
-function formatMemberSince(iso: string | null | undefined): string | null {
+function formatMemberSince(iso: string | null | undefined, isRtl: boolean): string | null {
   if (!iso) return null;
   const d = new Date(iso);
   if (isNaN(d.getTime())) return null;
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  // Arabic gets Gregorian month names with Western digits (the app's rule).
+  return d.toLocaleDateString(isRtl ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', { month: 'short', year: 'numeric' });
+}
+
+// The server sends these four labels in English; map them to translated text.
+const VERIFIED_DOC_KEYS: Record<string, string> = {
+  'Commercial Registration': 'docCommercialRegistration',
+  'VAT Certificate': 'docVatCertificate',
+  'GOSI Certificate': 'docGosiCertificate',
+  'National Address': 'docNationalAddress',
+};
+
+function yearsLabel(t: (key: string, vars?: Record<string, string | number>) => string, years: number, isRtl: boolean): string {
+  if (years === 1) return t('companyProfile.factsYearsOne');
+  if (isRtl && years === 2) return t('companyProfile.factsYearsTwo');
+  if (isRtl && years >= 3 && years <= 10) return t('companyProfile.factsYearsFew', { count: years });
+  return t('companyProfile.factsYearsMany', { count: years });
 }
 
 function VerificationBadge({ status }: { status: string }) {
@@ -161,7 +178,7 @@ function VerificationBadge({ status }: { status: string }) {
 
 function ProfileSkeleton() {
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-dvh bg-muted">
       <nav className="sticky top-0 z-20 bg-card border-b border-border px-4 sm:px-6 py-3 flex items-center gap-3">
         <Skeleton className="h-5 w-24" />
       </nav>
@@ -214,9 +231,12 @@ export default function CompanyProfilePage() {
   }
 
   if (error || !data) {
+    // window.close() only works on a tab the app opened itself (window.opener).
+    // On a shared link it does nothing, so only offer it when it can work.
+    const canCloseTab = typeof window !== 'undefined' && !!window.opener;
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <div className="text-center space-y-4">
+      <div className="min-h-dvh bg-muted flex items-center justify-center px-6 py-10">
+        <div className="text-center space-y-4 w-full max-w-sm">
           <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
             <Building2 className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -224,12 +244,23 @@ export default function CompanyProfilePage() {
           <p className="text-sm text-muted-foreground max-w-sm">
             {t('companyProfile.notFoundDesc')}
           </p>
-          <button
-            onClick={() => window.close()}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {t('companyProfile.closeTab')}
-          </button>
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <Link
+              href="/marketplace"
+              className="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-[#FE3C01] hover:bg-[#1A1613] px-6 min-h-11 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97]"
+              data-testid="link-company-not-found-marketplace"
+            >
+              {t('companyProfile.goToMarketplace')}
+            </Link>
+            {canCloseTab && (
+              <button
+                onClick={() => window.close()}
+                className="inline-flex items-center justify-center min-h-11 px-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-70"
+              >
+                {t('companyProfile.closeTab')}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -237,7 +268,11 @@ export default function CompanyProfilePage() {
 
   const { company, profile } = data;
   const displayName = profile?.displayName || company.name;
-  const initials = displayName.slice(0, 2).toUpperCase();
+  // Arabic letters join, so the first two letters of an Arabic name read as a
+  // word (the first two of "شركة" spell "شر", which means "evil"). Show one letter.
+  const initials = /^[\u0600-\u06FF]/.test(displayName.trim())
+    ? displayName.trim().charAt(0)
+    : displayName.slice(0, 2).toUpperCase();
   const hasSocialLinks = profile?.socialLinks?.website || profile?.socialLinks?.linkedin || profile?.socialLinks?.twitter;
   const hasTags = profile?.tags && profile.tags.length > 0;
   const hasCertifications = company.certifications && company.certifications.length > 0;
@@ -263,16 +298,48 @@ export default function CompanyProfilePage() {
   const visibleInsurance = (profile?.insurancePolicies || []).filter(p => !isExpired(p.expiryDate));
   const hasStructuredCredentials = visibleCertifications.length > 0 || visibleInsurance.length > 0;
 
+  // The hero content is shared by the photo-header and gradient-header variants.
+  // On phones it sits in normal flow so a long name makes the banner taller
+  // instead of running off the top; from md up the layout is unchanged.
+  const renderHeroContent = (wrapperClass: string) => (
+    <div className={wrapperClass}>
+      <div className="flex items-end gap-4">
+        {profile?.logoUrl ? (
+          <img src={profile.logoUrl} alt={displayName} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-card" />
+        ) : (
+          <div className="w-16 h-16 rounded-2xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-card flex items-center justify-center text-xl font-extrabold text-muted-foreground">{initials}</div>
+        )}
+        <div className="min-w-0 flex-1">
+          <h1 className="font-display font-black text-xl md:text-2xl text-white tracking-[-0.03em] drop-shadow break-words"><bdi>{displayName}</bdi></h1>
+          <div className="flex items-center gap-2.5 mt-1 flex-wrap">
+            {/* The badge colours are made for a light page; on the dark banner they need their own light chip on phones. */}
+            <span className="inline-flex rounded-full bg-card max-md:p-0.5 md:bg-transparent"><VerificationBadge status={company.verificationStatus} /></span>
+            {company.category && (
+              <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{categoryLabel(company.category, isRtl)}</span>
+            )}
+            {company.city && (
+              <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><MapPin className="h-3 w-3 flex-shrink-0" />{cityLabel(company.city, isRtl)}</span>
+            )}
+            {sizeLabel && (
+              <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Users className="h-3 w-3 flex-shrink-0" />{sizeLabel}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-dvh bg-muted">
       {/* ══════════════════════ TOP NAV ══════════════════════ */}
       <nav className="sticky top-0 z-20 bg-card border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => window.history.length > 1 ? window.history.back() : window.close()}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => window.history.length > 1 ? window.history.back() : setLocation('/marketplace')}
+            aria-label={t('companyProfile.navBack')}
+            className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-70 max-sm:h-11 max-sm:w-11 max-sm:-my-3 max-sm:-ms-3"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
             <span className="hidden sm:inline">{t('companyProfile.navBack')}</span>
           </button>
           <div className="h-5 w-px bg-border" />
@@ -288,61 +355,15 @@ export default function CompanyProfilePage() {
 
       {/* ══════════════════════ HERO HEADER ══════════════════════ */}
       {profile?.headerUrl ? (
-        <div className="w-full relative">
-          <img src={profile.headerUrl} alt="" className="w-full h-auto block" />
+        <div className="w-full relative max-md:flex max-md:items-end max-md:min-h-52">
+          <img src={profile.headerUrl} alt="" className="w-full h-auto block max-md:absolute max-md:inset-0 max-md:h-full max-md:object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-4 sm:px-6 pb-5">
-            <div className="flex items-end gap-4">
-              {profile?.logoUrl ? (
-                <img src={profile.logoUrl} alt={displayName} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-card" />
-              ) : (
-                <div className="w-16 h-16 rounded-2xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-card flex items-center justify-center text-xl font-extrabold text-muted-foreground">{initials}</div>
-              )}
-              <div>
-                <h1 className="font-display font-black text-xl md:text-2xl text-white tracking-[-0.03em] drop-shadow">{displayName}</h1>
-                <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-                  <VerificationBadge status={company.verificationStatus} />
-                  {company.category && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{categoryLabel(company.category, isRtl)}</span>
-                  )}
-                  {company.city && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><MapPin className="h-3 w-3 flex-shrink-0" />{cityLabel(company.city, isRtl)}</span>
-                  )}
-                  {sizeLabel && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Users className="h-3 w-3 flex-shrink-0" />{sizeLabel}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          {renderHeroContent("relative w-full max-w-[900px] mx-auto px-4 sm:px-6 pb-5 pt-6 md:pt-0 md:absolute md:bottom-0 md:inset-x-0")}
         </div>
       ) : (
-        <div className="h-52 md:h-64 w-full relative" style={{ background: 'linear-gradient(135deg, #1A1613 0%, #3A1B12 50%, #C23000 100%)' }}>
+        <div className="min-h-52 md:min-h-64 w-full relative flex items-end" style={{ background: 'linear-gradient(135deg, #1A1613 0%, #3A1B12 50%, #C23000 100%)' }}>
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 max-w-[900px] mx-auto px-4 sm:px-6 pb-5">
-            <div className="flex items-end gap-4">
-              {profile?.logoUrl ? (
-                <img src={profile.logoUrl} alt={displayName} className="w-16 h-16 rounded-2xl object-cover border-2 border-white/80 shadow-lg flex-shrink-0 bg-card" />
-              ) : (
-                <div className="w-16 h-16 rounded-2xl border-2 border-white/80 shadow-lg flex-shrink-0 bg-card flex items-center justify-center text-xl font-extrabold text-muted-foreground">{initials}</div>
-              )}
-              <div>
-                <h1 className="font-display font-black text-xl md:text-2xl text-white tracking-[-0.03em] drop-shadow">{displayName}</h1>
-                <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-                  <VerificationBadge status={company.verificationStatus} />
-                  {company.category && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{categoryLabel(company.category, isRtl)}</span>
-                  )}
-                  {company.city && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><MapPin className="h-3 w-3 flex-shrink-0" />{cityLabel(company.city, isRtl)}</span>
-                  )}
-                  {sizeLabel && (
-                    <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Users className="h-3 w-3 flex-shrink-0" />{sizeLabel}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          {renderHeroContent("relative w-full max-w-[900px] mx-auto px-4 sm:px-6 pb-5 pt-6")}
         </div>
       )}
 
@@ -351,9 +372,9 @@ export default function CompanyProfilePage() {
         <div className="max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
           <div className={`rounded-2xl px-5 py-3 flex items-center gap-3 border ${
             availabilityStatus === 'accepting'
-              ? 'bg-emerald-50/60 border-emerald-200'
+              ? 'bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800'
               : availabilityStatus === 'limited'
-                ? 'bg-amber-50/60 border-amber-200'
+                ? 'bg-amber-50/60 border-amber-200 dark:bg-amber-950/40 dark:border-amber-800'
                 : 'bg-muted border-border'
           }`}>
             <span className={`relative flex h-2.5 w-2.5 flex-shrink-0`}>
@@ -377,7 +398,7 @@ export default function CompanyProfilePage() {
                   : t('companyProfile.availabilityBooked')}
               </p>
               {availabilityNote && (
-                <p className={`text-[11px] mt-0.5 ${
+                <p dir="auto" className={`text-[11px] rtl:max-md:text-xs mt-0.5 break-words ${
                   availabilityStatus === 'accepting' ? 'text-[var(--state-won)]/80'
                   : availabilityStatus === 'limited' ? 'text-amber-700 dark:text-amber-300/80'
                   : 'text-muted-foreground'
@@ -394,30 +415,30 @@ export default function CompanyProfilePage() {
           <div className="bg-card rounded-2xl border border-border px-5 py-4 flex flex-wrap gap-x-8 gap-y-3">
             {yearFounded && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsFoundedLabel')}</p>
+                <p className="text-[10px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsFoundedLabel')}</p>
                 <p className="text-sm font-bold text-foreground">
                   {yearFounded}
                   {yearsInBusiness !== null && yearsInBusiness > 0 && (
-                    <span className="text-[11px] font-medium text-muted-foreground ms-1">· {yearsInBusiness} yr{yearsInBusiness === 1 ? '' : 's'}</span>
+                    <span className="text-[11px] rtl:max-md:text-xs font-medium text-muted-foreground ms-1">· {yearsLabel(t, yearsInBusiness, isRtl)}</span>
                   )}
                 </p>
               </div>
             )}
             {sizeLabel && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsTeamLabel')}</p>
+                <p className="text-[10px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsTeamLabel')}</p>
                 <p className="text-sm font-bold text-foreground">{sizeLabel}</p>
               </div>
             )}
             {company.city && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsHqLabel')}</p>
+                <p className="text-[10px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsHqLabel')}</p>
                 <p className="text-sm font-bold text-foreground">{cityLabel(company.city, isRtl)}</p>
               </div>
             )}
             {company.category && (
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsCategoryLabel')}</p>
+                <p className="text-[10px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-0.5">{t('companyProfile.factsCategoryLabel')}</p>
                 <p className="text-sm font-bold text-foreground">{categoryLabel(company.category, isRtl)}</p>
               </div>
             )}
@@ -429,16 +450,16 @@ export default function CompanyProfilePage() {
       {visibleStats.length > 0 && (
         <div className="max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
           <div className="bg-card rounded-2xl border border-border px-6 py-5">
-            <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">
+            <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">
               {t('companyProfile.sectionTrackRecord')}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4">
               {visibleStats.map(({ key, labelKey, suffix }) => (
                 <div key={key}>
                   <p className="text-2xl md:text-3xl font-extrabold text-foreground tracking-[-0.02em]">
-                    {(stats[key] as number).toLocaleString()}{suffix || ''}
+                    {(stats[key] as number).toLocaleString('en-US')}{suffix || ''}
                   </p>
-                  <p className="text-[11px] font-medium text-muted-foreground mt-0.5">{t(`companyProfile.${labelKey}`)}</p>
+                  <p className="text-[11px] rtl:max-md:text-xs font-medium text-muted-foreground mt-0.5">{t(`companyProfile.${labelKey}`)}</p>
                 </div>
               ))}
             </div>
@@ -455,31 +476,31 @@ export default function CompanyProfilePage() {
 
             {/* Verified Credentials */}
             {company.verifiedDocuments && company.verifiedDocuments.length > 0 && (
-              <div className="bg-emerald-50/40 rounded-2xl border border-emerald-100 p-6">
-                <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="bg-emerald-50/40 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-800 p-6">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-[var(--state-won)]" />
-                    <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--state-won)]">
+                    <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-emerald-800 dark:text-emerald-300">
                       {t('companyProfile.sectionVerifiedCredentials')}
                     </h2>
                   </div>
-                  {formatMemberSince(company.verifiedAt) && (
-                    <span className="text-[10px] font-semibold text-[var(--state-won)]/70">
-                      {t('companyProfile.verifiedSince', { date: formatMemberSince(company.verifiedAt)! })}
+                  {formatMemberSince(company.verifiedAt, isRtl) && (
+                    <span className="text-[10px] rtl:max-md:text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                      {t('companyProfile.verifiedSince', { date: formatMemberSince(company.verifiedAt, isRtl)! })}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-[var(--state-won)]/80 mb-3 leading-relaxed">
+                <p className="text-xs text-emerald-800 dark:text-emerald-300 mb-3 leading-relaxed">
                   {t('companyProfile.verifiedByNote')}
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {company.verifiedDocuments.map((doc) => (
                     <span
                       key={doc}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1 bg-card text-[var(--state-won)] border border-emerald-200"
+                      className="inline-flex items-center gap-1.5 max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-card text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
                     >
-                      <CheckCircle2 className="h-3 w-3" />
-                      {doc}
+                      <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
+                      <bdi>{VERIFIED_DOC_KEYS[doc] ? t(`companyProfile.${VERIFIED_DOC_KEYS[doc]}`) : doc}</bdi>
                     </span>
                   ))}
                 </div>
@@ -488,18 +509,18 @@ export default function CompanyProfilePage() {
 
             {/* About */}
             <div className="bg-card rounded-2xl border border-border p-6">
-              <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
+              <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                 {t('companyProfile.sectionAbout')}
               </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                {profile?.bio || t('companyProfile.noAbout')}
+              <p dir="auto" className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line break-words">
+                {profile?.bio ? withLtrUrls(profile.bio) : t('companyProfile.noAbout')}
               </p>
             </div>
 
             {/* Intro Video */}
             {videoEmbed && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">
+                <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">
                   {t('companyProfile.sectionIntroVideo')}
                 </h2>
                 <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ paddingTop: '56.25%' }}>
@@ -517,16 +538,16 @@ export default function CompanyProfilePage() {
             {/* Capabilities / Tags */}
             {hasTags && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
+                <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                   {t('companyProfile.sectionCapabilities')}
                 </h2>
                 <div className="flex gap-2 flex-wrap">
                   {profile!.tags.map((tag, i) => (
                     <span
                       key={i}
-                      className="text-xs font-semibold rounded-full px-3 py-1 bg-muted text-muted-foreground border border-border"
+                      className="max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-muted text-muted-foreground border border-border"
                     >
-                      {tag}
+                      <bdi>{tag}</bdi>
                     </span>
                   ))}
                 </div>
@@ -536,16 +557,16 @@ export default function CompanyProfilePage() {
             {/* Markets & Reach */}
             {hasReach && (
               <div className="bg-card rounded-2xl border border-border p-6 space-y-4">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                   {t('companyProfile.sectionMarketsReach')}
                 </h2>
                 {industriesServed.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.industriesServedLabel')}</p>
+                    <p className="text-[10px] rtl:max-md:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.industriesServedLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {industriesServed.map((ind, i) => (
-                        <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-orange-50 text-[var(--bid-orange)] border border-orange-100">
-                          {ind}
+                        <span key={i} className="max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-orange-50 dark:bg-orange-950/40 text-[var(--bid-orange)] border border-orange-100 dark:border-orange-900">
+                          <bdi>{ind}</bdi>
                         </span>
                       ))}
                     </div>
@@ -553,12 +574,12 @@ export default function CompanyProfilePage() {
                 )}
                 {serviceAreas.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.serviceAreasLabel')}</p>
+                    <p className="text-[10px] rtl:max-md:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.serviceAreasLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {serviceAreas.map((area, i) => (
-                        <span key={i} className="inline-flex items-center gap-1 text-xs font-semibold rounded-full px-3 py-1 bg-muted text-muted-foreground border border-border">
-                          <MapPin className="h-3 w-3 text-muted-foreground" />
-                          {area}
+                        <span key={i} className="inline-flex items-center gap-1 max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-muted text-muted-foreground border border-border">
+                          <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          <bdi>{area}</bdi>
                         </span>
                       ))}
                     </div>
@@ -566,11 +587,11 @@ export default function CompanyProfilePage() {
                 )}
                 {languages.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.languagesLabel')}</p>
+                    <p className="text-[10px] rtl:max-md:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.languagesLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {languages.map((lang, i) => (
-                        <span key={i} className="text-xs font-semibold rounded-full px-3 py-1 bg-muted text-muted-foreground border border-border">
-                          {lang}
+                        <span key={i} className="max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-muted text-muted-foreground border border-border">
+                          <bdi>{lang}</bdi>
                         </span>
                       ))}
                     </div>
@@ -582,7 +603,7 @@ export default function CompanyProfilePage() {
             {/* Structured Credentials (certifications + insurance) */}
             {hasStructuredCredentials && (
               <div className="bg-card rounded-2xl border border-border p-6 space-y-5">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
                   {t('companyProfile.sectionCredentials')}
                 </h2>
 
@@ -590,20 +611,20 @@ export default function CompanyProfilePage() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Award className="h-3.5 w-3.5 text-[var(--state-won)]" />
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--state-won)]">{t('companyProfile.subsectionCertifications')}</p>
+                      <p className="text-[11px] rtl:max-md:text-xs font-bold uppercase tracking-wider text-[var(--state-won)]">{t('companyProfile.subsectionCertifications')}</p>
                     </div>
                     <div className="space-y-2">
                       {visibleCertifications.map((cert, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-emerald-100 bg-emerald-50/40">
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-emerald-100 bg-emerald-50/40 dark:border-emerald-800 dark:bg-emerald-950/40">
                           <CheckCircle2 className="h-4 w-4 text-[var(--state-won)] mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-foreground">{cert.name}</p>
+                            <p dir="auto" className="text-sm font-bold text-foreground break-words">{cert.name}</p>
                             <div className="flex items-center gap-2 flex-wrap mt-0.5">
                               {cert.issuer && (
-                                <span className="text-[11px] text-muted-foreground">{t('companyProfile.certIssuedBy', { issuer: cert.issuer })}</span>
+                                <span className="text-[11px] rtl:max-md:text-xs text-muted-foreground">{t('companyProfile.certIssuedBy', { issuer: isolateAuto(cert.issuer) })}</span>
                               )}
                               {cert.expiryDate && (
-                                <span className="text-[11px] text-muted-foreground">{t('companyProfile.certValidUntil', { date: cert.expiryDate })}</span>
+                                <span className="text-[11px] rtl:max-md:text-xs text-muted-foreground">{t('companyProfile.certValidUntil', { date: isolateLtr(cert.expiryDate) })}</span>
                               )}
                             </div>
                           </div>
@@ -612,7 +633,7 @@ export default function CompanyProfilePage() {
                               href={cert.documentUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--state-won)] bg-card border border-emerald-200 rounded-full px-2 py-1 hover:bg-[var(--state-won)]/5 transition-colors flex-shrink-0"
+                              className="inline-flex items-center gap-1 text-[10px] max-md:text-xs font-bold text-[var(--state-won)] bg-card border border-emerald-200 dark:border-emerald-800 rounded-full px-2 max-md:px-3 py-1 max-md:min-h-11 hover:bg-[var(--state-won)]/5 transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-80 flex-shrink-0"
                             >
                               <ShieldCheck className="h-3 w-3" /> {t('companyProfile.certDocument')}
                             </a>
@@ -627,21 +648,21 @@ export default function CompanyProfilePage() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <Shield className="h-3.5 w-3.5 text-[var(--bid-orange)]" />
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--bid-orange)]">{t('companyProfile.subsectionInsurance')}</p>
+                      <p className="text-[11px] rtl:max-md:text-xs font-bold uppercase tracking-wider text-[var(--bid-orange)]">{t('companyProfile.subsectionInsurance')}</p>
                     </div>
                     <div className="space-y-2">
                       {visibleInsurance.map((pol, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-orange-100 bg-orange-50/40">
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-orange-100 bg-orange-50/40 dark:border-orange-900 dark:bg-orange-950/40">
                           <CheckCircle2 className="h-4 w-4 text-[var(--bid-orange)] mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-foreground">{t(`companyProfile.${INSURANCE_TYPE_KEYS[pol.type]}`)}</p>
                             <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                              <span className="text-[11px] text-muted-foreground">{pol.provider}</span>
+                              <span className="text-[11px] rtl:max-md:text-xs text-muted-foreground break-words"><bdi>{pol.provider}</bdi></span>
                               {pol.coverageAmount && (
-                                <span className="text-[11px] text-muted-foreground">· {pol.coverageAmount.toLocaleString()} {pol.currency || ''}</span>
+                                <span className="text-[11px] rtl:max-md:text-xs text-muted-foreground">· <bdi dir="ltr">{pol.coverageAmount.toLocaleString('en-US')} {pol.currency || ''}</bdi></span>
                               )}
                               {pol.expiryDate && (
-                                <span className="text-[11px] text-muted-foreground">{t('companyProfile.certValidUntil', { date: pol.expiryDate })}</span>
+                                <span className="text-[11px] rtl:max-md:text-xs text-muted-foreground">{t('companyProfile.certValidUntil', { date: isolateLtr(pol.expiryDate) })}</span>
                               )}
                             </div>
                           </div>
@@ -650,7 +671,7 @@ export default function CompanyProfilePage() {
                               href={pol.documentUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[10px] font-bold text-[var(--bid-orange)] bg-card border border-[var(--bid-orange)]/20 rounded-full px-2 py-1 hover:bg-[var(--bid-orange)]/5 transition-colors flex-shrink-0"
+                              className="inline-flex items-center gap-1 text-[10px] max-md:text-xs font-bold text-[var(--bid-orange)] bg-card border border-[var(--bid-orange)]/20 rounded-full px-2 max-md:px-3 py-1 max-md:min-h-11 hover:bg-[var(--bid-orange)]/5 transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-80 flex-shrink-0"
                             >
                               <ShieldCheck className="h-3 w-3" /> {t('companyProfile.certDocument')}
                             </a>
@@ -666,17 +687,17 @@ export default function CompanyProfilePage() {
             {/* Certifications (legacy plain list — only shown if no structured credentials exist) */}
             {!hasStructuredCredentials && hasCertifications && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
+                <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                   {t('companyProfile.sectionCertifications')}
                 </h2>
                 <div className="flex gap-2 flex-wrap">
                   {company.certifications.map((cert, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1 bg-[var(--state-won)]/5 text-[var(--state-won)] border border-emerald-100"
+                      className="inline-flex items-center gap-1.5 max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-[var(--state-won)]/5 text-[var(--state-won)] border border-emerald-100 dark:border-emerald-800"
                     >
-                      <CheckCircle2 className="h-3 w-3" />
-                      {cert}
+                      <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
+                      <bdi>{cert}</bdi>
                     </span>
                   ))}
                 </div>
@@ -686,7 +707,7 @@ export default function CompanyProfilePage() {
             {/* Portfolio */}
             {hasPortfolio && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">
+                <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-4">
                   {company.accountType === 'individual' || company.accountType === 'team'
                     ? t('companyProfile.sectionPreviousWorks')
                     : t('companyProfile.sectionPortfolio')}
@@ -697,9 +718,9 @@ export default function CompanyProfilePage() {
                     return (
                       <div key={i} className="rounded-xl border border-border overflow-hidden">
                         <div className="px-4 py-3 border-b border-border">
-                          <p className="text-sm font-bold text-foreground">{project.title}</p>
+                          <p dir="auto" className="text-sm font-bold text-foreground break-words">{project.title}</p>
                           {project.description && (
-                            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{project.description}</p>
+                            <p dir="auto" className="text-xs text-muted-foreground mt-0.5 leading-relaxed break-words">{project.description}</p>
                           )}
                         </div>
                         {images.length > 0 && (
@@ -712,7 +733,7 @@ export default function CompanyProfilePage() {
                                   className="w-full h-44 object-cover rounded-lg"
                                 />
                                 {img.caption && (
-                                  <p className="text-xs text-muted-foreground mt-1 px-1">{img.caption}</p>
+                                  <p dir="auto" className="text-xs text-muted-foreground mt-1 px-1 break-words">{img.caption}</p>
                                 )}
                               </div>
                             ))}
@@ -728,14 +749,14 @@ export default function CompanyProfilePage() {
             {/* Company Brochure */}
             {profile?.brochureUrl && (
               <div className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
+                <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                   {t('companyProfile.sectionBrochure')}
                 </h2>
                 <a
                   href={profile.brochureUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground bg-muted border border-border hover:border-border hover:bg-muted transition-colors"
+                  className="inline-flex max-sm:w-full max-sm:justify-center items-center gap-2 px-4 py-2.5 max-md:min-h-11 rounded-xl text-sm font-semibold text-muted-foreground bg-muted border border-border hover:border-border hover:bg-muted transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-80"
                 >
                   <FileText className="h-4 w-4" />
                   {t('companyProfile.viewCompanyProfile')}
@@ -759,9 +780,9 @@ export default function CompanyProfilePage() {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-foreground truncate">{displayName}</p>
+                  <p dir="auto" className="w-fit max-w-full text-sm font-bold text-foreground line-clamp-2 break-words">{displayName}</p>
                   {company.legalName && company.legalName !== displayName && (
-                    <p className="text-[11px] text-muted-foreground truncate">{company.legalName}</p>
+                    <p dir="auto" className="w-fit max-w-full text-[11px] rtl:max-md:text-xs text-muted-foreground line-clamp-2 break-words">{company.legalName}</p>
                   )}
                 </div>
               </div>
@@ -791,19 +812,19 @@ export default function CompanyProfilePage() {
                 {company.crNumber && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                     <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <span className="font-mono text-[11px] tracking-tight">CR {company.crNumber}</span>
+                    <span className="font-mono rtl:font-sans text-[11px] rtl:max-md:text-xs tracking-tight">{t('companyProfile.crLabel')} <bdi dir="ltr" className="font-mono">{company.crNumber}</bdi></span>
                   </div>
                 )}
                 {company.vatNumber && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                     <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <span className="font-mono text-[11px] tracking-tight">VAT {company.vatNumber}</span>
+                    <span className="font-mono rtl:font-sans text-[11px] rtl:max-md:text-xs tracking-tight">{t('companyProfile.vatLabel')} <bdi dir="ltr" className="font-mono">{company.vatNumber}</bdi></span>
                   </div>
                 )}
-                {formatMemberSince(company.createdAt) && (
+                {formatMemberSince(company.createdAt, isRtl) && (
                   <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <span>{t('companyProfile.memberSince', { date: formatMemberSince(company.createdAt)! })}</span>
+                    <span>{t('companyProfile.memberSince', { date: formatMemberSince(company.createdAt, isRtl)! })}</span>
                   </div>
                 )}
               </div>
@@ -812,7 +833,7 @@ export default function CompanyProfilePage() {
             {/* Social Links Card */}
             {hasSocialLinks && (
               <div className="bg-card rounded-2xl border border-border p-5">
-                <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
+                <h3 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-3">
                   {t('companyProfile.sectionConnect')}
                 </h3>
                 <div className="space-y-2">
@@ -821,7 +842,7 @@ export default function CompanyProfilePage() {
                       href={profile.socialLinks.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 text-xs font-semibold text-muted-foreground px-3 py-2 rounded-lg border border-border hover:border-border hover:bg-muted transition-colors no-underline"
+                      className="flex items-center gap-2.5 text-xs font-semibold text-muted-foreground px-3 py-2 max-md:min-h-11 rounded-lg border border-border hover:border-border hover:bg-muted transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-80 no-underline"
                     >
                       <Globe className="h-3.5 w-3.5" /> {t('companyProfile.socialWebsite')}
                     </a>
@@ -831,7 +852,7 @@ export default function CompanyProfilePage() {
                       href={profile.socialLinks.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 text-xs font-semibold text-muted-foreground px-3 py-2 rounded-lg border border-border hover:border-border hover:bg-muted transition-colors no-underline"
+                      className="flex items-center gap-2.5 text-xs font-semibold text-muted-foreground px-3 py-2 max-md:min-h-11 rounded-lg border border-border hover:border-border hover:bg-muted transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-80 no-underline"
                     >
                       <Linkedin className="h-3.5 w-3.5" /> {t('companyProfile.socialLinkedIn')}
                     </a>
@@ -841,7 +862,7 @@ export default function CompanyProfilePage() {
                       href={profile.socialLinks.twitter}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 text-xs font-semibold text-muted-foreground px-3 py-2 rounded-lg border border-border hover:border-border hover:bg-muted transition-colors no-underline"
+                      className="flex items-center gap-2.5 text-xs font-semibold text-muted-foreground px-3 py-2 max-md:min-h-11 rounded-lg border border-border hover:border-border hover:bg-muted transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-80 no-underline"
                     >
                       <Twitter className="h-3.5 w-3.5" /> {t('companyProfile.socialTwitter')}
                     </a>

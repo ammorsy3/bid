@@ -191,3 +191,16 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     on phones, because the phone layout is always one column; say if you want
     a two-column phone grid instead. (c) Any new city added to the filter list
     needs a matching Arabic name in `CITY_AR`.
+
+32. **Company and person profile pages (2026-10-03): three small calls.**
+    (a) The "Under Review" badge on a dark banner and the WhatsApp button had
+    unreadable text on phones; fixed for phones only, so desktop still shows dark
+    text on dark for "Under Review". Want it fixed on desktop too?
+    (b) The "no such company" page now shows for any load failure, including a
+    server error or no connection. Telling those apart needs the page to see the
+    API's status; want a separate "couldn't load, try again" message?
+    (c) New Arabic wording needs a native-speaker glance: الرقم الضريبي,
+    العنوان الوطني, تصفّح سوق المناقصات, and the year plurals (سنة / سنتان / سنوات).
+    Also changed on desktop (can't be phone-only): the back arrow flips in
+    Arabic, digits are Western, Arabic names show one initial instead of two,
+    and the Verified Credentials box uses a darker green.

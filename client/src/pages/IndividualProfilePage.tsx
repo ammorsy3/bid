@@ -7,6 +7,7 @@ import {
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { categoryLabel, cityLabel } from "@/lib/category-labels";
+import { withLtrUrls } from "@/lib/bidi";
 import { BidLogo } from "@/components/brand/BidLogo";
 import InviteToTenderModal from "@/components/InviteToTenderModal";
 
@@ -56,6 +57,8 @@ function normalizeUrl(raw: string): string {
 }
 
 function initialsOf(name: string): string {
+  // Arabic letters join, so two initials would read as a made-up word: show one letter.
+  if (/^[\u0600-\u06FF]/.test(name.trim())) return name.trim().charAt(0);
   return name
     .split(/\s+/)
     .filter(Boolean)
@@ -68,11 +71,12 @@ function waLink(number: string): string {
   return `https://wa.me/${number.replace(/[^\d]/g, "")}`;
 }
 
-function formatMemberSince(iso: string | null | undefined): string | null {
+function formatMemberSince(iso: string | null | undefined, isRtl: boolean): string | null {
   if (!iso) return null;
   const d = new Date(iso);
   if (isNaN(d.getTime())) return null;
-  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  // Arabic gets Gregorian month names with Western digits (the app's rule).
+  return d.toLocaleDateString(isRtl ? "ar-SA-u-ca-gregory-nu-latn" : "en-US", { month: "long", year: "numeric" });
 }
 
 // Simple full-screen image viewer.
@@ -97,7 +101,7 @@ function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
       <button
         onClick={onClose}
         aria-label={t('tenderFlow.closeBtn')}
-        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+        className="absolute top-[max(1rem,env(safe-area-inset-top))] end-4 w-10 h-10 max-md:w-11 max-md:h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97]"
       >
         <X className="h-5 w-5" />
       </button>
@@ -126,7 +130,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
   const isCompanyViewer = (activeCompany as any)?.accountType === "company";
   const isVerified = company.verificationStatus === "verified";
   const displayName = profile?.displayName || company.name;
-  const memberSince = formatMemberSince(company.createdAt);
+  const memberSince = formatMemberSince(company.createdAt, isRtl);
 
   const links = useMemo(() => {
     const s = profile?.socialLinks || {};
@@ -142,11 +146,11 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
   const whatsappLocked = !!profile?.whatsappLocked;
 
   return (
-    <div className="min-h-screen bg-muted flex flex-col">
+    <div className="min-h-dvh bg-muted flex flex-col">
       {/* ── Branded top bar ── */}
       <header className="sticky top-0 z-30 bg-card/80 backdrop-blur border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center" aria-label="Bid home">
+          <Link href="/" className="flex items-center max-md:min-h-11 max-md:min-w-11 active:opacity-70" aria-label="Bid home">
             <BidLogo variant="orange" size={30} className="cursor-pointer hover:opacity-80 transition-opacity" />
           </Link>
 
@@ -154,7 +158,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
             {isOwner ? (
               <a
                 href="/company/edit"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground bg-card border border-border rounded-full px-3.5 py-1.5 hover:bg-muted transition-colors"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-foreground bg-card border border-border rounded-full px-3.5 py-1.5 max-md:min-h-11 hover:bg-muted transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97]"
                 data-testid="link-edit-profile"
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -163,7 +167,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
             ) : isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-white bg-[#FE3C01] hover:bg-[#1A1613] rounded-full px-4 py-1.5 transition-colors"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-medium text-white bg-[#FE3C01] hover:bg-[#1A1613] rounded-full px-4 py-1.5 max-md:min-h-11 transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97]"
                 data-testid="link-dashboard"
               >
                 <LayoutDashboard className="h-3.5 w-3.5" />
@@ -173,14 +177,14 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
               <>
                 <Link
                   href="/login"
-                  className="inline-flex items-center text-sm font-medium text-foreground rounded-full px-3.5 py-1.5 hover:bg-muted transition-colors"
+                  className="inline-flex items-center whitespace-nowrap text-sm font-medium text-foreground rounded-full px-3.5 py-1.5 max-md:min-h-11 hover:bg-muted transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97]"
                   data-testid="link-login"
                 >
                   {t('indProfile.login')}
                 </Link>
                 <Link
                   href="/signup"
-                  className="inline-flex items-center text-sm font-medium text-white bg-[#FE3C01] hover:bg-[#1A1613] rounded-full px-4 py-1.5 transition-colors"
+                  className="inline-flex items-center whitespace-nowrap text-sm font-medium text-white bg-[#FE3C01] hover:bg-[#1A1613] rounded-full px-4 py-1.5 max-md:min-h-11 transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97]"
                   data-testid="link-signup"
                 >
                   {t('indProfile.signup')}
@@ -196,7 +200,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
         <div className="bg-card rounded-3xl border border-border shadow-sm overflow-hidden">
           {/* Header banner */}
           <div
-            className={`h-44 sm:h-56 w-full ${profile?.headerUrl && !headerBroken ? "cursor-zoom-in" : ""}`}
+            className={`h-44 sm:h-56 w-full ${profile?.headerUrl && !headerBroken ? "cursor-zoom-in transition-opacity active:opacity-90" : ""}`}
             onClick={() => profile?.headerUrl && !headerBroken && setLightbox(profile.headerUrl)}
           >
             {profile?.headerUrl && !headerBroken ? (
@@ -215,7 +219,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
               <button
                 type="button"
                 onClick={() => profile?.logoUrl && !avatarBroken && setLightbox(profile.logoUrl)}
-                className={`w-28 h-28 rounded-full ring-4 ring-card bg-muted overflow-hidden shadow-sm flex items-center justify-center ${profile?.logoUrl && !avatarBroken ? "cursor-zoom-in hover:opacity-95 transition-opacity" : "cursor-default"}`}
+                className={`w-28 h-28 rounded-full ring-4 ring-card bg-muted overflow-hidden shadow-sm flex items-center justify-center ${profile?.logoUrl && !avatarBroken ? "cursor-zoom-in hover:opacity-95 transition-[opacity,transform] active:scale-[0.97]" : "cursor-default"}`}
                 aria-label={profile?.logoUrl && !avatarBroken ? t('indProfile.viewPhoto') : undefined}
                 data-testid="profile-avatar"
               >
@@ -231,15 +235,13 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
 
             {/* Identity */}
             <div className="mt-4">
-              <div className="flex items-center gap-1.5">
-                <h1 className="font-display font-black text-2xl sm:text-3xl tracking-[-0.03em] text-foreground">
-                  {displayName}
-                </h1>
+              <h1 className="font-display font-black text-2xl sm:text-3xl tracking-[-0.03em] text-foreground break-words">
+                <bdi>{displayName}</bdi>
                 {isVerified && (
-                  <BadgeCheck className="h-5 w-5 text-[#FE3C01] flex-shrink-0" aria-label={t('indProfile.verified')} />
+                  <BadgeCheck className="inline-block h-5 w-5 ms-1.5 align-[-0.15em] text-[#FE3C01]" aria-label={t('indProfile.verified')} />
                 )}
-              </div>
-              <p className="text-sm text-muted-foreground mt-0.5">@{company.slug}</p>
+              </h1>
+              <p className="text-sm text-muted-foreground mt-0.5 break-words"><bdi dir="ltr">@{company.slug}</bdi></p>
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3">
                 {company.category && (
@@ -262,7 +264,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
               <div className="mt-5">
                 <button
                   onClick={() => setInviteOpen(true)}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#FE3C01] hover:bg-[#1A1613] rounded-full px-5 py-2.5 transition-colors"
+                  className="inline-flex max-sm:w-full max-sm:justify-center items-center gap-2 text-sm font-semibold text-white bg-[#FE3C01] hover:bg-[#1A1613] rounded-full px-5 py-2.5 max-md:min-h-11 transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97]"
                   data-testid="button-invite-to-tender"
                 >
                   <Send className="h-4 w-4" />
@@ -273,8 +275,8 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
 
             {/* Bio */}
             {profile?.bio && (
-              <p className="mt-5 text-[15px] leading-relaxed text-foreground/90 whitespace-pre-line">
-                {profile.bio}
+              <p dir="auto" className="mt-5 text-[15px] leading-relaxed text-foreground/90 whitespace-pre-line break-words">
+                {withLtrUrls(profile.bio)}
               </p>
             )}
 
@@ -287,11 +289,11 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-foreground bg-muted/60 border border-border rounded-full px-3.5 py-2 hover:border-foreground/30 hover:bg-muted transition-all"
+                    className="inline-flex items-center gap-2 max-w-full text-sm font-medium text-foreground bg-muted/60 border border-border rounded-full px-3.5 py-2 max-md:min-h-11 hover:border-foreground/30 hover:bg-muted transition-all duration-100 active:scale-[0.97]"
                     data-testid={`link-social-${key}`}
                   >
-                    <Icon className="h-4 w-4" />
-                    {label}
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <span className="min-w-0 [overflow-wrap:anywhere]"><bdi>{label}</bdi></span>
                   </a>
                 ))}
               </div>
@@ -305,7 +307,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                     href={waLink(whatsappNumber)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#25D366] hover:brightness-95 rounded-full px-5 py-2.5 transition-all"
+                    className="inline-flex max-sm:w-full max-sm:justify-center items-center gap-2 text-sm font-semibold text-white bg-[#25D366] max-md:bg-[#0F7A40] hover:brightness-95 rounded-full px-5 py-2.5 max-md:min-h-11 transition-all duration-100 active:scale-[0.97]"
                     data-testid="link-whatsapp"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -313,10 +315,10 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                   </a>
                 ) : (
                   <div
-                    className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground bg-muted/60 border border-dashed border-border rounded-full px-4 py-2.5"
+                    className="inline-flex items-center gap-2 max-w-full text-sm font-medium text-muted-foreground bg-muted/60 border border-dashed border-border rounded-full px-4 py-2.5"
                     data-testid="whatsapp-locked"
                   >
-                    <Lock className="h-3.5 w-3.5" />
+                    <Lock className="h-3.5 w-3.5 flex-shrink-0" />
                     {t('indProfile.whatsappLocked')}
                   </div>
                 )}
@@ -341,7 +343,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               {t('indProfile.wantProfile')}{" "}
-              <Link href="/signup" className="font-medium text-[#FE3C01] hover:underline">
+              <Link href="/signup" className="font-medium text-[#FE3C01] hover:underline max-md:inline-flex max-md:min-h-11 max-md:items-center active:opacity-70">
                 {t('indProfile.joinBid')}
               </Link>
             </p>
@@ -351,14 +353,14 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
 
       {/* ── Footer ── */}
       <footer className="border-t border-border py-6">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <BidLogo variant="orange" size={18} />
             <span>· {t('indProfile.tagline')}</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">{t('indProfile.privacy')}</Link>
-            <Link href="/terms" className="hover:text-foreground transition-colors">{t('indProfile.terms')}</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors max-md:inline-flex max-md:min-h-11 max-md:min-w-11 max-md:items-center max-md:justify-center active:opacity-70">{t('indProfile.privacy')}</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors max-md:inline-flex max-md:min-h-11 max-md:min-w-11 max-md:items-center max-md:justify-center active:opacity-70">{t('indProfile.terms')}</Link>
           </div>
         </div>
       </footer>

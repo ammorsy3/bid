@@ -225,11 +225,11 @@ function computeTextColors(bgType: BgType) {
   const dark = isBgDark(bgType);
   return {
     heading: dark ? '#ffffff' : '#111827',
-    subtext: dark ? 'rgba(255,255,255,0.85)' : '#6b7280',
-    muted: dark ? 'rgba(255,255,255,0.7)' : '#6b7280',
+    subtext: dark ? 'rgba(255,255,255,0.55)' : '#6b7280',
+    muted: dark ? 'rgba(255,255,255,0.35)' : '#9ca3af',
     chip: {
       bg: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-      text: dark ? 'rgba(255,255,255,0.9)' : '#4b5563',
+      text: dark ? 'rgba(255,255,255,0.7)' : '#4b5563',
     },
     logo: {
       bg: dark ? 'rgba(255,255,255,0.1)' : '#f3f4f6',
@@ -347,7 +347,7 @@ export default function TractionLink() {
       <div className="min-h-dvh flex items-center justify-center bg-muted px-6 py-10" dir={isRtl ? 'rtl' : 'ltr'}>
         <div className="text-center w-full max-w-md mx-auto">
           <div className="w-16 h-16 rounded-2xl bg-card border border-border flex items-center justify-center mx-auto mb-5">
-            <Building2 className="h-7 w-7 text-muted-foreground" />
+            <Building2 className="h-7 w-7 text-gray-300" />
           </div>
           <h1 className="font-display font-black text-2xl text-foreground mb-2 tracking-[-0.03em] rtl:tracking-normal">{t('tractionPage.pageNotFound')}</h1>
           <p className="text-sm text-muted-foreground mb-6 leading-relaxed">{t('tractionPage.pageNotFoundDesc')}</p>
@@ -499,7 +499,7 @@ export default function TractionLink() {
             <UserPlus className="h-4 w-4" />
             {t('tractionPage.createVendorProfile')}
           </button>
-          <p className="text-[11px] rtl:max-sm:text-xs text-muted-foreground text-center mt-3">
+          <p className="text-[11px] rtl:max-sm:text-xs text-gray-400 text-center mt-3">
             {t('tractionPage.freeAccountHint')}
           </p>
           <div className="mt-4 pt-4 border-t border-border text-center flex flex-wrap items-center justify-center gap-x-1 sm:min-h-[41px]">
@@ -536,10 +536,10 @@ export default function TractionLink() {
         {/* "Applying as" confirmation */}
         <div className="flex items-center gap-3 p-3 rounded-xl bg-muted mb-4">
           <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <Building2 className="h-4 w-4 text-gray-400" />
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] rtl:max-sm:text-xs text-muted-foreground font-medium">{t('tractionPage.applyingAs')}</p>
+            <p className="text-[11px] rtl:max-sm:text-xs text-gray-400 font-medium">{t('tractionPage.applyingAs')}</p>
             <p className="text-sm font-semibold text-foreground truncate"><bdi>{activeCompany?.name}</bdi></p>
           </div>
         </div>
@@ -554,7 +554,7 @@ export default function TractionLink() {
             : <>{ctaLabel}<ChevronRight className="h-4 w-4 rtl:-scale-x-100" /></>
           }
         </button>
-        <p className="text-center text-xs text-muted-foreground mt-3">
+        <p className="text-center text-xs text-gray-400 mt-3">
           {t('tractionPage.detailsSharedForReview')}
         </p>
       </>
@@ -664,7 +664,7 @@ export default function TractionLink() {
                     className="w-14 h-14 rounded-[14px] object-cover flex-shrink-0 border border-border"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-[14px] bg-muted flex items-center justify-center text-base font-extrabold text-muted-foreground flex-shrink-0 tracking-wide rtl:tracking-normal">
+                  <div className="w-14 h-14 rounded-[14px] bg-muted flex items-center justify-center text-base font-extrabold text-gray-400 flex-shrink-0 tracking-wide rtl:tracking-normal">
                     {initials}
                   </div>
                 )}
@@ -672,17 +672,17 @@ export default function TractionLink() {
                   <h2 className="text-lg font-extrabold text-foreground tracking-[-0.01em] rtl:tracking-normal mb-1 break-words"><bdi>{data.profile.displayName}</bdi></h2>
                   <div className="flex items-center gap-x-2.5 gap-y-1 flex-wrap">
                     {data.company.city && (
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground font-medium">
+                      <span className="flex items-center gap-1 text-xs text-gray-400 font-medium">
                         <MapPin className="h-3 w-3 flex-shrink-0" />{cityLabel(data.company.city, isRtl)}
                       </span>
                     )}
                     {data.company.category && (
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground font-medium">
+                      <span className="flex items-center gap-1 text-xs text-gray-400 font-medium">
                         <Briefcase className="h-3 w-3 flex-shrink-0" />{categoryLabel(data.company.category, isRtl)}
                       </span>
                     )}
                     {isVerified && (
-                      <span className="inline-flex items-center gap-1 text-[11px] rtl:max-sm:text-xs font-bold rounded-full px-2 py-0.5 text-emerald-800 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-950/40">
+                      <span className="inline-flex items-center gap-1 text-[11px] rtl:max-sm:text-xs font-bold rounded-full px-2 py-0.5 text-emerald-800 bg-emerald-50">
                         <ShieldCheck className="h-3 w-3" />{t('tractionPage.verified')}
                       </span>
                     )}
@@ -695,7 +695,7 @@ export default function TractionLink() {
 
                 {/* Bio */}
                 <div>
-                  <p className="text-[11px] rtl:max-sm:text-xs font-semibold uppercase rtl:normal-case tracking-[0.1em] rtl:tracking-normal text-muted-foreground mb-2">
+                  <p className="text-[11px] rtl:max-sm:text-xs font-semibold uppercase rtl:normal-case tracking-[0.1em] rtl:tracking-normal text-gray-300 mb-2">
                     {t('tractionPage.about')}
                   </p>
                   <p dir="auto" className="text-sm text-muted-foreground leading-relaxed break-words">
@@ -706,7 +706,7 @@ export default function TractionLink() {
                 {/* Tags */}
                 {data.profile.tags && data.profile.tags.length > 0 && (
                   <div>
-                    <p className="text-[11px] rtl:max-sm:text-xs font-semibold uppercase rtl:normal-case tracking-[0.1em] rtl:tracking-normal text-muted-foreground mb-2">
+                    <p className="text-[11px] rtl:max-sm:text-xs font-semibold uppercase rtl:normal-case tracking-[0.1em] rtl:tracking-normal text-gray-300 mb-2">
                       {t('tractionPage.services')}
                     </p>
                     <div className="flex gap-1.5 flex-wrap">
@@ -756,7 +756,7 @@ export default function TractionLink() {
               <div className="bg-card rounded-2xl border border-border p-6">
                 <div className="mb-5">
                   <h3 className="text-base font-bold text-foreground">{t('tractionPage.joinNetwork')}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t('tractionPage.quickApplication')}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{t('tractionPage.quickApplication')}</p>
                 </div>
                 {renderActionCard()}
               </div>
@@ -769,7 +769,7 @@ export default function TractionLink() {
       {/* ══════════════════════ FOOTER ══════════════════════ */}
       <footer className="bg-muted border-t border-border pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] px-4 sm:px-6">
         <div className="max-w-[860px] mx-auto flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-gray-300">
             {t('tractionPage.poweredBy')}{' '}
             <strong className="tl-ink">Bid</strong>
           </span>

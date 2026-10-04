@@ -307,7 +307,7 @@ export default function IndividualProfilePage({ data }: { data: IndividualProfil
                     href={waLink(whatsappNumber)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex max-sm:w-full max-sm:justify-center items-center gap-2 text-sm font-semibold text-white bg-[#25D366] max-md:bg-[#0F7A40] hover:brightness-95 rounded-full px-5 py-2.5 max-md:min-h-11 transition-all duration-100 active:scale-[0.97]"
+                    className="inline-flex max-sm:w-full max-sm:justify-center items-center gap-2 text-sm font-semibold text-white bg-[#25D366] hover:brightness-95 rounded-full px-5 py-2.5 max-md:min-h-11 transition-all duration-100 active:scale-[0.97]"
                     data-testid="link-whatsapp"
                   >
                     <MessageCircle className="h-4 w-4" />

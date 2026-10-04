@@ -344,7 +344,7 @@ export default function VerifyEmail() {
               <p className="text-sm text-muted-foreground">
                 {t('onboardingPanel.didntReceiveCode')}{" "}
                 {resendCooldown > 0 ? (
-                  <span className="text-muted-foreground md:text-neutral-400">{t('onboardingPanel.resendIn', { seconds: resendCooldown })}</span>
+                  <span className="text-neutral-400 md:text-neutral-400">{t('onboardingPanel.resendIn', { seconds: resendCooldown })}</span>
                 ) : (
                   <button
                     onClick={handleResend}

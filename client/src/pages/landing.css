@@ -750,10 +750,6 @@
     .landing-page{overflow-x:hidden;overflow-x:clip}
     .landing-page section[id]{scroll-margin-top:64px}
 
-    /* Readable text colours (the desktop greys/oranges are a little too pale) */
-    .hero .sub{color:#6B625A}
-    .hero-deco .piece.p3>div{background:#15803D!important}
-
     /* Arabic on phones: taller lines for multi-line headings, Arabic font on buttons */
     .landing-rtl button{font-family:inherit}
     .landing-rtl .hero-deco .piece.p4>div{line-height:1.3!important}
@@ -863,7 +859,7 @@
     .footer-bot{flex-direction:column;align-items:flex-start;gap:10px}
     .footer-bot a{display:inline-block;padding:13px 6px}
     .footer-bot a:first-child{margin-inline-start:-6px}
-    .landing-page footer{padding:48px 0 32px;--stone:#6B625A}
+    .landing-page footer{padding:48px 0 32px}
 
     /* Modal: a bottom sheet on phones */
     .modal-backdrop{align-items:flex-end;padding:0}

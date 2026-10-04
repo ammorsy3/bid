@@ -372,9 +372,9 @@ export default function CompanyProfilePage() {
         <div className="max-w-[900px] mx-auto px-4 sm:px-6 pt-6">
           <div className={`rounded-2xl px-5 py-3 flex items-center gap-3 border ${
             availabilityStatus === 'accepting'
-              ? 'bg-emerald-50/60 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800'
+              ? 'bg-emerald-50/60 border-emerald-200'
               : availabilityStatus === 'limited'
-                ? 'bg-amber-50/60 border-amber-200 dark:bg-amber-950/40 dark:border-amber-800'
+                ? 'bg-amber-50/60 border-amber-200'
                 : 'bg-muted border-border'
           }`}>
             <span className={`relative flex h-2.5 w-2.5 flex-shrink-0`}>
@@ -476,28 +476,28 @@ export default function CompanyProfilePage() {
 
             {/* Verified Credentials */}
             {company.verifiedDocuments && company.verifiedDocuments.length > 0 && (
-              <div className="bg-emerald-50/40 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-800 p-6">
+              <div className="bg-emerald-50/40 rounded-2xl border border-emerald-100 p-6">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-[var(--state-won)]" />
-                    <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-emerald-800 dark:text-emerald-300">
+                    <h2 className="text-[11px] rtl:max-md:text-xs font-semibold uppercase tracking-[0.1em] text-[var(--state-won)]">
                       {t('companyProfile.sectionVerifiedCredentials')}
                     </h2>
                   </div>
                   {formatMemberSince(company.verifiedAt, isRtl) && (
-                    <span className="text-[10px] rtl:max-md:text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                    <span className="text-[10px] rtl:max-md:text-xs font-semibold text-[var(--state-won)]/70">
                       {t('companyProfile.verifiedSince', { date: formatMemberSince(company.verifiedAt, isRtl)! })}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-emerald-800 dark:text-emerald-300 mb-3 leading-relaxed">
+                <p className="text-xs text-[var(--state-won)]/80 mb-3 leading-relaxed">
                   {t('companyProfile.verifiedByNote')}
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {company.verifiedDocuments.map((doc) => (
                     <span
                       key={doc}
-                      className="inline-flex items-center gap-1.5 max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-card text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                      className="inline-flex items-center gap-1.5 max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-card text-[var(--state-won)] border border-emerald-200"
                     >
                       <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
                       <bdi>{VERIFIED_DOC_KEYS[doc] ? t(`companyProfile.${VERIFIED_DOC_KEYS[doc]}`) : doc}</bdi>
@@ -565,7 +565,7 @@ export default function CompanyProfilePage() {
                     <p className="text-[10px] rtl:max-md:text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{t('companyProfile.industriesServedLabel')}</p>
                     <div className="flex gap-2 flex-wrap">
                       {industriesServed.map((ind, i) => (
-                        <span key={i} className="max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-orange-50 dark:bg-orange-950/40 text-[var(--bid-orange)] border border-orange-100 dark:border-orange-900">
+                        <span key={i} className="max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-orange-50 text-[var(--bid-orange)] border border-orange-100">
                           <bdi>{ind}</bdi>
                         </span>
                       ))}
@@ -615,7 +615,7 @@ export default function CompanyProfilePage() {
                     </div>
                     <div className="space-y-2">
                       {visibleCertifications.map((cert, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-emerald-100 bg-emerald-50/40 dark:border-emerald-800 dark:bg-emerald-950/40">
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-emerald-100 bg-emerald-50/40">
                           <CheckCircle2 className="h-4 w-4 text-[var(--state-won)] mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p dir="auto" className="text-sm font-bold text-foreground break-words">{cert.name}</p>
@@ -633,7 +633,7 @@ export default function CompanyProfilePage() {
                               href={cert.documentUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[10px] max-md:text-xs font-bold text-[var(--state-won)] bg-card border border-emerald-200 dark:border-emerald-800 rounded-full px-2 max-md:px-3 py-1 max-md:min-h-11 hover:bg-[var(--state-won)]/5 transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-80 flex-shrink-0"
+                              className="inline-flex items-center gap-1 text-[10px] max-md:text-xs font-bold text-[var(--state-won)] bg-card border border-emerald-200 rounded-full px-2 max-md:px-3 py-1 max-md:min-h-11 hover:bg-[var(--state-won)]/5 transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] active:opacity-80 flex-shrink-0"
                             >
                               <ShieldCheck className="h-3 w-3" /> {t('companyProfile.certDocument')}
                             </a>
@@ -652,7 +652,7 @@ export default function CompanyProfilePage() {
                     </div>
                     <div className="space-y-2">
                       {visibleInsurance.map((pol, i) => (
-                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-orange-100 bg-orange-50/40 dark:border-orange-900 dark:bg-orange-950/40">
+                        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-orange-100 bg-orange-50/40">
                           <CheckCircle2 className="h-4 w-4 text-[var(--bid-orange)] mt-0.5 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-foreground">{t(`companyProfile.${INSURANCE_TYPE_KEYS[pol.type]}`)}</p>
@@ -694,7 +694,7 @@ export default function CompanyProfilePage() {
                   {company.certifications.map((cert, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center gap-1.5 max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-[var(--state-won)]/5 text-[var(--state-won)] border border-emerald-100 dark:border-emerald-800"
+                      className="inline-flex items-center gap-1.5 max-w-full [overflow-wrap:anywhere] text-xs font-semibold rounded-full px-3 py-1 bg-[var(--state-won)]/5 text-[var(--state-won)] border border-emerald-100"
                     >
                       <CheckCircle2 className="h-3 w-3 flex-shrink-0" />
                       <bdi>{cert}</bdi>

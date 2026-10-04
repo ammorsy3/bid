@@ -527,13 +527,6 @@
   .plan-tagline, .cta-split-text p { text-wrap: pretty; }
   .landing-rtl .soon { font-size: 12px; }
 
-  /* Readable greys: the desktop stone is a little pale for small text on a
-     phone (3.9:1 on white). The footer sits outside .page and keeps its own. */
-  .pricing-page .page { --stone: #6B625A; }
-  /* Same for the yearly "you save" line on the white cards (2.3:1 in the
-     bright green). The dark featured card keeps its light green. */
-  .plan:not(.featured) .plan-save { color: #15803D; }
-
   /* Arabic headings get room for the tall letters when a line wraps. */
   .landing-rtl .pricing-hero h1 { line-height: 1.3; }
   .landing-rtl .pricing-section h2,

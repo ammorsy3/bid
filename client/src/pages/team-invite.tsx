@@ -233,7 +233,7 @@ export default function TeamInvite() {
 
             {/* Email notice */}
             {user && user.email.toLowerCase() !== invitation.email.toLowerCase() && (
-              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex items-start gap-2">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <p className="text-sm text-amber-800 dark:text-amber-300">
                   {t('teamInvite.emailMismatch', { inviteEmail: invitation.email, userEmail: user.email })}

@@ -294,7 +294,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
               <HelpCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
               <div>
                 <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">"{slug}" {t('dashboard.slugTaken')}</p>
-                <p className="text-xs text-amber-600 max-md:text-amber-800 mt-0.5 max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-x-2">
+                <p className="text-xs text-amber-600 mt-0.5 max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-x-2">
                   <button className="underline font-medium hover:text-amber-800 dark:text-amber-300 active:opacity-70 max-md:min-h-11" onClick={() => { setSlug(`${slug}-co`); setSlugTaken(false); }}>{slug}-co</button>,{' '}
                   <button className="underline font-medium hover:text-amber-800 dark:text-amber-300 active:opacity-70 max-md:min-h-11" onClick={() => { setSlug(`${slug}-${Math.floor(Math.random() * 99) + 1}`); setSlugTaken(false); }}>{slug}-{Math.floor(Math.random() * 99) + 1}</button> {t('dashboard.slugTakenSuggestion')}
                 </p>
@@ -306,7 +306,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
               size="sm"
               onClick={() => createSlugMutation.mutate(slug)}
               disabled={!slug.trim() || slug.length < 2 || createSlugMutation.isPending}
-              className="bg-[#FE3C01] hover:bg-[#E83501] text-white max-md:h-11 max-md:active:bg-[#C93000]"
+              className="bg-[#FE3C01] hover:bg-[#E83501] text-white max-md:h-11 max-md:active:opacity-90"
               data-testid="button-create-traction"
             >
               {createSlugMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('dashboard.createLink')}
@@ -319,7 +319,7 @@ function TractionSlugSetup({ companyName, isRtl }: { companyName: string; isRtl:
           variant="outline"
           size="sm"
           onClick={() => planGate('traction', () => setIsEditing(true))}
-          className="border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/5 max-md:h-11 max-md:w-full max-md:border-transparent max-md:bg-[#FE3C01] max-md:text-white max-md:hover:bg-[#E83501] max-md:hover:text-white max-md:active:bg-[#C93000]"
+          className="border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/5 max-md:h-11 max-md:w-full"
           data-testid="button-setup-traction"
         >
           <Plus className={`h-4 w-4 me-1`} />
@@ -394,7 +394,7 @@ function StatNumber({ loading, value }: { loading: boolean; value: number }) {
 // completed step never offers to do the thing again.
 function StepDone({ children }: { children: React.ReactNode }) {
   return (
-    <p className="inline-flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-400" data-testid="text-step-done">
+    <p className="inline-flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400" data-testid="text-step-done">
       <Check className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
       {children}
     </p>
@@ -489,7 +489,7 @@ function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, date
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative z-10 -me-2 shrink-0 text-[#6B635B] dark:text-muted-foreground"
+                className="relative z-10 -me-2 shrink-0 text-muted-foreground"
                 aria-label={t('dashboard.rfpMoreActions')}
                 data-testid={`button-menu-${tender.id}`}
               >
@@ -528,7 +528,7 @@ function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, date
             </span>
           )}
           {audience.map((type: string) => (
-            <span key={type} className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-[#6B635B] dark:text-muted-foreground">
+            <span key={type} className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
               {type === 'company' ? t('tenderFlow.audienceCompanies')
                 : type === 'team' ? t('tenderFlow.audienceTeams')
                 : t('tenderFlow.audienceIndividuals')}
@@ -537,15 +537,15 @@ function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, date
         </div>
 
         {tender.description && (
-          <p className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground" data-testid={`text-tender-description-${tender.id}`}>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground" data-testid={`text-tender-description-${tender.id}`}>
             <UserClamp>{tender.description}</UserClamp>
           </p>
         )}
 
-        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-sm text-[#6B635B] dark:text-muted-foreground">
+        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-sm text-muted-foreground">
           <div className="flex min-w-0 items-start gap-2">
             <Calendar className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className={`min-w-0 tabular-nums ${isDeadlineSoon ? 'font-semibold text-[var(--state-lost)] dark:text-red-300' : ''}`}>{dateText}</span>
+            <span className={`min-w-0 tabular-nums ${isDeadlineSoon ? 'font-semibold text-[var(--state-lost)]' : ''}`}>{dateText}</span>
           </div>
           <div className="flex min-w-0 items-start gap-2">
             <Send className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
@@ -612,23 +612,14 @@ function ProposalRowSkeleton() {
   );
 }
 
-// Proposal status as a small pill with text that reads clearly on the cream card.
+// Proposal status: the same brand status badge the desktop list uses.
 function ProposalStatusPill({ status }: { status: MyOffer['status'] }) {
   const { t } = useI18n();
-  const base = "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium";
-  if (status === 'accepted') {
-    return <span className={`${base} bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300`}><CheckCircle className="h-3 w-3" aria-hidden="true" />{t('dashboard.accepted')}</span>;
-  }
-  if (status === 'rejected') {
-    return <span className={`${base} bg-muted text-[#6B635B] dark:text-muted-foreground`}><XCircle className="h-3 w-3" aria-hidden="true" />{t('dashboard.rejected')}</span>;
-  }
-  if (status === 'shortlisted') {
-    return <span className={`${base} bg-[#FE3C01]/10 text-[#B32A00] dark:text-[#FF8A63]`}><Bookmark className="h-3 w-3" aria-hidden="true" />{t('dashboard.shortlisted')}</span>;
-  }
-  if (status === 'superseded') {
-    return <span className={`${base} bg-muted text-[#6B635B] dark:text-muted-foreground`}>{t('dashboard.superseded')}</span>;
-  }
-  return <span className={`${base} bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200`}><Clock className="h-3 w-3" aria-hidden="true" />{t('dashboard.pending')}</span>;
+  if (status === 'accepted') return <StatusBadge state={proposalStatusToState(status)} label={t('dashboard.accepted')} />;
+  if (status === 'rejected') return <StatusBadge state="lost" label={t('dashboard.rejected')} />;
+  if (status === 'shortlisted') return <StatusBadge state="decision" label={t('dashboard.shortlisted')} />;
+  if (status === 'superseded') return <StatusBadge state="idle" label={t('dashboard.superseded')} />;
+  return <StatusBadge state="pending" label={t('dashboard.pending')} />;
 }
 
 // One proposal as a phone list row. "sent" = a proposal we submitted, "incoming" = an
@@ -651,8 +642,8 @@ function ProposalRowMobile({ kind, offer, dateText, tenderBadge, onOpenTender, o
   const daysRemaining = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const deadlineText = isExpired ? t('dashboard.deadlinePassed') : daysLeftText(t, daysRemaining);
   const deadlineClass = isExpired
-    ? 'font-semibold text-red-700 dark:text-red-300'
-    : daysRemaining <= 3 ? 'font-semibold text-orange-700 dark:text-orange-300' : '';
+    ? 'font-semibold text-red-600'
+    : daysRemaining <= 3 ? 'font-semibold text-orange-600' : '';
   const amount = offer.quotePrice ? t('dashboard.sarAmount', { amount: offer.quotePrice.toLocaleString('en-US') }) : null;
   const vendorName = incoming ? (incoming.profile?.displayName || incoming.company.name) : '';
 
@@ -695,7 +686,7 @@ function ProposalRowMobile({ kind, offer, dateText, tenderBadge, onOpenTender, o
 
         <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
           {incoming && amount && (
-            <span className="whitespace-nowrap text-base font-bold tabular-nums text-green-700 dark:text-green-400" data-testid={`text-offer-amount-${offer.id}`}>
+            <span className="whitespace-nowrap text-base font-bold tabular-nums text-green-600 dark:text-green-400" data-testid={`text-offer-amount-${offer.id}`}>
               {amount}
             </span>
           )}
@@ -707,19 +698,19 @@ function ProposalRowMobile({ kind, offer, dateText, tenderBadge, onOpenTender, o
         </div>
 
         {incoming ? (
-          <div className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground">
+          <div className="mt-2 text-sm leading-relaxed text-muted-foreground">
             <span className="block text-xs">{t('dashboard.forTender')}</span>
             <a href={`/tenders/${offer.tender.id}`} onClick={openLink} className={`flex items-center font-semibold text-foreground ${linkClass}`} data-testid={`text-offer-tender-${offer.id}`}>
               <UserClamp>{offer.tender.title}</UserClamp>
             </a>
           </div>
         ) : (
-          <p className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground">
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             <UserClamp>{offer.tender.description || t('dashboard.noDescription')}</UserClamp>
           </p>
         )}
 
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 text-sm text-[#6B635B] dark:text-muted-foreground">
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 text-sm text-muted-foreground">
           <div className="flex min-w-0 items-start gap-2">
             <Calendar className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="min-w-0">{incoming ? t('dashboard.received') : t('dashboard.submitted')} <span className="tabular-nums">{dateText}</span></span>
@@ -735,7 +726,7 @@ function ProposalRowMobile({ kind, offer, dateText, tenderBadge, onOpenTender, o
             </div>
           )}
           {!incoming && amount && (
-            <div className="col-span-2 flex min-w-0 items-start gap-2 font-medium text-green-700 dark:text-green-400">
+            <div className="col-span-2 flex min-w-0 items-start gap-2 font-medium text-green-600 dark:text-green-400">
               <DollarSign className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span className="min-w-0 tabular-nums">{amount}</span>
             </div>
@@ -751,7 +742,7 @@ function ProposalRowMobile({ kind, offer, dateText, tenderBadge, onOpenTender, o
         <div className="relative z-10 mt-4 grid grid-cols-2 gap-2">
           <Button
             variant={incoming ? 'default' : 'outline'}
-            className={`col-span-2 h-auto min-h-11 whitespace-normal py-2 text-center leading-tight ${incoming ? 'bg-[#FE3C01] text-white hover:bg-[#d54d35] active:bg-[#C93000]' : ''}`}
+            className={`col-span-2 h-auto min-h-11 whitespace-normal py-2 text-center leading-tight ${incoming ? 'bg-[#FE3C01] text-white hover:bg-[#d54d35] active:opacity-90' : ''}`}
             onClick={onOpenTender}
             data-testid={incoming ? `button-review-tender-${offer.id}` : `button-view-tender-${offer.id}`}
           >
@@ -822,8 +813,8 @@ function CopyLinkButton({ url, className = "", iconClassName = "", testId }: { u
       aria-live="polite"
       data-testid={testId}
     >
-      {copied ? <Check className="text-green-700 dark:text-green-400" /> : <Copy className={iconClassName} />}
-      <span className={copied ? 'text-green-700 dark:text-green-400' : ''}>{copied ? t('dashboard.copied') : t('dashboard.copyLink')}</span>
+      {copied ? <Check className="text-green-600 dark:text-green-400" /> : <Copy className={iconClassName} />}
+      <span className={copied ? 'text-green-600 dark:text-green-400' : ''}>{copied ? t('dashboard.copied') : t('dashboard.copyLink')}</span>
     </Button>
   );
 }
@@ -929,7 +920,7 @@ function VendorRowMobile({ vendor, categoryText, cityText, joinText, onRemove }:
               {/* Only as wide as the text, so the name sits next to the logo whatever script it is in. */}
               <UserClamp className="!w-fit max-w-full">{vendor.company}</UserClamp>
             </h3>
-            <p className="mt-0.5 text-sm leading-snug text-[#6B635B] dark:text-muted-foreground" data-testid={`text-vendor-category-${vendor.id}`}>
+            <p className="mt-0.5 text-sm leading-snug text-muted-foreground" data-testid={`text-vendor-category-${vendor.id}`}>
               <UserClamp className="!w-fit max-w-full">{categoryText}</UserClamp>
             </p>
           </div>
@@ -942,10 +933,9 @@ function VendorRowMobile({ vendor, categoryText, cityText, joinText, onRemove }:
               {t('dashboard.verified')}
             </Badge>
           )}
-          {/* "Invited" as a light orange chip with dark orange text: white on the brand orange is only 3.3:1. */}
           <Badge
-            variant="outline"
-            className={`max-w-full whitespace-normal ${vendor.joinMethod === 'invitation' ? 'border-transparent bg-[#FE3C01]/10 text-[#B32A00] dark:text-[#FF8A63]' : ''}`}
+            variant={vendor.joinMethod === 'invitation' ? 'default' : 'outline'}
+            className="max-w-full whitespace-normal"
             data-testid={`badge-join-method-${vendor.id}`}
           >
             {joinText}
@@ -953,13 +943,13 @@ function VendorRowMobile({ vendor, categoryText, cityText, joinText, onRemove }:
         </div>
 
         {vendor.bio && (
-          <p className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground" data-testid={`text-vendor-bio-${vendor.id}`}>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground" data-testid={`text-vendor-bio-${vendor.id}`}>
             <UserClamp>{vendor.bio}</UserClamp>
           </p>
         )}
 
         {cityText && (
-          <div className="mt-2 flex min-w-0 items-center gap-2 text-sm text-[#6B635B] dark:text-muted-foreground">
+          <div className="mt-2 flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span dir="auto" data-user-content className="min-w-0 truncate">{cityText}</span>
           </div>
@@ -1009,23 +999,23 @@ function JoinRequestRowMobile({ request, dateText, onReject, onApprove, rejectin
   const initials = (vendor?.company || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   const website = vendor?.websiteUrl ? vendor.websiteUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '') : '';
   const statusClass = status === 'verified'
-    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
+    ? 'bg-[var(--state-won)]/5 text-[var(--state-won)] border-emerald-200'
     : status === 'under_review'
-    ? 'border-amber-200 bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800'
-    : 'border-border bg-muted text-[#6B635B] dark:text-muted-foreground';
+    ? 'bg-amber-50 text-amber-700 dark:text-amber-300 border-amber-200'
+    : 'bg-muted text-muted-foreground border-border';
   return (
     <SpotlightCard {...brandSpotlightProps()} spotlightColor={status === 'verified' ? 'green' : 'orange'}>
       <div className="px-4 pb-4 pt-4" data-testid={`card-request-${request.id}`}>
         <div className="flex items-start gap-3">
           <LogoAvatar url={vendor?.logoUrl ?? null} shape="rounded-xl">
-            <span className="text-sm font-bold text-[#B32A00] dark:text-[#FF8A63]">{initials}</span>
+            <span className="text-sm font-bold text-primary">{initials}</span>
           </LogoAvatar>
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-bold leading-snug text-foreground" data-testid={`text-request-company-${request.id}`}>
               <UserClamp className="!w-fit max-w-full">{vendor?.company || t('dashboard.unknownVendor')}</UserClamp>
             </h3>
             {vendor?.expertise && (
-              <p className="mt-0.5 text-sm leading-snug text-[#6B635B] dark:text-muted-foreground" data-testid={`text-request-category-${request.id}`}>
+              <p className="mt-0.5 text-sm leading-snug text-muted-foreground" data-testid={`text-request-category-${request.id}`}>
                 <UserClamp className="!w-fit max-w-full">{categoryLabel(vendor.expertise, isRtl)}</UserClamp>
               </p>
             )}
@@ -1041,12 +1031,12 @@ function JoinRequestRowMobile({ request, dateText, onReject, onApprove, rejectin
         </div>
 
         {vendor?.bio && (
-          <p className="mt-2 text-sm leading-relaxed text-[#6B635B] dark:text-muted-foreground">
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             <UserClamp>{vendor.bio}</UserClamp>
           </p>
         )}
 
-        <div className="mt-2 space-y-1 text-sm text-[#6B635B] dark:text-muted-foreground">
+        <div className="mt-2 space-y-1 text-sm text-muted-foreground">
           {website && (
             <a
               href={vendor!.websiteUrl!}
@@ -1081,7 +1071,7 @@ function JoinRequestRowMobile({ request, dateText, onReject, onApprove, rejectin
           </Button>
           <Button
             variant="outline"
-            className="max-md:h-auto max-md:min-h-11 whitespace-normal py-2 text-center leading-tight border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700 active:bg-red-50 dark:text-red-300"
+            className="max-md:h-auto max-md:min-h-11 whitespace-normal py-2 text-center leading-tight border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 active:bg-red-50"
             onClick={onReject}
             disabled={rejecting}
             data-testid={`button-reject-${request.id}`}
@@ -1090,7 +1080,7 @@ function JoinRequestRowMobile({ request, dateText, onReject, onApprove, rejectin
             {t('dashboard.reject')}
           </Button>
           <Button
-            className="max-md:h-auto max-md:min-h-11 whitespace-normal py-2 text-center leading-tight bg-green-700 text-white hover:bg-green-800 active:bg-green-800"
+            className="max-md:h-auto max-md:min-h-11 whitespace-normal py-2 text-center leading-tight bg-green-600 text-white hover:bg-green-700 active:bg-green-700"
             onClick={onApprove}
             disabled={approving}
             data-testid={`button-approve-${request.id}`}
@@ -2798,7 +2788,7 @@ function DashboardInner({ user, activeCompany }: {
                     </div>
                     <div className={`min-w-0 ${isRtl ? 'text-right' : ''}`}>
                       <h3 className="font-display font-bold text-xl text-[#1A1613] dark:text-foreground tracking-[-0.02em]">{t('dashboard.readyToNegotiateTitle')}</h3>
-                      <p className="text-sm text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground mt-0.5">
+                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-0.5">
                         {t('dashboard.readyToNegotiateDesc').replace('{count}', String(tendersReadyToNegotiate.length))}
                       </p>
                     </div>
@@ -2808,7 +2798,7 @@ function DashboardInner({ user, activeCompany }: {
                       <div key={tender.id} className={`[background:var(--spotlight-card-bg)] rounded-2xl border border-[#FE3C01]/10 px-4 py-3 flex items-center justify-between max-md:flex-col max-md:items-stretch max-md:gap-3 shadow-[0_8px_20px_-12px_rgba(11,9,7,0.12)]`}>
                         <div className={`min-w-0 ${isRtl ? 'text-right' : ''}`}>
                           <p dir="auto" className="font-semibold text-sm text-[#1A1613] dark:text-foreground max-md:line-clamp-2 [overflow-wrap:anywhere]">{tender.title}</p>
-                          <p className="text-xs text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground mt-0.5">
+                          <p className="text-xs text-[#8A8078] dark:text-muted-foreground mt-0.5">
                             {t('dashboard.proposalsCount').replace('{count}', String(tender.offersCount))}
                           </p>
                         </div>
@@ -2850,7 +2840,7 @@ function DashboardInner({ user, activeCompany }: {
                   </div>
                   <div className={`min-w-0 ${isRtl ? 'text-right' : ''}`}>
                     <h3 className="font-display font-bold text-base text-[#1A1613] dark:text-foreground tracking-[-0.02em]">{t('dashboard.bookDemoTitle')}</h3>
-                    <p className="text-sm text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground mt-0.5">{t('dashboard.bookDemoDesc')}</p>
+                    <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-0.5">{t('dashboard.bookDemoDesc')}</p>
                   </div>
                 </div>
                 <Button
@@ -2878,7 +2868,7 @@ function DashboardInner({ user, activeCompany }: {
                         02
                       </span>
                       <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#1A1613] dark:text-foreground tracking-[-0.035em] leading-[1.05] max-md:rtl:leading-[1.3]">{t('dashboard.getStartedTitle')}<span className="text-[#FE3C01]">.</span></h2>
-                      <p className="text-sm text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground mt-2 max-w-xl">{t('dashboard.getStartedDesc')}</p>
+                      <p className="text-sm text-[#8A8078] dark:text-muted-foreground mt-2 max-w-xl">{t('dashboard.getStartedDesc')}</p>
                     </div>
 
                     {/* Animated progress bar */}
@@ -2905,7 +2895,7 @@ function DashboardInner({ user, activeCompany }: {
                         return (
                           <>
                             <div className={`flex items-center justify-between mb-2`}>
-                              <span className="text-sm text-[#8A8078] max-md:text-[#6B635B] dark:text-muted-foreground dark:max-md:text-muted-foreground font-medium">
+                              <span className="text-sm text-[#8A8078] dark:text-muted-foreground font-medium">
                                 {localCount} {t('tenderFlow.ofLabel')} {total} {t('dashboard.tasksComplete')}
                               </span>
                               <span className="text-sm font-bold text-[#FE3C01] tabular-nums">{pct}%</span>
@@ -3345,7 +3335,7 @@ function DashboardInner({ user, activeCompany }: {
                     {!tenderSearchQuery && tenderFilter === 'all' && tenderTypeFilter === 'all' && tenderOffersFilter === 'all' && (
                       <Button
                         onClick={handleCreateTender}
-                        className="bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white max-md:w-full max-md:active:bg-[#C93000]"
+                        className="bg-[var(--bid-orange)] hover:bg-[var(--bid-orange)]/90 text-white max-md:w-full max-md:active:opacity-90"
                         data-testid="button-create-first-tender"
                       >
                         <Plus className={`h-4 w-4 me-2`} />
@@ -3357,7 +3347,7 @@ function DashboardInner({ user, activeCompany }: {
               ) : (
                 <div className="space-y-4 max-md:space-y-3">
                       {isPhone && (
-                        <p className="text-sm text-[#6B635B] dark:text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-rfp-count">
+                        <p className="text-sm text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-rfp-count">
                           {t('dashboard.rfpShowing', { shown: Math.min(rfpVisible, filteredTenders.length), total: filteredTenders.length })}
                         </p>
                       )}
@@ -3568,7 +3558,7 @@ function DashboardInner({ user, activeCompany }: {
                         {t('dashboard.noProposalsDesc')}
                       </p>
                       <Button
-                        className="mt-5 w-full bg-[#FE3C01] text-white hover:bg-[#d54d35] active:bg-[#C93000] md:hidden"
+                        className="mt-5 w-full bg-[#FE3C01] text-white hover:bg-[#d54d35] active:opacity-90 md:hidden"
                         onClick={handleExploreMarketplace}
                         data-testid="button-explore-marketplace-empty"
                       >
@@ -3580,7 +3570,7 @@ function DashboardInner({ user, activeCompany }: {
                 ) : (
                   <div className="space-y-4 max-md:space-y-3">
                         {isPhone && myOffers.length > RFP_PAGE_SIZE && (
-                          <p className="text-sm text-[#6B635B] dark:text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-my-offers-count">
+                          <p className="text-sm text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-my-offers-count">
                             {t('dashboard.rfpShowing', { shown: Math.min(sentVisible, myOffers.length), total: myOffers.length })}
                           </p>
                         )}
@@ -3764,7 +3754,7 @@ function DashboardInner({ user, activeCompany }: {
                       {/* Offers come from RFPs: with none yet, creating one is the one thing to do. */}
                       {!loadingTenders && tenders.length === 0 && (
                         <Button
-                          className="mt-5 w-full bg-[#FE3C01] text-white hover:bg-[#d54d35] active:bg-[#C93000] md:hidden"
+                          className="mt-5 w-full bg-[#FE3C01] text-white hover:bg-[#d54d35] active:opacity-90 md:hidden"
                           onClick={handleCreateTender}
                           data-testid="button-create-tender-from-offers"
                         >
@@ -3777,7 +3767,7 @@ function DashboardInner({ user, activeCompany }: {
                 ) : (
                   <div className="space-y-4 max-md:space-y-3">
                         {isPhone && incomingOffers.length > RFP_PAGE_SIZE && (
-                          <p className="text-sm text-[#6B635B] dark:text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-incoming-offers-count">
+                          <p className="text-sm text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-incoming-offers-count">
                             {t('dashboard.rfpShowing', { shown: Math.min(incomingVisible, incomingOffers.length), total: incomingOffers.length })}
                           </p>
                         )}
@@ -4125,7 +4115,7 @@ function DashboardInner({ user, activeCompany }: {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="col-span-2 h-9 px-2 text-muted-foreground hover:text-foreground max-md:h-11 max-md:text-[#6B635B] max-md:dark:text-muted-foreground"
+                        className="col-span-2 h-9 px-2 text-muted-foreground hover:text-foreground max-md:h-11"
                         onClick={() => withViewTransition(clearVendorFilters)}
                         data-testid="button-clear-filters"
                       >
@@ -4244,7 +4234,7 @@ function DashboardInner({ user, activeCompany }: {
                         {isPhone && vendorsEmptyWorkspace && activeCompany?.profile?.tractionSlug && (
                           <CopyLinkButton
                             url={`${window.location.origin}/traction/${activeCompany.profile.tractionSlug}`}
-                            className="mt-6 w-full max-md:h-auto max-md:min-h-11 border-transparent bg-[#FE3C01] text-white hover:bg-[#E83501] hover:text-white active:bg-[#C93000]"
+                            className="mt-6 w-full max-md:h-auto max-md:min-h-11 border-transparent bg-[#FE3C01] text-white hover:bg-[#E83501] hover:text-white active:opacity-90"
                             testId="button-copy-traction-link-empty"
                           />
                         )}
@@ -4253,7 +4243,7 @@ function DashboardInner({ user, activeCompany }: {
                   ) : (
                     <div className="grid gap-4 max-md:gap-3">
                       {isPhone && filteredVendors.length > RFP_PAGE_SIZE && (
-                        <p className="text-sm text-[#6B635B] dark:text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-vendors-count">
+                        <p className="text-sm text-muted-foreground tabular-nums" aria-live="polite" data-testid="text-vendors-count">
                           {t('dashboard.rfpShowing', { shown: Math.min(vendorVisible, filteredVendors.length), total: filteredVendors.length })}
                         </p>
                       )}

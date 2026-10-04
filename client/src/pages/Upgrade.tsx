@@ -151,9 +151,10 @@ export default function Upgrade() {
               {reason && step !== "details" && (
                 <div className="upgrade-reason" data-testid="upgrade-reason">
                   <span className="upgrade-reason-icon"><Lock aria-hidden="true" /></span>
-                  <div>
+                  <div className="upgrade-reason-text">
                     <strong>{t(`upgrade.title_${reason}`)}</strong>
                     <span>{t(`upgrade.desc_${reason}`)}</span>
+                    <span className="upgrade-reason-chip">{t("upgrade.unlockWith", { plan: planName(recommended) })}</span>
                   </div>
                 </div>
               )}

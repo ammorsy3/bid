@@ -38,7 +38,7 @@
 /* ============ HERO ============ */
 .upgrade-page .landing-page .pricing-hero { padding: 56px 0 10px; }
 
-/* What sent them here: a white card under the subtitle. */
+/* What sent them here: a white card with an orange edge under the subtitle. */
 .upgrade-page .upgrade-reason {
   margin: 28px auto 0;
   max-width: 560px;
@@ -47,24 +47,38 @@
   gap: 14px;
   text-align: start;
   background: var(--white);
-  border: 1px solid var(--line);
+  border: 1.5px solid rgba(254, 60, 1, 0.35);
   border-radius: 20px;
   padding: 18px 20px;
-  box-shadow: 0 18px 44px -28px rgba(11, 9, 7, 0.3);
+  box-shadow: 0 20px 44px -26px rgba(254, 60, 1, 0.35);
 }
 .upgrade-page .upgrade-reason-icon {
   flex-shrink: 0;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--orange);
+  color: var(--white);
+  box-shadow: 0 0 0 5px var(--orange-soft);
+}
+.upgrade-page .upgrade-reason-icon svg { width: 18px; height: 18px; stroke-width: 2.2; }
+.upgrade-page .upgrade-reason-text { min-width: 0; flex: 1; }
+.upgrade-page .upgrade-reason-text strong { display: block; font-size: 16px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+.upgrade-page .upgrade-reason-text > span { display: block; margin-top: 4px; font-size: 14px; line-height: 1.55; color: var(--stone); }
+.upgrade-page .upgrade-reason-text > .upgrade-reason-chip {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 5px 12px;
+  border-radius: 100px;
   background: var(--orange-soft);
   color: var(--orange);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
 }
-.upgrade-page .upgrade-reason-icon svg { width: 17px; height: 17px; }
-.upgrade-page .upgrade-reason strong { display: block; font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
-.upgrade-page .upgrade-reason span { display: block; margin-top: 4px; font-size: 14px; line-height: 1.55; color: var(--stone); }
 
 /* ============ PLAN BOXES ============
    Two paid plans, centred, instead of the pricing page's three. */
@@ -82,26 +96,34 @@
 .upgrade-page .upgrade-spin { width: 16px; height: 16px; animation: upgradeSpin 0.8s linear infinite; }
 @keyframes upgradeSpin { to { transform: rotate(360deg); } }
 
-/* The feature that sent them here, marked inside the plan that has it. */
+/* The feature that sent them here, marked inside the plan that has it:
+   an orange-edged row with a solid orange tag, on both the white and dark box. */
 .upgrade-page .plan-feat.needed {
-  margin-inline: -10px;
-  padding: 8px 10px;
+  margin-inline: -12px;
+  padding: 10px 12px;
   border-radius: 12px;
   background: var(--orange-soft);
-  font-weight: 600;
+  border: 1px solid rgba(254, 60, 1, 0.45);
+  font-weight: 700;
 }
-.upgrade-page .plan.featured .plan-feat.needed { background: rgba(254, 60, 1, 0.22); }
+.upgrade-page .plan.featured .plan-feat.needed {
+  background: rgba(254, 60, 1, 0.16);
+  border-color: rgba(254, 60, 1, 0.7);
+  color: var(--white);
+}
 .upgrade-page .plan-feat > span:not(.upgrade-needed-tag) { flex: 1; min-width: 0; }
 .upgrade-page .upgrade-needed-tag {
   flex-shrink: 0;
   align-self: center;
-  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 100px;
+  background: var(--orange);
+  color: var(--white);
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--orange);
 }
-.upgrade-page .plan.featured .upgrade-needed-tag { color: var(--yellow); }
 
 .upgrade-page .upgrade-current {
   flex-shrink: 0;
@@ -194,10 +216,11 @@
 .upgrade-page .upgrade-unlocked-actions a:hover { color: var(--cream); }
 
 /* ============ RTL ============ */
-.landing-rtl .upgrade-reason strong,
+.landing-rtl .upgrade-reason-text strong,
 .landing-rtl .upgrade-unlocked h1,
 .landing-rtl .upgrade-needed-tag { letter-spacing: normal; text-transform: none; }
-.landing-rtl .upgrade-needed-tag { font-size: 12px; }
+.landing-rtl .upgrade-needed-tag { font-size: 11px; }
+.landing-rtl .upgrade-reason-chip { letter-spacing: normal; }
 .landing-rtl .upgrade-back svg { transform: scaleX(-1); }
 
 /* ============ RESPONSIVE ============ */

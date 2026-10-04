@@ -1,0 +1,222 @@
+/* /upgrade. Rides on landing.css + pricing.css (tokens, .page, .topbar, .btn,
+   .pricing-hero, .billing-toggle, .plan-grid, .plan, .free-strip) so it looks
+   like the pricing page. Only what's specific to upgrading lives here, and every
+   rule is scoped under .upgrade-page (see the section-padding note in pricing.css). */
+
+/* The page is cream in both themes, like /pricing, so the shared app components
+   inside it (the checkout card, inputs, toasts) keep their light colours too. */
+.upgrade-page {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(26, 16%, 9%);
+  --muted: hsl(38, 47%, 96%);
+  --muted-foreground: hsl(28, 7%, 42%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(26, 16%, 9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(26, 16%, 9%);
+  --border: hsl(28, 12%, 88%);
+  --input: hsl(28, 12%, 88%);
+  --secondary: hsl(38, 47%, 92%);
+  --secondary-foreground: hsl(26, 16%, 9%);
+  --accent: hsl(38, 47%, 92%);
+  --accent-foreground: hsl(26, 16%, 9%);
+  min-height: 100vh;
+  color-scheme: light;
+}
+
+/* ============ TOPBAR ============ */
+/* Not sticky: the page is split in two around the checkout form. */
+.upgrade-page .topbar { position: static; }
+.upgrade-page .upgrade-back {
+  border: 1px solid var(--line-strong);
+  min-height: 40px;
+  cursor: pointer;
+}
+.upgrade-page .upgrade-back:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.upgrade-page .upgrade-back svg { width: 16px; height: 16px; }
+
+/* ============ HERO ============ */
+.upgrade-page .landing-page .pricing-hero { padding: 56px 0 10px; }
+
+/* What sent them here: a white card under the subtitle. */
+.upgrade-page .upgrade-reason {
+  margin: 28px auto 0;
+  max-width: 560px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  text-align: start;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 18px 20px;
+  box-shadow: 0 18px 44px -28px rgba(11, 9, 7, 0.3);
+}
+.upgrade-page .upgrade-reason-icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--orange-soft);
+  color: var(--orange);
+}
+.upgrade-page .upgrade-reason-icon svg { width: 17px; height: 17px; }
+.upgrade-page .upgrade-reason strong { display: block; font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+.upgrade-page .upgrade-reason span { display: block; margin-top: 4px; font-size: 14px; line-height: 1.55; color: var(--stone); }
+
+/* ============ PLAN BOXES ============
+   Two paid plans, centred, instead of the pricing page's three. */
+.upgrade-page .plan-grid.upgrade-grid {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 860px;
+  margin-inline: auto;
+}
+.upgrade-page .free-strip { max-width: 860px; margin-inline: auto; }
+
+.upgrade-page .plan .btn { min-height: 46px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.upgrade-page .plan .btn:disabled { opacity: 0.6; cursor: default; }
+.upgrade-page .plan .btn-primary:hover:not(:disabled) { background: var(--orange); }
+.upgrade-page .plan.featured .btn-orange:hover:not(:disabled) { background: var(--white); color: var(--ink); }
+.upgrade-page .upgrade-spin { width: 16px; height: 16px; animation: upgradeSpin 0.8s linear infinite; }
+@keyframes upgradeSpin { to { transform: rotate(360deg); } }
+
+/* The feature that sent them here, marked inside the plan that has it. */
+.upgrade-page .plan-feat.needed {
+  margin-inline: -10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--orange-soft);
+  font-weight: 600;
+}
+.upgrade-page .plan.featured .plan-feat.needed { background: rgba(254, 60, 1, 0.22); }
+.upgrade-page .plan-feat > span:not(.upgrade-needed-tag) { flex: 1; min-width: 0; }
+.upgrade-page .upgrade-needed-tag {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--orange);
+}
+.upgrade-page .plan.featured .upgrade-needed-tag { color: var(--yellow); }
+
+.upgrade-page .upgrade-current {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  padding: 8px 14px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+/* ============ TRUST LINE ============ */
+.upgrade-page .upgrade-trust {
+  list-style: none;
+  margin: 34px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 28px;
+  font-size: 14px;
+  color: var(--stone);
+}
+.upgrade-page .upgrade-trust li { display: flex; align-items: center; gap: 8px; }
+.upgrade-page .upgrade-trust svg { width: 16px; height: 16px; color: var(--orange); }
+.upgrade-page .upgrade-vat { margin-top: 10px; text-align: center; font-size: 12px; color: var(--stone); }
+
+/* ============ CHECKOUT + AFTER UPGRADING ============ */
+.upgrade-page .upgrade-checkout {
+  max-width: 672px;
+  margin: 0 auto;
+  padding: 0 16px;
+  font-family: "Inter", "IBM Plex Sans Arabic", sans-serif;
+}
+.upgrade-page .upgrade-checkout > [data-testid="checkout-flow"]:not(:empty) { padding: 28px 0 8px; }
+.upgrade-page .upgrade-checkout [data-testid="billing-only-admins"] { text-align: center; }
+.upgrade-page .upgrade-bottom { padding-bottom: 88px; }
+.upgrade-page .upgrade-checkout [data-testid="billing-details-step"] {
+  border-radius: 20px;
+  border-color: var(--line);
+  box-shadow: 0 18px 44px -28px rgba(11, 9, 7, 0.3);
+}
+.upgrade-page .upgrade-checkout [data-testid="billing-pay"] { border-radius: 100px; min-height: 50px; font-weight: 600; }
+.upgrade-page .upgrade-checkout [data-testid="billing-pay"]:hover:not(:disabled) { background: var(--ink); }
+
+.upgrade-page .upgrade-unlocked {
+  max-width: 640px;
+  margin: 56px auto 0;
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: 28px;
+  padding: 44px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.upgrade-page .upgrade-unlocked::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.18) 1.5px, transparent 2px);
+  background-size: 22px 22px;
+}
+.upgrade-page .upgrade-unlocked > * { position: relative; }
+.upgrade-page .upgrade-unlocked h1 {
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  color: var(--cream);
+}
+.upgrade-page .upgrade-unlocked h1 .o { color: var(--orange); }
+.upgrade-page .upgrade-unlocked p { margin-top: 12px; font-size: 15px; color: var(--stone-soft); }
+.upgrade-page .upgrade-unlocked ul {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 24px;
+}
+.upgrade-page .upgrade-unlocked li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.45; }
+.upgrade-page .upgrade-unlocked li svg { width: 17px; height: 17px; flex-shrink: 0; margin-top: 1px; color: var(--orange); }
+.upgrade-page .upgrade-unlocked-actions { margin-top: 30px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.upgrade-page .upgrade-unlocked .btn-orange { min-height: 48px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.upgrade-page .upgrade-unlocked .btn-orange:hover { background: var(--white); color: var(--ink); }
+.upgrade-page .upgrade-unlocked-actions a { font-size: 14px; font-weight: 500; color: var(--stone-soft); }
+.upgrade-page .upgrade-unlocked-actions a:hover { color: var(--cream); }
+
+/* ============ RTL ============ */
+.landing-rtl .upgrade-reason strong,
+.landing-rtl .upgrade-unlocked h1,
+.landing-rtl .upgrade-needed-tag { letter-spacing: normal; text-transform: none; }
+.landing-rtl .upgrade-needed-tag { font-size: 12px; }
+.landing-rtl .upgrade-back svg { transform: scaleX(-1); }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1000px) {
+  .upgrade-page .plan-grid.upgrade-grid { grid-template-columns: 1fr; max-width: 460px; }
+  .upgrade-page .free-strip { max-width: 460px; }
+}
+@media (max-width: 640px) {
+  .upgrade-page .landing-page .pricing-hero { padding: 36px 0 6px; }
+  .landing-rtl .upgrade-unlocked h1 { line-height: 1.3; }
+  .upgrade-page .upgrade-reason { padding: 16px; margin-top: 22px; }
+  .upgrade-page .upgrade-trust { flex-direction: column; align-items: center; gap: 10px; }
+  .upgrade-page .upgrade-unlocked { margin-top: 32px; padding: 32px 22px; border-radius: 24px; }
+  .upgrade-page .upgrade-unlocked ul { grid-template-columns: 1fr; }
+  .upgrade-page .upgrade-unlocked .btn-orange { width: 100%; justify-content: center; }
+  .upgrade-page .upgrade-bottom { padding-bottom: 56px; }
+  .upgrade-page .upgrade-current { align-self: flex-start; }
+  .upgrade-page .upgrade-checkout > [data-testid="checkout-flow"]:not(:empty) { padding-top: 20px; }
+}
+@media (hover: none) {
+  .upgrade-page .upgrade-back:hover { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+}

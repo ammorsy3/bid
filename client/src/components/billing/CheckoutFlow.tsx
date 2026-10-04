@@ -63,9 +63,17 @@ interface Props {
   keepParams?: Record<string, string>;
   /** Pre-selected plan in the picker. */
   defaultPlan?: PaidPlan;
+  /** The page draws its own plan cards (/upgrade), so skip step 1's picker. */
+  hidePicker?: boolean;
+  /** Open the details step for this plan; a new `key` opens it again. */
+  request?: { plan: PaidPlan; term: BillingTerm; key: number } | null;
+  /** Which step is showing, so a page with its own plan cards can hide them. */
+  onStepChange?: (step: "pick" | "opening" | "details") => void;
 }
 
-export function CheckoutFlow({ returnTo, summary, onSummaryChanged, keepParams = {}, defaultPlan = "business" }: Props) {
+export function CheckoutFlow({
+  returnTo, summary, onSummaryChanged, keepParams = {}, defaultPlan = "business", hidePicker = false, request, onStepChange,
+}: Props) {
   const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -115,6 +123,15 @@ export function CheckoutFlow({ returnTo, summary, onSummaryChanged, keepParams =
       setOpening(false);
     }
   }, [handleApiError]);
+
+  useEffect(() => {
+    if (request) void openCheckout(request.plan, request.term);
+    // Only when the page asks again (new key).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request?.key]);
+
+  const step = checkout && details ? "details" : opening ? "opening" : "pick";
+  useEffect(() => { onStepChange?.(step); }, [step, onStepChange]);
 
   // --- URL params: return from StreamPay, resume link, or plan from a link ---
   const handledParams = useRef(false);
@@ -291,7 +308,7 @@ export function CheckoutFlow({ returnTo, summary, onSummaryChanged, keepParams =
       )}
 
       {/* Step 1 — pick a plan */}
-      {!live && summary.canManage && !checkout && (
+      {!live && summary.canManage && !checkout && !hidePicker && (
         <Card data-testid="billing-plan-picker">
           <CardContent className="p-5 space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -353,8 +370,8 @@ export function CheckoutFlow({ returnTo, summary, onSummaryChanged, keepParams =
       {!live && summary.canManage && checkout && details && (
         <Card data-testid="billing-details-step">
           <CardContent className="p-5 space-y-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <h2 className="font-display font-black text-lg tracking-[-0.02em]">{t("billing.detailsTitle")}</h2>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {inputFields.length === 0 ? t("billing.detailsAllSet") : t("billing.detailsDesc")}

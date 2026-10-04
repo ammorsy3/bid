@@ -2,50 +2,77 @@
 //
 // People arrive here from the dashboard plan card, the upgrade dialog (when a
 // limit stops them, with ?reason=<feature>), or the pricing page (with
-// ?plan=&term=). It shows what each plan includes, highlights what sent them
-// here, and runs the same checkout as Settings. After paying, it says what's
-// now unlocked and sends them back to where they were.
+// ?plan=&term=). It looks like /pricing on purpose (same cream page, plan boxes
+// and free strip, from landing.css + pricing.css), marks the plan that unlocks
+// what sent them here, and runs the same checkout as Settings once they pick.
+// After paying, it says what's now unlocked and sends them back to where they were.
 
-import { useEffect } from "react";
-import { useLocation } from "wouter";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Minus, PartyPopper } from "lucide-react";
-import { BackPillButton } from "@/components/ui/back-pill-button";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  ArrowLeft, Check, GitCompare, Infinity as InfinityIcon, Layers, LayoutTemplate, Link2, Loader2, Lock,
+  MessageCircleQuestion, Plug, RotateCcw, ShieldCheck, Sparkles, Store, Users, type LucideIcon,
+} from "lucide-react";
+import "./landing.css";
+import "./pricing.css";
+import "./upgrade.css";
+import { BidLogo } from "@/components/brand/BidLogo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckoutFlow } from "@/components/billing/CheckoutFlow";
-import { type BillingSummary } from "@/components/billing/shared";
+import type { BillingSummary } from "@/components/billing/shared";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { usePlan } from "@/lib/usePlan";
 import { clearReturnPath, takeReturnPath } from "@/lib/upgrade-return";
-import {
-  FEATURE_MIN_PLAN, FREE_TENDER_LIMIT, isFeature, planAllows, type Feature, type PlanTier,
-} from "@shared/entitlements";
-import type { PaidPlan } from "@shared/billing-plans";
+import { FEATURE_MIN_PLAN, isFeature, planAllows, type Feature } from "@shared/entitlements";
+import { MONTHLY_PRICE, PAID_PLANS, monthlyRate, periodPrice, type BillingTerm, type PaidPlan } from "@shared/billing-plans";
 
-/** The rows of the comparison, in the order the pricing page tells the story. */
-const ROWS: (Feature | "tenders")[] = [
-  "tenders", "seats", "marketplace", "aiBuilder", "ownTemplates", "qa", "traction", "aiAnalysis", "comparison", "api",
-];
+type Reason = Feature | "tenders";
+type Step = "pick" | "opening" | "details";
 
-const TIERS: PlanTier[] = ["free", "pro", "business"];
+/** What each paid box lists, with the pricing page's icons. `reason` ties a row to ?reason=. */
+const FEATURES: Record<PaidPlan, { key: string; Icon: LucideIcon; reason?: Reason }[]> = {
+  pro: [
+    { key: "upgrade.valUnlimitedTenders", Icon: InfinityIcon, reason: "tenders" },
+    { key: "upgrade.feat_seats", Icon: Users, reason: "seats" },
+    { key: "upgrade.row_marketplace", Icon: Store, reason: "marketplace" },
+    { key: "upgrade.row_aiBuilder", Icon: Sparkles, reason: "aiBuilder" },
+    { key: "upgrade.row_ownTemplates", Icon: LayoutTemplate, reason: "ownTemplates" },
+    { key: "upgrade.row_qa", Icon: MessageCircleQuestion, reason: "qa" },
+    { key: "upgrade.row_traction", Icon: Link2, reason: "traction" },
+  ],
+  business: [
+    { key: "upgrade.everythingPro", Icon: Layers },
+    { key: "upgrade.row_aiAnalysis", Icon: Sparkles, reason: "aiAnalysis" },
+    { key: "upgrade.row_comparison", Icon: GitCompare, reason: "comparison" },
+    { key: "upgrade.row_api", Icon: Plug, reason: "api" },
+  ],
+};
 
-function includes(tier: PlanTier, row: Feature | "tenders"): boolean {
-  return row === "tenders" ? true : planAllows(tier, row);
-}
+const FREE_ROWS = ["upgrade.free_tenders", "upgrade.free_seats", "upgrade.free_private", "upgrade.free_templates", "upgrade.free_contact"];
+const UNLOCK_ROWS: Feature[] = ["seats", "marketplace", "aiBuilder", "ownTemplates", "qa", "traction", "aiAnalysis", "comparison", "api"];
+
+/** SAR in Western digits, like the pricing page. */
+const sar = (n: number) => <span dir="ltr">SAR {n.toLocaleString("en-US")}</span>;
 
 export default function Upgrade() {
-  const { t, isRtl } = useI18n();
+  const { t, isRtl, language, setLanguage } = useI18n();
   const [, setLocation] = useLocation();
   const { user, activeCompany } = useAuthStore();
   const { loaded, gated, tier, entitlements } = usePlan();
 
   const reasonParam = new URLSearchParams(window.location.search).get("reason");
-  const reason: Feature | "tenders" | null =
-    reasonParam === "tenders" ? "tenders" : isFeature(reasonParam) ? reasonParam : null;
+  const reason: Reason | null = reasonParam === "tenders" ? "tenders" : isFeature(reasonParam) ? reasonParam : null;
+
+  const [term, setTerm] = useState<BillingTerm>("monthly");
+  const [request, setRequest] = useState<{ plan: PaidPlan; term: BillingTerm; key: number } | null>(null);
+  const [step, setStep] = useState<Step>("pick");
+  const onStepChange = useCallback((s: Step) => {
+    setStep(s);
+    if (s === "details") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const queryKey = ["/api/billing", activeCompany?.id ?? "none"];
   const { data, refetch } = useQuery<BillingSummary>({
@@ -69,113 +96,193 @@ export default function Upgrade() {
   };
 
   const live = !!data?.subscription?.live;
-  const defaultPlan: PaidPlan = reason && reason !== "tenders" && FEATURE_MIN_PLAN[reason] === "business" ? "business" : "pro";
-  const planLabel = (p: PlanTier) => t(p === "business" ? "billing.planBusiness" : p === "pro" ? "billing.planPro" : "billing.planFree");
+  const canManage = !!data?.canManage;
+  const recommended: PaidPlan = reason && reason !== "tenders" && FEATURE_MIN_PLAN[reason] === "business" ? "business" : "pro";
+  const planName = (p: PaidPlan | "free") => t(p === "business" ? "billing.planBusiness" : p === "pro" ? "billing.planPro" : "billing.planFree");
+  const showCards = !!data && !live && step !== "details";
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background" dir={isRtl ? "rtl" : "ltr"} data-testid="upgrade-page">
-      <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
-        <BackPillButton onClick={goBack} data-testid="button-upgrade-back" />
+    <div
+      className={`upgrade-page surface-cream${isRtl ? " landing-rtl" : ""}`}
+      style={{ background: "var(--cream)" }}
+      dir={isRtl ? "rtl" : "ltr"}
+      data-testid="upgrade-page"
+    >
+      {/* Top: bar, headline, what sent them here, billing switch */}
+      <div className="landing-page pricing-page">
+        <div className="page">
+          <div className="topbar">
+            <Link href="/dashboard" style={{ textDecoration: "none" }} data-testid="link-dashboard">
+              <BidLogo variant="orange" size={28} />
+            </Link>
+            <div className="topbar-right">
+              <button className="lang-toggle" onClick={() => setLanguage(language === "en" ? "ar" : "en")} aria-label="Language">
+                {language === "en" ? "AR" : "EN"}
+              </button>
+              <button className="btn btn-ghost upgrade-back" onClick={goBack} data-testid="button-upgrade-back">
+                <ArrowLeft aria-hidden="true" />
+                {t("common.back")}
+              </button>
+            </div>
+          </div>
 
-        <div>
-          <h1 className="font-display text-3xl font-black tracking-[-0.04em]">{t("upgrade.pageTitle")}</h1>
-          <p className="mt-1 text-muted-foreground">{t("upgrade.pageSubtitle")}</p>
-          {reason && !live && (
-            <p className="mt-3 inline-block rounded-lg bg-[#FE3C01]/10 px-3 py-1.5 text-sm font-medium text-[#FE3C01]" data-testid="upgrade-reason">
-              {t(`upgrade.title_${reason}`)}
-            </p>
-          )}
-        </div>
+          {live && data?.subscription ? (
+            <div className="upgrade-unlocked" data-testid="upgrade-unlocked">
+              <h1>{t("upgrade.unlockedTitle", { plan: planName(data.subscription.plan) })}</h1>
+              <p>{t("upgrade.unlockedDesc")}</p>
+              <ul>
+                <li><Check aria-hidden="true" />{t("upgrade.valUnlimitedTenders")}</li>
+                {UNLOCK_ROWS.filter((r) => (entitlements ? entitlements.features[r] : planAllows(data.subscription!.plan, r))).map((r) => (
+                  <li key={r}><Check aria-hidden="true" />{t(r === "seats" ? "upgrade.feat_seats" : `upgrade.row_${r}`)}</li>
+                ))}
+              </ul>
+              <div className="upgrade-unlocked-actions">
+                <button className="btn btn-orange" onClick={goBack} data-testid="upgrade-continue">{t("upgrade.continue")}</button>
+                <Link href="/settings?tab=billing">{t("upgrade.planCardManage")}</Link>
+              </div>
+            </div>
+          ) : (
+            <section className="pricing-hero">
+              <h1>
+                {t("upgrade.heroTitle1")} <span className="o">{t("upgrade.heroTitle2")}</span>
+              </h1>
+              <p>{t("upgrade.pageSubtitle")}</p>
 
-        {!data ? (
-          <>
-            <Skeleton className="h-64 w-full rounded-xl" />
-            <Skeleton className="h-48 w-full rounded-xl" />
-          </>
-        ) : (
-          <>
-            {/* After upgrading: what's unlocked, and the way back. */}
-            {live && data.subscription && (
-              <Card className="border-green-200 dark:border-green-900" data-testid="upgrade-unlocked">
-                <CardContent className="space-y-4 p-5">
-                  <div className="flex items-center gap-2">
-                    <PartyPopper className="h-5 w-5 text-green-600" />
-                    <h2 className="font-display text-xl font-black tracking-[-0.03em]">
-                      {t("upgrade.unlockedTitle", { plan: planLabel(data.subscription.plan) })}
-                    </h2>
+              {reason && step !== "details" && (
+                <div className="upgrade-reason" data-testid="upgrade-reason">
+                  <span className="upgrade-reason-icon"><Lock aria-hidden="true" /></span>
+                  <div>
+                    <strong>{t(`upgrade.title_${reason}`)}</strong>
+                    <span>{t(`upgrade.desc_${reason}`)}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">{t("upgrade.unlockedDesc")}</p>
-                  <ul className="grid gap-1.5 sm:grid-cols-2">
-                    {ROWS.filter((r) => r !== "tenders" && (entitlements ? entitlements.features[r] : planAllows(data.subscription!.plan, r))).map((r) => (
-                      <li key={r} className="flex items-center gap-2 text-sm">
-                        <Check className="h-4 w-4 shrink-0 text-green-600" />{t(`upgrade.row_${r}`)}
-                      </li>
-                    ))}
-                    <li className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 shrink-0 text-green-600" />{t("upgrade.valUnlimitedTenders")}
-                    </li>
-                  </ul>
-                  <Button className="bg-[#FE3C01] text-white hover:bg-[#FE3C01]/90" onClick={goBack} data-testid="upgrade-continue">
-                    {t("upgrade.continue")}
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              )}
 
-            {/* What each plan includes */}
-            <Card data-testid="upgrade-compare">
-              <CardContent className="p-0">
-                <div className="grid grid-cols-[1.6fr_repeat(3,1fr)] items-end gap-x-2 border-b px-3 py-3 text-center text-xs font-semibold sm:px-5 sm:text-sm">
-                  <span className="text-start text-muted-foreground">{t("upgrade.compareTitle")}</span>
-                  {TIERS.map((p) => (
-                    <span key={p} className={tier === p ? "text-[#FE3C01]" : ""}>
-                      {planLabel(p)}
-                      {tier === p && <span className="block text-[10px] font-medium">{t("upgrade.current")}</span>}
-                    </span>
+              {showCards && (
+                <div className="billing-toggle" role="group" aria-label={t("billing.billingTerm")} data-billing={term}>
+                  {(["monthly", "yearly"] as const).map((x) => (
+                    <button
+                      key={x}
+                      className={term === x ? "active" : ""}
+                      onClick={() => setTerm(x)}
+                      aria-pressed={term === x}
+                      data-testid={`billing-term-${x}`}
+                    >
+                      <span className="term-label">{t(x === "yearly" ? "billing.termYearly" : "billing.termMonthly")}</span>
+                      {x === "yearly" && <span className="term-note">{t("billing.save20")}</span>}
+                    </button>
                   ))}
                 </div>
-                <ul className="divide-y">
-                  {ROWS.map((row) => (
-                    <li
-                      key={row}
-                      className={`grid grid-cols-[1.6fr_repeat(3,1fr)] items-center gap-x-2 px-3 py-2.5 text-center text-sm sm:px-5 ${
-                        reason === row ? "bg-[#FE3C01]/5" : ""
-                      }`}
-                      data-testid={`upgrade-row-${row}`}
-                    >
-                      <span className="text-start font-medium">{t(`upgrade.row_${row}`)}</span>
-                      {TIERS.map((p) => (
-                        <span key={p} className="flex justify-center" aria-label={`${planLabel(p)}: ${includes(p, row) ? t("upgrade.included") : t("upgrade.notIncluded")}`}>
-                          {row === "tenders" ? (
-                            <span className="text-xs font-semibold sm:text-sm">
-                              {p === "free" ? `${FREE_TENDER_LIMIT}` : <span aria-label={t("upgrade.valUnlimited")}>∞</span>}
-                            </span>
-                          ) : row === "seats" && p === "free" ? (
-                            <span className="text-xs font-semibold sm:text-sm">1</span>
-                          ) : includes(p, row) ? (
-                            <Check className="h-4 w-4 text-green-600" aria-hidden="true" />
-                          ) : (
-                            <Minus className="h-4 w-4 text-muted-foreground/50" aria-hidden="true" />
-                          )}
-                        </span>
-                      ))}
-                    </li>
+              )}
+            </section>
+          )}
+        </div>
+      </div>
+
+      {/* Checkout: the details step after a pick, or the return from StreamPay.
+          Outside .landing-page, whose reset would strip the form's spacing. */}
+      {data && (
+        <div className="upgrade-checkout">
+          <CheckoutFlow
+            returnTo="upgrade"
+            summary={data}
+            onSummaryChanged={refetch}
+            keepParams={{}}
+            defaultPlan={recommended}
+            hidePicker
+            request={request}
+            onStepChange={onStepChange}
+          />
+        </div>
+      )}
+
+      {/* Bottom: the plan boxes, the free strip, the small print */}
+      <div className="landing-page pricing-page">
+        <div className="page upgrade-bottom">
+          {!data && !live && (
+            <div className="plan-grid upgrade-grid">
+              {[0, 1].map((i) => <Skeleton key={i} className="h-[34rem] w-full rounded-[20px]" />)}
+            </div>
+          )}
+
+          {showCards && (
+            <>
+              <div className="plan-grid upgrade-grid" data-testid="upgrade-compare">
+                {PAID_PLANS.map((p) => {
+                  const featured = p === recommended;
+                  const saved = MONTHLY_PRICE[p] * 12 - periodPrice(p, "yearly");
+                  return (
+                    <div key={p} className={`plan${featured ? " featured" : ""}`} data-testid={`upgrade-plan-${p}`}>
+                      {featured && <span className="plan-badge">{t("upgrade.recommended")}</span>}
+                      <div className="plan-name">{planName(p)}</div>
+                      <div className="plan-tagline">{t(`upgrade.tagline_${p}`)}</div>
+
+                      <div className="plan-price-row">
+                        <span className="plan-price">{sar(monthlyRate(p, term))}</span>
+                        <span className="plan-period">{t("upgrade.perMonthPlusVat")}</span>
+                      </div>
+                      <div className="plan-usd">
+                        {term === "yearly"
+                          ? <>{sar(periodPrice(p, term))} {t("billing.billedYearly")}</>
+                          : t("upgrade.billedMonthly")}
+                      </div>
+                      {term === "yearly" && (
+                        <div className="plan-save">{t("upgrade.youSave")} {sar(saved)} {t("upgrade.perYear")}</div>
+                      )}
+
+                      {canManage && (
+                        <button
+                          className={`btn ${featured ? "btn-orange" : "btn-primary"}`}
+                          onClick={() => setRequest({ plan: p, term, key: Date.now() })}
+                          disabled={step === "opening"}
+                          data-testid={`billing-plan-${p}`}
+                        >
+                          {step === "opening" && request?.plan === p && <Loader2 className="upgrade-spin" aria-hidden="true" />}
+                          {t("billing.upgradeTo", { plan: planName(p) })}
+                        </button>
+                      )}
+
+                      <div className="plan-feat-list">
+                        {FEATURES[p].map((f) => {
+                          const needed = !!reason && f.reason === reason;
+                          return (
+                            <div className={`plan-feat${needed ? " needed" : ""}`} key={f.key} data-testid={needed ? "upgrade-needed-row" : undefined}>
+                              <f.Icon className="feat-icon" aria-hidden="true" />
+                              <span>{t(f.key)}</span>
+                              {needed && <span className="upgrade-needed-tag">{t("upgrade.youNeedThis")}</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="free-strip" data-testid="upgrade-plan-free">
+                <div className="free-strip-head">
+                  <div className="free-strip-title">
+                    <span className="free-strip-name">{planName("free")}</span>
+                    <span className="free-strip-sub">{t("upgrade.freeSub")}</span>
+                  </div>
+                  {tier === "free" && <span className="upgrade-current">{t("upgrade.currentPlan")}</span>}
+                </div>
+                <ul className="free-list">
+                  {FREE_ROWS.map((k) => (
+                    <li key={k}><Check className="feat-icon" aria-hidden="true" />{t(k)}</li>
                   ))}
                 </ul>
-                <p className="border-t px-3 py-3 text-xs text-muted-foreground sm:px-5">{t("upgrade.compareNote")}</p>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Checkout (or the return from it) */}
-            <CheckoutFlow
-              returnTo="upgrade"
-              summary={data}
-              onSummaryChanged={refetch}
-              keepParams={{}}
-              defaultPlan={defaultPlan}
-            />
-          </>
-        )}
+              <ul className="upgrade-trust">
+                <li><RotateCcw aria-hidden="true" />{t("upgrade.trustCancel")}</li>
+                <li><Users aria-hidden="true" />{t("upgrade.trustTeam")}</li>
+                <li><ShieldCheck aria-hidden="true" />{t("upgrade.trustSecure")}</li>
+              </ul>
+              <p className="upgrade-vat">{t("upgrade.vatNote")}</p>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -40,6 +40,7 @@ import {
   getInvoice,
   getPaymentLink,
   getSubscription,
+  listConsumerInvoices,
   listConsumerSubscriptions,
   planForSubscription,
   resolvePlanProducts,
@@ -299,6 +300,72 @@ function pickCurrentSubscription(subs: StreamPaySubscription[]): StreamPaySubscr
   );
 }
 
+/**
+ * StreamPay allows one customer per email/phone, so a person who runs several
+ * workspaces has one StreamPay customer behind all of them. These helpers keep
+ * each workspace's plan, invoices and webhooks separate in that case.
+ */
+async function consumerIsShared(company: Pick<Company, "id" | "streampayConsumerId">): Promise<boolean> {
+  if (!company.streampayConsumerId) return false;
+  const [other] = await db
+    .select({ id: companies.id })
+    .from(companies)
+    .where(and(eq(companies.streampayConsumerId, company.streampayConsumerId), ne(companies.id, company.id)))
+    .limit(1);
+  return !!other;
+}
+
+async function paymentLinkIdsOf(companyId: string): Promise<Set<string>> {
+  const rows = await db
+    .select({ id: billingCheckouts.paymentLinkId })
+    .from(billingCheckouts)
+    .where(eq(billingCheckouts.companyId, companyId));
+  return new Set(rows.flatMap((r) => (r.id ? [r.id] : [])));
+}
+
+/**
+ * Which of a shared customer's subscriptions belong to this workspace: the one
+ * already recorded for it, or an unclaimed one that was bought through one of
+ * its own payment links. Anything another workspace has claimed is never ours.
+ */
+async function subscriptionsOwnedBy(company: Company, subs: StreamPaySubscription[]): Promise<StreamPaySubscription[]> {
+  if (subs.length === 0) return subs;
+  const ids = subs.map((s) => s.id);
+  const claimed = await db
+    .select({ companyId: companySubscriptions.companyId, subId: companySubscriptions.streampaySubscriptionId })
+    .from(companySubscriptions)
+    .where(inArray(companySubscriptions.streampaySubscriptionId, ids));
+  const mine = new Set(claimed.filter((c) => c.companyId === company.id).map((c) => c.subId));
+  const taken = new Set(claimed.filter((c) => c.companyId !== company.id).map((c) => c.subId));
+
+  const unclaimed = subs.filter((s) => !mine.has(s.id) && !taken.has(s.id));
+  let viaLink = new Set<string>();
+  if (unclaimed.length > 0 && company.streampayConsumerId) {
+    const [links, { data: invoices }] = await Promise.all([
+      paymentLinkIdsOf(company.id),
+      listConsumerInvoices(company.streampayConsumerId),
+    ]);
+    viaLink = new Set(
+      (invoices ?? [])
+        .filter((i) => i.subscription_id && i.payment_link_id && links.has(i.payment_link_id))
+        .map((i) => i.subscription_id as string),
+    );
+  }
+  return subs.filter((s) => mine.has(s.id) || viaLink.has(s.id));
+}
+
+/** Invoices of a shared customer that belong to this workspace (all of them when not shared). */
+export async function invoicesOwnedBy<T extends { id: string; subscription_id?: string | null; payment_link_id?: string | null }>(
+  company: Company,
+  invoices: T[],
+): Promise<T[]> {
+  if (!(await consumerIsShared(company))) return invoices;
+  const [links, sub] = await Promise.all([paymentLinkIdsOf(company.id), getCompanySubscription(company.id)]);
+  return invoices.filter((i) =>
+    (i.payment_link_id && links.has(i.payment_link_id))
+    || (i.subscription_id && sub?.streampaySubscriptionId === i.subscription_id));
+}
+
 export async function syncCompanySubscription(companyId: string): Promise<CompanySubscription | null> {
   const company = await storage.getCompany(companyId);
   if (!company?.streampayConsumerId) return getCompanySubscription(companyId);
@@ -308,7 +375,10 @@ export async function syncCompanySubscription(companyId: string): Promise<Compan
     resolvePlanProducts(),
   ]);
   // Only subscriptions to Bid plan products count; the merchant account sells other things too.
-  const ours = (subs ?? []).filter((s) => planForSubscription(s, products));
+  let ours = (subs ?? []).filter((s) => planForSubscription(s, products));
+  // One StreamPay customer can serve several workspaces (same payer email/phone);
+  // then each workspace only counts the subscriptions that are its own.
+  if (await consumerIsShared(company)) ours = await subscriptionsOwnedBy(company, ours);
   const current = pickCurrentSubscription(ours);
 
   if (!current) {
@@ -405,10 +475,10 @@ export interface StreamPayWebhook {
   } & Record<string, unknown>;
 }
 
-async function companyIdForConsumer(consumerId: string | null | undefined): Promise<string | null> {
-  if (!consumerId) return null;
-  const [row] = await db.select({ id: companies.id }).from(companies).where(eq(companies.streampayConsumerId, consumerId)).limit(1);
-  return row?.id ?? null;
+async function companyIdsForConsumer(consumerId: string | null | undefined): Promise<string[]> {
+  if (!consumerId) return [];
+  const rows = await db.select({ id: companies.id }).from(companies).where(eq(companies.streampayConsumerId, consumerId));
+  return rows.map((r) => r.id);
 }
 
 /**
@@ -416,7 +486,7 @@ async function companyIdForConsumer(consumerId: string | null | undefined): Prom
  * from the body, so a replayed or tampered body can at most trigger a
  * harmless re-sync.
  */
-async function resolveWebhookCompany(event: StreamPayWebhook): Promise<{ companyId: string | null; checkoutId: string | null }> {
+async function resolveWebhookCompany(event: StreamPayWebhook): Promise<{ companyIds: string[]; checkoutId: string | null }> {
   const meta = event.data?.metadata ?? {};
   const checkoutId = typeof meta.checkoutId === "string" ? meta.checkoutId : null;
   const entity = (event.entity_type ?? "").toUpperCase();
@@ -437,13 +507,18 @@ async function resolveWebhookCompany(event: StreamPayWebhook): Promise<{ company
     console.warn(`[Billing] webhook ${event.event_type}: could not look up ${entity} ${event.entity_id}`, err);
   }
 
-  let companyId = await companyIdForConsumer(consumerId);
-  if (!companyId && typeof meta.companyId === "string") {
+  let companyIds = await companyIdsForConsumer(consumerId);
+  if (companyIds.length > 1 && typeof meta.companyId === "string" && companyIds.includes(meta.companyId)) {
+    // A shared customer: the payment link's own metadata says which workspace this is.
+    companyIds = [meta.companyId];
+  } else if (companyIds.length === 0 && typeof meta.companyId === "string") {
     // Metadata is only trusted if StreamPay confirms that company's own consumer.
     const company = await storage.getCompany(meta.companyId);
-    if (company?.streampayConsumerId && company.streampayConsumerId === consumerId) companyId = company.id;
+    if (company?.streampayConsumerId && company.streampayConsumerId === consumerId) companyIds = [company.id];
   }
-  return { companyId, checkoutId };
+  // Still several (e.g. a renewal, which carries no metadata): sync them all.
+  // Sync only keeps the subscriptions each workspace owns, so this is safe.
+  return { companyIds, checkoutId };
 }
 
 export async function handleWebhookEvent(event: StreamPayWebhook, signatureTs: string): Promise<"duplicate" | "processed" | "ignored"> {
@@ -458,11 +533,12 @@ export async function handleWebhookEvent(event: StreamPayWebhook, signatureTs: s
     .limit(1);
   if (seen) return "duplicate";
 
-  const { companyId, checkoutId } = await resolveWebhookCompany(event);
+  const { companyIds, checkoutId } = await resolveWebhookCompany(event);
+  const companyId = companyIds.length === 1 ? companyIds[0] : null;
 
-  if (companyId) {
-    await syncCompanySubscription(companyId);
-    if (checkoutId && event.event_type === "PAYMENT_LINK_PAY_ATTEMPT_FAILED") {
+  for (const id of companyIds) await syncCompanySubscription(id);
+  if (companyIds.length > 0) {
+    if (companyId && checkoutId && event.event_type === "PAYMENT_LINK_PAY_ATTEMPT_FAILED") {
       await db
         .update(billingCheckouts)
         .set({ status: "failed", failureReason: String(event.status ?? "PAY_ATTEMPT_FAILED").slice(0, 200), lastActivityAt: new Date() })
@@ -491,7 +567,7 @@ export async function handleWebhookEvent(event: StreamPayWebhook, signatureTs: s
     })
     .onConflictDoNothing();
 
-  return companyId ? "processed" : "ignored";
+  return companyIds.length > 0 ? "processed" : "ignored";
 }
 
 // ---------------------------------------------------------------------------

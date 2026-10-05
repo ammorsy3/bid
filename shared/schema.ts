@@ -118,7 +118,7 @@ export const companies = pgTable("companies", {
 
   // The company's customer record in StreamPay (payments). Set the first time
   // someone starts a checkout. See migrations/0014_billing.sql.
-  streampayConsumerId: text("streampay_consumer_id").unique(),
+  streampayConsumerId: text("streampay_consumer_id"), // not unique: one StreamPay customer can serve several workspaces of the same payer
 
   // Features this company already used before plan limits went live and keeps on
   // the free plan (see shared/entitlements.ts GRANDFATHERABLE, migration 0015).

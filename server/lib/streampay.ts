@@ -277,6 +277,7 @@ export interface StreamPayInvoiceRow {
   created_at?: string | null;
   url?: string | null;
   subscription_id?: string | null;
+  payment_link_id?: string | null;
 }
 
 export function listConsumerInvoices(consumerId: string) {

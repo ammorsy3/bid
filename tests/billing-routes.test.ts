@@ -23,6 +23,7 @@ vi.mock("../server/lib/billing", async (importOriginal) => {
     ...actual,
     getCompanySubscription: vi.fn(async () => m.sub),
     syncCompanySubscription: vi.fn(async () => { m.calls.push("sync"); return m.sub; }),
+    invoicesOwnedBy: vi.fn(async (_c: unknown, invoices: unknown[]) => invoices),
     getBillingSummary: vi.fn(async () => ({ subscription: m.sub, details: {}, openCheckout: null })),
     getCheckout: vi.fn(async () => m.checkout),
     startPayment: m.startPayment,

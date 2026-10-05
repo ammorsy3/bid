@@ -27,6 +27,7 @@ import {
   listCheckoutsForAdmin,
   openCheckout,
   getBillingDetails,
+  invoicesOwnedBy,
   runCheckoutFollowups,
   saveBillingDetails,
   startPayment,
@@ -225,7 +226,7 @@ export function registerBillingRoutes(app: Express, deps: MiddlewareDeps): void 
       if (!company?.streampayConsumerId) return res.json([]);
       const { data } = await listConsumerInvoices(company.streampayConsumerId);
       res.json(
-        (data ?? [])
+        (await invoicesOwnedBy(company, data ?? []))
           // Drafts and cancelled/expired invoices were never owed; showing them is noise.
           .filter((i) => !["DRAFT", "CANCELED", "EXPIRED"].includes(i.status))
           .map((i) => ({

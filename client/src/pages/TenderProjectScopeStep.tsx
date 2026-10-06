@@ -532,11 +532,11 @@ export default function TenderProjectScopeStep() {
                                 <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                                   #{index + 1}
                                 </span>
-                                <span className="text-sm text-gray-900 dark:text-foreground truncate">
+                                <span className="text-sm text-gray-900 dark:text-foreground line-clamp-2 break-words md:truncate">
                                   {deliverable.name || t('tenderFlow.newDeliverable')}
                                 </span>
                                 {deliverable.quantity > 0 && deliverable.unit && (
-                                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded whitespace-nowrap shrink-0">
                                     {deliverable.quantity} × {isRtl ? (UNIT_LABELS_AR[deliverable.unit] ?? deliverable.unit) : deliverable.unit}
                                   </span>
                                 )}
@@ -686,7 +686,7 @@ export default function TenderProjectScopeStep() {
                 <div
                   className={`space-y-3 border-t border-border dark:border-border pt-6 transition-all duration-300 ease-out ${
                     showTimeline
-                      ? "opacity-100 max-h-[300px] translate-y-0"
+                      ? "opacity-100 max-h-[10000px] translate-y-0"
                       : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pt-0 border-t-0"
                   }`}
                 >
@@ -775,7 +775,7 @@ export default function TenderProjectScopeStep() {
                       return (
                         <div
                           key={milestone.id}
-                          className={`group flex items-start gap-3 p-3 rounded-lg transition-all duration-200 ${
+                          className={`group flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg transition-all duration-200 ${
                             hasErrors
                               ? 'bg-red-50 dark:bg-red-900/20 ring-1 ring-red-200 dark:ring-red-800'
                               : 'bg-gray-50 dark:bg-card/50 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -901,7 +901,7 @@ export default function TenderProjectScopeStep() {
                 <div
                   className={`space-y-3 border-t border-border dark:border-border pt-6 transition-all duration-300 ease-out ${
                     showDescription
-                      ? "opacity-100 max-h-[800px] translate-y-0"
+                      ? "opacity-100 max-h-[10000px] translate-y-0"
                       : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pt-0 border-t-0"
                   }`}
                 >
@@ -1004,7 +1004,7 @@ export default function TenderProjectScopeStep() {
                 <div
                   className={`space-y-4 border-t border-border dark:border-border pt-6 transition-all duration-300 ease-out ${
                     showDescription
-                      ? "opacity-100 max-h-[600px] translate-y-0"
+                      ? "opacity-100 max-h-[10000px] translate-y-0"
                       : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pt-0 border-t-0"
                   }`}
                 >

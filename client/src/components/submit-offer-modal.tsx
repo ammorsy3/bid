@@ -11,7 +11,7 @@ import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { FileText, DollarSign, AlertTriangle, Clock, ClipboardList, Check, X, ShieldAlert, Video, Info, Files, File } from "lucide-react";
+import { FileText, DollarSign, Banknote, AlertTriangle, Clock, ClipboardList, Check, X, ShieldAlert, Video, Info, Files, File } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS, ar } from "date-fns/locale";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -134,6 +134,7 @@ const modalStrings: Record<string, Record<string, string>> = {
     failedToSubmit: "Failed to submit offer",
     priceQuoteLabel: "Your Price Quote (SAR) *",
     enterPrice: "Enter your price in SAR",
+    sarShort: "SAR",
     videoPitchUrl: "Video Pitch URL",
     optional: "(Optional)",
     videoPlaceholder: "https://youtube.com/watch?v=... or https://vimeo.com/...",
@@ -204,6 +205,7 @@ const modalStrings: Record<string, Record<string, string>> = {
     failedToSubmit: "فشل تقديم العرض",
     priceQuoteLabel: "عرض السعر (ريال سعودي) *",
     enterPrice: "أدخل السعر بالريال السعودي",
+    sarShort: "ر.س",
     videoPitchUrl: "رابط فيديو العرض",
     optional: "(اختياري)",
     videoPlaceholder: "https://youtube.com/watch?v=... أو https://vimeo.com/...",
@@ -651,7 +653,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
             {tender.budget && (
               <Alert>
-                <DollarSign className="h-4 w-4" />
+                <Banknote className="h-4 w-4" />
                 <AlertDescription>
                   <strong>{s('tenderBudget')}</strong> {tender.budget} • {s('priceCompetitively')}
                 </AlertDescription>
@@ -696,11 +698,11 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     <FormLabel>{s('priceQuoteLabel')}</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <DollarSign className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400`} />
+                        <span dir="ltr" className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-neutral-400 pointer-events-none">{s('sarShort')}</span>
                         <input
                           type="number"
                           placeholder={s('enterPrice')}
-                          className="w-full ps-10 pe-4 py-3 text-base md:text-sm min-h-12 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full ps-14 pe-4 py-3 text-base md:text-sm min-h-12 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           dir="ltr"
                           value={field.value ?? ''}
                           onChange={(e) => {
@@ -893,7 +895,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                                 buttonClassName="w-full h-24 border-2 border-dashed"
                               >
                                 <div className="flex flex-col items-center gap-2">
-                                  <DollarSign className="h-6 w-6 text-neutral-400" />
+                                  <Banknote className="h-6 w-6 text-neutral-400" />
                                   <div className="text-center">
                                     <p className="text-sm text-muted-foreground">{s('uploadFinancial')}</p>
                                     <p className="text-xs text-muted-foreground">{s('financialHint')}</p>

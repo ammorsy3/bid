@@ -64,7 +64,7 @@ Baseline (before fixes, 308 captures, commit in `.mobile-audit/batch-2b/baseline
 | 2a | Static public pages (fixture mode, no login needed): landing, pricing, faq, getting-started, terms, privacy, docs | in progress |
 | 2b | Public pages that show real data: marketplace, company/people/traction profiles, tender invite link (fixture mode, made-up stress data in `tests/mobile/fixtures/public-data.json`) | done, all four pages fixed (see the batch 2b table above); next: report to Ahmed |
 | 3 | App shell + dashboard tabs (sidebar, bottom bar) | done, all five pages fixed (see the batch 3 table above); next: report to Ahmed |
-| 4 | Vendor side: tender page, submit offer, form fill | in progress: tender page + submit-offer popup fixed (reviewer PASS); form fill still to do |
+| 4 | Vendor side: tender page, submit offer, form fill | done: vendor tender page + submit-offer popup (reviewer PASS), form fill (reviewer PASS); next: report to Ahmed |
 | 5 | Tender wizard | todo |
 | 6 | Owner's tender tabs, proposal comparison, edit | todo |
 | 7 | Settings, integrations, profile editors | todo |

@@ -41,6 +41,8 @@ export default function TenderFormFill() {
     'submission-deadline': t('formBuilder.insightDeadlineDesc'),
     'evaluation-criteria': t('formBuilder.insightEvalDesc'),
     'attachments': t('formBuilder.insightAttachmentsDesc'),
+    'video-url': t('formBuilder.insightVideoUrlDesc'),
+    'vendor-requirements': t('formBuilder.insightVendorReqsDesc'),
   };
 
   const translatedCardLabels: Record<string, string> = {
@@ -54,6 +56,8 @@ export default function TenderFormFill() {
     'submission-deadline': t('formBuilder.cardDeadlineLabel'),
     'evaluation-criteria': t('formBuilder.cardEvalLabel'),
     'attachments': t('formBuilder.cardAttachmentsLabel'),
+    'video-url': t('formBuilder.cardVideoUrlLabel'),
+    'vendor-requirements': t('formBuilder.cardVendorReqsLabel'),
   };
 
   // Bid grid texture — low-opacity Stone on light, low-opacity Cream on Ink (dark mode).
@@ -367,7 +371,7 @@ export default function TenderFormFill() {
             onClick={handleBack}
             className="w-full sm:min-w-[160px] sm:w-auto h-12 text-base"
           >
-            <ArrowLeft className="h-5 w-5 mr-2" />
+            <ArrowLeft className="h-5 w-5 me-2 rtl:-scale-x-100" />
             {t('tenderFlow.backToStructure')}
           </Button>
           <Button
@@ -381,7 +385,7 @@ export default function TenderFormFill() {
             }
           >
             {t('tenderFlow.reviewAndLaunch')}
-            <Rocket className="h-5 w-5 ml-2" />
+            <Rocket className="h-5 w-5 ms-2 rtl:-scale-x-100" />
           </Button>
         </div>
         </motion.div>

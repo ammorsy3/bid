@@ -385,7 +385,7 @@ export default function TenderAIBudgetStep() {
                           <button
                             type="button"
                             onClick={() => setPriceType("exact")}
-                            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                            className={`flex-1 px-4 py-3 md:py-2 text-sm font-medium rounded-lg transition-all ${
                               priceType === "exact"
                                 ? "bg-[#FE3C01] text-white"
                                 : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -397,7 +397,7 @@ export default function TenderAIBudgetStep() {
                           <button
                             type="button"
                             onClick={() => setPriceType("range")}
-                            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                            className={`flex-1 px-4 py-3 md:py-2 text-sm font-medium rounded-lg transition-all ${
                               priceType === "range"
                                 ? "bg-[#FE3C01] text-white"
                                 : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -491,16 +491,18 @@ export default function TenderAIBudgetStep() {
                             type="button"
                             dir="ltr"
                             onClick={() => setShowPriceToVendors(!showPriceToVendors)}
-                            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ms-3 ${
-                              showPriceToVendors ? "bg-[#FE3C01]" : "bg-gray-300 dark:bg-gray-600"
-                            }`}
+                            className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center ms-3 md:h-auto md:w-auto"
                             data-testid="toggle-show-price"
                           >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${
-                                showPriceToVendors ? "translate-x-6" : "translate-x-1"
-                              }`}
-                            />
+                            <span className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                              showPriceToVendors ? "bg-[#FE3C01]" : "bg-gray-300 dark:bg-gray-600"
+                            }`}>
+                              <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${
+                                  showPriceToVendors ? "translate-x-6" : "translate-x-1"
+                                }`}
+                              />
+                            </span>
                           </button>
                         </div>
 
@@ -536,7 +538,7 @@ export default function TenderAIBudgetStep() {
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                    <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
                   </Button>
                 </div>
               </div>

@@ -144,7 +144,7 @@ export default function TenderTitleStep() {
                       data-testid="button-next"
                     >
                       {t('tenderFlow.next')}
-                      <ArrowRight className="h-4 w-4 ml-2" />
+                      <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
                     </Button>
                   </div>
                 </div>

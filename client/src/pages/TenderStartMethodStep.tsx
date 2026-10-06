@@ -803,7 +803,7 @@ export default function TenderStartMethodStep() {
             data-testid="button-next"
           >
             {t('tenderFlow.continue')}
-            <ArrowRight className="h-5 w-5 ms-2" />
+            <ArrowRight className="h-5 w-5 ms-2 rtl:rotate-180" />
           </Button>
         </div>
         </motion.div>

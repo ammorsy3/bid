@@ -229,3 +229,16 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     Arabic digits (worth making consistent).
     Also: the "closes today" example in the test data goes stale each day; see the
     next commit.
+
+35. **Vendor tender page + submit-offer popup (2026-10-06): the big fix and three questions.**
+    The whole right-hand column (including the only "Submit proposal" button) was
+    hidden on phones, so a vendor on a phone could not send an offer. Phones now get
+    a bottom bar that shows the right action (submit / already submitted / closed /
+    not accepting / complete your profile), sliding in after you scroll a little.
+    (a) Should the bar also show a days-left countdown?
+    (b) Faint text, logged only, colours not touched: summary deadline 2.60:1,
+    "(Video required)" 3.56:1, "Separate Files" 3.58:1, section numbers 02-05 1.47:1,
+    small grey labels 2.54:1. Want any of them changed?
+    (c) The price field and budget box show a "$" icon for a SAR price (was already
+    there). Swap for a SAR label?
+    Please check once on a real iPhone: the bar's other states and the home-bar padding.

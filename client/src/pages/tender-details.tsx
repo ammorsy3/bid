@@ -339,6 +339,14 @@ export default function TenderDetails() {
   const { t, language } = useI18n();
   const [copiedLink, setCopiedLink] = useState(false);
   const [isSubmitOfferModalOpen, setIsSubmitOfferModalOpen] = useState(false);
+  // Phone action bar slides in once the reader has scrolled past the top, so it never sits on the first screen's content
+  const [showMobileBar, setShowMobileBar] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShowMobileBar(window.scrollY > 160);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [publishToMarketplace, setPublishToMarketplace] = useState(false);
   const [showMarketplaceDialog, setShowMarketplaceDialog] = useState(false);
@@ -769,7 +777,8 @@ export default function TenderDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-muted" dir={isRtl ? "rtl" : "ltr"} data-testid="loader-page">
+      <div className="min-h-dvh bg-muted" dir={isRtl ? "rtl" : "ltr"} data-testid="loader-page">
+        <span className="sr-only" role="status">{t('common.loading')}</span>
         {/* Hero header skeleton */}
         <div className="bg-card border-b border-border">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-5">
@@ -783,7 +792,7 @@ export default function TenderDetails() {
                 <Skeleton className="h-9 w-3/4" />
                 <Skeleton className="h-3 w-40" />
               </div>
-              <div className="flex gap-2 flex-shrink-0 pt-1">
+              <div className="hidden sm:flex gap-2 flex-shrink-0 pt-1">
                 <Skeleton className="h-9 w-24 rounded-lg" />
                 <Skeleton className="h-9 w-20 rounded-lg" />
               </div>
@@ -880,7 +889,7 @@ export default function TenderDetails() {
 
   return (
     <>
-    <div className="min-h-screen bg-muted" dir={isRtl ? "rtl" : "ltr"}>
+    <div className={`min-h-dvh bg-muted ${!isOwner && activeCompany ? "pb-28 lg:pb-0" : ""}`} dir={isRtl ? "rtl" : "ltr"}>
       {/* Hero Header */}
       <div className="bg-card border-b border-border" style={{ backgroundImage: 'radial-gradient(circle, rgba(156,163,175,0.35) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -987,6 +996,11 @@ export default function TenderDetails() {
                 <Clock className="h-3 w-3" /><span>{durationDisplay}</span>
               </div>
             )}
+            {tender.submissionType && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-400 lg:hidden">
+                <FileText className="h-3 w-3" /><span>{SUBMISSION_TYPE_LABELS[tender.submissionType]?.[language] || tender.submissionType}</span>
+              </div>
+            )}
             {tender.targetAudienceTypes && tender.targetAudienceTypes.length > 0 && (
               <div className="flex items-center gap-1.5 flex-wrap">
                 {tender.targetAudienceTypes.map((type: string) => (
@@ -1039,7 +1053,7 @@ export default function TenderDetails() {
                       <button
                         key={section.id}
                         onClick={() => scrollToSection(section.id)}
-                        className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                        className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 max-sm:min-h-11 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                           isActive
                             ? 'bg-[#FE3C01] text-white shadow-sm'
                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -1062,7 +1076,7 @@ export default function TenderDetails() {
                   <TDSectionHeader index={sectionNumber('description')} title={t('tenderFlow.projectScope')} />
 
                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">{t('tenderFlow.descriptionLabel')}</p>
-                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-[15px] mb-6" data-testid="text-description">
+                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-[15px] mb-6 break-words [overflow-wrap:anywhere]" data-testid="text-description">
                     {tender.description}
                   </p>
 
@@ -1485,7 +1499,7 @@ export default function TenderDetails() {
                               onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
                               className="w-full flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20 transition-colors text-start"
                             >
-                              <ChevronRight className={`h-4 w-4 text-amber-600 dark:text-amber-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                              <ChevronRight className={`h-4 w-4 rtl:-scale-x-100 text-amber-600 dark:text-amber-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-gray-800 dark:text-muted-foreground text-sm">
                                   {catInfo?.name || w.categoryId}
@@ -1633,7 +1647,7 @@ export default function TenderDetails() {
                                     value={answerText[q.id] || ''}
                                     onChange={(e) => setAnswerText(prev => ({ ...prev, [q.id]: e.target.value }))}
                                     rows={2}
-                                    className="resize-none text-sm"
+                                    className="resize-none text-base md:text-sm"
                                   />
                                   <div className="flex justify-end">
                                     <Button
@@ -2244,6 +2258,46 @@ export default function TenderDetails() {
           </div>
         </div>
       </div>
+
+      {/* Phone action bar: the sidebar is hidden below lg, so vendors get the same submit / status actions here */}
+      {!isOwner && activeCompany && (
+        <div aria-hidden={!showMobileBar} className={`lg:hidden fixed inset-x-0 bottom-0 z-40 transition-transform duration-200 ${showMobileBar ? 'translate-y-0' : 'translate-y-full invisible'} border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.06)]`} data-testid="bar-mobile-actions">
+          {hasSubmittedOffer ? (
+            <div className="flex items-center gap-3 min-h-11">
+              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-foreground leading-tight">{t('tenderFlow.proposalSubmittedTitle')}</p>
+                <p className="text-xs text-gray-400">{t('tenderFlow.underReviewByRequester')}</p>
+              </div>
+            </div>
+          ) : isExpired ? (
+            <div className="min-h-11 flex flex-col justify-center">
+              <p className="text-sm font-bold text-muted-foreground leading-tight">{t('tenderFlow.submissionsClosedTitle')}</p>
+              <p className="text-xs text-gray-400">{t('tenderFlow.submissionsClosedMessage')}</p>
+            </div>
+          ) : !isTenderOpen ? (
+            <div className="min-h-11 flex flex-col justify-center">
+              <p className="text-sm font-bold text-muted-foreground leading-tight">{t('tenderFlow.notAcceptingTitle')}</p>
+              <p className="text-xs text-gray-400">{t('tenderFlow.notAcceptingMessage')}</p>
+            </div>
+          ) : !companyCanSubmit ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs text-gray-400">{t('tenderFlow.completeProfileDesc')}</p>
+              <Button variant="outline" className="w-full min-h-11 text-sm" onClick={() => setLocation(activeCompany?.accountType === 'individual' ? '/onboarding/individual-profile' : '/settings?tab=company')} data-testid="button-complete-profile-mobile">
+                {t('tenderFlow.completeProfileBtn')}
+              </Button>
+            </div>
+          ) : (
+            <Button
+              className="w-full bg-[#FE3C01] hover:bg-[#d54d35] text-white font-semibold rounded-xl min-h-12 active:scale-[0.98] transition-transform"
+              onClick={() => setIsSubmitOfferModalOpen(true)}
+              data-testid="button-submit-offer-mobile"
+            >
+              <Send className="h-4 w-4 me-2 rtl:-scale-x-100" /> {t('tenderFlow.submitProposal')}
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Submit Offer Modal */}
       {tender && !isOwner && (

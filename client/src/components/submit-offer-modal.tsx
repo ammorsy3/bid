@@ -535,7 +535,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className={`max-w-3xl max-h-[90vh] overflow-y-auto ${isRtl ? 'text-right' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
+      <DialogContent className={`max-w-3xl max-h-[90vh] overflow-y-auto overscroll-contain max-sm:[@media(max-height:500px)]:max-h-dvh max-sm:[@media(max-height:500px)]:rounded-t-none ${isRtl ? 'text-right' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
         <DialogHeader>
           <div className={`flex items-center justify-between`}>
             <DialogTitle className={`font-display font-black text-2xl text-foreground flex items-center gap-2 tracking-[-0.03em]`}>
@@ -553,7 +553,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
           <p className="text-muted-foreground mt-2">
             <bdi>{tender.title}</bdi> <span aria-hidden="true">·</span> <bdi>{requester.company || requester.name}</bdi>
           </p>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="hidden sm:block text-sm text-muted-foreground mt-1">
             {s('pressToSubmit')} <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">Ctrl+Enter</kbd> {s('toSubmit')} • <kbd className="px-1.5 py-0.5 bg-muted border border-border rounded text-xs">Esc</kbd> {s('toClose')}
           </p>
         </DialogHeader>
@@ -662,7 +662,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <Alert className="bg-error-50 border-error-200">
                 <ShieldAlert className="h-4 w-4 text-error-600" />
                 <AlertDescription>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <strong className="text-error-900">{s('verificationRequired')}</strong>
                       <p className="text-sm text-error-800 mt-1">{s('completePreQual')}</p>
@@ -696,11 +696,11 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     <FormLabel>{s('priceQuoteLabel')}</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <DollarSign className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400`} />
+                        <DollarSign className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400`} />
                         <input
                           type="number"
                           placeholder={s('enterPrice')}
-                          className="w-full ps-10 pe-4 py-3 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full ps-10 pe-4 py-3 text-base md:text-sm min-h-12 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           dir="ltr"
                           value={field.value ?? ''}
                           onChange={(e) => {
@@ -733,12 +733,12 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     </FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Video className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400`} />
+                        <Video className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400`} />
                         <input
                           type="url"
                           placeholder={s('videoPlaceholder')}
                           dir="ltr"
-                          className="w-full ps-10 pe-4 py-3 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                          className="w-full ps-10 pe-4 py-3 text-base md:text-sm min-h-12 bg-background text-foreground border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                           data-testid="input-video-url"
                           {...field}
                         />
@@ -757,7 +757,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-3">{s('uploadQuestion')}</p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => handleUploadModeChange('combined')}
@@ -926,6 +926,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                   <FormControl>
                     <SmartTextarea
                       rows={4}
+                      className="text-base md:text-sm"
                       maxLength={500}
                       placeholder={s('notesPlaceholder')} 
                       error={form.formState.errors.notes}
@@ -942,22 +943,22 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
             <div className="bg-muted rounded-lg p-4">
               <h4 className="font-medium text-foreground mb-2">{s('submissionSummary')}</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-3">
                   <span>{s('tender')}</span>
-                  <span className="font-medium">{tender.title}</span>
+                  <span className="font-medium text-end min-w-0 break-words">{tender.title}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-3">
                   <span>{s('client')}</span>
-                  <span className="font-medium">{requester.company || requester.name}</span>
+                  <span className="font-medium text-end min-w-0 break-words">{requester.company || requester.name}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-3">
                   <span>{s('deadline')}</span>
                   <span className={`font-medium ${isUrgent ? 'text-error-600' : 'text-warning-600'}`}>
                     {format(deadlineDate, 'MMM d, yyyy h:mm a', { locale: language === 'ar' ? ar : enUS })}
                   </span>
                 </div>
                 {showTechFinFields && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-3">
                     <span>{s('uploadFormat')}</span>
                     <span className="font-medium">{uploadMode === 'combined' ? s('singleCombined') : s('separateTechFin')}</span>
                   </div>
@@ -977,12 +978,12 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                 </div>
                 <div className="space-y-2">
                   {mandatoryRequirements.map((req) => (
-                    <label key={req.id} className="flex items-start gap-2 cursor-pointer">
+                    <label key={req.id} className="flex items-start gap-3 cursor-pointer max-sm:min-h-11 max-sm:py-1.5">
                       <input
                         type="checkbox"
                         checked={!!checkedRequirements[req.id]}
                         onChange={(e) => setCheckedRequirements(prev => ({ ...prev, [req.id]: e.target.checked }))}
-                        className="mt-0.5 h-4 w-4 rounded border-orange-400 text-orange-600 focus:ring-orange-500"
+                        className="mt-0.5 h-5 w-5 sm:h-4 sm:w-4 flex-shrink-0 rounded border-orange-400 text-orange-600 focus:ring-orange-500"
                         data-testid={`checkbox-req-${req.id}`}
                       />
                       <span className="text-sm text-orange-900 dark:text-orange-200">{req.text}</span>
@@ -992,19 +993,19 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </div>
             )}
 
-            <div className="flex items-center space-x-3 p-4 bg-warning-50 rounded-lg border border-warning-200">
+            <div className="flex items-center gap-3 p-4 bg-warning-50 rounded-lg border border-warning-200">
               <AlertTriangle className="h-5 w-5 text-warning-600 flex-shrink-0" />
               <p className="text-sm text-warning-800">
                 {s('warning')}
               </p>
             </div>
 
-            <div className="flex space-x-4 pt-4 border-t border-border">
+            <div className="flex flex-col-reverse gap-3 sm:flex-row pt-4 border-t border-border">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="flex-1"
+                className="flex-1 max-sm:min-h-11"
                 data-testid="button-cancel"
               >
                 {s('cancel')}
@@ -1012,7 +1013,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <Button
                 type="submit"
                 size="lg"
-                className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] text-white"
+                className="flex-1 max-sm:min-h-12 bg-[#FE3C01] hover:bg-[#d54d35] text-white"
                 disabled={submitOfferMutation.isPending || progress < 100 || !canSubmitOffer || !allMandatoryChecked}
                 data-testid="button-submit-offer"
               >

@@ -499,7 +499,7 @@ export default function TenderProjectScopeStep() {
                     <Button
                       onClick={handleAddDeliverable}
                       size="sm"
-                      className="bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
+                      className="h-11 md:h-9 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                       data-testid="button-add-deliverable"
                     >
                       <Plus className="h-4 w-4 me-1" />
@@ -552,7 +552,7 @@ export default function TenderProjectScopeStep() {
                                     e.stopPropagation();
                                     handleRemoveDeliverable(deliverable.id);
                                   }}
-                                  className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-1"
+                                  className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-3 -m-2 md:p-1 md:m-0"
                                   data-testid={`button-remove-deliverable-${index}`}
                                 >
                                   <X className="h-4 w-4" />
@@ -757,7 +757,7 @@ export default function TenderProjectScopeStep() {
                 <div
                   className={`space-y-4 border-t border-border dark:border-border pt-6 transition-all duration-300 ease-out ${
                     showMilestones
-                      ? "opacity-100 max-h-[1000px] translate-y-0"
+                      ? "opacity-100 max-h-[10000px] translate-y-0"
                       : "opacity-0 max-h-0 overflow-hidden -translate-y-2 pt-0 border-t-0"
                   }`}
                 >
@@ -796,7 +796,7 @@ export default function TenderProjectScopeStep() {
                               value={milestone.name}
                               onChange={(e) => handleUpdateMilestone(milestone.id, 'name', e.target.value)}
                               placeholder={t('tenderFlow.milestoneName')}
-                              className={`w-full bg-transparent border-0 border-b text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 transition-colors duration-200 pb-1 ${
+                              className={`w-full bg-transparent border-0 border-b text-base md:text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 transition-colors duration-200 py-2 md:py-0 md:pb-1 ${
                                 errors.name
                                   ? 'border-red-300 dark:border-red-600 focus:border-red-500'
                                   : 'border-transparent focus:border-[#FE3C01]'
@@ -812,7 +812,7 @@ export default function TenderProjectScopeStep() {
                               onChange={(e) => handleUpdateMilestone(milestone.id, 'description', e.target.value)}
                               placeholder={t('tenderFlow.addDescription')}
                               rows={1}
-                              className={`w-full bg-transparent border-0 text-xs text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0 resize-none transition-all duration-200 ${
+                              className={`w-full bg-transparent border-0 text-base md:text-xs py-1.5 md:py-0 text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0 resize-none transition-all duration-200 ${
                                 milestone.description ? 'opacity-100' : 'opacity-60 focus:opacity-100'
                               }`}
                               onFocus={(e) => {
@@ -837,7 +837,7 @@ export default function TenderProjectScopeStep() {
                               <PopoverTrigger asChild>
                                 <button
                                   className={cn(
-                                    "flex items-center gap-1.5 px-2 py-1 text-xs rounded-md transition-all duration-200",
+                                    "flex items-center justify-center gap-1.5 px-2 py-1 min-h-11 min-w-11 md:min-h-0 md:min-w-0 text-xs rounded-md transition-all duration-200",
                                     milestone.dueDate
                                       ? "bg-[#FE3C01]/10 text-[#FE3C01] hover:bg-[#FE3C01]/20"
                                       : "text-gray-400 hover:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700",
@@ -913,7 +913,7 @@ export default function TenderProjectScopeStep() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setInputMode("text")}
-                        className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                        className={`px-3 py-3 md:py-1 text-xs rounded-md transition-colors ${
                           inputMode === "text"
                             ? "bg-[#FE3C01] text-white"
                             : "bg-gray-200 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
@@ -924,7 +924,7 @@ export default function TenderProjectScopeStep() {
                       </button>
                       <button
                         onClick={() => setInputMode("voice")}
-                        className={`px-3 py-1 text-xs rounded-md transition-colors flex items-center gap-1 ${
+                        className={`px-3 py-3 md:py-1 text-xs rounded-md transition-colors flex items-center gap-1 ${
                           inputMode === "voice"
                             ? "bg-[#FE3C01] text-white"
                             : "bg-gray-200 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
@@ -954,7 +954,7 @@ export default function TenderProjectScopeStep() {
                           type="button"
                           onClick={handleSuggestDescription}
                           disabled={namedDeliverables.length === 0 || isSuggestingDescription}
-                          className="flex items-center gap-1.5 text-xs font-medium text-[#FE3C01] hover:text-[#d54d35] disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+                          className="flex items-center gap-1.5 min-h-11 md:min-h-0 text-xs font-medium text-[#FE3C01] hover:text-[#d54d35] disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
                           data-testid="button-suggest-description"
                           title={namedDeliverables.length === 0 ? t('tenderFlow.suggestDescriptionNeedsDeliverables') : undefined}
                         >
@@ -1018,6 +1018,7 @@ export default function TenderProjectScopeStep() {
                   <div className="space-y-2">
                     <Input
                       type="url"
+                      dir="ltr"
                       value={videoUrl}
                       onChange={(e) => setVideoUrl(e.target.value)}
                       placeholder="https://youtube.com/..."
@@ -1047,7 +1048,7 @@ export default function TenderProjectScopeStep() {
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}
-                    <ArrowRight className="h-4 w-4 ms-2" />
+                    <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
                   </Button>
                 </div>
               </div>

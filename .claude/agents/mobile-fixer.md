@@ -21,6 +21,12 @@ in Arabic first and English second, without changing how desktop looks.
 - Desktop must look the same: phone fixes go in the base classes, desktop keeps its
   look via `md:`/`lg:`. Use logical direction classes (`ms/me/ps/pe/start/end/text-start`),
   `gap` instead of `space-x`, `min-h-dvh` instead of `h-screen` on phones.
+- **COLOURS NEVER CHANGE.** Ahmed reverted the audit's colour tweaks on 2026-10-04
+  (commit c6d9a03). Bid orange is exactly `#FE3C01` with ink `#1A1613` on hover. Do not
+  darken or otherwise change any colour on buttons, text, badges, greys, greens, status
+  colours or hovers, in light or dark mode, even when the checklist warns about contrast.
+  Log each contrast warning under "Needs you" (state, element, current colour, ratio) and
+  leave the code alone. Layout, 44px taps, RTL/Arabic and spacing fixes are fine.
 - Every visible string goes through `t()` with keys in both `en` and `ar`. Arabic
   wording follows `arabic_glossary_draft.md`.
 - Change only the lines you need. Never reformat a file. Big files (Dashboard.tsx,

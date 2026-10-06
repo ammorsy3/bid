@@ -71,7 +71,12 @@ is a close approximation, not the real Safari.
   survive "force dark" in Samsung Internet / Chrome.
 - Pages with a hard-coded cream background carry `surface-cream` so the logo
   stays visible (see the note in `client/src/index.css`).
-- Text contrast at least 4.5:1.
+- **Colours never change.** Ahmed reverted the audit's colour tweaks on 2026-10-04
+  (commit c6d9a03) because greys, greens, status badges and the orange had shifted.
+  Bid orange is exactly `#FE3C01` (hover: ink `#1A1613`). No darker "contrast" shades
+  on buttons, text, badges, borders or hovers, in light or dark mode. A low-contrast
+  warning (the 4.5:1 target for text) is **logged in decisions.md for Ahmed to decide,
+  never fixed in code**. Layout, 44px taps, RTL/Arabic and spacing fixes are fine.
 
 ## 6. Feels like an installed app, not a website you're visiting
 The client's own words: it should feel like something from the App Store, not

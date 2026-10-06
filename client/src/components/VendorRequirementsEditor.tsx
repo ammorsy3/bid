@@ -96,7 +96,7 @@ export default function VendorRequirementsEditor({
       )}
 
       {/* Preset list */}
-      <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+      <div className="space-y-2 max-h-[360px] max-sm:max-h-none max-sm:overflow-visible overflow-y-auto pe-1">
         {PRESET_REQUIREMENTS.map((preset) => {
           const checked = isSelected(preset.id);
           const type = getType(preset.id);

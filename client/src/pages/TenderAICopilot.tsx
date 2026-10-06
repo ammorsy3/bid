@@ -224,7 +224,7 @@ const AttachmentsPanel: React.FC<{
                 value={videoInput}
                 onChange={(e) => setVideoInput(e.target.value)}
                 onBlur={commitVideo}
-                className="h-9 text-sm"
+                className="h-9 text-base md:text-sm"
               />
             </div>
           </div>
@@ -1109,7 +1109,7 @@ export default function TenderAICopilot() {
 
   return (
     <>
-    <div className="min-h-screen md:h-screen flex flex-col bg-background relative md:overflow-hidden">
+    <div className="min-h-dvh md:h-screen flex flex-col bg-background relative md:overflow-hidden">
       {/* Off-screen live region announces orb/status changes for screen readers */}
       <div
         role="status"
@@ -1255,7 +1255,7 @@ export default function TenderAICopilot() {
                       >
                         <action.icon className="h-5 w-5" />
                         <span className="font-medium text-sm">{t(`copilot.${action.key}Label`)}</span>
-                        <ArrowRight className="h-4 w-4 ms-auto opacity-50" />
+                        <ArrowRight className="h-4 w-4 ms-auto opacity-50 rtl:rotate-180" />
                       </motion.button>
                     ))}
                   </motion.div>
@@ -1507,14 +1507,14 @@ export default function TenderAICopilot() {
                         : t('copilot.placeholderActive')
                     }
                     disabled={isLoading}
-                    className="pe-24 h-12 text-[15px] border-border dark:border-border rounded-xl bg-white dark:bg-card focus-visible:ring-[#FE3C01] shadow-sm"
+                    className="pe-24 h-12 text-base md:text-[15px] border-border dark:border-border rounded-xl bg-white dark:bg-card focus-visible:ring-[#FE3C01] shadow-sm"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <div className="absolute end-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                     <Button
                       type="submit"
                       size="sm"
                       disabled={isLoading || !input.trim()}
-                      className="h-8 w-8 p-0 bg-[#FE3C01] hover:bg-[#d54d35] rounded-lg"
+                      className="h-9 w-9 md:h-8 md:w-8 p-0 bg-[#FE3C01] hover:bg-[#d54d35] rounded-lg"
                     >
                       <Send className="h-4 w-4" />
                     </Button>
@@ -1540,7 +1540,7 @@ export default function TenderAICopilot() {
                       <button
                         key={chipKey}
                         onClick={() => sendMessage(label)}
-                        className="px-3 py-1.5 text-xs bg-gray-100 dark:bg-card hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400 transition-colors"
+                        className="px-3 py-1.5 max-md:min-h-11 text-xs bg-gray-100 dark:bg-card hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400 transition-colors"
                       >
                         {label}
                       </button>

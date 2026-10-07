@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ArrowLeft, ArrowRight, X, Plus, Mic, ChevronDown, CalendarIcon, Video, Sparkles, Loader2 } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react";
 import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,25 @@ export interface Milestone {
 const countWords = (text: string): number => {
   return text.trim().split(/\s+/).filter(Boolean).length;
 };
+
+function AutoGrowTextarea({ value, singleLine, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { value: string; singleLine?: boolean }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      rows={1}
+      onKeyDown={singleLine ? (e) => { if (e.key === "Enter") e.preventDefault(); } : undefined}
+      {...props}
+    />
+  );
+}
 
 export default function TenderProjectScopeStep() {
   const [, navigate] = useLocation();
@@ -791,12 +810,12 @@ export default function TenderProjectScopeStep() {
                           </div>
 
                           <div className="flex-1 min-w-0 space-y-2">
-                            <input
-                              type="text"
+                            <AutoGrowTextarea
+                              singleLine
                               value={milestone.name}
                               onChange={(e) => handleUpdateMilestone(milestone.id, 'name', e.target.value)}
                               placeholder={t('tenderFlow.milestoneName')}
-                              className={`w-full bg-transparent border-0 border-b text-base md:text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 transition-colors duration-200 py-2 md:py-0 md:pb-1 ${
+                              className={`w-full bg-transparent border-0 border-b text-base md:text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 transition-colors duration-200 py-2 md:py-0 md:pb-1 resize-none overflow-hidden block ${
                                 errors.name
                                   ? 'border-red-300 dark:border-red-600 focus:border-red-500'
                                   : 'border-transparent focus:border-[#FE3C01]'
@@ -807,12 +826,12 @@ export default function TenderProjectScopeStep() {
                               <span className="text-xs text-red-500">{errors.name}</span>
                             )}
 
-                            <textarea
+                            <AutoGrowTextarea
                               value={milestone.description}
                               onChange={(e) => handleUpdateMilestone(milestone.id, 'description', e.target.value)}
                               placeholder={t('tenderFlow.addDescription')}
                               rows={1}
-                              className={`w-full bg-transparent border-0 text-base md:text-xs py-1.5 md:py-0 text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0 resize-none transition-all duration-200 ${
+                              className={`w-full bg-transparent border-0 text-base md:text-xs py-1.5 md:py-0 text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0 resize-none overflow-hidden block transition-all duration-200 ${
                                 milestone.description ? 'opacity-100' : 'opacity-60 focus:opacity-100'
                               }`}
                               onFocus={(e) => {

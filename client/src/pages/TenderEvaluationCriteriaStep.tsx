@@ -399,7 +399,7 @@ export default function TenderEvaluationCriteriaStep() {
                       variant="outline"
                       onClick={balanceWeights}
                       data-testid="button-balance-weights"
-                      className="flex-shrink-0 rounded-full border-[#FE3C01]/40 text-[#FE3C01] hover:bg-[#FE3C01] hover:text-white transition-colors"
+                      className="flex-shrink-0 max-sm:h-11 rounded-full border-[#FE3C01]/40 text-[#FE3C01] hover:bg-[#FE3C01] hover:text-white transition-colors"
                     >
                       {t('tenderFlow.balanceTo100')}
                     </Button>
@@ -453,7 +453,7 @@ export default function TenderEvaluationCriteriaStep() {
                                     <button
                                       type="button"
                                       onClick={() => handleRequirementChange(category.id, req.id, !currentValue)}
-                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}
+                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 max-sm:relative max-sm:after:absolute max-sm:after:-inset-3 max-sm:after:content-[''] ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}
                                     >
                                       {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                                     </button>
@@ -465,7 +465,7 @@ export default function TenderEvaluationCriteriaStep() {
                                         value={(currentValue as string) || "none"}
                                         onValueChange={(value) => handleRequirementChange(category.id, req.id, value === "none" ? "" : value)}
                                       >
-                                        <SelectTrigger className="mt-1 w-full text-sm">
+                                        <SelectTrigger className="mt-1 w-full text-sm max-sm:h-11 max-sm:text-base">
                                           <SelectValue placeholder={t('tenderFlow.notRequired')} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -504,7 +504,7 @@ export default function TenderEvaluationCriteriaStep() {
                           <div className="flex items-center gap-2">
                             <span className="flex-1 text-sm text-foreground">{criterion.text}</span>
                             <span className="text-xs font-medium text-[#FE3C01]">{criterion.weight}%</span>
-                            <button type="button" onClick={() => removeCustomCriterion(criterion.id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                            <button type="button" onClick={() => removeCustomCriterion(criterion.id)} className="text-gray-400 hover:text-red-500 transition-colors max-sm:p-3 max-sm:-m-3">
                               <X className="h-4 w-4" />
                             </button>
                           </div>
@@ -524,7 +524,7 @@ export default function TenderEvaluationCriteriaStep() {
                         onChange={(e) => setNewCriterionText(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
                         placeholder={t('tenderFlow.customCriteriaPlaceholder')}
-                        className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-card text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+                        className="flex-1 min-w-0 px-3 py-2 text-sm max-sm:text-base max-sm:h-11 border border-border rounded-lg bg-card text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                       />
                       <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] dark:disabled:bg-muted disabled:text-[var(--bid-stone)] dark:disabled:text-muted-foreground disabled:shadow-none">
                         <Plus className="h-4 w-4" />
@@ -629,7 +629,7 @@ export default function TenderEvaluationCriteriaStep() {
                       onChange={(e) => setCustomReqText(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && addCustomReq()}
                       placeholder={t('tenderFlow.customReqPlaceholder')}
-                      className="flex-1 text-sm px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="flex-1 min-w-0 text-sm max-sm:text-base px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       data-testid="input-custom-requirement"
                     />
                     <Button

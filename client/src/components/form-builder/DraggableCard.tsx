@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X, Star, Pencil, AlertCircle } from "lucide-react";
+import { GripVertical, X, Star, Pencil, AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
 import { FormCard, CardType, getCardDefinition } from "@/lib/form-builder-types";
 import { useState } from "react";
 import { CardInputRenderer } from "./CardInputRenderer";
@@ -10,6 +10,8 @@ interface DraggableCardProps {
   card: FormCard;
   onRemove?: (id: string) => void;
   onUpdate?: (id: string, updates: Partial<FormCard>) => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   isOverlay?: boolean;
   readOnly?: boolean;
   structureOnly?: boolean;
@@ -19,6 +21,8 @@ export function DraggableCard({
   card,
   onRemove,
   onUpdate,
+  onMoveUp,
+  onMoveDown,
   isOverlay = false,
   readOnly = false,
   structureOnly = false,
@@ -149,7 +153,7 @@ export function DraggableCard({
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
+          className="cursor-grab active:cursor-grabbing p-1 max-sm:min-h-11 max-sm:min-w-11 max-sm:flex max-sm:items-center max-sm:justify-center max-sm:-my-2 max-sm:-ms-2 touch-none hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
         >
           <GripVertical className="h-4 w-4 text-gray-400" />
         </button>
@@ -197,7 +201,7 @@ export function DraggableCard({
         {isCustomCard && !isEditingLabel && (
           <button
             onClick={() => setIsEditingLabel(true)}
-            className="p-1.5 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
+            className="p-1.5 max-sm:min-h-11 max-sm:min-w-11 max-sm:flex max-sm:items-center max-sm:justify-center max-sm:-my-2 hover:bg-muted dark:hover:bg-gray-700 rounded transition-colors"
             title={t('formBuilder.editQuestion')}
           >
             <Pencil className="h-3.5 w-3.5 text-gray-400 hover:text-muted-foreground" />
@@ -208,7 +212,7 @@ export function DraggableCard({
         {!card.isRequired && onRemove && (
           <button
             onClick={() => onRemove(card.id)}
-            className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
+            className="p-1.5 max-sm:min-h-11 max-sm:min-w-11 max-sm:flex max-sm:items-center max-sm:justify-center max-sm:-my-2 max-sm:-me-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors group"
             title={t('formBuilder.removeCard')}
           >
             <X className="h-4 w-4 text-gray-400 group-hover:text-red-500" />
@@ -225,6 +229,28 @@ export function DraggableCard({
             </span>
             <span className="text-xs text-gray-300 dark:text-gray-600">·</span>
             <span className="text-xs text-gray-400 dark:text-gray-500 italic">{t('formBuilder.fillInStep2')}</span>
+            {(onMoveUp || onMoveDown) && (
+              <div className="ms-auto flex gap-1 sm:hidden max-sm:-my-2">
+                <button
+                  type="button"
+                  onClick={onMoveUp}
+                  disabled={!onMoveUp}
+                  className="h-11 w-11 flex items-center justify-center rounded text-gray-500 disabled:opacity-30"
+                  aria-label={t('formBuilder.moveUp')}
+                >
+                  <ChevronUp className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onMoveDown}
+                  disabled={!onMoveDown}
+                  className="h-11 w-11 flex items-center justify-center rounded text-gray-500 disabled:opacity-30"
+                  aria-label={t('formBuilder.moveDown')}
+                >
+                  <ChevronDown className="h-5 w-5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ) : (

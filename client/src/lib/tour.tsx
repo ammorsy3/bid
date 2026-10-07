@@ -564,7 +564,7 @@ export function TourBanner({ tourId, userId, title, body, isRtl = false }: TourB
         </div>
         <button
           onClick={dismiss}
-          className="flex-shrink-0 text-gray-400 hover:text-muted-foreground dark:hover:text-gray-200 transition-colors mt-0.5"
+          className="flex-shrink-0 text-gray-400 hover:text-muted-foreground dark:hover:text-gray-200 transition-colors mt-0.5 max-sm:p-3.5 max-sm:-m-3.5"
           aria-label="Dismiss hint"
         >
           <X className="h-4 w-4" />

@@ -506,6 +506,15 @@ export default function TenderReview() {
           return String(item);
         }).join(", ");
       }
+      if (card.type === "vendor-requirements") {
+        return card.value.map((item: any) => {
+          if (typeof item === "string") return item;
+          if (item && typeof item === "object" && item.text) {
+            return `• ${item.text} (${item.type === "mandatory" ? t('copilot.briefMandatory') : t('copilot.briefPreferred')})`;
+          }
+          return "";
+        }).filter(Boolean).join("\n");
+      }
       return card.value.join(", ");
     }
 
@@ -592,7 +601,7 @@ export default function TenderReview() {
               {t('tenderFlow.back')}
             </span>
             <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-300 group-hover:w-full rounded-md">
-              <ArrowLeft className="opacity-60 h-4 w-4" aria-hidden="true" />
+              <ArrowLeft className="opacity-60 h-4 w-4 rtl:rotate-180" aria-hidden="true" />
             </i>
           </Button>
         </div>
@@ -843,7 +852,7 @@ export default function TenderReview() {
 
                   {/* Value display */}
                   <div
-                    className={`ms-[3.25rem] text-sm leading-relaxed whitespace-pre-wrap ${
+                    className={`ms-0 sm:ms-[3.25rem] min-w-0 break-words [overflow-wrap:anywhere] text-sm leading-relaxed whitespace-pre-wrap ${
                       hasValue
                         ? "text-muted-foreground dark:text-muted-foreground"
                         : "text-gray-400 dark:text-gray-500 italic"
@@ -1064,7 +1073,7 @@ export default function TenderReview() {
                   onClick={handleBackToEdit}
                   className="w-full h-11"
                 >
-                  <ArrowLeft className="h-4 w-4 me-2" />
+                  <ArrowLeft className="h-4 w-4 me-2 rtl:rotate-180" />
                   {t('tenderFlow.backToEdit')}
                 </Button>
               </motion.div>

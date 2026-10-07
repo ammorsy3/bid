@@ -229,3 +229,35 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     Arabic digits (worth making consistent).
     Also: the "closes today" example in the test data goes stale each day; see the
     next commit.
+
+35. **Vendor tender page + submit-offer popup (2026-10-06): the big fix and three questions.**
+    The whole right-hand column (including the only "Submit proposal" button) was
+    hidden on phones, so a vendor on a phone could not send an offer. Phones now get
+    a bottom bar that shows the right action (submit / already submitted / closed /
+    not accepting / complete your profile), sliding in after you scroll a little.
+    (a) Should the bar also show a days-left countdown?
+    (b) Faint text, logged only, colours not touched: summary deadline 2.60:1,
+    "(Video required)" 3.56:1, "Separate Files" 3.58:1, section numbers 02-05 1.47:1,
+    small grey labels 2.54:1. Want any of them changed?
+    (c) The price field and budget box show a "$" icon for a SAR price (was already
+    there). Swap for a SAR label?
+    Please check once on a real iPhone: the bar's other states and the home-bar padding.
+
+36. **Tender wizard (batch 5, 2026-10-06): questions.**
+    (a) Faint text, logged and NOT changed (colours rule): white text on the orange
+    Next / Continue buttons is 3.05-3.58:1 on every step; small grey captions are
+    2.5:1 on most steps (same grey you approved darkening on the tender page);
+    "(Optional)", the Mandatory pill and a few badges are 2.5-3.8:1. Want the small
+    grey captions darkened across the wizard the way we did on the tender page?
+    (b) Real bug fixed: the review step showed "[object Object]" for Vendor
+    Requirements; it now lists each requirement with Mandatory/Preferred.
+    (c) Milestone names are single-line boxes, so very long names still clip on a
+    360px phone. Making them grow to two lines is a bigger change. Want it?
+    (d) The marketplace switch on the review/brief steps opens the plan-upgrade
+    popup for the Seet workspace, so the expanded marketplace form was never
+    photographed. Can you point me to a workspace whose plan includes marketplace?
+    (e) Form builder on phones got move up/down buttons on each card (dragging on a
+    touch screen is unreliable). New Arabic: نقل لأعلى / نقل لأسفل.
+    (f) The WhatsApp placeholder on the submission step ("+966 50 123 4567 or
+    wa.me/...") is hard-coded English; left as is.
+    Not photographed / needs a real iPhone: the AI assistant chat with a real reply.

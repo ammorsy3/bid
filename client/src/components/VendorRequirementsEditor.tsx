@@ -96,7 +96,7 @@ export default function VendorRequirementsEditor({
       )}
 
       {/* Preset list */}
-      <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+      <div className="space-y-2 max-h-[360px] max-sm:max-h-none max-sm:overflow-visible overflow-y-auto pe-1">
         {PRESET_REQUIREMENTS.map((preset) => {
           const checked = isSelected(preset.id);
           const type = getType(preset.id);
@@ -113,14 +113,16 @@ export default function VendorRequirementsEditor({
                 <button
                   type="button"
                   onClick={() => toggle(preset)}
-                  className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${
+                  className="flex-shrink-0 flex items-center justify-center mt-0.5 max-sm:w-11 max-sm:h-11 max-sm:-m-3 max-sm:me-0"
+                  data-testid={`checkbox-${preset.id}`}
+                >
+                  <span className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                     checked
                       ? "border-[#FE3C01] bg-[#FE3C01]"
                       : "border-border bg-card"
-                  }`}
-                  data-testid={`checkbox-${preset.id}`}
-                >
-                  {checked && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
+                  }`}>
+                    {checked && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
+                  </span>
                 </button>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
@@ -192,7 +194,7 @@ export default function VendorRequirementsEditor({
               }
             }}
             placeholder={t("tenderSteps.customReqPlaceholder")}
-            className="flex-1 text-sm px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+            className="flex-1 text-base md:text-sm max-sm:min-h-11 px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
             data-testid="input-custom-requirement"
           />
           <Button

@@ -94,6 +94,7 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false, allCards }
       return (
         <input
           type="url"
+          dir="ltr"
           placeholder="https://youtube.com/..."
           value={card.value || ""}
           onChange={(e) => updateValue(e.target.value)}
@@ -296,10 +297,11 @@ function SupplierResponseInput({
               </label>
               <input
                 type="text"
+                dir="ltr"
                 placeholder="+966 50 123 4567"
                 value={val.whatsappContact}
                 onChange={(e) => update({ whatsappContact: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+                className="text-base md:text-sm max-sm:min-h-11 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
               />
             </div>
             <div>
@@ -311,7 +313,7 @@ function SupplierResponseInput({
                 placeholder="contact@company.com"
                 value={val.emailContact}
                 onChange={(e) => update({ emailContact: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+                className="text-base md:text-sm max-sm:min-h-11 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
               />
             </div>
           </div>
@@ -400,7 +402,7 @@ function BudgetInput({
             key={budgetType}
             type="button"
             onClick={() => onChange({ ...budgetValue, type: budgetType })}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+            className={`flex-1 px-4 py-2 max-sm:min-h-11 text-sm font-medium rounded-lg transition-all ${
               budgetValue.type === budgetType
                 ? "bg-[#FE3C01] text-white"
                 : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -420,7 +422,7 @@ function BudgetInput({
             placeholder="0"
             value={budgetValue.amount}
             onChange={(e) => onChange({ ...budgetValue, amount: e.target.value })}
-            className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+            className="text-base md:text-sm max-sm:min-h-11 flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
           />
         </div>
       )}
@@ -435,7 +437,7 @@ function BudgetInput({
               placeholder="0"
               value={budgetValue.min}
               onChange={(e) => onChange({ ...budgetValue, min: e.target.value })}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+              className="text-base md:text-sm max-sm:min-h-11 flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -445,7 +447,7 @@ function BudgetInput({
               placeholder="0"
               value={budgetValue.max}
               onChange={(e) => onChange({ ...budgetValue, max: e.target.value })}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+              className="text-base md:text-sm max-sm:min-h-11 flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
             />
           </div>
         </div>
@@ -555,7 +557,7 @@ function DeliverablesInput({
                     value={item.description}
                     onChange={(e) => handleUpdateDesc(item.id, e.target.value)}
                     rows={2}
-                    className="w-full text-sm px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FE3C01] resize-none"
+                    className="text-base md:text-sm max-sm:min-h-11 w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FE3C01] resize-none"
                   />
                 </div>
               )}
@@ -570,14 +572,14 @@ function DeliverablesInput({
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+          className="text-base md:text-sm max-sm:min-h-11 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
         />
         <textarea
           placeholder={t('tenderFlow.describeDeliverable')}
           value={newDesc}
           onChange={(e) => setNewDesc(e.target.value)}
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none text-sm"
+          className="text-base md:text-sm max-sm:min-h-11 w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none"
         />
         <Button onClick={handleAdd} className="w-full bg-[#FE3C01] hover:bg-[#d54d35]">
           <Plus className="h-4 w-4 me-2" />
@@ -665,7 +667,7 @@ function MilestonesInput({
           placeholder={t('tenderFlow.milestoneName')}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent text-sm"
+          className="text-base md:text-sm max-sm:min-h-11 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
         />
         <DatePickerInput
           value={newDate}
@@ -677,7 +679,7 @@ function MilestonesInput({
           value={newDesc}
           onChange={(e) => setNewDesc(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none text-sm"
+          className="text-base md:text-sm max-sm:min-h-11 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none"
         />
         <Button onClick={handleAdd} className="w-full bg-[#FE3C01] hover:bg-[#d54d35]">
           <Plus className="h-4 w-4 me-2" />
@@ -773,7 +775,7 @@ function ProjectDescriptionInput({
         <button
           type="button"
           onClick={() => setTab("text")}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+          className={`flex items-center gap-1.5 px-4 py-2 max-sm:min-h-11 rounded-md text-sm font-medium transition-all ${
             tab === "text"
               ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground shadow-sm"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700"
@@ -785,7 +787,7 @@ function ProjectDescriptionInput({
         <button
           type="button"
           onClick={() => setTab("voice")}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+          className={`flex items-center gap-1.5 px-4 py-2 max-sm:min-h-11 rounded-md text-sm font-medium transition-all ${
             tab === "voice"
               ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-foreground shadow-sm"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700"
@@ -825,7 +827,7 @@ function ProjectDescriptionInput({
             onChange={(e) => update({ text: e.target.value })}
             maxLength={5000}
             rows={6}
-            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none"
+            className="text-base md:text-sm max-sm:min-h-11 w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none"
           />
           <div className="flex justify-between items-center text-xs">
             <p className={wordCount > 0 && wordCount < 10 ? "text-amber-600 font-medium" : wordCount >= 10 ? "text-green-600 font-medium" : "text-gray-400"}>
@@ -862,10 +864,11 @@ function ProjectDescriptionInput({
         </label>
         <input
           type="url"
+          dir="ltr"
           placeholder={t('tenderSteps.videoUrlPlaceholder')}
           value={val.videoUrl}
           onChange={(e) => update({ videoUrl: e.target.value })}
-          className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent text-sm"
+          className="text-base md:text-sm max-sm:min-h-11 w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
         />
         <p className="text-xs text-gray-400">{t('formBuilder.videoLinkHelper')}</p>
       </div>
@@ -1146,7 +1149,7 @@ function EvaluationCriteriaInput({
                   type="number" min="0" max="100"
                   value={item.weight}
                   onChange={(e) => updateCustomWeight(item.id, parseInt(e.target.value) || 0)}
-                  className="w-14 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-card text-sm"
+                  className="w-14 px-2 py-1 text-center text-base md:text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-card"
                 />
                 <span className="text-xs text-muted-foreground">%</span>
                 <button onClick={() => removeCustomCriterion(item.id)} className="text-gray-400 hover:text-red-500">
@@ -1164,14 +1167,14 @@ function EvaluationCriteriaInput({
             value={newCriterionText}
             onChange={(e) => setNewCriterionText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addCustomCriterion()}
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+            className="text-base md:text-sm max-sm:min-h-11 flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
           />
           <div className="flex items-center gap-1">
             <input
               type="number" min="0" max="100"
               value={newCriterionWeight}
               onChange={(e) => setNewCriterionWeight(parseInt(e.target.value) || 0)}
-              className="w-14 px-2 py-2 text-center border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-sm"
+              className="w-14 px-2 py-2 text-center text-base md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card"
             />
             <span className="text-xs text-muted-foreground">%</span>
           </div>
@@ -1446,7 +1449,7 @@ function CustomSelectInput({
           value={newOption}
           onChange={(e) => setNewOption(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAddOption()}
-          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+          className="text-base md:text-sm max-sm:min-h-11 flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
         />
         <Button onClick={handleAddOption} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35]">
           <Plus className="h-4 w-4" />

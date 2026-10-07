@@ -402,11 +402,12 @@ export default function TenderBriefStep() {
           <Button
             variant="outline"
             size="sm"
+            className="h-11 md:h-9"
             onClick={handleBack}
             disabled={submitTender.isPending}
             data-testid="button-back"
           >
-            <ArrowLeft className="h-4 w-4 me-1.5" />
+            <ArrowLeft className="h-4 w-4 me-1.5 rtl:-scale-x-100" />
             {t('tenderFlow.backToEdit')}
           </Button>
         </div>
@@ -495,7 +496,7 @@ export default function TenderBriefStep() {
             {hasDescription && (
               <div className="p-6 sm:p-8">
               <BriefSectionHeader index={sectionNumber('description')} title={t('tenderFlow.projectDescriptionTitle')} />
-                                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-description">
+                                    <p className="text-muted-foreground whitespace-pre-wrap break-words leading-relaxed" data-testid="brief-description">
                     {draft.description || draft.projectDescription}
                   </p>
                 </div>
@@ -504,7 +505,7 @@ export default function TenderBriefStep() {
             {hasObjective && (
               <div className="border-t border-border p-6 sm:p-8">
               <BriefSectionHeader index={sectionNumber('objective')} title={t('tenderFlow.projectObjectiveTitle')} />
-                                    <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed" data-testid="brief-objective">
+                                    <p className="text-muted-foreground whitespace-pre-wrap break-words leading-relaxed" data-testid="brief-objective">
                     {draft.projectObjective}
                   </p>
                 </div>
@@ -543,7 +544,7 @@ export default function TenderBriefStep() {
                                 </Badge>
                               )}
                               {hasDetails && (
-                                <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+                                <ChevronRight className={`h-4 w-4 rtl:-scale-x-100 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                               )}
                             </div>
                           </button>
@@ -611,7 +612,7 @@ export default function TenderBriefStep() {
                                   <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
                                   <span className="text-sm font-medium text-foreground">{CRITERIA_LABELS[criteria] || criteria}</span>
                                 </div>
-                                <ChevronRight className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
+                                <ChevronRight className={`h-4 w-4 rtl:-scale-x-100 text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
                               </button>
                               <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                                 <div className="overflow-hidden">
@@ -638,7 +639,7 @@ export default function TenderBriefStep() {
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   {criteria.weight && <Badge variant="outline" className="font-semibold">{criteria.weight}%</Badge>}
-                                  <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
+                                  <ChevronRight className={`h-4 w-4 rtl:-scale-x-100 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
                                 </div>
                               </button>
                               <div className={`grid transition-all duration-200 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
@@ -678,7 +679,7 @@ export default function TenderBriefStep() {
                                   <div className="flex items-center gap-2 flex-shrink-0">
                                     <Badge variant="outline" className="font-semibold">{w.weight}%</Badge>
                                     {hasContent && (
-                                      <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
+                                      <ChevronRight className={`h-4 w-4 rtl:-scale-x-100 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
                                     )}
                                   </div>
                                 </button>
@@ -736,7 +737,7 @@ export default function TenderBriefStep() {
                                 <span className="text-sm text-foreground">{c.text}</span>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                   <Badge variant="outline" className="font-semibold">{c.weight}%</Badge>
-                                  <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${expandedCriteria[`custom-${c.id}`] ? 'rotate-90' : ''}`} />
+                                  <ChevronRight className={`h-4 w-4 rtl:-scale-x-100 text-gray-400 transition-transform duration-200 ${expandedCriteria[`custom-${c.id}`] ? 'rotate-90' : ''}`} />
                                 </div>
                               </button>
                               <div className={`grid transition-all duration-200 ease-in-out ${expandedCriteria[`custom-${c.id}`] ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
@@ -797,6 +798,8 @@ export default function TenderBriefStep() {
                     id="video-url-input"
                     type="url"
                     placeholder="https://youtube.com/..."
+                    dir="ltr"
+                    className="text-start"
                     value={draft.videoUrl || ""}
                     onChange={(e) => updateDraft({ videoUrl: e.target.value })}
                     data-testid="input-video-url"
@@ -846,7 +849,7 @@ export default function TenderBriefStep() {
                     size="sm"
                     onClick={() => attachmentInputRef.current?.click()}
                     disabled={uploadingAttachment}
-                    className="h-9"
+                    className="h-11 md:h-9"
                     data-testid="button-upload-attachment"
                   >
                     {uploadingAttachment ? (
@@ -1158,7 +1161,7 @@ export default function TenderBriefStep() {
                     className="w-full"
                     data-testid="button-back-edit"
                   >
-                    <ArrowLeft className="h-4 w-4 me-2" />
+                    <ArrowLeft className="h-4 w-4 me-2 rtl:-scale-x-100" />
                     {t('tenderFlow.goBackEdit')}
                   </Button>
                 </div>
@@ -1177,7 +1180,7 @@ export default function TenderBriefStep() {
             disabled={submitTender.isPending}
             className="flex-shrink-0"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
           </Button>
           <Button
             onClick={handlePublish}

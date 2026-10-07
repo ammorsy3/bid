@@ -197,6 +197,15 @@ export default function TenderFormBuilder() {
     setMobileTab('canvas');
   }, [usedCardTypes]);
 
+  const handleMoveCard = useCallback((id: string, delta: -1 | 1) => {
+    setCards((prev) => {
+      const i = prev.findIndex((c) => c.id === id);
+      const j = i + delta;
+      if (i === -1 || j < 0 || j >= prev.length) return prev;
+      return arrayMove(prev, i, j);
+    });
+  }, []);
+
   const handleUpdateCard = useCallback(
     (id: string, updates: Partial<FormCard>) => {
       setCards((prev) =>
@@ -250,7 +259,7 @@ export default function TenderFormBuilder() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="h-[100dvh] flex flex-col bg-gray-50 dark:bg-gray-950">
+      <div className="min-h-dvh sm:h-[100dvh] flex flex-col bg-gray-50 dark:bg-gray-950">
 
         {/* ── Mobile Header ── */}
         <header className="sm:hidden flex-shrink-0 bg-white dark:bg-background border-b border-border px-4 py-3">
@@ -290,7 +299,7 @@ export default function TenderFormBuilder() {
 
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={handleBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 me-2 rtl:-scale-x-100" />
                 {t('tenderFlow.back')}
               </Button>
               <Button
@@ -299,7 +308,7 @@ export default function TenderFormBuilder() {
                 className="bg-[#FE3C01] hover:bg-[#d54d35] text-white"
               >
                 {t('tenderFlow.continueToDetails')}
-                <ArrowRight className="h-4 w-4 ml-2" />
+                <ArrowRight className="h-4 w-4 ms-2 rtl:-scale-x-100" />
               </Button>
             </div>
           </div>
@@ -319,12 +328,12 @@ export default function TenderFormBuilder() {
         )}
 
         {/* ── Mobile Layout: tabbed canvas / library ── */}
-        <div className="sm:hidden flex flex-col flex-1 overflow-hidden">
+        <div data-audit-ok="covered" className="sm:hidden flex flex-col flex-1">
           {/* Tab switcher */}
           <div className="flex flex-shrink-0 border-b border-border bg-white dark:bg-background">
             <button
               onClick={() => setMobileTab('canvas')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex-1 min-h-11 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
                 mobileTab === 'canvas'
                   ? 'text-[#FE3C01] border-b-2 border-[#FE3C01]'
                   : 'text-muted-foreground border-b-2 border-transparent'
@@ -335,7 +344,7 @@ export default function TenderFormBuilder() {
             </button>
             <button
               onClick={() => setMobileTab('library')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+              className={`flex-1 min-h-11 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
                 mobileTab === 'library'
                   ? 'text-[#FE3C01] border-b-2 border-[#FE3C01]'
                   : 'text-muted-foreground border-b-2 border-transparent'
@@ -347,15 +356,17 @@ export default function TenderFormBuilder() {
           </div>
 
           {/* Tab content */}
-          <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="flex-1 flex flex-col">
             {mobileTab === 'canvas' ? (
               <FormBuilderCanvas
                 cards={cards}
                 onRemoveCard={handleRemoveCard}
                 onUpdateCard={handleUpdateCard}
+                onMoveCard={handleMoveCard}
                 sidebarVisible={false}
                 onToggleSidebar={() => setMobileTab('library')}
                 structureOnly={true}
+                pageScroll
               />
             ) : (
               <CardLibrarySidebar
@@ -376,11 +387,11 @@ export default function TenderFormBuilder() {
 
           {/* Mobile bottom action bar */}
           <div
-            className="flex-shrink-0 flex gap-3 px-4 pt-3 pb-3 bg-white dark:bg-background border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.06)]"
+            className="sticky bottom-0 z-30 flex-shrink-0 flex gap-3 px-4 pt-3 pb-3 bg-white dark:bg-background border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.06)]"
             style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0.75rem))' }}
           >
             <Button variant="outline" onClick={handleBack} className="flex-1 h-11">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 me-2 rtl:-scale-x-100" />
               {t('tenderFlow.back')}
             </Button>
             <Button
@@ -389,7 +400,7 @@ export default function TenderFormBuilder() {
               className="flex-1 h-11 bg-[#FE3C01] hover:bg-[#d54d35] text-white"
             >
               {t('tenderFlow.continueToDetails')}
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="h-4 w-4 ms-2 rtl:-scale-x-100" />
             </Button>
           </div>
         </div>

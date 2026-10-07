@@ -360,7 +360,7 @@ export default function TenderSubmissionProcessStep() {
                       { value: 'team' as const, label: t('tenderFlow.audienceTeams') },
                       { value: 'individual' as const, label: t('tenderFlow.audienceIndividuals') },
                     ] as const).map((opt) => (
-                      <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                      <label key={opt.value} className="flex items-center gap-2 cursor-pointer max-sm:min-h-11">
                         <input
                           type="checkbox"
                           checked={targetAudienceTypes.includes(opt.value)}
@@ -371,7 +371,7 @@ export default function TenderSubmissionProcessStep() {
                               setTargetAudienceTypes((prev) => prev.filter((v) => v !== opt.value));
                             }
                           }}
-                          className="h-4 w-4 rounded cursor-pointer accent-[#E25E45]"
+                          className="h-5 w-5 md:h-4 md:w-4 rounded cursor-pointer accent-[#E25E45]"
                           data-testid={`checkbox-audience-${opt.value}`}
                         />
                         <span className="text-sm text-gray-700 dark:text-gray-300">{opt.label}</span>
@@ -458,14 +458,14 @@ export default function TenderSubmissionProcessStep() {
                       <button
                         type="button"
                         onClick={() => setVideoRequired(!videoRequired)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors after:absolute after:-inset-2.5 after:content-[''] md:after:hidden ${
                           videoRequired ? "bg-[#FE3C01]" : "bg-gray-300 dark:bg-gray-600"
                         }`}
                         data-testid="toggle-video-required"
                       >
                         <span
                           className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${
-                            videoRequired ? "translate-x-6" : "translate-x-1"
+                            videoRequired ? "translate-x-6 rtl:-translate-x-6" : "translate-x-1 rtl:-translate-x-1"
                           }`}
                         />
                       </button>
@@ -536,26 +536,26 @@ export default function TenderSubmissionProcessStep() {
                           </label>
 
                           <div className="space-y-2">
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex items-center gap-2 cursor-pointer max-sm:min-h-11">
                               <input
                                 type="radio"
                                 checked={useAccountEmail}
                                 onChange={() => setUseAccountEmail(true)}
-                                className="h-4 w-4 text-[#FE3C01] cursor-pointer"
-                                data-testid="radio-account-email"
+                                className="h-5 w-5 md:h-4 md:w-4 flex-shrink-0 text-[#FE3C01] cursor-pointer"
+                                data-testid="radio-use-account-address"
                               />
-                              <span className="text-sm text-muted-foreground dark:text-muted-foreground">
-                                {t('tenderFlow.useAccountEmail')} <span className="font-medium">{user?.email}</span>
+                              <span className="text-sm text-muted-foreground dark:text-muted-foreground min-w-0 break-words">
+                                {t('tenderFlow.useAccountEmail')} <span className="font-medium break-all" dir="ltr">{user?.email}</span>
                               </span>
                             </label>
 
-                            <label className="flex items-center gap-2 cursor-pointer">
+                            <label className="flex items-center gap-2 cursor-pointer max-sm:min-h-11">
                               <input
                                 type="radio"
                                 checked={!useAccountEmail}
                                 onChange={() => setUseAccountEmail(false)}
-                                className="h-4 w-4 text-[#FE3C01] cursor-pointer"
-                                data-testid="radio-custom-email"
+                                className="h-5 w-5 md:h-4 md:w-4 flex-shrink-0 text-[#FE3C01] cursor-pointer"
+                                data-testid="radio-use-other-address"
                               />
                               <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                                 {t('tenderFlow.useDifferentEmail')}
@@ -567,21 +567,25 @@ export default function TenderSubmissionProcessStep() {
                             <div className="space-y-2 ms-6 animate-in fade-in slide-in-from-top-2 duration-300">
                               <input
                                 type="email"
+                                dir="ltr"
+                                autoCapitalize="none"
+                                autoComplete="email"
+                                spellCheck={false}
                                 placeholder="custom@email.com"
                                 value={customEmail}
                                 onChange={(e) => setCustomEmail(e.target.value)}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+                                className="w-full px-3 py-2 max-sm:min-h-11 text-base md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                                 data-testid="input-custom-email"
                               />
 
-                              <label className="flex items-center gap-2 cursor-pointer">
+                              <label className="flex items-center gap-2 cursor-pointer max-sm:min-h-11">
                                 <input
                                   type="checkbox"
                                   checked={saveCustomEmail}
                                   onChange={(e) => handleSaveEmailCheckbox(e.target.checked)}
                                   disabled={isSavingEmail}
-                                  className="h-4 w-4 text-[#FE3C01] rounded cursor-pointer disabled:opacity-50"
-                                  data-testid="checkbox-save-email"
+                                  className="h-5 w-5 md:h-4 md:w-4 flex-shrink-0 text-[#FE3C01] rounded cursor-pointer disabled:opacity-50"
+                                  data-testid="checkbox-save-address"
                                 />
                                 <span className="text-xs text-gray-600 dark:text-gray-400">
                                   {isSavingEmail ? t('tenderFlow.savingEmail') : t('tenderFlow.saveEmailForFuture')}
@@ -596,11 +600,14 @@ export default function TenderSubmissionProcessStep() {
                             {t('tenderFlow.whatsappNumber')}
                           </label>
                           <input
-                            type="text"
+                            type="tel"
+                            dir="ltr"
+                            inputMode="tel"
+                            autoComplete="tel"
                             placeholder="+966 50 123 4567 or wa.me/966501234567"
                             value={whatsappContact}
                             onChange={(e) => setWhatsappContact(e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+                            className="w-full px-3 py-2 max-sm:min-h-11 text-base md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
                             data-testid="input-whatsapp-contact"
                           />
                         </div>
@@ -628,7 +635,7 @@ export default function TenderSubmissionProcessStep() {
                               <button
                                 type="button"
                                 className={cn(
-                                  "w-full flex items-center gap-2 px-3 py-2 text-sm border rounded-lg bg-white dark:bg-card text-start",
+                                  "w-full flex items-center gap-2 px-3 py-2 max-sm:min-h-11 text-sm border rounded-lg bg-white dark:bg-card text-start",
                                   inquiryDeadline
                                     ? "border-gray-300 dark:border-gray-600 text-gray-900 dark:text-foreground"
                                     : "border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500"
@@ -680,7 +687,7 @@ export default function TenderSubmissionProcessStep() {
                     data-testid="button-next"
                   >
                     {t('tenderFlow.next')}
-                    <ArrowRight className="h-4 w-4 ms-2" />
+                    <ArrowRight className="h-4 w-4 ms-2 rtl:rotate-180" />
                   </Button>
                 </div>
               </div>

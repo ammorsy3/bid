@@ -15,18 +15,23 @@ interface FormBuilderCanvasProps {
   cards: FormCard[];
   onRemoveCard: (id: string) => void;
   onUpdateCard: (id: string, updates: Partial<FormCard>) => void;
+  onMoveCard?: (id: string, delta: -1 | 1) => void;
   sidebarVisible?: boolean;
   onToggleSidebar?: () => void;
   structureOnly?: boolean;
+  /** Phones only: let the page scroll instead of an inner box. */
+  pageScroll?: boolean;
 }
 
 export function FormBuilderCanvas({
   cards,
   onRemoveCard,
   onUpdateCard,
+  onMoveCard,
   sidebarVisible = true,
   onToggleSidebar,
   structureOnly = false,
+  pageScroll = false,
 }: FormBuilderCanvasProps) {
   const { t } = useI18n();
   const { isOver, setNodeRef } = useDroppable({
@@ -105,8 +110,7 @@ export function FormBuilderCanvas({
 
   return (
     <div 
-      className="flex-1 flex flex-col relative"
-      style={{ overflow: 'hidden' }}
+      className={`flex-1 flex flex-col relative ${pageScroll ? 'max-sm:overflow-visible sm:overflow-hidden' : 'overflow-hidden'}`}
     >
       <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-white dark:bg-card rounded-lg shadow-lg p-1 border border-border dark:border-border">
         <Button
@@ -148,11 +152,8 @@ export function FormBuilderCanvas({
 
       <div
         ref={canvasRef}
-        className="relative z-10 flex-1 hide-scrollbar"
+        className={`relative z-10 flex-1 min-h-0 hide-scrollbar ${pageScroll ? 'max-sm:overflow-visible sm:overflow-x-hidden sm:overflow-y-auto sm:overscroll-contain' : 'overflow-x-hidden overflow-y-auto overscroll-contain'}`}
         style={{
-          overflowX: 'hidden',
-          overflowY: 'auto',
-          overscrollBehavior: 'contain',
           backgroundImage: `radial-gradient(circle, ${dotColor} 1px, transparent 1px)`,
           backgroundSize: '20px 20px',
         }}
@@ -189,10 +190,12 @@ export function FormBuilderCanvas({
                 items={cards.map((c) => c.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {cards.map((card) => (
+                {cards.map((card, index) => (
                   <DraggableCard
                     key={card.id}
                     card={card}
+                    onMoveUp={onMoveCard && index > 0 ? () => onMoveCard(card.id, -1) : undefined}
+                    onMoveDown={onMoveCard && index < cards.length - 1 ? () => onMoveCard(card.id, 1) : undefined}
                     onRemove={onRemoveCard}
                     onUpdate={onUpdateCard}
                     structureOnly={structureOnly}

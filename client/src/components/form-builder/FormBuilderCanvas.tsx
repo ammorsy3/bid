@@ -47,7 +47,8 @@ export function FormBuilderCanvas({
 
   const MIN_SCALE = 0.5;
   const MAX_SCALE = 1.5;
-  const FIXED_TOP_PADDING = 60;
+  // On phones the zoom bar sits above the canvas instead of floating over it.
+  const FIXED_TOP_PADDING = typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches ? 12 : 60;
   const MIN_BOTTOM_PADDING = 100;
   
   // Bid grid texture — low-opacity Stone on light, low-opacity Cream on Ink (dark mode).
@@ -112,12 +113,12 @@ export function FormBuilderCanvas({
     <div 
       className={`flex-1 flex flex-col relative ${pageScroll ? 'max-sm:overflow-visible sm:overflow-hidden' : 'overflow-hidden'}`}
     >
-      <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-white dark:bg-card rounded-lg shadow-lg p-1 border border-border dark:border-border">
+      <div className="absolute top-4 start-4 z-20 flex items-center gap-2 bg-white dark:bg-card rounded-lg shadow-lg p-1 border border-border dark:border-border max-sm:static max-sm:self-start max-sm:mx-4 max-sm:mt-3">
         <Button
           variant="ghost"
           size="icon"
           onClick={handleZoomOut}
-          className="h-8 w-8"
+          className="h-8 w-8 max-sm:h-11 max-sm:w-11"
           title={t('formBuilder.zoomOut')}
           aria-label={t('formBuilder.zoomOut')}
         >
@@ -127,7 +128,7 @@ export function FormBuilderCanvas({
           variant="ghost"
           size="icon"
           onClick={handleZoomIn}
-          className="h-8 w-8"
+          className="h-8 w-8 max-sm:h-11 max-sm:w-11"
           title={t('formBuilder.zoomIn')}
           aria-label={t('formBuilder.zoomIn')}
         >

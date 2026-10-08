@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy, Languages, Paperclip, Upload, X } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -52,6 +52,14 @@ function BriefSectionHeader({ index, title }: { index: number; title: string }) 
 }
 
 export default function TenderBriefStep() {
+  // The phone's fixed Publish bar is ~80px tall: tell the browser to keep a tapped or
+  // focused field above it instead of scrolling it underneath.
+  useEffect(() => {
+    const root = document.documentElement;
+    const previous = root.style.scrollPaddingBottom;
+    if (window.matchMedia("(max-width: 1023px)").matches) root.style.scrollPaddingBottom = "6.5rem";
+    return () => { root.style.scrollPaddingBottom = previous; };
+  }, []);
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { activeCompany } = useAuthStore();

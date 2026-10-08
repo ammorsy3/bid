@@ -128,8 +128,8 @@ export default function TenderCreateChoice() {
             flickerChance={0.1}
           />
         </div>
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 py-16">
-          <header className="absolute top-0 left-0 right-0 pt-12 pb-8">
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 pt-12 pb-16">
+          <header className="w-full pb-8">
             <button onClick={() => setLocation('/dashboard')} className="w-full flex justify-center cursor-pointer">
               <BidLogo variant="orange" size={48} className="hover:opacity-80 transition-opacity" />
             </button>

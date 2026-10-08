@@ -262,6 +262,14 @@
       const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       if (!hit || hit === el || el.contains(hit) || hit.contains(el)) return;
       if (hit.tagName === "LABEL" && (hit.control === el || hit.contains(el))) return;
+      // A sticky bar passing over a control is only a defect if the page can't be
+      // scrolled far enough to clear it (content at the very end hidden under the bar).
+      const bar = (() => { for (let n = hit; n && n !== document.body; n = n.parentElement) if (getComputedStyle(n).position === "fixed") return n; return null; })();
+      if (bar && !bar.contains(el)) {
+        const docEnd = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+        const spaceBelow = docEnd - (window.scrollY + r.bottom);
+        if (spaceBelow >= bar.getBoundingClientRect().height) return;
+      }
       add("fail", "covered", el, `covered by ${selectorOf(hit)}`);
     });
 

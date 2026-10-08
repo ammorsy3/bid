@@ -47,7 +47,8 @@ jobs:
         # Fails the build when a dependency you actually ship has a high or
         # critical advisory. The tree is clean as of the drizzle-orm 0.45.3
         # upgrade, so this starts green and only turns red on something new.
-        run: npm audit --omit=dev --audit-level=high
+        # Allow-list lives in scripts/audit-gate.mjs, with the reason for each entry.
+        run: node scripts/audit-gate.mjs
 
       - name: Build
         # A placeholder key: the build only inlines this string, it never calls

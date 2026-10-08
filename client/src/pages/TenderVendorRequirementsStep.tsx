@@ -72,7 +72,7 @@ export default function TenderVendorRequirementsStep() {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8 max-sm:mb-5">
-          <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:w-10 max-sm:h-10" onClick={() => navigate("/dashboard")} />
+          <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:!text-[40px]" onClick={() => navigate("/dashboard")} />
           <Button variant="outline" onClick={handleBack} data-testid="button-back" className="max-sm:hidden">
             <ArrowLeft className={`h-4 w-4 me-2 ${isRtl ? 'rotate-180' : ''}`} />
             {t('tenderSteps.back')}

@@ -113,7 +113,7 @@ export default function VendorRequirementsEditor({
                 <button
                   type="button"
                   onClick={() => toggle(preset)}
-                  className="flex-shrink-0 flex items-center justify-center mt-0.5 max-sm:w-11 max-sm:h-11 max-sm:-m-3 max-sm:me-0"
+                  className="flex-shrink-0 flex items-center justify-center mt-0.5 max-sm:w-11 max-sm:h-11 max-sm:-m-3 max-sm:me-0 sm:w-8 sm:h-8 sm:-mx-1.5 sm:-mt-1 sm:-mb-1.5"
                   data-testid={`checkbox-${preset.id}`}
                 >
                   <span className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${

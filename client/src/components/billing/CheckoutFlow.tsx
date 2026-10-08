@@ -460,6 +460,15 @@ export function CheckoutFlow({
               })}
             </div>
 
+            {/* A company that leaves the address or city empty is invoiced as an
+                individual (no VAT / CR on the invoice), so say so before it pays. */}
+            {details.applicable.includes("crNumber") && (!(values.address ?? "").trim() || !(values.city ?? "").trim()) && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100" data-testid="billing-invoice-notice">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
+                <p>{t("billing.invoiceNotice")}</p>
+              </div>
+            )}
+
             <PriceBreakdown plan={checkout.plan} term={checkout.term} t={t} planName={planName} termName={termName} />
 
             <div className="space-y-3">

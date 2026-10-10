@@ -261,3 +261,12 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     (f) The WhatsApp placeholder on the submission step ("+966 50 123 4567 or
     wa.me/...") is hard-coded English; left as is.
     Not photographed / needs a real iPhone: the AI assistant chat with a real reply.
+
+37. **Owner tender page, proposal comparison, tender edit (batch 6, 2026-10-11): questions.**
+    (a) The owner's tender page is still ~9,000px tall on a phone (was 9,345): offers start about 70% of the way down. I added a "Proposals (N)" chip to the section strip, a Show more for long descriptions, and 2-column 44px offer buttons, but did not collapse or reorder the scope/requirements/criteria sections. Want offers moved above them on phones?
+    (b) Edit page: its text direction now follows the app language, not the tender's own language. Is that what you want?
+    (c) Faint text, logged and NOT changed (colours rule): Save Changes button 3.58:1, "N words" 3.30:1, duration badge 3.58:1, unit chips 3.33:1, grey price text 3.58:1, a "3.0" rating on the offer card 1.37:1.
+    (d) New Arabic: عرض المزيد / عرض أقل (description Show more / Show less). Edit page dates still show English-style dates ("Jun 30, 2028") in some fields.
+    (e) Proposal comparison on phones is now stacked cards (desktop keeps the table). Amounts use Western digits; the "analysed at" date still uses Arabic digits.
+    (f) Not photographed / needs a real iPhone: the award, discount and message dialogs, and the invite-by-email send.
+

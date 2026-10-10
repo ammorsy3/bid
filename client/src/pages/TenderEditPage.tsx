@@ -564,12 +564,11 @@ export default function TenderEditPage() {
     );
   }
 
-  const editTenderLanguage = (tender as any)?.language || 'en';
-  const isEditRtl = editTenderLanguage === 'ar';
+  const isEditRtl = language === 'ar';
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background" dir={isEditRtl ? "rtl" : "ltr"}>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28">
+    <div className="min-h-dvh bg-gray-50 dark:bg-background" dir={isEditRtl ? "rtl" : "ltr"}>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:pb-28">
         <Button variant="ghost" onClick={() => navigate(`/tenders/${tenderId}`)} className="mb-6 -ms-2">
           <ArrowLeft className="h-4 w-4 me-2" />
           {t('tenderFlow.backToTender')}
@@ -597,7 +596,7 @@ export default function TenderEditPage() {
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('tenderFlow.editTitleLabel')}</FormLabel>
-                  <FormControl><Input placeholder={t('tenderFlow.editTitlePlaceholder')} {...field} /></FormControl>
+                  <FormControl><Input dir="auto" placeholder={t('tenderFlow.editTitlePlaceholder')} {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -607,7 +606,7 @@ export default function TenderEditPage() {
                 return (
                   <FormItem>
                     <FormLabel>{t('tenderFlow.editDescriptionLabel')}</FormLabel>
-                    <FormControl><Textarea rows={5} placeholder={t('tenderFlow.editDescriptionPlaceholder')} {...field} /></FormControl>
+                    <FormControl><Textarea dir="auto" rows={5} placeholder={t('tenderFlow.editDescriptionPlaceholder')} {...field} /></FormControl>
                     <div className="flex justify-end">
                       <span className={`text-xs ${wc < 50 ? "text-amber-600" : "text-green-600"}`}>
                         {wc < 50
@@ -639,7 +638,7 @@ export default function TenderEditPage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <button type="button" className={cn(
-                              "flex-1 flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
+                              "flex-1 flex items-center gap-2 h-11 md:h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
                               !dateVal && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -662,7 +661,7 @@ export default function TenderEditPage() {
                         type="time"
                         value={timeVal}
                         onChange={(e) => field.onChange(dateVal ? `${dateVal}T${e.target.value}` : "")}
-                        className="w-32"
+                        className="w-32 h-11 md:h-10"
                       />
                     </div>
                     <FormMessage />
@@ -681,7 +680,7 @@ export default function TenderEditPage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <button type="button" className={cn(
-                              "w-full flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
+                              "w-full flex items-center gap-2 h-11 md:h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
                               !field.value && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -709,7 +708,7 @@ export default function TenderEditPage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <button type="button" className={cn(
-                              "w-full flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
+                              "w-full flex items-center gap-2 h-11 md:h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
                               !field.value && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -756,7 +755,7 @@ export default function TenderEditPage() {
                     key={type}
                     type="button"
                     onClick={() => setBudgetType(type as "exact" | "range")}
-                    className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                    className={`flex-1 py-3 md:py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
                       budgetType === type
                         ? "bg-[#FE3C01] text-white border-[#FE3C01]"
                         : "bg-white dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border"
@@ -774,7 +773,7 @@ export default function TenderEditPage() {
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">SAR</span>
-                        <Input className="ps-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} {...field} />
+                        <Input dir="ltr" className="ps-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -786,7 +785,7 @@ export default function TenderEditPage() {
                     <FormItem>
                       <FormLabel>{t('tenderFlow.editBudgetMinLabel')}</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder={t('tenderFlow.editBudgetMinPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input type="number" dir="ltr" className="text-start" placeholder={t('tenderFlow.editBudgetMinPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -795,7 +794,7 @@ export default function TenderEditPage() {
                     <FormItem>
                       <FormLabel>{t('tenderFlow.editBudgetMaxLabel')}</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder={t('tenderFlow.editBudgetMaxPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input type="number" dir="ltr" className="text-start" placeholder={t('tenderFlow.editBudgetMaxPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -859,7 +858,7 @@ export default function TenderEditPage() {
               <FormField control={form.control} name="videoUrl" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('tenderFlow.editVideoUrlLabel')}</FormLabel>
-                  <FormControl><Input placeholder={t('tenderFlow.editVideoUrlPlaceholder')} {...field} /></FormControl>
+                  <FormControl><Input dir="ltr" className="text-start" placeholder={t('tenderFlow.editVideoUrlPlaceholder')} {...field} /></FormControl>
                   <p className="text-xs text-muted-foreground">{t('tenderFlow.editVideoUrlHint')}</p>
                   <FormMessage />
                 </FormItem>
@@ -919,14 +918,14 @@ export default function TenderEditPage() {
                   <FormField control={form.control} name="emailContact" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('tenderFlow.editContactEmailLabel')}</FormLabel>
-                      <FormControl><Input type="email" placeholder={t('tenderFlow.editContactEmailPlaceholder')} {...field} /></FormControl>
+                      <FormControl><Input type="email" dir="ltr" className="text-start" placeholder={t('tenderFlow.editContactEmailPlaceholder')} {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="whatsappContact" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('tenderFlow.editWhatsappLabel')}</FormLabel>
-                      <FormControl><Input placeholder={t('tenderFlow.editWhatsappPlaceholder')} {...field} /></FormControl>
+                      <FormControl><Input type="tel" inputMode="tel" dir="ltr" className="text-start" placeholder={t('tenderFlow.editWhatsappPlaceholder')} {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -1049,7 +1048,7 @@ export default function TenderEditPage() {
                         <div className="flex items-center gap-2">
                           <span className="flex-1 text-sm text-foreground">{c.text}</span>
                           <span className="text-xs font-medium text-[#FE3C01]">{c.weight}%</span>
-                          <button type="button" onClick={() => removeCustomCriterion(c.id)} className="text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
+                          <button type="button" onClick={() => removeCustomCriterion(c.id)} className="p-3 -m-3 md:p-0 md:m-0 text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
                         </div>
                         <input type="range" min="0" max="50" step="5" value={c.weight}
                           onChange={(e) => updateCustomCriterionWeight(c.id, parseInt(e.target.value))}
@@ -1063,7 +1062,7 @@ export default function TenderEditPage() {
                     <input type="text" value={newCriterionText} onChange={(e) => setNewCriterionText(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomCriterion())}
                       placeholder={t('tenderFlow.editCustomCriteriaPlaceholder')}
-                      className="flex-1 px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE3C01]" />
+                      className="flex-1 px-3 py-2 text-base md:text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE3C01]" />
                     <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35]"><Plus className="h-4 w-4" /></Button>
                   </div>
                   {newCriterionText.trim() && (
@@ -1112,21 +1111,21 @@ export default function TenderEditPage() {
                           value={m.name}
                           onChange={(e) => updateMilestone(m.id, "name", e.target.value)}
                           placeholder={t('tenderFlow.milestoneName')}
-                          className="w-full bg-transparent border-0 border-b border-transparent focus:border-violet-400 text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 pb-1"
+                          className="w-full bg-transparent border-0 border-b border-transparent focus:border-violet-400 text-base md:text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 pb-1"
                         />
                         <input
                           type="text"
                           value={m.description}
                           onChange={(e) => updateMilestone(m.id, "description", e.target.value)}
                           placeholder={t('tenderFlow.editMilestoneDescOptional')}
-                          className="w-full bg-transparent border-0 text-xs text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0"
+                          className="w-full bg-transparent border-0 text-base md:text-xs text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0"
                         />
                       </div>
                       <div className="flex-shrink-0">
                         <Popover>
                           <PopoverTrigger asChild>
                             <button type="button" className={cn(
-                              "flex items-center gap-1.5 px-2 py-1 text-xs rounded-md transition-colors",
+                              "flex items-center gap-1.5 px-2 py-2 md:py-1 text-xs rounded-md transition-colors",
                               m.dueDate ? "bg-violet-100 text-violet-700 dark:text-violet-300 hover:bg-violet-200" : "text-gray-400 hover:text-muted-foreground hover:bg-gray-200"
                             )}>
                               <CalendarIcon className="h-3.5 w-3.5" />
@@ -1193,7 +1192,7 @@ export default function TenderEditPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white bg-indigo-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{index + 1}</span>
                         <Input placeholder={t('tenderFlow.editDeliverableNamePlaceholder')} value={d.name} onChange={(e) => updateDeliverable(d.id, "name", e.target.value)} className="flex-1" />
-                        <button type="button" onClick={() => removeDeliverable(d.id)} className="text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => removeDeliverable(d.id)} className="p-3 -m-3 md:p-0 md:m-0 text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
                       </div>
                       <Input placeholder={t('tenderFlow.editDeliverableDescPlaceholder')} value={d.description} onChange={(e) => updateDeliverable(d.id, "description", e.target.value)} />
                       <div className="grid grid-cols-2 gap-2">
@@ -1243,7 +1242,7 @@ export default function TenderEditPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveAttachment(a.id)}
-                        className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        className="flex-shrink-0 p-3 -m-2 md:p-1 md:m-0 text-gray-400 hover:text-red-500 transition-colors"
                         aria-label={t('tenderFlow.editRemoveAttachment')}
                       >
                         <X className="h-4 w-4" />
@@ -1331,7 +1330,7 @@ export default function TenderEditPage() {
             )}
 
             {/* Actions — sticky footer so Save/Cancel stay reachable on a long form */}
-            <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 mt-8 flex flex-col gap-3 border-t border-border bg-gray-50/95 dark:bg-background/95 px-4 py-4 backdrop-blur-sm sm:px-6 lg:px-8">
+            <div className="md:sticky md:bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 mt-8 flex flex-col gap-3 border-t border-border bg-gray-50/95 dark:bg-background/95 px-4 py-4 backdrop-blur-sm sm:px-6 lg:px-8">
               {(selectedRequirements.length > 0 || customCriteria.length > 0) && totalWeight !== 100 && (
                 <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:text-red-300">
                   <span className="mt-0.5 flex-shrink-0">⚠</span>

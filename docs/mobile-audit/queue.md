@@ -64,7 +64,7 @@ Baseline (before fixes, 196 captures, commit in `.mobile-audit/batch-6/baseline-
 |---|---|---|
 | tender-details-owner | fixed (2 rounds; page's own phone fails cleared, 584 -> 45 across the batch; remaining 45 are overflow inside the comparison table = next row; page still ~9,000px, see decisions) | Page is 9,233px tall on a phone with 4 offers; overflow on Android 360; offers list, status actions, invite box, marketplace panel. |
 | proposal-comparison | fixed (1 round + digits fix; 6 -> 0 phone fails; desktop table unchanged; stacked vendor cards on phones; amounts now Western digits; reviewer could only read thumbnails so I cropped and read the Arabic photos myself) | Comparison table/cards overflow on phones; Arabic names and amounts; negotiation actions. |
-| tender-edit | in progress | 11 small-form-text fails on iPhone, covered content on Android; sticky save bar; keyboard state. |
+| tender-edit | fixed (1 round; 11-13 -> 0 phone fails; desktop keeps 2 'covered' fails per state = sticky Save bar over the deadline field in a full-page photo, same as before; questions in decisions.md #37) | 11 small-form-text fails on iPhone, covered content on Android; sticky save bar; keyboard state. |
 
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |
@@ -74,7 +74,7 @@ Baseline (before fixes, 196 captures, commit in `.mobile-audit/batch-6/baseline-
 | 3 | App shell + dashboard tabs (sidebar, bottom bar) | done, all five pages fixed (see the batch 3 table above); next: report to Ahmed |
 | 4 | Vendor side: tender page, submit offer, form fill | done (decisions.md #35) |
 | 5 | Tender wizard | done: all 12 steps fixed (32 states, 0 phone fails; see decisions.md #36); next: report to Ahmed |
-| 6 | Owner's tender tabs, proposal comparison, edit | in progress |
+| 6 | Owner's tender tabs, proposal comparison, edit | done (decisions.md #37); next: report to Ahmed |
 | 7 | Settings, integrations, profile editors | todo |
 | 8 | Admin (first give AdminLayout a phone menu) | todo |
 | 9 | "Feels like an installed app" pass, scoped to the pages already fixed (batches 1, 2, 3) | done for now (see below); 2b/4-8 get their own pass once each has its base fix |

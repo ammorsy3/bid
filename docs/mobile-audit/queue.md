@@ -63,8 +63,8 @@ Baseline (before fixes, 196 captures, commit in `.mobile-audit/batch-6/baseline-
 | Pages | Status | What to fix (known before the loop) |
 |---|---|---|
 | tender-details-owner | fixed (2 rounds; page's own phone fails cleared, 584 -> 45 across the batch; remaining 45 are overflow inside the comparison table = next row; page still ~9,000px, see decisions) | Page is 9,233px tall on a phone with 4 offers; overflow on Android 360; offers list, status actions, invite box, marketplace panel. |
-| proposal-comparison | in progress | Comparison table/cards overflow on phones; Arabic names and amounts; negotiation actions. |
-| tender-edit | todo | 11 small-form-text fails on iPhone, covered content on Android; sticky save bar; keyboard state. |
+| proposal-comparison | fixed (1 round + digits fix; 6 -> 0 phone fails; desktop table unchanged; stacked vendor cards on phones; amounts now Western digits; reviewer could only read thumbnails so I cropped and read the Arabic photos myself) | Comparison table/cards overflow on phones; Arabic names and amounts; negotiation actions. |
+| tender-edit | in progress | 11 small-form-text fails on iPhone, covered content on Android; sticky save bar; keyboard state. |
 
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |

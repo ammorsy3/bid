@@ -58,6 +58,14 @@ Baseline (before fixes, 308 captures, commit in `.mobile-audit/batch-2b/baseline
 | traction | fixed (2 rounds; 0 fails and 0 warnings on phones except the company's own English text; decisions.md #33) | No fails, warnings only (11-25 per capture, mostly tap sizes and English on the Arabic page). Check the join-request area, long Arabic company name, "no such company" page. |
 | tender-invite | fixed (1 round; 70 phone fails -> 0; decisions.md #34) | Up to 8 phone fails: text spills, things covering other things, the page wider than the screen on the small Android in Arabic, the floating submit bar covering text. Closed-tender and closes-today variants, "link not found" page. |
 
+## Batch 6 — owner's tender page, proposal comparison, edit (session mode: Seet workspace, made-up open tender + real closed tenders)
+Baseline (before fixes, 196 captures, commit in `.mobile-audit/batch-6/baseline-commit.txt`): 584 fails; phone fails are page overflow (owner page, comparison), small form text and covered content (edit page).
+| Pages | Status | What to fix (known before the loop) |
+|---|---|---|
+| tender-details-owner | fixed (2 rounds; page's own phone fails cleared, 584 -> 45 across the batch; remaining 45 are overflow inside the comparison table = next row; page still ~9,000px, see decisions) | Page is 9,233px tall on a phone with 4 offers; overflow on Android 360; offers list, status actions, invite box, marketplace panel. |
+| proposal-comparison | in progress | Comparison table/cards overflow on phones; Arabic names and amounts; negotiation actions. |
+| tender-edit | todo | 11 small-form-text fails on iPhone, covered content on Android; sticky save bar; keyboard state. |
+
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |
 |---|---|---|
@@ -66,7 +74,7 @@ Baseline (before fixes, 308 captures, commit in `.mobile-audit/batch-2b/baseline
 | 3 | App shell + dashboard tabs (sidebar, bottom bar) | done, all five pages fixed (see the batch 3 table above); next: report to Ahmed |
 | 4 | Vendor side: tender page, submit offer, form fill | done (decisions.md #35) |
 | 5 | Tender wizard | done: all 12 steps fixed (32 states, 0 phone fails; see decisions.md #36); next: report to Ahmed |
-| 6 | Owner's tender tabs, proposal comparison, edit | todo |
+| 6 | Owner's tender tabs, proposal comparison, edit | in progress |
 | 7 | Settings, integrations, profile editors | todo |
 | 8 | Admin (first give AdminLayout a phone menu) | todo |
 | 9 | "Feels like an installed app" pass, scoped to the pages already fixed (batches 1, 2, 3) | done for now (see below); 2b/4-8 get their own pass once each has its base fix |

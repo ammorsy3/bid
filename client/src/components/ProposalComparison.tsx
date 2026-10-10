@@ -507,7 +507,7 @@ export default function ProposalComparison({
             <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
               {t('tenderFlow.aiBetaBadge')}
             </span>
-            <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7">
+            <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7 max-md:h-11">
               {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RotateCcw className="h-3 w-3 mr-1" />}
               {t('tenderFlow.reAnalyze')}
             </Button>
@@ -641,7 +641,7 @@ export default function ProposalComparison({
                           ) : (
                             <Button
                               size="sm"
-                              className="flex-1 h-6 text-[10px] bg-[#FE3C01] hover:bg-[#d54d35] text-white px-2 font-medium"
+                              className="flex-1 h-6 max-md:h-11 text-[10px] bg-[#FE3C01] hover:bg-[#d54d35] text-white px-2 font-medium"
                               onClick={() => handleSelectVendor(offer)}
                               disabled={savingsMutation.isPending || total == null || isOfferAwarded(offer.id)}
                             >
@@ -650,7 +650,7 @@ export default function ProposalComparison({
                           )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-6 w-6 p-0 border-border" disabled={isOfferAwarded(offer.id)}>
+                              <Button variant="outline" size="sm" className="h-6 w-6 max-md:h-11 max-md:w-11 shrink-0 p-0 border-border" disabled={isOfferAwarded(offer.id)}>
                                 <MoreHorizontal className="h-3 w-3" />
                               </Button>
                             </DropdownMenuTrigger>

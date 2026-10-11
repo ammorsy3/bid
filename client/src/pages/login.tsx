@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest, ApiError } from "@/lib/queryClient";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
+import { safeReturnTo, stashReturnTo } from "@/lib/return-to";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
 import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
@@ -58,7 +59,13 @@ export default function Login() {
 
   const urlParams = new URLSearchParams(search);
   const invitationToken = urlParams.get('token');
-  const redirectUrl = urlParams.get('redirect');
+  const redirectUrl = safeReturnTo(urlParams.get('redirect'));
+
+  // Social sign-in leaves the site and comes back to /auth/clerk-callback with no
+  // query string, so park the destination where the callback can find it.
+  useEffect(() => {
+    stashReturnTo(redirectUrl ?? (invitationToken ? `/invite/${encodeURIComponent(invitationToken)}` : null));
+  }, [redirectUrl, invitationToken]);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(z.object({
@@ -85,6 +92,7 @@ export default function Login() {
     // instant jump. The redirect itself is unchanged — just delayed ~700ms.
     setTransitioning(true);
     const timer = setTimeout(() => {
+      stashReturnTo(null);
       if (isMarketplaceSubdomain()) {
         const mainDomain = window.location.hostname.replace(/^marketplace\./, '');
         const mainOrigin = `${window.location.protocol}//${mainDomain}${window.location.port ? ':' + window.location.port : ''}`;
@@ -95,7 +103,7 @@ export default function Login() {
 
       if (!user.otpVerified) {
         if (redirectUrl) {
-          localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
+          localStorage.setItem('postOnboardingRedirect', redirectUrl);
         } else if (invitationToken) {
           localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
         }
@@ -106,13 +114,13 @@ export default function Login() {
         if (invitationToken) {
           setLocation(`/invite/${invitationToken}`);
         } else if (redirectUrl) {
-          setLocation(decodeURIComponent(redirectUrl));
+          setLocation(redirectUrl);
         } else {
           setLocation("/dashboard");
         }
       } else {
         if (redirectUrl) {
-          localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
+          localStorage.setItem('postOnboardingRedirect', redirectUrl);
         } else if (invitationToken) {
           localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
         }

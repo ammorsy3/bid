@@ -13,6 +13,7 @@ import { emailInputProps } from "@/lib/form-validation";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { AlertCircle, Check, Eye, EyeOff, X } from "lucide-react";
 import { ClerkSocialButtons } from "@/components/ClerkSocialButtons";
+import { safeReturnTo, stashReturnTo } from "@/lib/return-to";
 import { OnboardingLeftPanelAnimation } from "@/components/OnboardingLeftPanelAnimation";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
 import { FullscreenLoader } from "@/components/ui/fullscreen-loader";
@@ -88,7 +89,13 @@ export default function Register() {
 
   const urlParams = new URLSearchParams(search);
   const invitationToken = urlParams.get('token');
-  const redirectUrl = urlParams.get('redirect');
+  const redirectUrl = safeReturnTo(urlParams.get('redirect'));
+
+  // Social sign-up leaves the site and returns with no query string, so park the
+  // destination where /auth/clerk-callback can find it.
+  useEffect(() => {
+    stashReturnTo(redirectUrl ?? (invitationToken ? `/invite/${encodeURIComponent(invitationToken)}` : null));
+  }, [redirectUrl, invitationToken]);
 
   const form = useForm<RegisterForm>({
     resolver: zodResolver(
@@ -144,12 +151,12 @@ export default function Register() {
     const { user, activeCompany } = useAuthStore.getState();
     if (user?.otpVerified) {
       if (activeCompany) {
-        setLocation("/dashboard");
+        setLocation(redirectUrl ?? "/dashboard");
       } else {
         setLocation("/onboarding");
       }
     }
-  }, [sessionConfirmed, setLocation]);
+  }, [sessionConfirmed, setLocation, redirectUrl]);
 
   const onSubmit = async (data: RegisterForm) => {
     setFormError(null);
@@ -162,7 +169,7 @@ export default function Register() {
         description: t('auth.registerSuccess'),
       });
       if (redirectUrl) {
-        localStorage.setItem('postOnboardingRedirect', decodeURIComponent(redirectUrl));
+        localStorage.setItem('postOnboardingRedirect', redirectUrl);
       } else if (invitationToken) {
         localStorage.setItem('postOnboardingRedirect', `/invite/${invitationToken}`);
       }

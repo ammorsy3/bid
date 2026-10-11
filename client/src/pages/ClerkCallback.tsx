@@ -11,6 +11,7 @@ import { attributionForSignup } from "@/lib/attribution";
 import { useForceLightMode } from "@/hooks/useForceLightMode";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { takeReturnTo } from "@/lib/return-to";
 
 // Translation keys, so the message follows the language even after it shows.
 type Failure = { title: string; description: string; noAccount?: boolean };
@@ -120,7 +121,12 @@ function ClerkCallbackInner() {
 
         // 4. Hard navigate — full page reload picks up the pre-written state
         markJustSignedIn();
-        const dest = data.activeCompany ? "/dashboard" : "/onboarding";
+        // Back to the page they started from (e.g. an invited tender). Someone who
+        // still has to set up an account goes through onboarding first, which
+        // picks postOnboardingRedirect up when it finishes.
+        const returnTo = takeReturnTo();
+        if (returnTo && !data.activeCompany) localStorage.setItem("postOnboardingRedirect", returnTo);
+        const dest = data.activeCompany ? (returnTo ?? "/dashboard") : "/onboarding";
         window.location.assign(dest);
       } catch (err: any) {
         console.error("[Clerk] Exchange failed:", err);

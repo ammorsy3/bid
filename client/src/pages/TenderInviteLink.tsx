@@ -19,6 +19,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import { formatSAREnglish } from "@/lib/format-currency";
 import { useI18n } from "@/lib/i18n";
+import { authUrlWithReturn } from "@/lib/return-to";
 import { isolateLtr, withLtrUrls } from "@/lib/bidi";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -517,11 +518,12 @@ export default function TenderInviteLink() {
     return () => observer.disconnect();
   }, [hasTender]);
 
-  // A logged-out visitor is sent to sign in or sign up. A new tab is kept when the browser allows
-  // it; some in-app browsers (WhatsApp, Instagram) block it, and then the same tab is used.
+  // A logged-out visitor is sent to sign in or sign up in this same tab (a new tab
+  // loses the way back, and in-app browsers like WhatsApp/Instagram block it). The
+  // invite's own address, including the emailed ?i= token, rides along as
+  // ?redirect=, so after signing in, or signing up and onboarding, they land back here.
   const openAuthPage = (path: '/login' | '/signup') => {
-    const opened = window.open(path, "_blank");
-    if (!opened) navigate(path);
+    navigate(authUrlWithReturn(path, `/invite/${tenderId}${window.location.search}`));
   };
 
   if (!tenderId) {
@@ -712,7 +714,6 @@ export default function TenderInviteLink() {
   const handleSubmitOffer = () => {
     if (!user) {
       toast({ title: t('tenderFlow.loginRequired'), description: t('tenderFlow.loginRequiredDesc') });
-      localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`);
       openAuthPage("/login");
       return;
     }
@@ -1265,7 +1266,7 @@ export default function TenderInviteLink() {
                                     size="sm"
                                     variant="outline"
                                     className="w-full sm:w-auto max-md:h-11"
-                                    onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); openAuthPage("/login"); }}
+                                    onClick={() => { openAuthPage("/login"); }}
                                   >
                                     {t('tenderFlow.logInToDownload')}
                                   </Button>
@@ -1752,7 +1753,7 @@ export default function TenderInviteLink() {
                                       <p className="text-sm text-muted-foreground">{t('tenderFlow.logInToListen')}</p>
                                     </div>
                                   </div>
-                                  <Button size="sm" className="max-sm:w-full max-md:h-11 bg-[#FE3C01] hover:bg-[#1A1613] text-white" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); openAuthPage("/login"); }} data-testid="button-login-voice">{t('tenderFlow.loginBtn')}</Button>
+                                  <Button size="sm" className="max-sm:w-full max-md:h-11 bg-[#FE3C01] hover:bg-[#1A1613] text-white" onClick={() => { openAuthPage("/login"); }} data-testid="button-login-voice">{t('tenderFlow.loginBtn')}</Button>
                                 </div>
                               )}
                             </div>
@@ -2032,7 +2033,7 @@ export default function TenderInviteLink() {
                     <Button
                       size="sm"
                       className="bg-[#FE3C01] hover:bg-[#1A1613] max-md:h-11"
-                      onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); openAuthPage("/login"); }}
+                      onClick={() => { openAuthPage("/login"); }}
                     >
                       {t('tenderFlow.loginToAskBtn')}
                     </Button>

@@ -7,16 +7,18 @@ P = "tests/mobile/states.json"
 d = json.load(open(P))
 d["states"] = [s for s in d["states"] if s["batch"] != "batch-7"]
 S = []
-def st(id_, page, title, route, ws="seet", kb=False, wait=2500, click=None):
+def st(id_, page, title, route, ws="seet", kb=False, wait=2500, click=None, fill=None):
     s = {"id": id_, "batch": "batch-7", "page": page, "title": title, "route": route, "keyboard": kb}
     if ws: s["workspace"] = ws
     acts = [{"wait": wait}]
     if click: acts += [{"click": click}, {"wait": 800}]
+    if fill: acts += [{"fill": fill}, {"wait": 2500}]
     s["actions"] = acts
     S.append(s)
 st("b7-settings-account", "settings-account", "Settings: account tab (Seet workspace)", "/settings")
 st("b7-settings-account-new", "settings-account", "Settings: account tab (empty default workspace)", "/settings", ws=None)
 st("b7-settings-account-keyboard", "settings-account", "Settings: account tab, first text box tapped, keyboard open", "/settings", kb=True)
+st("b7-settings-account-edit", "settings-account", "Settings: account tab, first name edited (auto-save should fire exactly once)", "/settings", fill=["#firstName", "Ahmed Test"])
 st("b7-settings-company", "settings-company", "Settings: company tab (Seet)", "/settings?tab=company")
 st("b7-settings-company-verify", "settings-company", "Settings: company tab, verification highlighted", "/settings?tab=company&highlight=verification")
 st("b7-settings-company-new", "settings-company", "Settings: company tab (empty default workspace)", "/settings?tab=company", ws=None)

@@ -624,10 +624,17 @@ export default function Settings() {
   // Auto-save personal info with debounce
   const autoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
   
+  // What the server already has (the values the page opened with, then whatever was last
+  // saved). Auto-save only fires when the fields differ from this, so just opening the
+  // page never writes anything or shows a "saved" toast.
+  const lastSavedPersonal = useRef(JSON.stringify([firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]));
+
   const autoSavePersonalInfo = useCallback(() => {
     if (autoSaveTimeout.current) {
       clearTimeout(autoSaveTimeout.current);
     }
+    const snapshot = JSON.stringify([firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]);
+    if (snapshot === lastSavedPersonal.current) return;
     autoSaveTimeout.current = setTimeout(() => {
       const fullName = `${firstName} ${lastName}`.trim();
       if (fullName) {
@@ -637,7 +644,7 @@ export default function Settings() {
           timezone: timezone || undefined,
           linkedinUrl: linkedinUrl || undefined,
           phoneNumber: phoneNumber || undefined,
-        });
+        }, { onSuccess: () => { lastSavedPersonal.current = snapshot; } });
       }
     }, 1000);
   }, [firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]);
@@ -660,17 +667,22 @@ export default function Settings() {
 
   const autoSaveCompanyTimeout = useRef<NodeJS.Timeout | null>(null);
   
+  // Same idea as lastSavedPersonal: only save the company info after a real edit.
+  const lastSavedCompany = useRef(JSON.stringify([companyDisplayName, companyBio]));
+
   const autoSaveCompanyInfo = useCallback(() => {
     if (!canManageCompany) return;
     if (autoSaveCompanyTimeout.current) {
       clearTimeout(autoSaveCompanyTimeout.current);
     }
+    const snapshot = JSON.stringify([companyDisplayName, companyBio]);
+    if (snapshot === lastSavedCompany.current) return;
     autoSaveCompanyTimeout.current = setTimeout(() => {
       if (companyDisplayName) {
         updateCompanyMutation.mutate({
           displayName: companyDisplayName,
           bio: companyBio,
-        });
+        }, { onSuccess: () => { lastSavedCompany.current = snapshot; } });
       }
     }, 1000);
   }, [companyDisplayName, companyBio, canManageCompany]);

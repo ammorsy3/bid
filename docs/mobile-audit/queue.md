@@ -71,9 +71,9 @@ Baseline (before fixes, 126 captures; commit in `.mobile-audit/batch-7/baseline-
 | Pages | Status | What to fix (known before the loop) |
 |---|---|---|
 | settings-account | fixed (1 round; 3-4 -> 0 phone fails; tab strip wraps with 44px tabs, email/phone/LinkedIn fields ltr + right keyboards, 44px pickers; I read the Arabic photo myself; decisions.md #38) | |
-| settings-company | in progress | overflow, email/ltr fields, verification highlight, member list |
-| settings-billing | todo | overflow (English), plan/invoice rows |
-| settings-notifications | todo | overflow, switch rows 44px |
+| settings-company | fixed (1 round; 3-7 -> 0 phone fails; CR/VAT/invite email fields ltr + right keyboards, Preview rows wrap with 44px links; desktop keeps 1 existing 'covered' fail on the verify state) | overflow, email/ltr fields, verification highlight, member list |
+| settings-billing | in progress | overflow (English), plan/invoice rows |
+| settings-notifications | in progress | overflow, switch rows 44px |
 | profile-editor | todo | 6 overflow fails on phones; company + individual editor, traction link editor, keyboard |
 | settings-integrations | todo | 0 phone fails, warnings only: tap sizes, English on Arabic page |
 

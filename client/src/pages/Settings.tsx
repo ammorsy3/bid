@@ -1591,7 +1591,8 @@ export default function Settings() {
                         <div key={index} className="flex items-center gap-3">
                           <div className="flex-1">
                             <Input
-                              type="email"
+                              {...emailInputProps}
+                              autoComplete="email"
                               placeholder={t('settings.inviteEmailPlaceholder')}
                               value={row.email}
                               onChange={(e) => {
@@ -1713,7 +1714,7 @@ export default function Settings() {
                         ? 'Customize how your team profile appears to clients when they review your proposals.'
                         : t('settings.companyProfilePageDesc')}
                     </p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <a href="/company/edit">
                         <Button style={{ background: '#FE3C01' }} className="text-white">
                           <Palette className="h-4 w-4 me-2" />
@@ -1725,7 +1726,7 @@ export default function Settings() {
                           href={`/company/${activeCompany.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          className="inline-flex items-center gap-1.5 min-h-11 text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <Eye className="h-4 w-4" />
                           {t('settings.preview')}
@@ -1750,7 +1751,7 @@ export default function Settings() {
                     <p className="text-sm text-muted-foreground">
                       {t('settings.myProfileDesc')}
                     </p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <a href="/company/edit">
                         <Button style={{ background: '#FE3C01' }} className="text-white">
                           <Palette className="h-4 w-4 me-2" />
@@ -1762,7 +1763,7 @@ export default function Settings() {
                           href={`/traction/${activeCompany.profile.tractionSlug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          className="inline-flex items-center gap-1.5 min-h-11 text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <Eye className="h-4 w-4" />
                           {t('settings.preview')}
@@ -1790,7 +1791,7 @@ export default function Settings() {
                     <p className="text-sm text-muted-foreground">
                       {t('dashboard.tractionPageDesc')}
                     </p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <a href={`/traction/${activeCompany.profile?.tractionSlug}/edit`}>
                         <Button style={{ background: '#FE3C01' }} className="text-white">
                           <Palette className="h-4 w-4 me-2" />
@@ -1801,7 +1802,7 @@ export default function Settings() {
                         href={`/traction/${activeCompany.profile?.tractionSlug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        className="inline-flex items-center gap-1.5 min-h-11 text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Eye className="h-4 w-4" />
                         {t('dashboard.tractionPreviewPage')}
@@ -1849,6 +1850,7 @@ export default function Settings() {
                           id="crNumber"
                           value={crNumber}
                           inputMode="numeric"
+                          dir="ltr"
                           maxLength={10}
                           onChange={(e) => setCrNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
                           placeholder={t('settings.crNumberFieldPlaceholder')}

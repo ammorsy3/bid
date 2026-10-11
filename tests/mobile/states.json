@@ -9913,6 +9913,210 @@
           ]
         }
       }
+    },
+    {
+      "id": "b7-settings-account",
+      "batch": "batch-7",
+      "page": "settings-account",
+      "title": "Settings: account tab (Seet workspace)",
+      "route": "/settings",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-account-new",
+      "batch": "batch-7",
+      "page": "settings-account",
+      "title": "Settings: account tab (empty default workspace)",
+      "route": "/settings",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-account-keyboard",
+      "batch": "batch-7",
+      "page": "settings-account",
+      "title": "Settings: account tab, first text box tapped, keyboard open",
+      "route": "/settings",
+      "keyboard": true,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-company",
+      "batch": "batch-7",
+      "page": "settings-company",
+      "title": "Settings: company tab (Seet)",
+      "route": "/settings?tab=company",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-company-verify",
+      "batch": "batch-7",
+      "page": "settings-company",
+      "title": "Settings: company tab, verification highlighted",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-company-new",
+      "batch": "batch-7",
+      "page": "settings-company",
+      "title": "Settings: company tab (empty default workspace)",
+      "route": "/settings?tab=company",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-billing",
+      "batch": "batch-7",
+      "page": "settings-billing",
+      "title": "Settings: billing tab (Seet)",
+      "route": "/settings?tab=billing",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-billing-new",
+      "batch": "batch-7",
+      "page": "settings-billing",
+      "title": "Settings: billing tab (empty default workspace)",
+      "route": "/settings?tab=billing",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-notifications",
+      "batch": "batch-7",
+      "page": "settings-notifications",
+      "title": "Settings: notifications tab (Seet)",
+      "route": "/settings?tab=notifications",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-notifications-new",
+      "batch": "batch-7",
+      "page": "settings-notifications",
+      "title": "Settings: notifications tab (empty default workspace)",
+      "route": "/settings?tab=notifications",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-integrations",
+      "batch": "batch-7",
+      "page": "settings-integrations",
+      "title": "Integrations page (Seet)",
+      "route": "/settings/integrations",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-integrations-new",
+      "batch": "batch-7",
+      "page": "settings-integrations",
+      "title": "Integrations page (empty default workspace)",
+      "route": "/settings/integrations",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-profile-editor",
+      "batch": "batch-7",
+      "page": "profile-editor",
+      "title": "Profile editor (Seet workspace)",
+      "route": "/company/edit",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-profile-editor-new",
+      "batch": "batch-7",
+      "page": "profile-editor",
+      "title": "Profile editor (empty default workspace)",
+      "route": "/company/edit",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-profile-editor-keyboard",
+      "batch": "batch-7",
+      "page": "profile-editor",
+      "title": "Profile editor, first text box tapped, keyboard open",
+      "route": "/company/edit",
+      "keyboard": true,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
     }
   ]
 }

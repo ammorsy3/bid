@@ -113,7 +113,7 @@ export function SettingsNotifications() {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em]">
+          <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em] rtl:tracking-normal">
             <Bell className="h-6 w-6" />
             {t("notifications.pageTitle")}
           </h1>
@@ -126,7 +126,7 @@ export function SettingsNotifications() {
   return (
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       <div>
-        <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em]">
+        <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em] rtl:tracking-normal">
           <Bell className="h-6 w-6" />
           {t("notifications.pageTitle")}
         </h1>
@@ -145,21 +145,22 @@ export function SettingsNotifications() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-display font-black text-base tracking-[-0.02em]">{t(`notifications.cat${cat.tKey}`)}</h3>
+                    <h3 className="font-display font-black text-base rtl:tracking-normal tracking-[-0.02em]">{t(`notifications.cat${cat.tKey}`)}</h3>
                     <p className="text-sm text-muted-foreground mt-1">{t(`notifications.cat${cat.tKey}Desc`)}</p>
                   </div>
                   {CHANNELS.map((ch) => {
                     const enabled = isEnabled(cat.id, ch.id);
                     return (
-                      <div key={ch.id} className="flex items-center gap-2 shrink-0 mt-1">
+                      <label key={ch.id} htmlFor={`notif-switch-${cat.id}-${ch.id}`} className="flex items-center gap-2 shrink-0 min-h-11 -my-2 cursor-pointer">
                         <span className="text-sm font-medium text-muted-foreground">{t(`notifications.${ch.tKey}`)}</span>
                         <Switch
+                          id={`notif-switch-${cat.id}-${ch.id}`}
                           checked={enabled}
                           disabled={!ch.available || mutation.isPending}
                           onCheckedChange={(v) => handleToggle(cat.id, ch.id, v)}
                           data-testid={`notif-toggle-${cat.id}-${ch.id}`}
                         />
-                      </div>
+                      </label>
                     );
                   })}
                 </div>

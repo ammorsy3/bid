@@ -42,6 +42,13 @@
   letter-spacing: normal;
 }
 
+/* Arabic needs more room between lines than English: the dots and marks above and
+   below the letters collide at the tight line heights (0.9-0.95) the big English
+   headings use. On Arabic pages any heading set that tight gets a comfortable one. */
+[dir="rtl"] :is([class*="leading-[0.8"], [class*="leading-[0.9"]) {
+  line-height: 1.35;
+}
+
 /* Say which colour scheme the page is really in. "only light" stops Samsung
    Internet and Chrome's "force dark" from repainting light pages (sign-in,
    onboarding, landing) on their own; the app's dark theme switches it via .dark. */

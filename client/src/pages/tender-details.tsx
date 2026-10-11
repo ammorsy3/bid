@@ -921,7 +921,7 @@ export default function TenderDetails() {
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">
                   {t('tenderFlow.rfpLabel')} · <span className="font-mono">RFP-{tender.id?.slice(0, 8).toUpperCase()}</span>
                 </p>
-                <h1 className="font-display font-black text-3xl sm:text-4xl text-foreground leading-[0.95] tracking-[-0.04em] mb-3" data-testid="text-tender-title">
+                <h1 className={`font-display font-black text-3xl sm:text-4xl text-foreground mb-3 ${/[\u0600-\u06FF]/.test(tender.title ?? "") ? "leading-[1.35]" : "leading-[0.95] tracking-[-0.04em]"}`} data-testid="text-tender-title">
                   {tender.title}
                 </h1>
                 <div className="flex items-center gap-3 text-muted-foreground text-sm">

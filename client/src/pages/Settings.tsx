@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/lib/auth";
+import { emailInputProps } from "@/lib/form-validation";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import JoinCodeCard from "@/components/JoinCodeCard";
@@ -1023,7 +1024,7 @@ export default function Settings() {
 
   return (
     <>
-    <div className={`min-h-screen bg-gray-50 dark:bg-background flex flex-col md:flex-row`}>
+    <div className={`min-h-dvh md:min-h-screen bg-gray-50 dark:bg-background flex flex-col md:flex-row`}>
       {/* Sidebar - horizontal scroll tab bar on mobile, vertical panel on desktop */}
       <div className={`w-full bg-white dark:bg-card flex flex-col md:w-64 ${isRtl ? 'border-b md:border-b-0 md:border-l' : 'border-b md:border-b-0 md:border-r'}`}>
         <div className="p-4 border-b">
@@ -1037,12 +1038,12 @@ export default function Settings() {
         </div>
 
         {/* Mobile: horizontal scrollable tab bar */}
-        <nav className="no-scrollbar flex md:hidden flex-row overflow-x-auto gap-1 px-2 py-2">
+        <nav className="flex md:hidden flex-row flex-wrap gap-1 px-2 py-2">
           {sidebarItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 min-h-11 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === item.id
                   ? 'bg-[#FE3C01]/10 text-[#FE3C01]'
                   : 'text-muted-foreground hover:bg-muted'
@@ -1065,7 +1066,7 @@ export default function Settings() {
           {isCompanyWorkspace && (
             <button
               onClick={() => setLocation("/settings/integrations")}
-              className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors"
+              className="flex-shrink-0 flex items-center gap-2 px-3 py-2 min-h-11 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors"
               data-testid="sidebar-integrations"
             >
               <Plug className="h-4 w-4 flex-shrink-0" />
@@ -1138,7 +1139,7 @@ export default function Settings() {
               {/* Profile Picture */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className={`flex items-center gap-6`}>
+                  <div className={`flex flex-wrap items-center gap-6`}>
                     <div className="relative">
                       {profilePicturePreview ? (
                         <img 
@@ -1221,6 +1222,8 @@ export default function Settings() {
                     <Input
                       id="email"
                       value={user.email}
+                      {...emailInputProps}
+                      autoComplete="email"
                       disabled
                       className="bg-muted"
                       data-testid="input-email"
@@ -1250,6 +1253,10 @@ export default function Settings() {
                       id="phoneNumber"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
+                      type="tel"
+                      inputMode="tel"
+                      dir="ltr"
+                      autoComplete="tel"
                       placeholder="+966 50 123 4567"
                       data-testid="input-phone"
                     />
@@ -1264,6 +1271,11 @@ export default function Settings() {
                       id="linkedinUrl"
                       value={linkedinUrl}
                       onChange={(e) => setLinkedinUrl(e.target.value)}
+                      type="url"
+                      inputMode="url"
+                      dir="ltr"
+                      autoCapitalize="none"
+                      spellCheck={false}
                       placeholder="e.g. https://linkedin.com/in/yourprofile"
                       data-testid="input-linkedin"
                     />
@@ -1275,7 +1287,7 @@ export default function Settings() {
                       {t('settings.timezoneHelper')}
                     </p>
                     <Select value={timezone} onValueChange={setTimezone}>
-                      <SelectTrigger data-testid="select-timezone">
+                      <SelectTrigger className="max-md:h-11" data-testid="select-timezone">
                         <SelectValue placeholder={t('settings.chooseTimezone')} />
                       </SelectTrigger>
                       <SelectContent>
@@ -1365,7 +1377,7 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    <div className={`flex items-start justify-between`}>
+                    <div className={`flex items-start justify-between gap-4`}>
                       <div className={isRtl ? 'text-right' : ''}>
                         <Label>{t('settings.language')}</Label>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -1373,7 +1385,7 @@ export default function Settings() {
                         </p>
                       </div>
                       <Select value={language} onValueChange={handleLanguageChange}>
-                        <SelectTrigger className="w-40" data-testid="select-language">
+                        <SelectTrigger className="w-40 max-md:h-11" data-testid="select-language">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

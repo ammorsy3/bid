@@ -270,3 +270,8 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     (e) Proposal comparison on phones is now stacked cards (desktop keeps the table). Amounts use Western digits; the "analysed at" date still uses Arabic digits.
     (f) Not photographed / needs a real iPhone: the award, discount and message dialogs, and the invite-by-email send.
 
+38. **Settings, account tab (batch 7, 2026-10-11).**
+    (a) Real bug, not layout, NOT fixed here (offered as a separate task): opening Settings as owner/admin auto-saves your profile and company info ~1s later even with no edit (PATCH /api/user/profile + /api/company/profile), and shows a "Company updated" toast every visit, which on phones covers the tab bar. Cause: the auto-save effects in Settings.tsx also run on first load.
+    (b) Email, phone and LinkedIn fields now read left-to-right on the Arabic page (desktop too), per the quality bar.
+    (c) Faint text, logged, NOT changed: "Back" pill 3.33:1, active tab name 3.58:1, avatar initials on #C96B7E 3.57:1.
+

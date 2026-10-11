@@ -70,8 +70,8 @@ Baseline (before fixes, 196 captures, commit in `.mobile-audit/batch-6/baseline-
 Baseline (before fixes, 126 captures; commit in `.mobile-audit/batch-7/baseline-commit.txt`): 414 fails; phones: page overflow on every settings tab and the profile editor, email/ltr fields on account + company tabs. Two passes: Seet states, then `-new` states with the default sign-in.
 | Pages | Status | What to fix (known before the loop) |
 |---|---|---|
-| settings-account | todo | overflow, email field zoom/ltr, keyboard state |
-| settings-company | todo | overflow, email/ltr fields, verification highlight, member list |
+| settings-account | fixed (1 round; 3-4 -> 0 phone fails; tab strip wraps with 44px tabs, email/phone/LinkedIn fields ltr + right keyboards, 44px pickers; I read the Arabic photo myself; decisions.md #38) | |
+| settings-company | in progress | overflow, email/ltr fields, verification highlight, member list |
 | settings-billing | todo | overflow (English), plan/invoice rows |
 | settings-notifications | todo | overflow, switch rows 44px |
 | profile-editor | todo | 6 overflow fails on phones; company + individual editor, traction link editor, keyboard |

@@ -57,7 +57,8 @@ function copyToClipboard(text: string) {
 export default function SettingsIntegrations() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const dateLocale = language === "ar" ? "ar-SA-u-nu-latn-ca-gregory" : "en-US";
   const user = useAuthStore((s) => s.user);
   const activeCompany = useAuthStore((s) => s.activeCompany);
   // API access is company-only: individuals and teams cannot create tenders,
@@ -161,7 +162,7 @@ export default function SettingsIntegrations() {
         <div>
           <BackPillButton
             onClick={() => setLocation("/settings")}
-            className="mb-3"
+            className="mb-3 max-md:h-11"
             data-testid="button-back-to-settings"
           />
           <h1 className="font-display font-black text-3xl tracking-[-0.04em]">{t('settings.intPageTitle')}</h1>
@@ -173,7 +174,7 @@ export default function SettingsIntegrations() {
           href="/docs"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-md border hover:bg-muted transition-colors"
+          className="inline-flex items-center justify-center gap-2 text-sm px-3 py-2 rounded-md border hover:bg-muted transition-colors max-md:min-h-11 max-sm:w-full"
           data-testid="link-api-docs"
         >
           <BookOpen size={14} />
@@ -184,7 +185,7 @@ export default function SettingsIntegrations() {
 
       {/* ============= API KEYS ============= */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <h2 className="font-display font-black text-xl flex items-center gap-2 tracking-[-0.02em]">
               <KeyRound size={18} />
@@ -194,7 +195,7 @@ export default function SettingsIntegrations() {
               {t('settings.intApiKeysDesc')}
             </p>
           </div>
-          <Button onClick={() => setCreateKeyOpen(true)} data-testid="button-create-api-key">
+          <Button className="w-full sm:w-auto" onClick={() => setCreateKeyOpen(true)} data-testid="button-create-api-key">
             <Plus size={16} className="me-1" />
             {t('settings.intCreateApiKey')}
           </Button>
@@ -204,7 +205,43 @@ export default function SettingsIntegrations() {
           {keysQuery.isLoading ? (
             <div className="p-6 text-sm text-muted-foreground">{t('settings.intLoading')}</div>
           ) : keysQuery.data && keysQuery.data.length > 0 ? (
-            <table className="w-full text-sm">
+            <>
+            <div className="md:hidden divide-y">
+              {keysQuery.data.map((k) => (
+                <div key={k.id} className="p-4 space-y-2" data-testid={`card-key-${k.id}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-medium break-words">{k.name}</div>
+                      <bdi dir="ltr" className="font-mono text-xs text-muted-foreground break-all">{k.prefix}…</bdi>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="max-md:h-11 max-md:w-11 shrink-0"
+                      aria-label={t('settings.intRevokeKeyAria')}
+                      onClick={() => {
+                        if (confirm(t('settings.intRevokeConfirm', { name: k.name }))) {
+                          revokeKeyMutation.mutate(k.id);
+                        }
+                      }}
+                      data-testid={`button-revoke-key-mobile-${k.id}`}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
+                  <div className="flex gap-1 flex-wrap">
+                    {k.scopes.map((s) => (
+                      <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+                    <span>{t('settings.intColCreated')}: {new Date(k.createdAt).toLocaleDateString(dateLocale)}</span>
+                    <span>{t('settings.intColLastUsed')}: {k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString(dateLocale) : "—"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <table className="w-full text-sm max-md:hidden">
               <thead className="bg-muted text-muted-foreground text-start">
                 <tr>
                   <th className="px-4 py-2 font-medium">{t('settings.intColName')}</th>
@@ -228,10 +265,10 @@ export default function SettingsIntegrations() {
                       </div>
                     </td>
                     <td className="px-4 py-2 text-muted-foreground">
-                      {new Date(k.createdAt).toLocaleDateString()}
+                      {new Date(k.createdAt).toLocaleDateString(dateLocale)}
                     </td>
                     <td className="px-4 py-2 text-muted-foreground">
-                      {k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString() : "—"}
+                      {k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString(dateLocale) : "—"}
                     </td>
                     <td className="px-4 py-2">
                       <Button
@@ -251,6 +288,7 @@ export default function SettingsIntegrations() {
                 ))}
               </tbody>
             </table>
+            </>
           ) : (
             <div className="p-6 text-sm text-muted-foreground text-center">
               {t('settings.intNoApiKeys')}
@@ -261,7 +299,7 @@ export default function SettingsIntegrations() {
 
       {/* ============= INTEGRATIONS ============= */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <h2 className="font-display font-black text-xl flex items-center gap-2 tracking-[-0.02em]">
               <Plug size={18} />
@@ -271,7 +309,7 @@ export default function SettingsIntegrations() {
               {t('settings.intSectionDesc')}
             </p>
           </div>
-          <Button onClick={() => setCreateIntegrationOpen(true)} data-testid="button-create-integration">
+          <Button className="w-full sm:w-auto" onClick={() => setCreateIntegrationOpen(true)} data-testid="button-create-integration">
             <Plus size={16} className="me-1" />
             {t('settings.intCreateIntegration')}
           </Button>
@@ -288,23 +326,24 @@ export default function SettingsIntegrations() {
                   : `${baseUrl}/mcp`;
               return (
                 <div key={i.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{i.name}</span>
+                  <div className="flex items-start justify-between gap-x-4 gap-y-2 flex-wrap">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium break-words">{i.name}</span>
                         <Badge variant={i.channel === "webhook" ? "default" : "outline"}>
                           {i.channel}
                         </Badge>
                         {!i.enabled && <Badge variant="destructive">{t('settings.intDisabledBadge')}</Badge>}
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {t('settings.intCreatedOn', { date: new Date(i.createdAt).toLocaleDateString() })}
+                        {t('settings.intCreatedOn', { date: new Date(i.createdAt).toLocaleDateString(dateLocale) })}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="sm"
+                        className="max-md:h-11"
                         onClick={() =>
                           toggleIntegrationMutation.mutate({ id: i.id, enabled: !i.enabled })
                         }
@@ -314,6 +353,8 @@ export default function SettingsIntegrations() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="max-md:h-11 max-md:w-11"
+                        aria-label={t('settings.intDeleteIntAria')}
                         onClick={() => {
                           if (confirm(t('settings.intDeleteConfirm', { name: i.name }))) {
                             deleteIntegrationMutation.mutate(i.id);
@@ -324,11 +365,13 @@ export default function SettingsIntegrations() {
                       </Button>
                     </div>
                   </div>
-                  <div className="bg-muted rounded px-3 py-2 text-xs font-mono flex items-center justify-between gap-2">
-                    <span className="truncate">{url}</span>
+                  <div className="bg-muted rounded ps-3 pe-1 py-1 text-xs font-mono flex items-center justify-between gap-2">
+                    <span dir="ltr" className="truncate min-w-0 text-start">{url}</span>
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="max-md:h-11 max-md:w-11 shrink-0"
+                      aria-label={t('settings.intCopyUrlAria')}
                       onClick={() => {
                         copyToClipboard(url);
                         toast({ title: t('settings.intUrlCopied') });
@@ -338,10 +381,10 @@ export default function SettingsIntegrations() {
                     </Button>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {t('settings.intUsageHintPre')} <code className="bg-muted px-1">X-Api-Key: bidc_live_…</code> {t('settings.intUsageHintPost')}
+                    {t('settings.intUsageHintPre')} <code dir="ltr" className="bg-muted px-1">X-Api-Key: bidc_live_…</code> {t('settings.intUsageHintPost')}
                     {i.channel === "webhook" && (
                       <>
-                        {" "}{t('settings.intWebhookBodyHintPre')} <code className="bg-muted px-1">{`{ conversationId, message }`}</code>.
+                        {" "}{t('settings.intWebhookBodyHintPre')} <code dir="ltr" className="bg-muted px-1">{`{ conversationId, message }`}</code>.
                       </>
                     )}
                   </div>
@@ -409,7 +452,7 @@ function IntegrationActivityPanel({ integrationId }: { integrationId: string }) 
   return (
     <div className="border-t pt-3">
       <button
-        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 max-md:min-h-11"
         onClick={() => setExpanded((v) => !v)}
       >
         {expanded ? t('settings.intHideActivity') : t('settings.intShowActivity')} {t('settings.intRecentActivity')}
@@ -652,11 +695,13 @@ function NewKeyDisplayDialog(props: {
           </div>
           <div>
             <Label>{t('settings.intRawKeyLabel')}</Label>
-            <div className="flex items-center gap-2 mt-1 bg-muted rounded px-3 py-2 font-mono text-xs break-all">
-              <span className="flex-1">{props.value.rawKey}</span>
+            <div className="flex items-center gap-2 mt-1 bg-muted rounded ps-3 pe-1 py-1 font-mono text-xs break-all">
+              <span dir="ltr" className="flex-1 min-w-0 text-start">{props.value.rawKey}</span>
               <Button
                 variant="ghost"
                 size="sm"
+                className="max-md:h-11 max-md:w-11 shrink-0"
+                aria-label={t('settings.intCopyKeyAria')}
                 onClick={() => copyToClipboard(props.value!.rawKey)}
               >
                 <Copy size={12} />

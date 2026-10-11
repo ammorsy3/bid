@@ -885,10 +885,10 @@ export default function CompanyProfileEditor() {
               <div className="min-w-0 flex items-center gap-2">
                 <button
                   onClick={handleBack}
-                  className="flex md:hidden items-center justify-center h-8 w-8 rounded-full hover:bg-muted transition-colors flex-shrink-0"
+                  className="flex md:hidden items-center justify-center h-11 w-11 -ms-2 rounded-full hover:bg-muted transition-colors flex-shrink-0"
                   aria-label={t('companyProfileEditor.backToSettings')}
                 >
-                  <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                  <ArrowLeft className="h-4 w-4 text-muted-foreground rtl:-scale-x-100" />
                 </button>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">
@@ -904,14 +904,15 @@ export default function CompanyProfileEditor() {
               </div>
               <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 <SaveStatus status={saveStatus} savedAgoLabel={savedAgoLabel} t={t} />
-                <Button variant="outline" size="sm" onClick={openPreview} className="h-9">
+                <Button variant="outline" size="sm" onClick={openPreview} className="h-11 min-w-11 md:h-9">
                   <Eye className="h-3.5 w-3.5 sm:me-1.5" />
                   <span className="hidden sm:inline">{t('companyProfileEditor.preview')}</span>
                 </Button>
               </div>
             </div>
-            {/* Mobile section nav */}
-            <nav className="no-scrollbar flex md:hidden overflow-x-auto gap-1 px-3 py-2 border-t border-border">
+          </div>
+            {/* Mobile section nav (scrolls with the page so the wrapped tabs don't eat the screen) */}
+            <nav className="flex md:hidden flex-wrap gap-1 px-3 py-2 border-b border-border bg-white dark:bg-background">
               {SECTIONS.map((s) => {
                 const Icon = s.icon;
                 const active = activeSection === s.id;
@@ -920,7 +921,7 @@ export default function CompanyProfileEditor() {
                     key={s.id}
                     onClick={() => changeSection(s.id)}
                     className={cn(
-                      "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap",
+                      "flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-medium transition-colors",
                       active
                         ? "bg-[#FE3C01]/10 text-[#FE3C01]"
                         : "text-muted-foreground hover:bg-muted"
@@ -932,7 +933,6 @@ export default function CompanyProfileEditor() {
                 );
               })}
             </nav>
-          </div>
 
           {/* Section content */}
           <div className="flex-1">
@@ -1752,6 +1752,7 @@ export default function CompanyProfileEditor() {
                     </CardHeader>
                     <CardContent>
                       <Input
+                        type="url" inputMode="url" dir="ltr" autoCapitalize="none"
                         value={editState.introVideoUrl}
                         onChange={(e) => setEditState(s => ({ ...s, introVideoUrl: e.target.value }))}
                         placeholder={t('companyProfileEditor.introVideoPlaceholder')}
@@ -1825,15 +1826,15 @@ export default function CompanyProfileEditor() {
                   <CardContent className="space-y-4">
                     <div>
                       <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-muted-foreground" /> {t('companyProfileEditor.website')}</Label>
-                      <Input value={editState.socialLinks.website} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, website: e.target.value } }))} placeholder={t('companyProfileEditor.websitePlaceholder')} />
+                      <Input type="url" inputMode="url" dir="ltr" autoCapitalize="none" value={editState.socialLinks.website} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, website: e.target.value } }))} placeholder={t('companyProfileEditor.websitePlaceholder')} />
                     </div>
                     <div>
                       <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Linkedin className="h-3.5 w-3.5 text-muted-foreground" /> {t('companyProfileEditor.linkedin')}</Label>
-                      <Input value={editState.socialLinks.linkedin} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, linkedin: e.target.value } }))} placeholder={t('companyProfileEditor.linkedinPlaceholder')} />
+                      <Input type="url" inputMode="url" dir="ltr" autoCapitalize="none" value={editState.socialLinks.linkedin} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, linkedin: e.target.value } }))} placeholder={t('companyProfileEditor.linkedinPlaceholder')} />
                     </div>
                     <div>
                       <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Twitter className="h-3.5 w-3.5 text-muted-foreground" /> {t('companyProfileEditor.xTwitter')}</Label>
-                      <Input value={editState.socialLinks.twitter} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, twitter: e.target.value } }))} placeholder={t('companyProfileEditor.twitterPlaceholder')} />
+                      <Input type="url" inputMode="url" dir="ltr" autoCapitalize="none" value={editState.socialLinks.twitter} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, twitter: e.target.value } }))} placeholder={t('companyProfileEditor.twitterPlaceholder')} />
                     </div>
                   </CardContent>
                 </Card>

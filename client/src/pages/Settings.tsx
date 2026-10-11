@@ -1139,8 +1139,8 @@ export default function Settings() {
               {/* Profile Picture */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className={`flex flex-wrap items-center gap-6`}>
-                    <div className="relative">
+                  <div className="flex items-center gap-4 sm:gap-6">
+                    <div className="relative shrink-0">
                       {profilePicturePreview ? (
                         <img 
                           src={profilePicturePreview} 
@@ -1158,7 +1158,7 @@ export default function Settings() {
                         </div>
                       )}
                     </div>
-                    <div className={isRtl ? 'text-right' : ''}>
+                    <div className={`min-w-0 flex-1 ${isRtl ? 'text-right' : ''}`}>
                       <input
                         ref={fileInputRef}
                         type="file"

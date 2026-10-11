@@ -72,10 +72,10 @@ Baseline (before fixes, 126 captures; commit in `.mobile-audit/batch-7/baseline-
 |---|---|---|
 | settings-account | fixed (1 round; 3-4 -> 0 phone fails; tab strip wraps with 44px tabs, email/phone/LinkedIn fields ltr + right keyboards, 44px pickers; I read the Arabic photo myself; decisions.md #38) | |
 | settings-company | fixed (1 round; 3-7 -> 0 phone fails; CR/VAT/invite email fields ltr + right keyboards, Preview rows wrap with 44px links; desktop keeps 1 existing 'covered' fail on the verify state) | overflow, email/ltr fields, verification highlight, member list |
-| settings-billing | in progress | overflow (English), plan/invoice rows |
-| settings-notifications | in progress | overflow, switch rows 44px |
-| profile-editor | todo | 6 overflow fails on phones; company + individual editor, traction link editor, keyboard |
-| settings-integrations | todo | 0 phone fails, warnings only: tap sizes, English on Arabic page |
+| settings-billing | fixed (1 round; 4 -> 0 phone fails; 44px buttons, invoice amounts read left-to-right) | overflow (English), plan/invoice rows |
+| settings-notifications | fixed (1 round; 3-4 -> 0 phone fails; whole switch row is a 44px tap) | overflow, switch rows 44px |
+| profile-editor | fixed (1 round; 6 -> 0 phone fails; tab strip wraps with 44px tabs; URL fields ltr; portfolio/certification rows and keyboard+save bar not opened by hand, see decisions) | 6 overflow fails on phones; company + individual editor, traction link editor, keyboard |
+| settings-integrations | fixed (1 round; 0 phone fails, warnings 12-15 -> 4-5, all contrast; API keys are cards on phones; Back pill arrow no longer overlaps the word in Arabic) | 0 phone fails, warnings only: tap sizes, English on Arabic page |
 
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |
@@ -86,7 +86,7 @@ Baseline (before fixes, 126 captures; commit in `.mobile-audit/batch-7/baseline-
 | 4 | Vendor side: tender page, submit offer, form fill | done (decisions.md #35) |
 | 5 | Tender wizard | done: all 12 steps fixed (32 states, 0 phone fails; see decisions.md #36); next: report to Ahmed |
 | 6 | Owner's tender tabs, proposal comparison, edit | done (decisions.md #37); next: report to Ahmed |
-| 7 | Settings, integrations, profile editors | in progress |
+| 7 | Settings, integrations, profile editors | done (decisions.md #38, #39); next: report to Ahmed |
 | 8 | Admin (first give AdminLayout a phone menu) | todo |
 | 9 | "Feels like an installed app" pass, scoped to the pages already fixed (batches 1, 2, 3) | done for now (see below); 2b/4-8 get their own pass once each has its base fix |
 

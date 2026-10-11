@@ -275,3 +275,11 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     (b) Email, phone and LinkedIn fields now read left-to-right on the Arabic page (desktop too), per the quality bar.
     (c) Faint text, logged, NOT changed: "Back" pill 3.33:1, active tab name 3.58:1, avatar initials on #C96B7E 3.57:1.
 
+39. **Settings tabs, integrations, profile editor (batch 7, 2026-10-11): questions.**
+    (a) Faint text, logged and NOT changed (colours rule): the "Back" pill 3.33:1, active tab names 3.43-3.58:1, avatar initials 2.31-3.57:1, "All changes saved" 3.02:1, white on the orange Create buttons 3.33:1. Want any darkened, as on the tender page?
+    (b) Real bug found earlier (#38a): Settings saves your profile and company info on open and shows "Company updated" on every visit. Offered as a separate task, not fixed.
+    (c) Fixed in a shared component: the Back pill's arrow overlapped the word "رجوع" in Arabic (settings, company editor, integrations).
+    (d) Four new Arabic aria-labels on the integrations page need a native-speaker look (listed in .mobile-audit/batch-7/pages/settings-integrations/result.md). The "Claude Desktop" brand name stays English in the Arabic intro.
+    (e) Not opened by hand: profile editor sections that need data (portfolio and certification rows, long-name chips, the sticky save bar with the keyboard open), the individual editor with real data, and the traction link editor. Worth a look on a real phone.
+    (f) The desktop company-verify state keeps 1 existing "covered" fail (a sticky element over a field in a full-page photo).
+

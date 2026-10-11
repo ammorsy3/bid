@@ -159,7 +159,7 @@ export function SettingsBilling() {
         <CardContent className="p-5 space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("billing.currentPlan")}</p>
+              <p className={`text-xs font-semibold text-muted-foreground ${isRtl ? "" : "uppercase tracking-wide"}`}>{t("billing.currentPlan")}</p>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <span className="font-display font-black text-2xl tracking-[-0.03em]" data-testid="billing-plan-name">
                   {live && sub ? planName(sub.plan) : t("billing.planFree")}
@@ -180,7 +180,7 @@ export function SettingsBilling() {
 
               <p className="text-sm text-muted-foreground mt-1" data-testid="billing-plan-note">
                 {live && sub && end && !cancelling && (
-                  <>{t("billing.renewsOn", { date: fmtDate(end) })} · {sar(priceWithVat(sub.plan, sub.term).total)} <span className="text-xs">({t("billing.inclVat")})</span></>
+                  <>{t("billing.renewsOn", { date: fmtDate(end) })} · <bdi dir="ltr">{sar(priceWithVat(sub.plan, sub.term).total)}</bdi> <span className="text-xs">({t("billing.inclVat")})</span></>
                 )}
                 {cancelling && end && t("billing.endsOn", { date: fmtDate(end) })}
                 {!live && sub && !paymentProblem && end && t("billing.endedOn", { date: fmtDate(end) })}
@@ -188,26 +188,26 @@ export function SettingsBilling() {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               {sub && (
-                <Button variant="ghost" size="sm" onClick={refreshStatus} disabled={refreshing} data-testid="billing-refresh">
+                <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={refreshStatus} disabled={refreshing} data-testid="billing-refresh">
                   <RefreshCw className={`h-4 w-4 me-1.5 ${refreshing ? "animate-spin" : ""}`} />
                   {t("billing.refresh")}
                 </Button>
               )}
               {sub && canManage && (
-                <Button variant="outline" size="sm" onClick={openPortal} disabled={portalLoading} data-testid="billing-manage">
+                <Button variant="outline" size="sm" className="min-h-11 sm:min-h-0" onClick={openPortal} disabled={portalLoading} data-testid="billing-manage">
                   {portalLoading ? <Loader2 className="h-4 w-4 me-1.5 animate-spin" /> : <ExternalLink className="h-4 w-4 me-1.5" />}
                   {t("billing.updateCard")}
                 </Button>
               )}
               {live && canManage && !cancelling && (
-                <Button variant="outline" size="sm" onClick={() => setConfirmCancel(true)} disabled={busy !== null} data-testid="billing-cancel">
+                <Button variant="outline" size="sm" className="min-h-11 sm:min-h-0" onClick={() => setConfirmCancel(true)} disabled={busy !== null} data-testid="billing-cancel">
                   {t("billing.cancelPlan")}
                 </Button>
               )}
               {cancelling && canManage && (
-                <Button size="sm" onClick={() => changeSubscription("resume")} disabled={busy !== null} data-testid="billing-resume">
+                <Button size="sm" className="min-h-11 sm:min-h-0" onClick={() => changeSubscription("resume")} disabled={busy !== null} data-testid="billing-resume">
                   {busy === "resume" && <Loader2 className="h-4 w-4 me-1.5 animate-spin" />}
                   {t("billing.resumePlan")}
                 </Button>
@@ -249,14 +249,14 @@ export function SettingsBilling() {
                     <div className="min-w-0">
                       <p className="font-medium">
                         {inv.createdAt ? fmtDate(inv.createdAt) : "—"}
-                        {inv.number != null && <span className="text-muted-foreground font-normal"> · #{inv.number}</span>}
+                        {inv.number != null && <span className="text-muted-foreground font-normal"> · <bdi dir="ltr">#{inv.number}</bdi></span>}
                       </p>
                       {inv.periodStart && inv.periodEnd && (
                         <p className="text-xs text-muted-foreground">{fmtDate(inv.periodStart)} – {fmtDate(inv.periodEnd)}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-3">
-                      {inv.total != null && <span className="font-semibold">{sar(Number(inv.total))}</span>}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      {inv.total != null && <bdi dir="ltr" className="font-semibold">{sar(Number(inv.total))}</bdi>}
                       <Badge variant={inv.status === "paid" ? "default" : "outline"} className={inv.status === "paid" ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-300" : ""}>
                         {t(`billing.invoice_${inv.status}`)}
                       </Badge>
@@ -265,7 +265,7 @@ export function SettingsBilling() {
                           href={inv.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[#FE3C01] hover:underline"
+                          className="inline-flex min-h-11 items-center gap-1 text-[#FE3C01] hover:underline sm:min-h-0"
                           data-testid={`invoice-link-${inv.id}`}
                         >
                           {t("billing.viewInvoice")}<ExternalLink className="h-3 w-3" />

@@ -1616,6 +1616,23 @@
       "batch": "batch-2b",
       "persona": "public-data",
       "keyboard": false,
+      "id": "company-load-error",
+      "page": "company-profile",
+      "title": "Company profile - server error (could not load)",
+      "route": "/company/nour-contracting",
+      "overrides": {
+        "GET /api/companies/by-slug/:slug/profile": {
+          "status": 500,
+          "json": {
+            "message": "x"
+          }
+        }
+      }
+    },
+    {
+      "batch": "batch-2b",
+      "persona": "public-data",
+      "keyboard": false,
       "id": "people-khalid",
       "page": "people-profile",
       "title": "Person profile - Arabic name",
@@ -9950,6 +9967,29 @@
       "keyboard": true,
       "workspace": "seet",
       "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b7-settings-account-edit",
+      "batch": "batch-7",
+      "page": "settings-account",
+      "title": "Settings: account tab, first name edited (auto-save should fire exactly once)",
+      "route": "/settings",
+      "keyboard": false,
+      "workspace": "seet",
+      "actions": [
+        {
+          "wait": 2500
+        },
+        {
+          "fill": [
+            "#firstName",
+            "Ahmed Test"
+          ]
+        },
         {
           "wait": 2500
         }

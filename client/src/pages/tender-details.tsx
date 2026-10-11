@@ -1042,11 +1042,11 @@ export default function TenderDetails() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_288px] gap-6">
 
-            {/* Main document column */}
-            <div className="min-w-0">
+            {/* Main document column. On phones (flex-col) the owner's offers are ordered right after the section strip when there are any, so they are not buried below the long description. */}
+            <div className="min-w-0 flex flex-col lg:block">
 
               {/* Table of Contents */}
-              <div className="bg-card rounded-xl border border-border shadow-sm mb-6 p-1.5">
+              <div className={`bg-card rounded-xl border border-border shadow-sm mb-6 p-1.5 ${isOwner && offers.length > 0 ? 'max-lg:order-1' : ''}`}>
                 <div className="flex flex-wrap sm:flex-nowrap gap-1 sm:overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                   {tocSections.map((section, idx) => {
                     const Icon = section.icon;
@@ -1071,7 +1071,7 @@ export default function TenderDetails() {
               </div>
 
               {/* Continuous Document */}
-              <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div className={`bg-card rounded-2xl border border-border shadow-sm overflow-hidden ${isOwner && offers.length > 0 ? 'max-lg:order-4 max-lg:mt-6' : ''}`}>
 
                 {/* § Project Scope */}
                 <div id="section-description" className="p-6 sm:p-8 scroll-mt-24">
@@ -1739,7 +1739,7 @@ export default function TenderDetails() {
 
               {/* Proposals (owner only) */}
               {isOwner && (
-                <div className="mt-6 bg-card rounded-2xl border border-border shadow-sm overflow-hidden" id="section-proposals" data-tour="offers-section">
+                <div className={`mt-6 bg-card rounded-2xl border border-border shadow-sm overflow-hidden ${offers.length > 0 ? 'max-lg:order-2 max-lg:mt-0' : ''}`} id="section-proposals" data-tour="offers-section">
                   <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-0 scroll-mt-24">
                     <div className="flex items-center justify-between mb-5">
                       <div className="flex items-center gap-3">
@@ -1990,7 +1990,7 @@ export default function TenderDetails() {
 
               {/* AI Proposal Comparison (owner only, when 2+ offers exist) */}
               {isOwner && offers.length >= 2 && (
-                <div className="mt-6" data-tour="proposal-comparison">
+                <div className="mt-6 max-lg:order-3" data-tour="proposal-comparison">
                   <ProposalComparison
                     tenderId={tender.id}
                     offers={offers}

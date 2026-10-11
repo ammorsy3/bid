@@ -283,3 +283,15 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     (e) Not opened by hand: profile editor sections that need data (portfolio and certification rows, long-name chips, the sticky save bar with the keyboard open), the individual editor with real data, and the traction link editor. Worth a look on a real phone.
     (f) The desktop company-verify state keeps 1 existing "covered" fail (a sticky element over a field in a full-page photo).
 
+40. **Ahmed's answers (2026-10-11) and what was done.**
+    - Faint small text (#5, #30, #35b, #36a, #37c, #39a): **leave as is.** Nothing changes.
+    - Arabic wording (#23, #31a, #32c, #33, #34e, #39d): no review list. Instead every Arabic phrase the audit added was matched to how the rest of the app already writes Arabic (42 of ~490 adjusted, see arabic-alignment.md).
+    - #34a (return to the invite after logging in) and #34c (same tab): **done.**
+    - #37a (offers higher up on phones): **done.** #37b (edit page follows the app language): **keep.**
+    - #31b (grid switch hidden on phones): **keep hidden**; the phone page still scrolls normally in one column.
+    - #32b ("couldn't load, try again" instead of "no such company"): **done.**
+    - #17 (a server hiccup signed people out): **fixed.** The server now answers 503, and the app only signs out on a really rejected login.
+    - Settings auto-saving when opened (#38a): **fixed.** It saves only after a real edit.
+    - #26 (broken vendor logo): cause found, **not changed yet.** One dev-database company ("BIDDDD", display name "Bid") has an old-style logo path that needs a login to load. Options: owner re-uploads the logo, or the stored value is cleared. Production not checked.
+    - Open, new: Arabic digits. Some screens show amounts and dates with Arabic digits (٩٨٫٧٦٥) and others with Western (98,765). The comparison cards now use Western; the offer cards above them on the owner page still use Arabic. Pick one for the whole app.
+

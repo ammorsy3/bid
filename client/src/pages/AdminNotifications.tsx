@@ -84,11 +84,11 @@ export default function AdminNotifications() {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 text-xs rounded-full"
+              className="h-11 sm:h-9 text-xs rounded-full"
               onClick={() => markAllRead.mutate()}
               disabled={markAllRead.isPending}
             >
-              <CheckCheck className="h-3.5 w-3.5 mr-1.5" />
+              <CheckCheck className="h-3.5 w-3.5 me-1.5" />
               {t("adminNotifications.markAllRead")}
             </Button>
           ) : undefined}
@@ -103,7 +103,7 @@ export default function AdminNotifications() {
             <button
               key={String(tab.key)}
               onClick={() => setUnreadOnly(tab.key)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+              className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 min-h-11 sm:min-h-0 text-xs font-medium transition-colors ${
                 unreadOnly === tab.key
                   ? "bg-[var(--bid-orange)] text-white"
                   : "bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
@@ -160,32 +160,32 @@ export default function AdminNotifications() {
                           {!n.isRead && (
                             <span className="h-2 w-2 rounded-full bg-[var(--bid-orange)] flex-shrink-0" />
                           )}
-                          <p className="text-sm font-semibold text-gray-900 dark:text-foreground truncate">
+                          <p dir="auto" className="text-sm font-semibold text-gray-900 dark:text-foreground break-words line-clamp-2 min-w-0">
                             {n.title}
                           </p>
                         </div>
                         {n.body && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                          <p dir="auto" className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed break-words">
                             {n.body}
                           </p>
                         )}
-                        <div className="flex items-center gap-3 mt-2">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-0 mt-1 sm:mt-2">
                           <span className="text-[11px] text-gray-400 dark:text-gray-500">{timeAgo}</span>
                           {n.link && (
                             <Link
                               href={n.link}
                               onClick={() => { if (!n.isRead) markRead.mutate(n.id); }}
-                              className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--bid-orange)] hover:underline"
+                              className="inline-flex items-center gap-1 min-h-11 sm:min-h-0 text-[11px] font-medium text-[var(--bid-orange)] hover:underline"
                             >
                               {t("adminNotifications.review")}
-                              <ArrowRight className="h-3 w-3" />
+                              <ArrowRight className="h-3 w-3 rtl:-scale-x-100" />
                             </Link>
                           )}
                           {!n.isRead && (
                             <button
                               onClick={() => markRead.mutate(n.id)}
                               disabled={markRead.isPending}
-                              className="text-[11px] font-medium text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                              className="min-h-11 sm:min-h-0 text-[11px] font-medium text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                             >
                               {t("adminNotifications.markRead")}
                             </button>

@@ -33,6 +33,7 @@ import type { UploadResult } from "@/components/ObjectUploader";
 import { SettingsNotifications } from "@/pages/SettingsNotifications";
 import { SettingsBilling } from "@/pages/SettingsBilling";
 import { displayRoleName } from "@/lib/roles";
+import { withViewTransition } from "@/lib/view-transition";
 
 const TIMEZONES = [
   { value: "Asia/Riyadh", label: "Riyadh (GMT+3)" },
@@ -1054,11 +1055,11 @@ export default function Settings() {
           {sidebarItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 min-h-11 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              onClick={() => withViewTransition(() => setActiveTab(item.id))}
+              className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 min-h-11 rounded-lg text-sm font-medium whitespace-nowrap transition-colors active:opacity-70 ${
                 activeTab === item.id
                   ? 'bg-[#FE3C01]/10 text-[#FE3C01]'
-                  : 'text-muted-foreground hover:bg-muted'
+                  : 'text-muted-foreground hover:bg-muted active:bg-accent'
               }`}
               data-testid={`sidebar-${item.id}`}
               data-tour={item.id === 'account' ? 'settings-account-tab' : item.id === 'company' ? 'settings-company-tab' : undefined}
@@ -1078,7 +1079,7 @@ export default function Settings() {
           {isCompanyWorkspace && (
             <button
               onClick={() => setLocation("/settings/integrations")}
-              className="flex-shrink-0 flex items-center gap-2 px-3 py-2 min-h-11 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors"
+              className="flex-shrink-0 flex items-center gap-2 px-3 py-2 min-h-11 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors active:opacity-70 active:bg-accent"
               data-testid="sidebar-integrations"
             >
               <Plug className="h-4 w-4 flex-shrink-0" />
@@ -1092,11 +1093,11 @@ export default function Settings() {
           {sidebarItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isRtl ? 'text-right' : 'text-start'} ${
+              onClick={() => withViewTransition(() => setActiveTab(item.id))}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors active:opacity-70 ${isRtl ? 'text-right' : 'text-start'} ${
                 activeTab === item.id
                   ? 'bg-[#FE3C01]/10 text-[#FE3C01]'
-                  : 'hover:bg-muted dark:hover:bg-gray-700'
+                  : 'hover:bg-muted dark:hover:bg-gray-700 active:bg-accent'
               }`}
               data-testid={`sidebar-${item.id}`}
               data-tour={item.id === 'account' ? 'settings-account-tab' : item.id === 'company' ? 'settings-company-tab' : undefined}
@@ -1124,7 +1125,7 @@ export default function Settings() {
             <div className="mt-4 pt-4 border-t border-border dark:border-border">
               <button
                 onClick={() => setLocation("/settings/integrations")}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 ${isRtl ? 'text-right' : 'text-start'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 active:opacity-70 active:bg-accent ${isRtl ? 'text-right' : 'text-start'}`}
                 data-testid="sidebar-integrations"
               >
                 <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
@@ -1330,10 +1331,10 @@ export default function Settings() {
                       <div className="flex gap-3">
                         <button
                           onClick={() => setTheme("light")}
-                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
+                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all active:scale-[0.97] active:opacity-80 ${
                             theme === "light" 
                               ? "ring-2 ring-[#FE3C01]" 
-                              : "hover:bg-muted dark:hover:bg-gray-700"
+                              : "hover:bg-muted dark:hover:bg-gray-700 active:bg-accent"
                           }`}
                           data-testid="theme-light"
                         >
@@ -1349,10 +1350,10 @@ export default function Settings() {
                         </button>
                         <button
                           onClick={() => setTheme("dark")}
-                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
+                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all active:scale-[0.97] active:opacity-80 ${
                             theme === "dark" 
                               ? "ring-2 ring-[#FE3C01]" 
-                              : "hover:bg-muted dark:hover:bg-gray-700"
+                              : "hover:bg-muted dark:hover:bg-gray-700 active:bg-accent"
                           }`}
                           data-testid="theme-dark"
                         >
@@ -1368,10 +1369,10 @@ export default function Settings() {
                         </button>
                         <button
                           onClick={() => setTheme("system")}
-                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
+                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all active:scale-[0.97] active:opacity-80 ${
                             theme === "system" 
                               ? "ring-2 ring-[#FE3C01]" 
-                              : "hover:bg-muted dark:hover:bg-gray-700"
+                              : "hover:bg-muted dark:hover:bg-gray-700 active:bg-accent"
                           }`}
                           data-testid="theme-system"
                         >
@@ -1641,7 +1642,7 @@ export default function Settings() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => setInviteRows(inviteRows.filter((_, i) => i !== index))}
+                              onClick={() => withViewTransition(() => setInviteRows(inviteRows.filter((_, i) => i !== index)))}
                               className="text-muted-foreground hover:text-red-500"
                               data-testid={`button-remove-invite-${index}`}
                             >
@@ -1657,7 +1658,7 @@ export default function Settings() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setInviteRows([...inviteRows, { email: '', role: 'member' }])}
+                        onClick={() => withViewTransition(() => setInviteRows([...inviteRows, { email: '', role: 'member' }]))}
                         data-testid="button-add-invite-row"
                       >
                         <UserPlus className="h-4 w-4 me-2" />

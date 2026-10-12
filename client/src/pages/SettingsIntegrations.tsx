@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { withViewTransition } from "@/lib/view-transition";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -203,7 +205,17 @@ export default function SettingsIntegrations() {
 
         <div className="border rounded-lg overflow-hidden">
           {keysQuery.isLoading ? (
-            <div className="p-6 text-sm text-muted-foreground">{t('settings.intLoading')}</div>
+            <div className="divide-y" data-testid="skeleton-api-keys" role="status" aria-label={t('settings.intLoading')}>
+              {[0, 1].map((i) => (
+                <div key={i} className="p-4 flex items-start justify-between gap-3">
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                  <Skeleton className="h-9 w-9 rounded-md shrink-0" />
+                </div>
+              ))}
+            </div>
           ) : keysQuery.data && keysQuery.data.length > 0 ? (
             <>
             <div className="md:hidden divide-y">
@@ -317,7 +329,18 @@ export default function SettingsIntegrations() {
 
         <div className="space-y-3">
           {integrationsQuery.isLoading ? (
-            <div className="p-6 text-sm text-muted-foreground border rounded-lg">{t('settings.intLoading')}</div>
+            <div className="space-y-3" data-testid="skeleton-integrations" role="status" aria-label={t('settings.intLoading')}>
+              {[0, 1].map((i) => (
+                <div key={i} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-36" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                  <Skeleton className="h-3 w-3/4" />
+                  <Skeleton className="h-8 w-full rounded-md" />
+                </div>
+              ))}
+            </div>
           ) : integrationsQuery.data && integrationsQuery.data.length > 0 ? (
             integrationsQuery.data.map((i) => {
               const url =
@@ -452,15 +475,19 @@ function IntegrationActivityPanel({ integrationId }: { integrationId: string }) 
   return (
     <div className="border-t pt-3">
       <button
-        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 max-md:min-h-11"
-        onClick={() => setExpanded((v) => !v)}
+        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 max-md:min-h-11 active:opacity-70"
+        onClick={() => withViewTransition(() => setExpanded((v) => !v))}
       >
         {expanded ? t('settings.intHideActivity') : t('settings.intShowActivity')} {t('settings.intRecentActivity')}
       </button>
       {expanded && (
         <div className="mt-2 space-y-1 max-h-64 overflow-y-auto">
           {logsQuery.isLoading ? (
-            <div className="text-xs text-muted-foreground">{t('settings.intLoading')}</div>
+            <div className="space-y-1.5" role="status" aria-label={t('settings.intLoading')}>
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-full" />
+              <Skeleton className="h-5 w-2/3" />
+            </div>
           ) : logsQuery.data && logsQuery.data.length > 0 ? (
             logsQuery.data.map((log) => (
               <div key={log.id} className="text-xs flex items-center gap-2 py-1 border-b last:border-b-0">

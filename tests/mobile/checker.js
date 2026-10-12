@@ -260,13 +260,21 @@
       const r = el.getBoundingClientRect();
       if (!inView({ top: r.top + r.height / 2, left: r.left + r.width / 2, bottom: r.top + r.height / 2, right: r.left + r.width / 2 })) return;
       if (dialogs.length && !dialogs.some((d) => d.contains(el))) return;
+      // Scrolled out of view inside its own scrolling box (a long checklist in a card): not covered, just not shown yet.
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+        const ns = getComputedStyle(n);
+        if (!["auto", "scroll", "hidden", "clip"].includes(ns.overflowY)) continue;
+        const nr = n.getBoundingClientRect();
+        if (cy < nr.top || cy > nr.bottom || cx < nr.left || cx > nr.right) return;
+      }
       const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       if (!hit || hit === el || el.contains(hit) || hit.contains(el)) return;
       if (hit.tagName === "LABEL" && (hit.control === el || hit.contains(el))) return;
       // A sticky bar passing over a control is only a defect if the page can't be
       // scrolled far enough to clear it (content at the very end hidden under the bar).
-      const bar = (() => { for (let n = hit; n && n !== document.body; n = n.parentElement) if (getComputedStyle(n).position === "fixed") return n; return null; })();
-      if (bar && !bar.contains(el)) {
+      const bar = (() => { for (let n = hit; n && n !== document.body; n = n.parentElement) { const pos = getComputedStyle(n).position; if (pos === "fixed" || pos === "sticky") return n; } return null; })();
+      if (bar && !bar.contains(el) && bar.getBoundingClientRect().top > vh / 2) {
         const docEnd = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
         const spaceBelow = docEnd - (window.scrollY + r.bottom);
         if (spaceBelow >= bar.getBoundingClientRect().height) return;

@@ -176,6 +176,15 @@ export default function TenderEditPage() {
   const { language, t } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
 
+  // The Save bar sticks to the bottom of the screen on desktop: leave room for it,
+  // so tabbing into a field scrolls the field clear of the bar instead of under it.
+  useEffect(() => {
+    const root = document.documentElement;
+    const prev = root.style.scrollPaddingBottom;
+    root.style.scrollPaddingBottom = '7rem';
+    return () => { root.style.scrollPaddingBottom = prev; };
+  }, []);
+
   // Editing a tender is a buyer action. The server already rejects it — it
   // checks tender ownership and individuals/teams own no tenders — but without
   // this the page still renders the whole edit form and only fails on save,

@@ -10157,6 +10157,149 @@
           "wait": 2500
         }
       ]
+    },
+    {
+      "id": "b8-dashboard",
+      "batch": "batch-8",
+      "page": "admin-dashboard",
+      "title": "Admin: dashboard",
+      "route": "/admin/dashboard",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-notifications",
+      "batch": "batch-8",
+      "page": "admin-notifications",
+      "title": "Admin: notifications",
+      "route": "/admin/notifications",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-vendors",
+      "batch": "batch-8",
+      "page": "admin-vendors",
+      "title": "Admin: company verification",
+      "route": "/admin/vendors",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-marketplace",
+      "batch": "batch-8",
+      "page": "admin-marketplace",
+      "title": "Admin: marketplace approvals",
+      "route": "/admin/marketplace",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-awards",
+      "batch": "batch-8",
+      "page": "admin-awards",
+      "title": "Admin: blocked awards",
+      "route": "/admin/awards",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-join-requests",
+      "batch": "batch-8",
+      "page": "admin-join-requests",
+      "title": "Admin: join requests",
+      "route": "/admin/join-requests",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-campaigns",
+      "batch": "batch-8",
+      "page": "admin-campaigns",
+      "title": "Admin: campaigns",
+      "route": "/admin/campaigns",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-checkouts",
+      "batch": "batch-8",
+      "page": "admin-checkouts",
+      "title": "Admin: checkouts",
+      "route": "/admin/checkouts",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-users",
+      "batch": "batch-8",
+      "page": "admin-users",
+      "title": "Admin: user management",
+      "route": "/admin/users",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-audit-logs",
+      "batch": "batch-8",
+      "page": "admin-audit-logs",
+      "title": "Admin: audit logs",
+      "route": "/admin/audit-logs",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b8-errors",
+      "batch": "batch-8",
+      "page": "admin-errors",
+      "title": "Admin: error logs",
+      "route": "/admin/errors",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
     }
   ]
 }

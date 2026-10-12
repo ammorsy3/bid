@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { emailInputProps } from "@/lib/form-validation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -107,7 +108,7 @@ export default function AdminUsers() {
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              className={`inline-flex items-center gap-2 px-4 py-2.5 max-md:min-h-11 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 tab === key
                   ? "border-[var(--bid-orange)] text-[var(--bid-orange)]"
                   : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
@@ -147,16 +148,20 @@ function UsersTab({ users, isLoading, searchQuery, setSearchQuery, promoteMutati
   promoteMutation: any;
   t: (k: string, vars?: Record<string, string | number>) => string;
 }) {
+  const [visibleCount, setVisibleCount] = useState(10);
   return (
     <>
       <div className="mb-6">
         <div className="relative max-w-md">
+          {/* The field is left-to-right (emails), so its icon stays on the left in both languages */}
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
+            {...emailInputProps}
+            autoComplete="email"
             placeholder={t('admin.searchUsersPlaceholder')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="ps-9"
+            onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(10); }}
+            className="pl-9"
           />
         </div>
       </div>
@@ -186,15 +191,15 @@ function UsersTab({ users, isLoading, searchQuery, setSearchQuery, promoteMutati
             </div>
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-gray-800">
-              {users.map((user) => (
-                <div key={user.id} className="flex items-center justify-between py-3 gap-4">
+              {users.map((user, index) => (
+                <div key={user.id} className={`${index >= visibleCount ? "max-md:hidden " : ""}flex flex-col items-stretch sm:flex-row sm:items-center sm:justify-between py-3 gap-3 sm:gap-4`}>
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="h-9 w-9 rounded-full bg-gray-100 dark:bg-card flex items-center justify-center text-sm font-semibold text-muted-foreground dark:text-muted-foreground flex-shrink-0">
                       {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.username.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">{user.name || user.username}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-medium text-gray-900 dark:text-foreground break-words sm:truncate">{user.name || user.username}</p>
                         {user.isAdmin && (
                           <Badge className="bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[10px] px-1.5 py-0">
                             <Crown className="h-2.5 w-2.5 me-0.5" />
@@ -202,19 +207,21 @@ function UsersTab({ users, isLoading, searchQuery, setSearchQuery, promoteMutati
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {user.email} &middot; {t('admin.joinedOn', { date: format(new Date(user.createdAt), 'PP') })}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 break-all sm:break-normal sm:truncate">
+                        <bdi dir="ltr">{user.email}</bdi>
+                        <span className="hidden sm:inline"> &middot; </span>
+                        <span className="block sm:inline">{t('admin.joinedOn', { date: format(new Date(user.createdAt), 'PP') })}</span>
                       </p>
                     </div>
                   </div>
-                  <div className="flex-shrink-0">
+                  <div className="sm:flex-shrink-0">
                     {user.isAdmin ? (
                       <span className="text-xs text-gray-400 dark:text-gray-500">{t('admin.platformAdmin')}</span>
                     ) : (
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 text-xs"
+                        className="h-11 max-md:h-11 md:h-8 w-full sm:w-auto text-xs"
                         onClick={() => promoteMutation.mutate(user.id)}
                         disabled={promoteMutation.isPending}
                       >
@@ -225,6 +232,17 @@ function UsersTab({ users, isLoading, searchQuery, setSearchQuery, promoteMutati
                   </div>
                 </div>
               ))}
+              {users.length > visibleCount && (
+                <div className="pt-3 md:hidden">
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 sm:w-auto"
+                    onClick={() => setVisibleCount((c) => c + 10)}
+                  >
+                    {t('admin.showMoreLeft', { count: users.length - visibleCount })}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>

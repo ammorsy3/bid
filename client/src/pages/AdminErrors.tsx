@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ type SourceFilter = "all" | "server" | "client";
 export default function AdminErrors() {
   const { t, language } = useI18n();
   const [filter, setFilter] = useState<SourceFilter>("all");
+  const [visibleCount, setVisibleCount] = useState(10);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const { data: errors, isLoading } = useQuery<ErrorLog[]>({
@@ -83,12 +85,12 @@ export default function AdminErrors() {
 
         {/* Source filter */}
         {!isLoading && counts.all > 0 && (
-          <div className="flex items-center gap-2 mb-5">
+          <div className="flex items-center gap-2 mb-5 flex-wrap">
             {filterTabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                onClick={() => { setFilter(tab.key); setVisibleCount(10); }}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 max-md:min-h-11 text-xs font-medium transition-colors ${
                   filter === tab.key
                     ? "bg-[var(--bid-orange)] text-white"
                     : "bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
@@ -109,12 +111,12 @@ export default function AdminErrors() {
           <AdminEmpty icon={Bug} title={t("adminErrors.noErrors")} subtitle={t("adminErrors.runningSmoothly")} tone="positive" />
         ) : (
           <div className="space-y-3">
-            {filtered.map((error) => {
+            {filtered.map((error, index) => {
               const isServer = error.source === "server";
               const isOpen = !!expanded[error.id];
               const hasDetails = !!(error.stack || error.userAgent || error.userId);
               return (
-                <div key={error.id} className="rounded-2xl border border-[#FE3C01]/10 dark:border-border bg-white dark:bg-card">
+                <div key={error.id} className={`${index >= visibleCount ? "max-md:hidden " : ""}min-w-0 overflow-hidden rounded-2xl border border-[#FE3C01]/10 dark:border-border bg-white dark:bg-card`}>
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <AlertTriangle className={`h-4 w-4 flex-shrink-0 ${severityOf(error.statusCode) === "critical" ? "text-red-500" : severityOf(error.statusCode) === "warning" ? "text-amber-500" : "text-gray-400"}`} />
@@ -134,14 +136,14 @@ export default function AdminErrors() {
 
                       {/* Method + path */}
                       {(error.method || error.path) && (
-                        <span className="text-xs font-mono text-gray-600 dark:text-gray-400 truncate max-w-[340px]">
+                        <span className="text-xs font-mono text-gray-600 dark:text-gray-400 break-all sm:truncate max-w-full sm:max-w-[340px]" dir="ltr">
                           {error.method && <span className="font-semibold text-gray-800 dark:text-gray-200">{error.method}</span>}
                           {error.method && error.path ? " " : ""}
                           {error.path}
                         </span>
                       )}
 
-                      <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">
+                      <span className="text-xs text-gray-400 dark:text-gray-500 ms-auto">
                         {(() => {
                           const d = new Date(error.createdAt ?? "");
                           return isValid(d) ? format(d, "PPpp", { locale: language === "ar" ? ar : enUS }) : "—";
@@ -158,7 +160,7 @@ export default function AdminErrors() {
                     <CardContent className="pt-0">
                       <button
                         onClick={() => toggle(error.id)}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors mb-2"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors mb-2 max-md:min-h-11"
                       >
                         {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                         {isOpen ? t("adminErrors.hideDetails") : t("adminErrors.showDetails")}
@@ -169,12 +171,12 @@ export default function AdminErrors() {
                           {error.userId && (
                             <p className="text-xs text-gray-500 dark:text-gray-400">
                               <span className="font-semibold">{t("adminErrors.user")}:</span>{" "}
-                              <span className="font-mono">{error.userId}</span>
+                              <span className="font-mono break-all" dir="ltr">{error.userId}</span>
                             </p>
                           )}
                           {error.userAgent && (
                             <p className="text-xs text-gray-500 dark:text-gray-400 break-all">
-                              <span className="font-semibold">{t("adminErrors.userAgent")}:</span> {error.userAgent}
+                              <span className="font-semibold">{t("adminErrors.userAgent")}:</span> <bdi dir="ltr">{error.userAgent}</bdi>
                             </p>
                           )}
                           {error.stack && (
@@ -182,7 +184,7 @@ export default function AdminErrors() {
                               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
                                 {t("adminErrors.stackTrace")}
                               </p>
-                              <pre className="bg-gray-50 dark:bg-card p-3 rounded-lg overflow-auto max-h-56 text-[11px] text-gray-600 dark:text-gray-400 border border-border dark:border-border">
+                              <pre dir="ltr" className="text-left bg-gray-50 dark:bg-card p-3 rounded-lg overflow-auto max-h-56 text-[11px] text-gray-600 dark:text-gray-400 border border-border dark:border-border">
                                 {error.stack}
                               </pre>
                             </div>
@@ -194,6 +196,15 @@ export default function AdminErrors() {
                 </div>
               );
             })}
+            {filtered.length > visibleCount && (
+              <Button
+                variant="outline"
+                className="w-full h-11 md:hidden"
+                onClick={() => setVisibleCount((c) => c + 10)}
+              >
+                {t("admin.showMoreLeft", { count: filtered.length - visibleCount })}
+              </Button>
+            )}
           </div>
         )}
       </AdminPage>

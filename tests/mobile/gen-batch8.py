@@ -23,6 +23,9 @@ S = []
 for slug, page, title in PAGES:
     S.append({"id": f"b8-{slug}", "batch": "batch-8", "page": page, "title": title,
               "route": f"/admin/{slug}", "keyboard": False, "actions": [{"wait": 3000}]})
+S.append({"id": "b8-shell-drawer", "batch": "batch-8", "page": "admin-shell", "title": "Admin: menu drawer open",
+          "route": "/admin/dashboard", "keyboard": False, "expectDialog": True, "skipProjects": ["desktop"],
+          "actions": [{"wait": 3000}, {"click": "[data-testid=button-admin-menu]"}, {"wait": 800}]})
 d["states"] += S
 json.dump(d, open(P, "w"), ensure_ascii=False, indent=2)
 print(len(S), "states")

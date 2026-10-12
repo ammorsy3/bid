@@ -10300,6 +10300,29 @@
           "wait": 3000
         }
       ]
+    },
+    {
+      "id": "b8-shell-drawer",
+      "batch": "batch-8",
+      "page": "admin-shell",
+      "title": "Admin: menu drawer open",
+      "route": "/admin/dashboard",
+      "keyboard": false,
+      "expectDialog": true,
+      "skipProjects": [
+        "desktop"
+      ],
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid=button-admin-menu]"
+        },
+        {
+          "wait": 800
+        }
+      ]
     }
   ]
 }

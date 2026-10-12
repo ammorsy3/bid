@@ -2410,6 +2410,7 @@ const translations = {
       // AdminLayout
       backToDashboard: "Back to Dashboard",
       adminPanel: "Admin Panel",
+      openMenu: "Open menu",
       platformManagement: "Platform management",
       navOverview: "Overview",
       navOperations: "Operations",
@@ -6996,6 +6997,7 @@ const translations = {
       // AdminLayout
       backToDashboard: "العودة إلى لوحة التحكم",
       adminPanel: "لوحة المشرف",
+      openMenu: "فتح القائمة",
       platformManagement: "إدارة المنصة",
       navOverview: "نظرة عامة",
       navOperations: "العمليات",

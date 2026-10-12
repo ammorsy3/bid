@@ -81,12 +81,12 @@ Baseline (before fixes, 126 captures; commit in `.mobile-audit/batch-7/baseline-
 Baseline (before fixes, 154 captures; commit in `.mobile-audit/batch-8/baseline-commit.txt`): 526 fails. Every page has "covered" fails (the fixed 272px sidebar sits over the content on phones); dashboard, users, vendors, notifications also overflow; users has icon-over-text and email/ltr field fails.
 | Pages | Status | What to fix (known before the loop) |
 |---|---|---|
-| admin-shell (AdminLayout.tsx, AdminUI.tsx) | in progress | Phone top bar + menu drawer (the layout is a fixed 272px sidebar), RTL mirroring, 44px rows, scroll on the page not a h-screen box, shared page header/table helpers. |
-| admin-dashboard, admin-notifications | todo | overflow, not-settled |
-| admin-vendors, admin-marketplace, admin-awards | todo | tables to cards on phones, text-clipped, filters |
-| admin-join-requests, admin-campaigns, admin-checkouts | todo | |
-| admin-users | todo | overflow, icon-over-text, email/ltr fields |
-| admin-audit-logs, admin-errors | todo | very long rows (errors has 438 warnings) |
+| admin-shell (AdminLayout.tsx) | fixed (shell 'covered' fails -> 0 on every phone state and desktop; sticky top bar + start-side menu drawer, document scroll on phones; new Arabic: فتح القائمة) | Phone top bar + menu drawer (the layout is a fixed 272px sidebar), RTL mirroring, 44px rows, scroll on the page not a h-screen box, shared page header/table helpers. |
+| admin-dashboard, admin-notifications | in progress | overflow, not-settled |
+| admin-vendors, admin-marketplace, admin-awards | in progress | tables to cards on phones, text-clipped, filters |
+| admin-join-requests, admin-campaigns, admin-checkouts | in progress | |
+| admin-users | in progress | overflow, icon-over-text, email/ltr fields |
+| admin-audit-logs, admin-errors | in progress | very long rows (errors has 438 warnings) |
 
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |

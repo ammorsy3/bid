@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { TourBanner } from "@/lib/tour";
 import { TOUR_BANNERS } from "@/lib/tour-steps";
+import { withViewTransition } from "@/lib/view-transition";
 
 type SubmissionType = "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video";
 type InquiryType = "inside_bid" | "email_whatsapp";
@@ -398,13 +399,13 @@ export default function TenderSubmissionProcessStep() {
                       <button
                         key={option.type}
                         type="button"
-                        onClick={() => {
+                        onClick={() => withViewTransition(() => {
                           setSubmissionType(option.type);
                           if (option.type !== "tech_fin_with_video") {
                             setVideoRequired(false);
                           }
-                        }}
-                        className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all text-start ${
+                        })}
+                        className={`active:scale-[0.98] flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all text-start ${
                           isSelected
                             ? "border-[#FE3C01] bg-[#FE3C01]/5"
                             : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"
@@ -458,7 +459,7 @@ export default function TenderSubmissionProcessStep() {
                       <button
                         type="button"
                         onClick={() => setVideoRequired(!videoRequired)}
-                        className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors after:absolute after:-inset-2.5 after:content-[''] md:after:hidden ${
+                        className={`active:opacity-70 relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors after:absolute after:-inset-2.5 after:content-[''] md:after:hidden ${
                           videoRequired ? "bg-[#FE3C01]" : "bg-gray-300 dark:bg-gray-600"
                         }`}
                         data-testid="toggle-video-required"
@@ -496,7 +497,7 @@ export default function TenderSubmissionProcessStep() {
                             onClick={() => {
                               setInquiryType(option.type);
                             }}
-                            className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all text-start ${
+                            className={`active:scale-[0.98] flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all text-start ${
                               isSelected
                                 ? "border-[#FE3C01] bg-[#FE3C01]/5"
                                 : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"

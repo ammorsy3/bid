@@ -158,7 +158,7 @@ export default function TenderScopeStep() {
                       </div>
                       <button
                         onClick={() => setScope("")}
-                        className="flex-shrink-0 p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                        className="active:opacity-70 flex-shrink-0 p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                         data-testid="button-edit-scope"
                       >
                         <Edit2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />

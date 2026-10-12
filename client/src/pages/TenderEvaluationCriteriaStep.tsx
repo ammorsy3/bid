@@ -10,6 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import { useAuthStore } from "@/lib/auth";
 import { TourBanner } from "@/lib/tour";
 import { TOUR_BANNERS } from "@/lib/tour-steps";
+import { withViewTransition } from "@/lib/view-transition";
 
 // ── Evaluation criteria types ────────────────────────────────────────────────
 
@@ -153,9 +154,9 @@ export default function TenderEvaluationCriteriaStep() {
   // ── Evaluation criteria handlers ───────────────────────────────────────────
 
   const toggleCategory = (categoryId: string) => {
-    setExpandedCategories(prev =>
+    withViewTransition(() => setExpandedCategories(prev =>
       prev.includes(categoryId) ? prev.filter(id => id !== categoryId) : [...prev, categoryId]
-    );
+    ));
   };
 
   const handleRequirementChange = (categoryId: string, requirementId: string, value: string | boolean) => {
@@ -418,7 +419,7 @@ export default function TenderEvaluationCriteriaStep() {
                       <button
                         type="button"
                         onClick={() => toggleCategory(category.id)}
-                        className="w-full flex items-center justify-between p-3 hover:bg-muted"
+                        className="active:bg-muted w-full flex items-center justify-between p-3 hover:bg-muted"
                       >
                         <div className="flex items-center gap-2">
                           <div className={`p-1.5 rounded ${hasCategorySelections ? "bg-[#FE3C01]/10 text-[#FE3C01]" : "bg-muted text-muted-foreground"}`}>
@@ -453,7 +454,7 @@ export default function TenderEvaluationCriteriaStep() {
                                     <button
                                       type="button"
                                       onClick={() => handleRequirementChange(category.id, req.id, !currentValue)}
-                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 max-sm:relative max-sm:after:absolute max-sm:after:-inset-3 max-sm:after:content-[''] ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}
+                                      className={`active:opacity-70 mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 max-sm:relative max-sm:after:absolute max-sm:after:-inset-3 max-sm:after:content-[''] ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}
                                     >
                                       {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                                     </button>
@@ -504,7 +505,7 @@ export default function TenderEvaluationCriteriaStep() {
                           <div className="flex items-center gap-2">
                             <span className="flex-1 text-sm text-foreground">{criterion.text}</span>
                             <span className="text-xs font-medium text-[#FE3C01]">{criterion.weight}%</span>
-                            <button type="button" onClick={() => removeCustomCriterion(criterion.id)} className="text-gray-400 hover:text-red-500 transition-colors max-sm:p-3 max-sm:-m-3">
+                            <button type="button" onClick={() => removeCustomCriterion(criterion.id)} className="active:opacity-70 text-gray-400 hover:text-red-500 transition-colors max-sm:p-3 max-sm:-m-3">
                               <X className="h-4 w-4" />
                             </button>
                           </div>
@@ -583,7 +584,7 @@ export default function TenderEvaluationCriteriaStep() {
                           <button
                             type="button"
                             onClick={() => toggleReq(preset)}
-                            className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${checked ? 'border-[var(--bid-orange)] bg-[var(--bid-orange)]' : 'border-border bg-card'}`}
+                            className={`active:opacity-70 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-colors ${checked ? 'border-[var(--bid-orange)] bg-[var(--bid-orange)]' : 'border-border bg-card'}`}
                             data-testid={`checkbox-${preset.id}`}
                           >
                             {checked && <Check className="h-3 w-3 text-white" strokeWidth={3} />}
@@ -599,14 +600,14 @@ export default function TenderEvaluationCriteriaStep() {
                                 <button
                                   type="button"
                                   onClick={() => setReqType(preset.id, 'mandatory')}
-                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
+                                  className={`active:opacity-70 text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
                                 >
                                   {t('tenderFlow.mandatoryLabel')}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => setReqType(preset.id, 'preferred')}
-                                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
+                                  className={`active:opacity-70 text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
                                 >
                                   {t('tenderFlow.preferredLabel')}
                                 </button>
@@ -655,14 +656,14 @@ export default function TenderEvaluationCriteriaStep() {
                               <button
                                 type="button"
                                 onClick={() => setReqType(req.id, 'mandatory')}
-                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
+                                className={`active:opacity-70 text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'mandatory' ? 'bg-red-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
                               >
                                 {t('tenderFlow.mandatoryLabel')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setReqType(req.id, 'preferred')}
-                                className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
+                                className={`active:opacity-70 text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${req.type === 'preferred' ? 'bg-amber-500 text-white' : 'bg-muted text-muted-foreground hover:bg-gray-200 dark:hover:bg-muted/50'}`}
                               >
                                 {t('tenderFlow.preferredLabel')}
                               </button>
@@ -671,7 +672,7 @@ export default function TenderEvaluationCriteriaStep() {
                           <button
                             type="button"
                             onClick={() => removeCustomReq(req.id)}
-                            className="flex-shrink-0 p-1 rounded hover:bg-gray-200 dark:hover:bg-muted/50 text-gray-400 dark:text-muted-foreground hover:text-muted-foreground transition-colors mt-0.5"
+                            className="active:opacity-70 flex-shrink-0 p-1 rounded hover:bg-gray-200 dark:hover:bg-muted/50 text-gray-400 dark:text-muted-foreground hover:text-muted-foreground transition-colors mt-0.5"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>

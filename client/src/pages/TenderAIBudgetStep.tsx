@@ -10,6 +10,7 @@ import { formatCurrency } from "@/lib/format-currency";
 import { usePlan } from "@/lib/usePlan";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { openUpgrade } from "@/lib/upgrade-store";
+import { withViewTransition } from "@/lib/view-transition";
 
 type BudgetMode = "manual" | "ai" | null;
 
@@ -220,10 +221,12 @@ export default function TenderAIBudgetStep() {
                   <button
                     type="button"
                     onClick={() => {
-                      setBudgetMode("ai");
-                      setError(null);
+                      withViewTransition(() => {
+                        setBudgetMode("ai");
+                        setError(null);
+                      });
                     }}
-                    className={`flex flex-col items-center justify-center gap-3 p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                    className={`active:scale-[0.98] flex flex-col items-center justify-center gap-3 p-6 border-2 rounded-lg cursor-pointer transition-all ${
                       budgetMode === "ai"
                         ? "border-[#FE3C01] bg-[#FE3C01]/5"
                         : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"
@@ -246,11 +249,13 @@ export default function TenderAIBudgetStep() {
                   <button
                     type="button"
                     onClick={() => {
-                      setBudgetMode("manual");
-                      setError(null);
-                      setAiEstimate(null);
+                      withViewTransition(() => {
+                        setBudgetMode("manual");
+                        setError(null);
+                        setAiEstimate(null);
+                      });
                     }}
-                    className={`flex flex-col items-center justify-center gap-3 p-6 border-2 rounded-lg cursor-pointer transition-all ${
+                    className={`active:scale-[0.98] flex flex-col items-center justify-center gap-3 p-6 border-2 rounded-lg cursor-pointer transition-all ${
                       budgetMode === "manual"
                         ? "border-[#FE3C01] bg-[#FE3C01]/5"
                         : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"
@@ -384,8 +389,8 @@ export default function TenderAIBudgetStep() {
                         <div className="flex gap-2 mb-4">
                           <button
                             type="button"
-                            onClick={() => setPriceType("exact")}
-                            className={`flex-1 px-4 py-3 md:py-2 text-sm font-medium rounded-lg transition-all ${
+                            onClick={() => withViewTransition(() => setPriceType("exact"))}
+                            className={`active:opacity-70 flex-1 px-4 py-3 md:py-2 text-sm font-medium rounded-lg transition-all ${
                               priceType === "exact"
                                 ? "bg-[#FE3C01] text-white"
                                 : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -396,8 +401,8 @@ export default function TenderAIBudgetStep() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => setPriceType("range")}
-                            className={`flex-1 px-4 py-3 md:py-2 text-sm font-medium rounded-lg transition-all ${
+                            onClick={() => withViewTransition(() => setPriceType("range"))}
+                            className={`active:opacity-70 flex-1 px-4 py-3 md:py-2 text-sm font-medium rounded-lg transition-all ${
                               priceType === "range"
                                 ? "bg-[#FE3C01] text-white"
                                 : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -491,7 +496,7 @@ export default function TenderAIBudgetStep() {
                             type="button"
                             dir="ltr"
                             onClick={() => setShowPriceToVendors(!showPriceToVendors)}
-                            className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center ms-3 md:h-auto md:w-auto"
+                            className="active:opacity-70 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center ms-3 md:h-auto md:w-auto"
                             data-testid="toggle-show-price"
                           >
                             <span className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${

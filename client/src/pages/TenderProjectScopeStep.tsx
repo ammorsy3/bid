@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { usePlan } from "@/lib/usePlan";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { openUpgrade } from "@/lib/upgrade-store";
+import { withViewTransition } from "@/lib/view-transition";
 
 type InputMode = "text" | "voice";
 
@@ -544,8 +545,8 @@ export default function TenderProjectScopeStep() {
                             data-testid={`deliverable-card-${index}`}
                           >
                             <div
-                              className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-muted dark:hover:bg-gray-700/50 transition-colors duration-200"
-                              onClick={() => setExpandedDeliverableId(isExpanded ? null : deliverable.id)}
+                              className="active:opacity-70 flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-muted dark:hover:bg-gray-700/50 transition-colors duration-200"
+                              onClick={() => withViewTransition(() => setExpandedDeliverableId(isExpanded ? null : deliverable.id))}
                             >
                               <div className="flex items-center gap-3 flex-1 min-w-0">
                                 <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -571,7 +572,7 @@ export default function TenderProjectScopeStep() {
                                     e.stopPropagation();
                                     handleRemoveDeliverable(deliverable.id);
                                   }}
-                                  className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-3 -m-2 md:p-1 md:m-0"
+                                  className="active:opacity-70 text-gray-400 hover:text-red-500 transition-colors duration-200 p-3 -m-2 md:p-1 md:m-0"
                                   data-testid={`button-remove-deliverable-${index}`}
                                 >
                                   <X className="h-4 w-4" />
@@ -901,7 +902,7 @@ export default function TenderProjectScopeStep() {
 
                     <button
                       onClick={handleAddMilestone}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-border dark:border-border text-gray-400 hover:border-[#FE3C01] hover:text-[#FE3C01] transition-all duration-200 group"
+                      className="active:scale-[0.98] w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-border dark:border-border text-gray-400 hover:border-[#FE3C01] hover:text-[#FE3C01] transition-all duration-200 group"
                       data-testid="button-add-milestone"
                     >
                       <div className="flex-shrink-0">
@@ -931,8 +932,8 @@ export default function TenderProjectScopeStep() {
 
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setInputMode("text")}
-                        className={`px-3 py-3 md:py-1 text-xs rounded-md transition-colors ${
+                        onClick={() => withViewTransition(() => setInputMode("text"))}
+                        className={`active:opacity-70 px-3 py-3 md:py-1 text-xs rounded-md transition-colors ${
                           inputMode === "text"
                             ? "bg-[#FE3C01] text-white"
                             : "bg-gray-200 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
@@ -942,8 +943,8 @@ export default function TenderProjectScopeStep() {
                         {t('tenderFlow.text')}
                       </button>
                       <button
-                        onClick={() => setInputMode("voice")}
-                        className={`px-3 py-3 md:py-1 text-xs rounded-md transition-colors flex items-center gap-1 ${
+                        onClick={() => withViewTransition(() => setInputMode("voice"))}
+                        className={`active:opacity-70 px-3 py-3 md:py-1 text-xs rounded-md transition-colors flex items-center gap-1 ${
                           inputMode === "voice"
                             ? "bg-[#FE3C01] text-white"
                             : "bg-gray-200 dark:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
@@ -963,7 +964,7 @@ export default function TenderProjectScopeStep() {
                           <button
                             type="button"
                             onClick={handleUndoAiDescription}
-                            className="text-xs font-medium text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+                            className="active:opacity-70 text-xs font-medium text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
                             data-testid="button-undo-ai-description"
                           >
                             {t('tenderFlow.undo')}
@@ -973,7 +974,7 @@ export default function TenderProjectScopeStep() {
                           type="button"
                           onClick={handleSuggestDescription}
                           disabled={namedDeliverables.length === 0 || isSuggestingDescription}
-                          className="flex items-center gap-1.5 min-h-11 md:min-h-0 text-xs font-medium text-[#FE3C01] hover:text-[#d54d35] disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+                          className="enabled:active:opacity-70 flex items-center gap-1.5 min-h-11 md:min-h-0 text-xs font-medium text-[#FE3C01] hover:text-[#d54d35] disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
                           data-testid="button-suggest-description"
                           title={namedDeliverables.length === 0 ? t('tenderFlow.suggestDescriptionNeedsDeliverables') : undefined}
                         >

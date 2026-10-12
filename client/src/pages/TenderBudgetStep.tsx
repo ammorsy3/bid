@@ -5,6 +5,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState, useMemo, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 
 interface Milestone {
   id: string;
@@ -239,8 +240,8 @@ export default function TenderBudgetStep() {
                     <div className="flex gap-2 mb-4">
                       <button
                         type="button"
-                        onClick={() => setPriceType("exact")}
-                        className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                        onClick={() => withViewTransition(() => setPriceType("exact"))}
+                        className={`active:opacity-70 flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                           priceType === "exact"
                             ? "bg-[#FE3C01] text-white"
                             : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -251,8 +252,8 @@ export default function TenderBudgetStep() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setPriceType("range")}
-                        className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                        onClick={() => withViewTransition(() => setPriceType("range"))}
+                        className={`active:opacity-70 flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                           priceType === "range"
                             ? "bg-[#FE3C01] text-white"
                             : "bg-gray-100 dark:bg-card text-muted-foreground dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -410,7 +411,7 @@ export default function TenderBudgetStep() {
                             </div>
                             <button
                               onClick={() => handleRemoveMilestone(milestone.id)}
-                              className="flex-shrink-0 p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors"
+                              className="active:opacity-70 flex-shrink-0 p-2 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors"
                               data-testid={`button-delete-milestone-${milestone.id}`}
                             >
                               <Trash2 className="h-4 w-4 text-red-600" />

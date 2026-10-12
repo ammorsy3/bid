@@ -22,6 +22,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { UploadResult } from "@/components/ObjectUploader";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 
 type SubmissionType = 'quote_only' | 'tech_fin_proposal' | 'video_only' | 'tech_fin_with_video';
 type UploadMode = 'combined' | 'separate';
@@ -532,7 +533,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
   };
 
   function handleUploadModeChange(mode: UploadMode) {
-    setUploadMode(mode);
+    withViewTransition(() => setUploadMode(mode));
   }
 
   return (
@@ -763,7 +764,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     <button
                       type="button"
                       onClick={() => handleUploadModeChange('combined')}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
+                      className={`active:scale-[0.98] flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
                         uploadMode === 'combined'
                           ? 'border-[#FE3C01] bg-[#FE3C01]/5'
                           : 'border-border hover:border-border'
@@ -780,7 +781,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     <button
                       type="button"
                       onClick={() => handleUploadModeChange('separate')}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
+                      className={`active:scale-[0.98] flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
                         uploadMode === 'separate'
                           ? 'border-[#FE3C01] bg-[#FE3C01]/5'
                           : 'border-border hover:border-border'

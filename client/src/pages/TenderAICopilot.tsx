@@ -53,6 +53,7 @@ import { useI18n } from "@/lib/i18n";
 import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
 import { TenderBriefCards } from "@/components/TenderBriefCards";
 import { draftToTenderPayload } from "@shared/tender-mapping";
+import { withViewTransition } from "@/lib/view-transition";
 
 interface Message {
   id: string;
@@ -199,8 +200,8 @@ const AttachmentsPanel: React.FC<{
     <div className="bg-white dark:bg-card rounded-xl border border-border dark:border-border overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="w-full px-4 py-3 flex items-center justify-between text-start"
+        onClick={() => withViewTransition(() => setOpen((o) => !o))}
+        className="active:opacity-70 w-full px-4 py-3 flex items-center justify-between text-start"
       >
         <div className="flex items-center gap-2">
           <Paperclip className="h-4 w-4 text-muted-foreground" />
@@ -260,7 +261,7 @@ const AttachmentsPanel: React.FC<{
                     <button
                       type="button"
                       onClick={() => removeAttachment(a.id)}
-                      className="text-gray-400 hover:text-rose-500"
+                      className="active:opacity-70 text-gray-400 hover:text-rose-500"
                       aria-label={t('copilot.remove')}
                     >
                       <X className="h-3 w-3" />
@@ -365,7 +366,7 @@ const InlineActivity: React.FC<{
           aria-expanded={isExpanded}
           aria-label={isExpanded ? t('copilot.a11yCollapseActivity') : t('copilot.a11yExpandActivity')}
           className={cn(
-            "w-full flex items-start gap-3 px-4 py-3 rounded-xl text-start transition-all",
+            "active:opacity-70 w-full flex items-start gap-3 px-4 py-3 rounded-xl text-start transition-all",
             "bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-border/50 dark:border-border/50",
             "hover:bg-muted/80 dark:hover:bg-gray-700/80 shadow-sm"
           )}
@@ -1429,7 +1430,7 @@ export default function TenderAICopilot() {
                   <button
                     type="button"
                     onClick={() => setPersistFailed(false)}
-                    className="text-amber-700 dark:text-amber-300 hover:text-amber-900 shrink-0"
+                    className="active:opacity-70 text-amber-700 dark:text-amber-300 hover:text-amber-900 shrink-0"
                     aria-label={t('common.dismiss') || 'Dismiss'}
                   >
                     <X className="h-3 w-3" />
@@ -1539,8 +1540,8 @@ export default function TenderAICopilot() {
                     return (
                       <button
                         key={chipKey}
-                        onClick={() => sendMessage(label)}
-                        className="px-3 py-1.5 max-md:min-h-11 text-xs bg-gray-100 dark:bg-card hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400 transition-colors"
+                        onClick={() => withViewTransition(() => { sendMessage(label); })}
+                        className="active:opacity-70 px-3 py-1.5 max-md:min-h-11 text-xs bg-gray-100 dark:bg-card hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400 transition-colors"
                       >
                         {label}
                       </button>

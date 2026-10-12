@@ -355,7 +355,7 @@ export default function ProposalComparison({
                   {(offer.combinedFileUrl || offer.technicalFileUrl) && (
                     <button
                       onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md px-2 py-1 hover:bg-muted"
+                      className="active:opacity-70 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md px-2 py-1 hover:bg-muted"
                     >
                       <FileText className="h-3 w-3" /> {t('tenderFlow.viewProposal')}
                     </button>

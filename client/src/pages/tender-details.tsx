@@ -33,6 +33,7 @@ import { emailInputProps } from "@/lib/form-validation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTour, TourBanner } from "@/lib/tour";
 import { TENDER_DETAILS_TOUR_STEPS, TOUR_BANNERS, getSteps } from "@/lib/tour-steps";
+import { withViewTransition } from "@/lib/view-transition";
 
 const SUBMISSION_TYPE_LABELS: Record<string, Record<string, string>> = {
   quote_only: { en: "Price Quote Only", ar: "عرض سعر فقط" },
@@ -1055,7 +1056,7 @@ export default function TenderDetails() {
                       <button
                         key={section.id}
                         onClick={() => scrollToSection(section.id)}
-                        className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 max-sm:min-h-11 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                        className={`active:opacity-70 flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 max-sm:min-h-11 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                           isActive
                             ? 'bg-[#FE3C01] text-white shadow-sm'
                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -1082,7 +1083,7 @@ export default function TenderDetails() {
                     {tender.description}
                   </p>
                   {(tender.description?.length ?? 0) > 280 && (
-                    <button type="button" onClick={() => setDescExpanded(v => !v)} className="sm:hidden min-h-11 mb-4 text-sm font-semibold text-[#FE3C01]" data-testid="button-desc-toggle">
+                    <button type="button" onClick={() => withViewTransition(() => setDescExpanded(v => !v))} className="active:opacity-70 sm:hidden min-h-11 mb-4 text-sm font-semibold text-[#FE3C01]" data-testid="button-desc-toggle">
                       {descExpanded ? t('tenderFlow.descShowLess') : t('tenderFlow.descShowMore')}
                     </button>
                   )}
@@ -1273,7 +1274,7 @@ export default function TenderDetails() {
                                   toast({ title: t('tenderFlow.downloadFailed'), description: t('tenderFlow.downloadFailedDesc'), variant: "destructive" });
                                 }
                               }}
-                              className="w-full flex items-center gap-3 p-4 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-colors group text-start"
+                              className="active:bg-muted w-full flex items-center gap-3 p-4 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-colors group text-start"
                             >
                               {icon}
                               <div className="flex-1 min-w-0">
@@ -1503,8 +1504,8 @@ export default function TenderDetails() {
                           <div key={w.categoryId} className="rounded-xl border border-amber-100 dark:border-amber-900/30 overflow-hidden">
                             <button
                               type="button"
-                              onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
-                              className="w-full flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20 transition-colors text-start"
+                              onClick={() => withViewTransition(() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] })))}
+                              className="active:opacity-70 w-full flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20 transition-colors text-start"
                             >
                               <ChevronRight className={`h-4 w-4 rtl:-scale-x-100 text-amber-600 dark:text-amber-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                               <div className="flex-1 min-w-0">
@@ -1621,7 +1622,7 @@ export default function TenderDetails() {
                                         )}
                                         <button
                                           onClick={() => setQaProfileCompany(q.askedByCompany!)}
-                                          className="text-[10px] text-[#FE3C01] hover:text-[#d54d35] font-semibold flex items-center gap-0.5 transition-colors"
+                                          className="active:opacity-70 text-[10px] text-[#FE3C01] hover:text-[#d54d35] font-semibold flex items-center gap-0.5 transition-colors"
                                         >
                                           <Eye className="h-3 w-3" /> {t('tenderFlow.viewProfile')}
                                         </button>
@@ -2426,7 +2427,7 @@ export default function TenderDetails() {
                         {selectedOffer.combinedFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.combinedFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-100 dark:border-blue-900/40 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
+                            className="active:opacity-70 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-100 dark:border-blue-900/40 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
                             data-testid="button-modal-combined-file"
                           >
                             <FileText className="h-4 w-4 text-[var(--bid-orange)] flex-shrink-0" />
@@ -2436,7 +2437,7 @@ export default function TenderDetails() {
                         {selectedOffer.technicalFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.technicalFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-purple-100 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
+                            className="active:opacity-70 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-purple-100 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
                             data-testid="button-modal-tech-file"
                           >
                             <FileText className="h-4 w-4 text-[var(--bid-orange)] flex-shrink-0" />
@@ -2446,7 +2447,7 @@ export default function TenderDetails() {
                         {selectedOffer.financialFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.financialFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-emerald-100 bg-[var(--state-won)]/5 hover:bg-[var(--state-won)]/10 transition-colors text-start"
+                            className="active:opacity-70 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-emerald-100 bg-[var(--state-won)]/5 hover:bg-[var(--state-won)]/10 transition-colors text-start"
                             data-testid="button-modal-fin-file"
                           >
                             <DollarSign className="h-4 w-4 text-[var(--state-won)] flex-shrink-0" />
@@ -2456,7 +2457,7 @@ export default function TenderDetails() {
                         {selectedOffer.videoUrl && (
                           <button
                             onClick={() => window.open(selectedOffer.videoUrl!, '_blank')}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-colors text-start"
+                            className="active:opacity-70 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-colors text-start"
                           >
                             <Video className="h-4 w-4 text-orange-600 flex-shrink-0" />
                             <span className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('tenderFlow.videoPitchLabel')}</span>
@@ -2894,7 +2895,7 @@ export default function TenderDetails() {
                 <div className="flex items-center justify-between mb-3">
                   <button
                     onClick={() => setMarketplaceStep('guide')}
-                    className="h-7 w-7 rounded-md hover:bg-muted flex items-center justify-center transition-colors"
+                    className="active:opacity-70 h-7 w-7 rounded-md hover:bg-muted flex items-center justify-center transition-colors"
                   >
                     {isRtl ? <ArrowRight className="h-4 w-4 text-muted-foreground" /> : <ArrowLeft className="h-4 w-4 text-muted-foreground" />}
                   </button>

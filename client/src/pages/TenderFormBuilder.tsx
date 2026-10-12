@@ -36,6 +36,7 @@ import {
   createFormCard,
   getCardDefinition,
 } from "@/lib/form-builder-types";
+import { withViewTransition } from "@/lib/view-transition";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
@@ -332,8 +333,8 @@ export default function TenderFormBuilder() {
           {/* Tab switcher */}
           <div className="flex flex-shrink-0 border-b border-border bg-white dark:bg-background">
             <button
-              onClick={() => setMobileTab('canvas')}
-              className={`flex-1 min-h-11 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+              onClick={() => withViewTransition(() => setMobileTab('canvas'))}
+              className={`active:opacity-70 flex-1 min-h-11 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
                 mobileTab === 'canvas'
                   ? 'text-[#FE3C01] border-b-2 border-[#FE3C01]'
                   : 'text-muted-foreground border-b-2 border-transparent'
@@ -343,8 +344,8 @@ export default function TenderFormBuilder() {
               {t('tenderFlow.stepStructure')}
             </button>
             <button
-              onClick={() => setMobileTab('library')}
-              className={`flex-1 min-h-11 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
+              onClick={() => withViewTransition(() => setMobileTab('library'))}
+              className={`active:opacity-70 flex-1 min-h-11 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${
                 mobileTab === 'library'
                   ? 'text-[#FE3C01] border-b-2 border-[#FE3C01]'
                   : 'text-muted-foreground border-b-2 border-transparent'

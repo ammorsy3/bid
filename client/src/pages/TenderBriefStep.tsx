@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import VoiceRecorder from "@/components/voice-recorder";
 import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
 import VendorRequirementsEditor, { type VendorRequirement } from "@/components/VendorRequirementsEditor";
+import { withViewTransition } from "@/lib/view-transition";
 
 const formatLabel = (value: string, labels?: Record<string, string>): string => {
   if (labels && labels[value]) {
@@ -208,11 +209,11 @@ export default function TenderBriefStep() {
   };
 
   const toggleDeliverable = (index: number) => {
-    setExpandedDeliverables(prev => ({ ...prev, [index]: !prev[index] }));
+    withViewTransition(() => setExpandedDeliverables(prev => ({ ...prev, [index]: !prev[index] })));
   };
 
   const toggleCriteria = (key: string) => {
-    setExpandedCriteria(prev => ({ ...prev, [key]: !prev[key] }));
+    withViewTransition(() => setExpandedCriteria(prev => ({ ...prev, [key]: !prev[key] })));
   };
 
   const submitTender = useMutation({
@@ -539,7 +540,7 @@ export default function TenderBriefStep() {
                           <button
                             type="button"
                             onClick={() => hasDetails && toggleDeliverable(index)}
-                            className={`w-full p-4 flex items-center justify-between gap-4 text-start ${hasDetails ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
+                            className={`active:bg-muted w-full p-4 flex items-center justify-between gap-4 text-start ${hasDetails ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--state-won)]/10 text-[var(--state-won)] flex items-center justify-center text-xs font-bold">{index + 1}</span>
@@ -614,7 +615,7 @@ export default function TenderBriefStep() {
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`arr-${index}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
+                                className="active:bg-muted w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
@@ -639,7 +640,7 @@ export default function TenderBriefStep() {
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`arr-${index}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
+                                className="active:bg-muted w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
@@ -681,7 +682,7 @@ export default function TenderBriefStep() {
                                 <button
                                   type="button"
                                   onClick={() => hasContent && toggleCriteria(w.categoryId)}
-                                  className={`w-full p-3 flex items-center justify-between gap-3 text-start ${hasContent ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
+                                  className={`active:bg-muted w-full p-3 flex items-center justify-between gap-3 text-start ${hasContent ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
                                 >
                                   <span className="text-sm font-medium text-foreground">{cat}</span>
                                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -740,7 +741,7 @@ export default function TenderBriefStep() {
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`custom-${c.id}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
+                                className="active:bg-muted w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <span className="text-sm text-foreground">{c.text}</span>
                                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -890,7 +891,7 @@ export default function TenderBriefStep() {
                           <button
                             type="button"
                             onClick={() => removeAttachment(a.id)}
-                            className="text-gray-400 hover:text-rose-500 transition-colors"
+                            className="active:opacity-70 text-gray-400 hover:text-rose-500 transition-colors"
                             aria-label={t('tenderFlow.removeAttachmentAria') || 'Remove attachment'}
                             data-testid={`button-remove-attachment-${a.id}`}
                           >
@@ -1091,7 +1092,7 @@ export default function TenderBriefStep() {
                       <button
                         type="button"
                         onClick={() => setRfpLanguage('en')}
-                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
+                        className={`active:opacity-70 flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
                           rfpLanguage === 'en'
                             ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
                             : 'border-border text-muted-foreground hover:border-border'
@@ -1102,7 +1103,7 @@ export default function TenderBriefStep() {
                       <button
                         type="button"
                         onClick={() => setRfpLanguage('ar')}
-                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
+                        className={`active:opacity-70 flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
                           rfpLanguage === 'ar'
                             ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
                             : 'border-border text-muted-foreground hover:border-border'

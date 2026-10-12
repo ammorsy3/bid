@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
@@ -31,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import VoiceRecorder from "@/components/voice-recorder";
 import VendorRequirementsEditor from "@/components/VendorRequirementsEditor";
 import type { Tender } from "@shared/schema";
+import { withViewTransition } from "@/lib/view-transition";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -545,8 +547,36 @@ export default function TenderEditPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      // Same shape as the loaded page (back link, title, stacked section cards)
+      // instead of a bare spinner. Blocks sitting directly on the page
+      // background use bg-foreground/10 so they stay visible in both themes;
+      // the ones inside a card use the default Skeleton fill.
+      <div className="min-h-dvh bg-gray-50 dark:bg-background" data-testid="skeleton-tender-edit">
+        <span className="sr-only" role="status">{t('common.loading')}</span>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:pb-28">
+          <Skeleton className="h-10 w-36 mb-6 bg-foreground/10" />
+          <div className="mb-6 space-y-2">
+            <Skeleton className="h-9 w-56 bg-foreground/10" />
+            <Skeleton className="h-4 w-40 bg-foreground/10" />
+          </div>
+          <div className="space-y-6">
+            {[0, 1, 2].map((i) => (
+              <Card key={i} className="overflow-hidden border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                    <Skeleton className="h-5 w-40" />
+                  </div>
+                  <Skeleton className="h-4 w-64 max-w-full" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -754,8 +784,8 @@ export default function TenderEditPage() {
                   <button
                     key={type}
                     type="button"
-                    onClick={() => setBudgetType(type as "exact" | "range")}
-                    className={`flex-1 py-3 md:py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                    onClick={() => withViewTransition(() => setBudgetType(type as "exact" | "range"))}
+                    className={`active:opacity-70 flex-1 py-3 md:py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
                       budgetType === type
                         ? "bg-[#FE3C01] text-white border-[#FE3C01]"
                         : "bg-white dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border"
@@ -985,8 +1015,8 @@ export default function TenderEditPage() {
                   const hasSelections = selectedRequirements.some(r => r.categoryId === category.id);
                   return (
                     <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasSelections ? "border-[#FE3C01]/50 bg-[#FE3C01]/5" : "border-border"}`}>
-                      <button type="button" onClick={() => setExpandedEvalCategories(prev => prev.includes(category.id) ? prev.filter(id => id !== category.id) : [...prev, category.id])}
-                        className="w-full flex items-center justify-between p-3 hover:bg-muted">
+                      <button type="button" onClick={() => withViewTransition(() => setExpandedEvalCategories(prev => prev.includes(category.id) ? prev.filter(id => id !== category.id) : [...prev, category.id]))}
+                        className="active:bg-muted w-full flex items-center justify-between p-3 hover:bg-muted">
                         <div className="flex items-center gap-2">
                           <div className={`p-1.5 rounded ${hasSelections ? "bg-[#FE3C01]/10 text-[#FE3C01]" : "bg-muted text-muted-foreground"}`}>{category.icon}</div>
                           <span className="font-medium text-sm text-foreground">{evalCategoryNames[category.id] ?? category.name}</span>
@@ -1011,7 +1041,7 @@ export default function TenderEditPage() {
                                 <div key={req.id} className="flex items-start gap-2">
                                   {req.type === "checkbox" && (
                                     <button type="button" onClick={() => handleRequirementChange(category.id, req.id, !currentValue)}
-                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}>
+                                      className={`active:opacity-70 mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}>
                                       {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                                     </button>
                                   )}
@@ -1048,7 +1078,7 @@ export default function TenderEditPage() {
                         <div className="flex items-center gap-2">
                           <span className="flex-1 text-sm text-foreground">{c.text}</span>
                           <span className="text-xs font-medium text-[#FE3C01]">{c.weight}%</span>
-                          <button type="button" onClick={() => removeCustomCriterion(c.id)} className="p-3 -m-3 md:p-0 md:m-0 text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
+                          <button type="button" onClick={() => removeCustomCriterion(c.id)} className="active:opacity-70 p-3 -m-3 md:p-0 md:m-0 text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
                         </div>
                         <input type="range" min="0" max="50" step="5" value={c.weight}
                           onChange={(e) => updateCustomCriterionWeight(c.id, parseInt(e.target.value))}
@@ -1171,7 +1201,7 @@ export default function TenderEditPage() {
               <button
                 type="button"
                 onClick={addMilestone}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-border dark:border-border text-gray-400 hover:border-violet-400 hover:text-violet-500 transition-all group"
+                className="active:scale-[0.98] w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-border dark:border-border text-gray-400 hover:border-violet-400 hover:text-violet-500 transition-all group"
               >
                 <div className="w-2.5 h-2.5 rounded-full bg-gray-300 group-hover:bg-violet-400 transition-colors" />
                 <Plus className="h-4 w-4" />
@@ -1192,7 +1222,7 @@ export default function TenderEditPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white bg-indigo-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{index + 1}</span>
                         <Input placeholder={t('tenderFlow.editDeliverableNamePlaceholder')} value={d.name} onChange={(e) => updateDeliverable(d.id, "name", e.target.value)} className="flex-1" />
-                        <button type="button" onClick={() => removeDeliverable(d.id)} className="p-3 -m-3 md:p-0 md:m-0 text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => removeDeliverable(d.id)} className="active:opacity-70 p-3 -m-3 md:p-0 md:m-0 text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
                       </div>
                       <Input placeholder={t('tenderFlow.editDeliverableDescPlaceholder')} value={d.description} onChange={(e) => updateDeliverable(d.id, "description", e.target.value)} />
                       <div className="grid grid-cols-2 gap-2">
@@ -1242,7 +1272,7 @@ export default function TenderEditPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveAttachment(a.id)}
-                        className="flex-shrink-0 p-3 -m-2 md:p-1 md:m-0 text-gray-400 hover:text-red-500 transition-colors"
+                        className="active:opacity-70 flex-shrink-0 p-3 -m-2 md:p-1 md:m-0 text-gray-400 hover:text-red-500 transition-colors"
                         aria-label={t('tenderFlow.editRemoveAttachment')}
                       >
                         <X className="h-4 w-4" />

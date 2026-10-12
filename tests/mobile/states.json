@@ -11158,6 +11158,58 @@
           "wait": 2500
         }
       ]
+    },
+    {
+      "id": "b10-docs-getting-started",
+      "batch": "batch-10",
+      "page": "docs",
+      "title": "Developer docs: getting-started",
+      "route": "/docs/getting-started",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 1500
+        }
+      ]
+    },
+    {
+      "id": "b10-docs-webhook",
+      "batch": "batch-10",
+      "page": "docs",
+      "title": "Developer docs: webhook",
+      "route": "/docs/webhook",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 1500
+        }
+      ]
+    },
+    {
+      "id": "b10-docs-mcp",
+      "batch": "batch-10",
+      "page": "docs",
+      "title": "Developer docs: mcp",
+      "route": "/docs/mcp",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 1500
+        }
+      ]
+    },
+    {
+      "id": "b10-docs-rate-limits",
+      "batch": "batch-10",
+      "page": "docs",
+      "title": "Developer docs: rate-limits",
+      "route": "/docs/rate-limits",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 1500
+        }
+      ]
     }
   ]
 }

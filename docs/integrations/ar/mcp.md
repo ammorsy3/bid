@@ -65,10 +65,10 @@
 
 ## مثال على تسلسل استدعاء الأدوات
 
-1. `copilot_create_session({ name: "ACME RFP" })` → `{ sessionId }`
-2. `copilot_send_message({ sessionId, message: "We need a 3-month IT migration" })` → `{ reply, tenderDraft, readyToLaunch, ... }`
+1. `copilot_create_session({ name: "ACME RFP" })` ← `{ sessionId }`
+2. `copilot_send_message({ sessionId, message: "We need a 3-month IT migration" })` ← `{ reply, tenderDraft, readyToLaunch, ... }`
 3. واصل إرسال الرسائل حتى تصبح `readyToLaunch === true`.
-4. `copilot_launch_tender({ sessionId })` → `{ tenderId, tenderUrl }`
+4. `copilot_launch_tender({ sessionId })` ← `{ tenderId, tenderUrl }`
 
 ## الاستخدام مع وكيل ذكاء اصطناعي (n8n أو LangChain أو وكيل مخصص)
 

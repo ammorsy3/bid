@@ -57,6 +57,9 @@ S += [
   "route": "/traction/b10-missing/edit", "keyboard": False, "workspace": "seet",
   "overrides": {"GET /api/r/b10-missing": {"status": 404, "json": {"message": "Not found"}}}, "actions": [{"wait": 2500}]},
 ]
+for slug in ["getting-started", "webhook", "mcp", "rate-limits"]:
+    S.append({"id": f"b10-docs-{slug}", "batch": "batch-10", "page": "docs", "title": f"Developer docs: {slug}", "route": f"/docs/{slug}",
+              "keyboard": False, "actions": [{"wait": 1500}]})
 d["states"] += S
 json.dump(d, open(P, "w"), ensure_ascii=False, indent=2)
 print(len(S), "states")

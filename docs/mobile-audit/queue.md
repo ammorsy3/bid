@@ -82,11 +82,11 @@ Baseline (before fixes, 154 captures; commit in `.mobile-audit/batch-8/baseline-
 | Pages | Status | What to fix (known before the loop) |
 |---|---|---|
 | admin-shell (AdminLayout.tsx) | fixed (shell 'covered' fails -> 0 on every phone state and desktop; sticky top bar + start-side menu drawer, document scroll on phones; new Arabic: فتح القائمة) | Phone top bar + menu drawer (the layout is a fixed 272px sidebar), RTL mirroring, 44px rows, scroll on the page not a h-screen box, shared page header/table helpers. |
-| admin-dashboard, admin-notifications | in progress | overflow, not-settled |
-| admin-vendors, admin-marketplace, admin-awards | in progress | tables to cards on phones, text-clipped, filters |
-| admin-join-requests, admin-campaigns, admin-checkouts | in progress | |
-| admin-users | in progress | overflow, icon-over-text, email/ltr fields |
-| admin-audit-logs, admin-errors | in progress | very long rows (errors has 438 warnings) |
+| admin-dashboard, admin-notifications | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | overflow, not-settled |
+| admin-vendors, admin-marketplace, admin-awards | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | tables to cards on phones, text-clipped, filters |
+| admin-join-requests, admin-campaigns, admin-checkouts | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | |
+| admin-users | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | overflow, icon-over-text, email/ltr fields |
+| admin-audit-logs, admin-errors | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | very long rows (errors has 438 warnings) |
 
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |
@@ -98,7 +98,7 @@ Baseline (before fixes, 154 captures; commit in `.mobile-audit/batch-8/baseline-
 | 5 | Tender wizard | done: all 12 steps fixed (32 states, 0 phone fails; see decisions.md #36); next: report to Ahmed |
 | 6 | Owner's tender tabs, proposal comparison, edit | done (decisions.md #37); next: report to Ahmed |
 | 7 | Settings, integrations, profile editors | done (decisions.md #38, #39); next: report to Ahmed |
-| 8 | Admin (first give AdminLayout a phone menu) | in progress |
+| 8 | Admin (first give AdminLayout a phone menu) | done (decisions.md #41); next: report to Ahmed |
 | 9 | "Feels like an installed app" pass, scoped to the pages already fixed (batches 1, 2, 3) | done for now (see below); 2b/4-8 get their own pass once each has its base fix |
 
 ### 9. What changed

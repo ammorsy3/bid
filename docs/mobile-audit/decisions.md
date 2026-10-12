@@ -295,3 +295,13 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     - #26 (broken vendor logo): cause found, **not changed yet.** One dev-database company ("BIDDDD", display name "Bid") has an old-style logo path that needs a login to load. Options: owner re-uploads the logo, or the stored value is cleared. Production not checked.
     - Open, new: Arabic digits. Some screens show amounts and dates with Arabic digits (٩٨٫٧٦٥) and others with Western (98,765). The comparison cards now use Western; the offer cards above them on the owner page still use Arabic. Pick one for the whole app.
 
+41. **Admin pages (batch 8, 2026-10-12): questions.**
+    (a) Campaigns: the trash button deletes a campaign with no "are you sure". On phones it is now a bigger tap target, so it is easier to hit by accident. Want a confirm popup (like AI-chat history got)?
+    (b) Admin notifications come from the server in English only, so they stay English on the Arabic page; same for stored error messages, audit-log notes and target types, and the onboarding state code in the vendor details. Fixing the notifications needs a server change (translate at the source); the rest is stored data. Want the notifications translated?
+    (c) On phones the dashboard cards no longer show the small "Action needed" badge (the box above them already lists the same items). Desktop still shows it. OK?
+    (d) Lists on phones show 10 rows then "Show more" (users, audit logs, errors, vendors); desktop shows everything, as before.
+    (e) Not photographed because the test data had nothing to show: the join-request and checkout rows (both lists are empty), the campaign create/detail popups, the approve/reject popups. Fixed from the code only; worth a look on a real phone with real data.
+    (f) Faint text: left alone (admin eyebrow 2.96:1, orange counts and green/purple button labels 3.4-3.8:1).
+    (g) New Arabic: فتح القائمة (open menu), the vendor tab/document names, and 8 audit-action names. Already matched to the app's wording by the Arabic pass, so no list to review.
+    (h) Still open from before: the vendor logo (#26), and Arabic digits vs Western digits across the app (#40).
+

@@ -26,6 +26,9 @@ for slug, page, title in PAGES:
 S.append({"id": "b8-shell-drawer", "batch": "batch-8", "page": "admin-shell", "title": "Admin: menu drawer open",
           "route": "/admin/dashboard", "keyboard": False, "expectDialog": True, "skipProjects": ["desktop"],
           "actions": [{"wait": 3000}, {"click": "[data-testid=button-admin-menu]"}, {"wait": 800}]})
+S.append({"id": "b8-campaigns-delete-confirm", "batch": "batch-8", "page": "admin-campaigns", "title": "Admin: campaign delete confirm",
+          "route": "/admin/campaigns", "keyboard": False, "expectDialog": True,
+          "actions": [{"wait": 3000}, {"click": "[data-testid^=button-delete-]"}, {"wait": 800}]})
 d["states"] += S
 json.dump(d, open(P, "w"), ensure_ascii=False, indent=2)
 print(len(S), "states")

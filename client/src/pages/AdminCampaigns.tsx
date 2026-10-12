@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Megaphone, Plus, Copy, Check, ExternalLink, TrendingUp, Users2,
-  Building2, FileText, MousePointerClick, AlertTriangle, Trash2, Link2,
+  Building2, FileText, MousePointerClick, AlertTriangle, Trash2, Link2, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -139,6 +143,7 @@ export default function AdminCampaigns() {
   const { toast } = useToast();
   const [createOpen, setCreateOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
 
   const { data, isLoading } = useQuery<{ campaigns: Campaign[]; unmatched: UnmatchedRow[] }>({
     queryKey: ["/api/admin/campaigns"],
@@ -176,11 +181,13 @@ export default function AdminCampaigns() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/campaigns"] });
       toast({ title: t("admin.campaignDeleted") });
+      setCampaignToDelete(null);
     },
     onError: (e: any) => {
       // The server refuses to delete a campaign that already has traffic; its
       // message explains why, so it is shown verbatim rather than replaced.
       toast({ title: t("admin.error"), description: e?.message, variant: "destructive" });
+      setCampaignToDelete(null);
     },
   });
 
@@ -316,8 +323,7 @@ export default function AdminCampaigns() {
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 max-md:h-11 max-md:w-11"
-                          onClick={() => deleteMutation.mutate(c.id)}
-                          disabled={deleteMutation.isPending}
+                          onClick={() => setCampaignToDelete(c)}
                           aria-label={t("admin.deleteCampaign")}
                           data-testid={`button-delete-${c.code}`}
                         >
@@ -359,6 +365,40 @@ export default function AdminCampaigns() {
 
       <CreateCampaignDialog open={createOpen} onOpenChange={setCreateOpen} />
       <CampaignDetailDialog campaignId={detailId} onClose={() => setDetailId(null)} />
+
+      <AlertDialog
+        open={!!campaignToDelete}
+        onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setCampaignToDelete(null); }}
+      >
+        <AlertDialogContent className="max-md:w-[calc(100%-2rem)] max-md:rounded-2xl" data-testid="dialog-delete-campaign">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("admin.deleteCampaignTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span dir="auto" data-user-content className="mx-auto block w-full break-words font-medium text-foreground line-clamp-2">
+                {campaignToDelete?.name} ({campaignToDelete?.code})
+              </span>
+              <span className="mt-1 block">{t("admin.deleteCampaignWarning")}</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="max-md:gap-2">
+            <AlertDialogCancel className="mt-0" disabled={deleteMutation.isPending} data-testid="button-cancel-delete-campaign">
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 active:bg-destructive/80 text-destructive-foreground"
+              disabled={deleteMutation.isPending}
+              onClick={(e) => {
+                // Keep the popup open (with a spinner) until the server answers.
+                e.preventDefault();
+                if (campaignToDelete) deleteMutation.mutate(campaignToDelete.id);
+              }}
+              data-testid="button-confirm-delete-campaign"
+            >
+              {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("dashboard.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 }

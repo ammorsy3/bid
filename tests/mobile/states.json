@@ -10323,6 +10323,26 @@
           "wait": 800
         }
       ]
+    },
+    {
+      "id": "b8-campaigns-delete-confirm",
+      "batch": "batch-8",
+      "page": "admin-campaigns",
+      "title": "Admin: campaign delete confirm",
+      "route": "/admin/campaigns",
+      "keyboard": false,
+      "expectDialog": true,
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid^=button-delete-]"
+        },
+        {
+          "wait": 800
+        }
+      ]
     }
   ]
 }

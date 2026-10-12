@@ -7061,7 +7061,7 @@ const translations = {
       vendorDocGosi: "شهادة التأمينات الاجتماعية",
       vendorDocNationalAddress: "شهادة العنوان الوطني",
       vendorDocOther: "مستند آخر",
-      verifyAnyway: "وثّق على أي حال",
+      verifyAnyway: "وثق على أي حال",
       showMoreLeft: "عرض المزيد (متبقي {count})",
       noBlockedAwardsDesc: "ما فيه ترسيات محظورة حاليًا",
       vendorLabelShort: "المورد:",
@@ -7091,7 +7091,7 @@ const translations = {
       promoteBtn: "ترقية",
       // AdminAuditLogs extras
       searchAuditLogsPlaceholder: "ابحث حسب الإجراء أو المشرف أو الملاحظات...",
-      auditAction_award_unblocked: "رفع حظر الترسية",
+      auditAction_award_unblocked: "إلغاء حظر الترسية",
       auditAction_company_rejected: "رفض الشركة",
       auditAction_company_verified: "توثيق الشركة",
       auditAction_join_request_approved_by_admin: "قبول طلب الانضمام من المشرف",

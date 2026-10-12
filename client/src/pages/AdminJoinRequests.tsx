@@ -113,8 +113,8 @@ export default function AdminJoinRequests() {
               <AdminCard key={request.id} hover data-testid={`card-request-${request.id}`}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2 text-base">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="flex flex-wrap items-center gap-2 text-base break-words">
                         {request.vendorCompany?.name || t('admin.na')}
                         <Badge variant="secondary" className="text-xs" data-testid={`badge-status-${request.id}`}>
                           {t('admin.pendingBadge')}
@@ -138,26 +138,27 @@ export default function AdminJoinRequests() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white max-md:min-h-11"
                       onClick={() => { setSelectedRequest(request); setActionType("approve"); }}
                       data-testid={`button-approve-${request.id}`}
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <CheckCircle className="h-4 w-4 me-2" />
                       {t('admin.approve')}
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
+                      className="max-md:min-h-11"
                       onClick={() => { setSelectedRequest(request); setActionType("reject"); }}
                       data-testid={`button-reject-${request.id}`}
                     >
-                      <XCircle className="h-4 w-4 mr-2" />
+                      <XCircle className="h-4 w-4 me-2" />
                       {t('admin.reject')}
                     </Button>
-                    <Button variant="ghost" size="sm" data-testid={`button-view-profile-${request.id}`}>
+                    <Button variant="ghost" size="sm" className="max-md:min-h-11" data-testid={`button-view-profile-${request.id}`}>
                       {t('admin.viewProfile')}
                     </Button>
                   </div>
@@ -182,8 +183,8 @@ export default function AdminJoinRequests() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium mb-2">{t('admin.vendorLabel')} {selectedRequest?.vendorCompany?.name || t('admin.na')}</p>
-              <p className="text-sm text-muted-foreground">{t('admin.requestedBy')} {selectedRequest?.requesterCompany?.name || t('admin.na')}</p>
+              <p className="text-sm font-medium mb-2 break-words">{t('admin.vendorLabel')} {selectedRequest?.vendorCompany?.name || t('admin.na')}</p>
+              <p className="text-sm text-muted-foreground break-words">{t('admin.requestedBy')} {selectedRequest?.requesterCompany?.name || t('admin.na')}</p>
             </div>
             {actionType === "reject" && (
               <div>

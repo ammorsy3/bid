@@ -779,8 +779,8 @@ export default function TenderAICopilot() {
               if (updatedFields.includes('budget')) {
                 const budget = parsed.tenderData.budget;
                 const budgetStr = typeof budget === 'object'
-                  ? `${budget.min?.toLocaleString()} - ${budget.max?.toLocaleString()} ${sarLabel}`
-                  : `${budget?.toLocaleString()} ${sarLabel}`;
+                  ? `${budget.min?.toLocaleString('en-US')} - ${budget.max?.toLocaleString('en-US')} ${sarLabel}`
+                  : `${budget?.toLocaleString('en-US')} ${sarLabel}`;
                 addActivity("extracting", t('copilot.activityIdBudget'), budgetStr);
               }
               if (updatedFields.includes('timeline')) {

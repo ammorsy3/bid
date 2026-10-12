@@ -305,3 +305,7 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     (g) New Arabic: فتح القائمة (open menu), the vendor tab/document names, and 8 audit-action names. Already matched to the app's wording by the Arabic pass, so no list to review.
     (h) Still open from before: the vendor logo (#26), and Arabic digits vs Western digits across the app (#40).
 
+42. **Ahmed's answers (2026-10-12, second round).**
+    - #26 (dev company's logo): **forget it**, it is only a dev company. Closed, no change.
+    - Digits: **Western digits (98,765) everywhere, in both languages.** Done: amounts, dates, times, the shared currency helper, the calendar locale and 3 Arabic strings that had typed-in Arabic digits now use 0-9. The audit checker has a new FAIL rule, `arabic-digits`, so any Arabic-Indic digit on any screen (text people typed themselves excluded) shows up in the next run. All 190 Arabic screen states were scanned: none left.
+

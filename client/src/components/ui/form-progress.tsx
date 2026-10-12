@@ -72,7 +72,7 @@ interface DraftIndicatorProps {
 
 export function DraftIndicator({ lastSaved, isSaving, onLoadDraft, hasDraft, language = 'en' }: DraftIndicatorProps) {
   const ps = (key: string) => progressStrings[language]?.[key] || progressStrings.en[key] || key;
-  const locale = language === 'ar' ? 'ar-SA' : 'en-US';
+  const locale = language === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US';
 
   if (isSaving) {
     return (

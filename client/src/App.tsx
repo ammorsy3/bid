@@ -93,7 +93,7 @@ function AriaLocaleProvider({ children }: { children: React.ReactNode }) {
   const { language } = useI18n();
   return (
     <RadixDirectionProvider dir={language === "ar" ? "rtl" : "ltr"}>
-      <AriaI18nProvider locale={language === "ar" ? "ar-SA-u-ca-gregory" : "en-US"}>
+      <AriaI18nProvider locale={language === "ar" ? "ar-SA-u-ca-gregory-nu-latn" : "en-US"}>
         {children}
       </AriaI18nProvider>
     </RadixDirectionProvider>

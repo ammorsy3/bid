@@ -462,7 +462,7 @@ type IntegrationLog = {
 
 function IntegrationActivityPanel({ integrationId }: { integrationId: string }) {
   const [expanded, setExpanded] = useState(false);
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const logsQuery = useQuery<IntegrationLog[]>({
     queryKey: [`/api/integrations/${integrationId}/logs`],
     queryFn: async () => {
@@ -505,7 +505,7 @@ function IntegrationActivityPanel({ integrationId }: { integrationId: string }) 
                   {log.errorCode || log.requestPreview?.slice(0, 60) || ""}
                 </span>
                 <span className="text-muted-foreground">
-                  {new Date(log.createdAt).toLocaleTimeString()}
+                  {new Date(log.createdAt).toLocaleTimeString(language === 'ar' ? 'ar-SA-u-nu-latn-ca-gregory' : 'en-US')}
                 </span>
               </div>
             ))

@@ -66,7 +66,7 @@ type EvalReqInfo = { label: string; description: string; formatValue?: (v: strin
 const EVAL_REQUIREMENT_INFO: Record<string, Record<string, EvalReqInfo>> = {
   years_in_market: { en: { label: "Minimum Years in Market", description: "The company must have been operating for at least this many years in a relevant field.", formatValue: (v) => `${v}+ years required` }, ar: { label: "الحد الأدنى لسنوات العمل", description: "يجب أن تكون الشركة عاملة في المجال لهذا العدد من السنوات على الأقل.", formatValue: (v) => `${v}+ سنوات مطلوبة` } },
   similar_projects_count: { en: { label: "Similar Projects Completed", description: "The company must have successfully delivered this many comparable projects.", formatValue: (v) => `At least ${v} project${Number(v) > 1 ? 's' : ''} required` }, ar: { label: "مشاريع مماثلة منجزة", description: "يجب أن تكون الشركة قد أنجزت هذا العدد من المشاريع المماثلة.", formatValue: (v) => `${v} مشاريع على الأقل` } },
-  min_project_value: { en: { label: "Minimum Project Value", description: "The company must have delivered at least one project of this value or higher.", formatValue: (v) => `${Number(v).toLocaleString()} SAR or higher` }, ar: { label: "الحد الأدنى لقيمة المشروع", description: "يجب أن تكون الشركة قد نفذت مشروعاً واحداً على الأقل بهذه القيمة أو أعلى.", formatValue: (v) => `${Number(v).toLocaleString()} ريال أو أكثر` } },
+  min_project_value: { en: { label: "Minimum Project Value", description: "The company must have delivered at least one project of this value or higher.", formatValue: (v) => `${Number(v).toLocaleString('en-US')} SAR or higher` }, ar: { label: "الحد الأدنى لقيمة المشروع", description: "يجب أن تكون الشركة قد نفذت مشروعاً واحداً على الأقل بهذه القيمة أو أعلى.", formatValue: (v) => `${Number(v).toLocaleString('en-US')} ريال أو أكثر` } },
   client_references: { en: { label: "Client References Required", description: "The company must provide verifiable references from previous clients for similar work." }, ar: { label: "مراجع العملاء مطلوبة", description: "يجب على الشركة تقديم مراجع يمكن التحقق منها من عملاء سابقين لأعمال مماثلة." } },
   financial_statements: { en: { label: "Financial Statements Required", description: "The company must submit audited financial statements to demonstrate financial stability." }, ar: { label: "القوائم المالية مطلوبة", description: "يجب على الشركة تقديم قوائم مالية مدققة لإثبات الاستقرار المالي." } },
   bank_guarantee: { en: { label: "Bank Guarantee Capability", description: "The company must be able to provide a bank guarantee if required during the project." }, ar: { label: "القدرة على تقديم ضمان بنكي", description: "يجب أن تكون الشركة قادرة على تقديم ضمان بنكي إذا تطلب المشروع ذلك." } },
@@ -709,7 +709,7 @@ export default function TenderDetails() {
 
   const formatDate = (dateStr: string | Date) => {
     const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return date.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
+    return date.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric'
@@ -756,12 +756,12 @@ export default function TenderDetails() {
     }
 
     if (tender.budgetMin && tender.budgetMax) {
-      return `${sar} ${tender.budgetMin.toLocaleString()} – ${tender.budgetMax.toLocaleString()}`;
+      return `${sar} ${tender.budgetMin.toLocaleString('en-US')} – ${tender.budgetMax.toLocaleString('en-US')}`;
     }
     if (tender.budget) {
       const numBudget = Number(tender.budget);
       if (!isNaN(numBudget) && numBudget > 0) {
-        return `${sar} ${numBudget.toLocaleString()}`;
+        return `${sar} ${numBudget.toLocaleString('en-US')}`;
       }
       return tender.budget;
     }
@@ -1214,7 +1214,7 @@ export default function TenderDetails() {
                                   </p>
                                 )}
                                 {milestone.amount && (
-                                  <p className="text-xs text-[#FE3C01] mt-1 font-medium">{t('tenderFlow.sarCurrency')} <span className="font-mono">{Number(milestone.amount).toLocaleString()}</span></p>
+                                  <p className="text-xs text-[#FE3C01] mt-1 font-medium">{t('tenderFlow.sarCurrency')} <span className="font-mono">{Number(milestone.amount).toLocaleString('en-US')}</span></p>
                                 )}
                               </div>
                             </div>
@@ -1225,7 +1225,7 @@ export default function TenderDetails() {
                         <div className="mt-4 pt-4 border-t border-border flex items-center justify-between px-2">
                           <span className="text-sm font-semibold text-muted-foreground">{t('tenderFlow.totalMilestoneValue')}</span>
                           <span className="text-base font-display font-black text-[#FE3C01] tabular-nums">
-                            {t('tenderFlow.sarCurrency')} <span className="font-mono">{(tender.milestones as any[]).reduce((sum: number, m: any) => sum + (Number(m.amount) || 0), 0).toLocaleString()}</span>
+                            {t('tenderFlow.sarCurrency')} <span className="font-mono">{(tender.milestones as any[]).reduce((sum: number, m: any) => sum + (Number(m.amount) || 0), 0).toLocaleString('en-US')}</span>
                           </span>
                         </div>
                       )}
@@ -1630,7 +1630,7 @@ export default function TenderDetails() {
                                     )}
                                     <p className="text-sm text-gray-900 dark:text-foreground">{q.question}</p>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                      {t('tenderFlow.askedLabel')} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
+                                      {t('tenderFlow.askedLabel')} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', { month: 'short', day: 'numeric' })}
                                       {q.askedByCompany?.category && (
                                         <span className="ms-1 text-muted-foreground">· {q.askedByCompany.category}</span>
                                       )}
@@ -1820,7 +1820,7 @@ export default function TenderDetails() {
                                     </div>
                                     {offer.quotePrice && (
                                       <div className="sm:flex-shrink-0 sm:text-end">
-                                        <p className="text-xl font-bold text-foreground">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString()}</p>
+                                        <p className="text-xl font-bold text-foreground">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString('en-US')}</p>
                                         <p className="text-xs text-muted-foreground mt-0.5">{t('tenderFlow.quotedPriceLabel')}</p>
                                       </div>
                                     )}
@@ -2393,7 +2393,7 @@ export default function TenderDetails() {
                           <Calendar className="h-3.5 w-3.5 text-gray-300" /> {t('tenderFlow.submittedOn')}
                         </span>
                         <span className="text-sm font-medium text-foreground">
-                          {new Date(selectedOffer.submittedAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
+                          {new Date(selectedOffer.submittedAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
@@ -2406,7 +2406,7 @@ export default function TenderDetails() {
                             <DollarSign className="h-3.5 w-3.5 text-gray-300" /> {t('tenderFlow.quotePriceLabel')}
                           </span>
                           <span className="text-lg font-bold text-foreground">
-                            {t('tenderFlow.sarCurrency')} {selectedOffer.quotePrice.toLocaleString()}
+                            {t('tenderFlow.sarCurrency')} {selectedOffer.quotePrice.toLocaleString('en-US')}
                           </span>
                         </div>
                       )}
@@ -2691,7 +2691,7 @@ export default function TenderDetails() {
                         {(drawerOffer.quotePrice != null || drawerAnalysis.financial.total != null) && (
                           <div className="flex justify-between text-sm px-3 py-2.5 bg-muted border-b border-border">
                             <span className="text-muted-foreground font-medium">{t('tenderFlow.totalLabel')}</span>
-                            <span className="font-bold text-foreground">{t('tenderFlow.sarCurrency')} {(drawerOffer.quotePrice ?? drawerAnalysis.financial.total)!.toLocaleString()}</span>
+                            <span className="font-bold text-foreground">{t('tenderFlow.sarCurrency')} {(drawerOffer.quotePrice ?? drawerAnalysis.financial.total)!.toLocaleString('en-US')}</span>
                           </div>
                         )}
                         {drawerAnalysis.financial.vat != null && (
@@ -2714,7 +2714,7 @@ export default function TenderDetails() {
                             {drawerAnalysis.financial.breakdown.map((item: any, i: number) => (
                               <div key={i} className="flex justify-between text-sm px-3 py-2 border-b border-border last:border-0">
                                 <span className="text-muted-foreground">{item.item}</span>
-                                <span className="text-foreground font-medium">{t('tenderFlow.sarCurrency')} {item.amount?.toLocaleString()}</span>
+                                <span className="text-foreground font-medium">{t('tenderFlow.sarCurrency')} {item.amount?.toLocaleString('en-US')}</span>
                               </div>
                             ))}
                           </>
@@ -2725,7 +2725,7 @@ export default function TenderDetails() {
 
                   {drawerAnalysis.analyzedAt && (
                     <p className="text-xs text-muted-foreground pt-2 border-t border-border">
-                      {t('tenderFlow.analyzedLabel')} {new Date(drawerAnalysis.analyzedAt).toLocaleString()}
+                      {t('tenderFlow.analyzedLabel')} {new Date(drawerAnalysis.analyzedAt).toLocaleString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US')}
                     </p>
                   )}
                   <p className="text-[11px] text-muted-foreground text-center pt-2">{t('tenderFlow.aiDisclaimer')}</p>

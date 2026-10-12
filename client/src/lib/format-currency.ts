@@ -25,7 +25,7 @@ export function formatCurrency(amount: string | number, locale?: SupportedLocale
   if (isNaN(num)) return String(amount);
 
   const effectiveLocale = locale ?? getBrowserLocale();
-  const intlLocale = effectiveLocale === 'ar' ? 'ar-SA' : 'en-US';
+  const intlLocale = effectiveLocale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US';
 
   return new Intl.NumberFormat(intlLocale, {
     style: "currency",

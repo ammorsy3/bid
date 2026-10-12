@@ -1563,7 +1563,7 @@ export default function CompanyProfileEditor() {
                                     <p className="text-sm font-semibold truncate">{INSURANCE_TYPE_LABELS[pol.type]}</p>
                                     <p className="text-xs text-muted-foreground truncate">
                                       {pol.provider}
-                                      {pol.coverageAmount ? ` · ${pol.coverageAmount.toLocaleString()} ${pol.currency || ''}` : ''}
+                                      {pol.coverageAmount ? ` · ${pol.coverageAmount.toLocaleString('en-US')} ${pol.currency || ''}` : ''}
                                     </p>
                                   </div>
                                   <Button variant="ghost" size="icon" onClick={() => removeInsurancePolicy(i)} aria-label={t('companyProfileEditor.removePolicy')} className="h-7 w-7 text-muted-foreground hover:text-red-500">

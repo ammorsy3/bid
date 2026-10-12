@@ -21,6 +21,7 @@
 //   ltr-field           email/password/phone/code box not left-to-right on an Arabic page
 //   arabic-spacing      letter-spacing on Arabic text (breaks the joined letters)
 //   arabic-left         Arabic text forced to align left
+//   arabic-digits       Arabic-Indic digits (٠-٩) anywhere: the app uses Western digits 0-9
 //   raw-key             a translation key like "auth.email" is showing
 //   page-health         empty page, error overlay, or console errors
 //   dialog-open         a popup is open that the screen state didn't ask for
@@ -404,6 +405,14 @@
         if (text && /[\u0660-\u0669]/.test(text) && !ARABIC.test(text.replace(/[\u0660-\u0669]/g, ""))) add("warn", "latin-words", el, "Arabic-Indic digits on the English page");
       });
     }
+
+    // Western digits (0-9) are the rule in both languages (Ahmed, 2026-10-12). Text people
+    // typed themselves (data-user-content) is theirs and is left alone.
+    visibleEls.forEach((el) => {
+      if (el.closest("[data-user-content]")) return;
+      const text = ownText(el);
+      if (text && /[\u0660-\u0669\u06F0-\u06F9]/.test(text)) add("fail", "arabic-digits", el, "Arabic-Indic digits: the app shows Western digits (0-9) in both languages");
+    });
 
     // raw translation keys
     visibleEls.forEach((el) => {

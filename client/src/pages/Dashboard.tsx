@@ -4865,7 +4865,7 @@ function DashboardInner({ user, activeCompany }: {
                 {selectedProposal.quotePrice && (
                   <div className="flex items-center justify-between p-3 bg-[var(--state-won)]/5 rounded-lg mb-2">
                     <span className="text-sm text-muted-foreground">{t('dashboard.priceQuoteLabel')}</span>
-                    <span className="text-lg font-bold text-[var(--state-won)]">SAR {selectedProposal.quotePrice.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-[var(--state-won)]">SAR {selectedProposal.quotePrice.toLocaleString('en-US')}</span>
                   </div>
                 )}
 

@@ -548,9 +548,9 @@ export default function TenderReview() {
       if (card.type === "budget") {
         const visibilityNote = card.value.showToVendors === false ? ` ${t('tenderFlow.hiddenFromVendorsNote')}` : "";
         if (card.value.type === "exact") {
-          return `SAR ${card.value.amount?.toLocaleString() || 0}${visibilityNote}`;
+          return `SAR ${card.value.amount?.toLocaleString('en-US') || 0}${visibilityNote}`;
         }
-        return `SAR ${card.value.min?.toLocaleString() || 0} – ${card.value.max?.toLocaleString() || 0}${visibilityNote}`;
+        return `SAR ${card.value.min?.toLocaleString('en-US') || 0} – ${card.value.max?.toLocaleString('en-US') || 0}${visibilityNote}`;
       }
       if (card.type === "milestones") {
         const count = card.value.length || 0;

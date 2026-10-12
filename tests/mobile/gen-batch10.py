@@ -151,6 +151,14 @@ S += [
  RS("b10-return-login-unverified", "Invite return: signed-in but email code not entered opens /login?redirect (should go to verify-email, then back)", f"/login?redirect={RET}", "unverified"),
  RS("b10-return-onboarding-new", "Invite return: new account lands in onboarding after sign-up", f"/signup?redirect={RET}", "verified-new"),
 ]
+# ---- Part D (#36d): the wizard's expanded marketplace form, with a faked Pro plan (copies of the batch-5 states) ----
+_src = json.load(open(P))["states"]
+for sid in ("b5-brief-marketplace", "b5-review-marketplace"):
+    c = json.loads(json.dumps(next(x for x in _src if x["id"] == sid)))
+    c["id"] = sid.replace("b5-", "b10-wiz-pro-"); c["batch"] = "batch-10"; c["page"] = "wizard-marketplace-form"
+    c["title"] = c["title"] + " (faked Pro plan so the form opens)"
+    c["overrides"] = {**(c.get("overrides") or {}), "GET /api/entitlements": ent("pro")}
+    S.append(c)
 d["states"] += S
 json.dump(d, open(P, "w"), ensure_ascii=False, indent=2)
 print(len(S), "states")

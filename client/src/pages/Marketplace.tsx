@@ -10,6 +10,7 @@ import { categoryLabel, cityLabel } from "@/lib/category-labels";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isMarketplaceSubdomain } from "@/lib/subdomain";
 import { useAuthStore } from "@/lib/auth";
+import { withViewTransition } from "@/lib/view-transition";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -412,7 +413,7 @@ export default function Marketplace() {
   // looking at the footer of the new page.
   const listTopRef = useRef<HTMLDivElement>(null);
   const goToPage = (n: number) => {
-    setPage(n);
+    withViewTransition(() => setPage(n));
     listTopRef.current?.scrollIntoView({ block: "start" });
   };
 
@@ -675,7 +676,7 @@ export default function Marketplace() {
 
             {/* All pill */}
             <button
-              onClick={() => { setCategory(""); setTenderType(""); setCity(""); setPage(1); }}
+              onClick={() => withViewTransition(() => { setCategory(""); setTenderType(""); setCity(""); setPage(1); })}
               className="inline-flex items-center gap-2 px-4 py-2.5 min-h-11 sm:min-h-0 rounded-full text-[13px] font-medium transition-[color,background-color,border-color,transform] active:scale-[0.97] whitespace-nowrap"
               style={!category && !tenderType && !city ? pillActive : pillInactive}
             >
@@ -704,7 +705,7 @@ export default function Marketplace() {
                   ? availableCategories.map(c => ({ value: c, label: categoryLabel(c, isRtl) }))
                   : []),
               ]}
-              onChange={v => { setCategory(v); setPage(1); }}
+              onChange={v => withViewTransition(() => { setCategory(v); setPage(1); })}
             />
 
             {/* City */}
@@ -715,7 +716,7 @@ export default function Marketplace() {
                 { value: "", label: t("marketplace.allCities") },
                 ...SAUDI_CITIES.map(c => ({ value: c, label: cityLabel(c, isRtl) })),
               ]}
-              onChange={v => { setCity(v); setPage(1); }}
+              onChange={v => withViewTransition(() => { setCity(v); setPage(1); })}
             />
 
             {/* Type */}
@@ -729,7 +730,7 @@ export default function Marketplace() {
                 { value: "direct_purchase", label: t("marketplace.directPurchase") },
                 { value: "framework_agreement", label: t("marketplace.frameworkAgreement") },
               ]}
-              onChange={v => { setTenderType(v); setPage(1); }}
+              onChange={v => withViewTransition(() => { setTenderType(v); setPage(1); })}
             />
           </div>
 
@@ -766,7 +767,7 @@ export default function Marketplace() {
                 { value: "deadline_asc", label: t("marketplace.sortDeadline") },
                 { value: "budget_desc", label: t("marketplace.sortBudget") },
               ]}
-              onChange={v => { setSort(v); setPage(1); }}
+              onChange={v => withViewTransition(() => { setSort(v); setPage(1); })}
               align="end"
               isActive={sort !== "newest"}
             />
@@ -786,14 +787,14 @@ export default function Marketplace() {
               <FilterChip
                 label={categoryLabel(category, isRtl)}
                 removeLabel={t("marketplace.removeFilter")}
-                onRemove={() => { setCategory(""); setPage(1); }}
+                onRemove={() => withViewTransition(() => { setCategory(""); setPage(1); })}
               />
             )}
             {city && (
               <FilterChip
                 label={cityLabel(city, isRtl)}
                 removeLabel={t("marketplace.removeFilter")}
-                onRemove={() => { setCity(""); setPage(1); }}
+                onRemove={() => withViewTransition(() => { setCity(""); setPage(1); })}
               />
             )}
             {tenderType && (
@@ -805,19 +806,19 @@ export default function Marketplace() {
                     : tenderType.replace(/_/g, " ")
                 }
                 removeLabel={t("marketplace.removeFilter")}
-                onRemove={() => { setTenderType(""); setPage(1); }}
+                onRemove={() => withViewTransition(() => { setTenderType(""); setPage(1); })}
               />
             )}
             {sort !== "newest" && (
               <FilterChip
                 label={sort === "deadline_asc" ? t("marketplace.sortDeadline") : t("marketplace.sortBudget")}
                 removeLabel={t("marketplace.removeFilter")}
-                onRemove={() => { setSort("newest"); setPage(1); }}
+                onRemove={() => withViewTransition(() => { setSort("newest"); setPage(1); })}
               />
             )}
             <button
               type="button"
-              onClick={() => { setCategory(""); setTenderType(""); setCity(""); setSort("newest"); setPage(1); }}
+              onClick={() => withViewTransition(() => { setCategory(""); setTenderType(""); setCity(""); setSort("newest"); setPage(1); })}
               className="inline-flex items-center min-h-11 sm:min-h-0 px-2 sm:px-0 text-xs font-semibold underline underline-offset-2 transition-transform active:scale-[0.97]"
               style={{ color: "#FE3C01" }}
             >
@@ -847,7 +848,7 @@ export default function Marketplace() {
             aria-label={t("marketplace.listView") + " / " + t("marketplace.gridView")}
           >
             <button
-              onClick={() => setViewMode("list")}
+              onClick={() => withViewTransition(() => setViewMode("list"))}
               aria-pressed={viewMode === "list"}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-[color,background-color,border-color,transform] active:scale-[0.97]"
               style={viewMode === "list" ? { background: "#0B0907", color: "#F4EDE1" } : { color: "#8A8078" }}
@@ -856,7 +857,7 @@ export default function Marketplace() {
               {t("marketplace.listView")}
             </button>
             <button
-              onClick={() => setViewMode("grid")}
+              onClick={() => withViewTransition(() => setViewMode("grid"))}
               aria-pressed={viewMode === "grid"}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-[color,background-color,border-color,transform] active:scale-[0.97]"
               style={viewMode === "grid" ? { background: "#0B0907", color: "#F4EDE1" } : { color: "#8A8078" }}
@@ -924,7 +925,7 @@ export default function Marketplace() {
               action={
                 <button
                   type="button"
-                  onClick={() => { setCategory(""); setTenderType(""); setCity(""); setSort("newest"); setSearch(""); setDebouncedSearch(""); setPage(1); }}
+                  onClick={() => withViewTransition(() => { setCategory(""); setTenderType(""); setCity(""); setSort("newest"); setSearch(""); setDebouncedSearch(""); setPage(1); })}
                   className="inline-flex items-center justify-center min-h-11 rounded-full bg-[var(--bid-orange)] px-6 py-2.5 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] active:scale-[0.97] hover:bg-[#1A1613]"
                 >
                   {t("marketplace.clearFilters")}

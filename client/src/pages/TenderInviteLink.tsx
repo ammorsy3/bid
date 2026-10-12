@@ -22,6 +22,7 @@ import { useI18n } from "@/lib/i18n";
 import { authUrlWithReturn } from "@/lib/return-to";
 import { isolateLtr, withLtrUrls } from "@/lib/bidi";
 import { Skeleton } from "@/components/ui/skeleton";
+import { withViewTransition } from "@/lib/view-transition";
 
 interface Milestone {
   id?: string;
@@ -277,7 +278,7 @@ function MobileAtAGlance({
   return (
     <div className="lg:hidden mb-4">
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => withViewTransition(() => setOpen(!open))}
         aria-expanded={open}
         className="w-full min-h-11 flex items-center justify-between bg-card rounded-xl border border-border shadow-sm px-4 py-3 transition-[background-color,transform] duration-100 active:scale-[0.99] active:bg-muted"
       >
@@ -1506,7 +1507,7 @@ export default function TenderInviteLink() {
                                   <div key={w.categoryId} className="rounded-xl border border-border overflow-hidden">
                                     <button
                                       type="button"
-                                      onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
+                                      onClick={() => withViewTransition(() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] })))}
                                       aria-expanded={isExpanded}
                                       className="w-full flex items-center gap-3 px-5 py-4 min-h-11 bg-muted hover:bg-muted/80 active:bg-card transition-[color,background-color] duration-100 text-start"
                                     >
@@ -1913,7 +1914,7 @@ export default function TenderInviteLink() {
                           {remainingReqCount > 0 && (
                             <button
                               onClick={() => scrollToSection('submission')}
-                              className="text-xs text-[#FE3C01] hover:underline ps-6"
+                              className="text-xs text-[#FE3C01] hover:underline ps-6 transition-[opacity,transform] duration-100 active:opacity-70 active:scale-[0.98]"
                             >
                               +{remainingReqCount} {remainingReqCount !== 1 ? t('tenderFlow.moreRequirements') : t('tenderFlow.moreRequirement')} <span className="inline-block rtl:-scale-x-100">→</span>
                             </button>

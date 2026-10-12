@@ -10,6 +10,7 @@ import { Building2, Calendar, Clock, CheckCircle, XCircle, Loader2, FileText, Ta
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 import { StatusBadge } from "@/components/brand/StatusDot";
@@ -390,7 +391,7 @@ export default function AdminMarketplace() {
         <div className="flex flex-col sm:flex-row gap-2 mb-6">
           <Button
             variant={activeTab === 'pending' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('pending')}
+            onClick={() => withViewTransition(() => setActiveTab('pending'))}
             className={`w-full sm:w-auto ${activeTab === 'pending' ? 'bg-[#FE3C01] hover:bg-[#d54d35]' : ''}`}
           >
             <Clock className="h-4 w-4 me-1.5" />
@@ -401,7 +402,7 @@ export default function AdminMarketplace() {
           </Button>
           <Button
             variant={activeTab === 'approved' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('approved')}
+            onClick={() => withViewTransition(() => setActiveTab('approved'))}
             className={`w-full sm:w-auto ${activeTab === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}`}
           >
             <Store className="h-4 w-4 me-1.5" />

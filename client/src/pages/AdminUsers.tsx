@@ -13,6 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import { format } from "date-fns";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader } from "@/components/admin/AdminUI";
 
@@ -107,11 +108,11 @@ export default function AdminUsers() {
           ]).map(({ key, label, Icon }) => (
             <button
               key={key}
-              onClick={() => setTab(key)}
+              onClick={() => withViewTransition(() => setTab(key))}
               className={`inline-flex items-center gap-2 px-4 py-2.5 max-md:min-h-11 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 tab === key
                   ? "border-[var(--bid-orange)] text-[var(--bid-orange)]"
-                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 active:opacity-70"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -237,7 +238,7 @@ function UsersTab({ users, isLoading, searchQuery, setSearchQuery, promoteMutati
                   <Button
                     variant="outline"
                     className="w-full h-11 sm:w-auto"
-                    onClick={() => setVisibleCount((c) => c + 10)}
+                    onClick={() => withViewTransition(() => setVisibleCount((c) => c + 10))}
                   >
                     {t('admin.showMoreLeft', { count: users.length - visibleCount })}
                   </Button>

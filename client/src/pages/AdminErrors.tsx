@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bug, AlertTriangle, Server, Monitor, ChevronDown, ChevronRight } from "lucide-react";
 import { format, isValid } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { useI18n } from "@/lib/i18n";
 import { AdminPage, AdminHeader, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
@@ -89,11 +90,11 @@ export default function AdminErrors() {
             {filterTabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => { setFilter(tab.key); setVisibleCount(10); }}
+                onClick={() => withViewTransition(() => { setFilter(tab.key); setVisibleCount(10); })}
                 className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 max-md:min-h-11 text-xs font-medium transition-colors ${
                   filter === tab.key
                     ? "bg-[var(--bid-orange)] text-white"
-                    : "bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
+                    : "bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 active:opacity-70"
                 }`}
               >
                 {tab.label}
@@ -159,8 +160,8 @@ export default function AdminErrors() {
                   {hasDetails && (
                     <CardContent className="pt-0">
                       <button
-                        onClick={() => toggle(error.id)}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors mb-2 max-md:min-h-11"
+                        onClick={() => withViewTransition(() => toggle(error.id))}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:opacity-70 transition-colors mb-2 max-md:min-h-11"
                       >
                         {isOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                         {isOpen ? t("adminErrors.hideDetails") : t("adminErrors.showDetails")}
@@ -200,7 +201,7 @@ export default function AdminErrors() {
               <Button
                 variant="outline"
                 className="w-full h-11 md:hidden"
-                onClick={() => setVisibleCount((c) => c + 10)}
+                onClick={() => withViewTransition(() => setVisibleCount((c) => c + 10))}
               >
                 {t("admin.showMoreLeft", { count: filtered.length - visibleCount })}
               </Button>

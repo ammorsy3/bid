@@ -11,6 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 import { viewAuthenticatedFile, downloadAuthenticatedFile } from "@/lib/downloadFile";
@@ -218,11 +219,11 @@ export default function AdminVendors() {
           {STATUS_TABS.map(tab => (
             <button
               key={tab.value}
-              onClick={() => { setStatusFilter(tab.value); setSearchQuery(""); setVisibleCount(10); }}
+              onClick={() => withViewTransition(() => { setStatusFilter(tab.value); setSearchQuery(""); setVisibleCount(10); })}
               className={`px-3 py-1.5 max-md:min-h-11 rounded-lg text-xs font-medium transition-colors ${
                 statusFilter === tab.value
                   ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'
-                  : 'bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  : 'bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 active:opacity-70'
               }`}
             >
               {t(tab.labelKey)}
@@ -385,7 +386,7 @@ export default function AdminVendors() {
               <Button
                 variant="outline"
                 className="w-full md:hidden"
-                onClick={() => setVisibleCount((c) => c + 10)}
+                onClick={() => withViewTransition(() => setVisibleCount((c) => c + 10))}
               >
                 {t('admin.showMoreLeft', { count: filteredCompanies.length - visibleCount })}
               </Button>

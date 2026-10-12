@@ -96,7 +96,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
         });
       }}
       aria-label={label}
-      className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#FE3C01] transition-colors flex-shrink-0 max-md:h-11 max-md:w-11 max-md:justify-center max-md:-mx-3.5 max-md:-my-3.5"
+      className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-[#FE3C01] active:opacity-70 transition-colors flex-shrink-0 max-md:h-11 max-md:w-11 max-md:justify-center max-md:-mx-3.5 max-md:-my-3.5"
     >
       {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
@@ -246,7 +246,7 @@ export default function AdminCampaigns() {
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <button
                             onClick={() => setDetailId(c.id)}
-                            className="font-display font-bold text-lg text-[#1A1613] dark:text-foreground tracking-[-0.02em] hover:text-[#FE3C01] transition-colors text-start break-words max-md:py-2.5 max-md:-my-2.5"
+                            className="font-display font-bold text-lg text-[#1A1613] dark:text-foreground tracking-[-0.02em] hover:text-[#FE3C01] active:opacity-70 transition-colors text-start break-words max-md:py-2.5 max-md:-my-2.5"
                             data-testid={`button-detail-${c.code}`}
                           >
                             {c.name}

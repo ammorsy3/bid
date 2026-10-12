@@ -151,7 +151,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <Link
           href="/dashboard"
           onClick={mobile ? () => setMenuOpen(false) : undefined}
-          className={`inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-muted-foreground dark:hover:text-gray-300 transition-colors mb-3 ${mobile ? 'min-h-11 -my-2' : ''}`}
+          className={`inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-muted-foreground dark:hover:text-gray-300 active:opacity-70 transition-colors mb-3 ${mobile ? 'min-h-11 -my-2' : ''}`}
         >
           <ArrowLeft className={`h-3.5 w-3.5 ${isRtl ? 'rotate-180' : ''}`} />
           {t('admin.backToDashboard')}
@@ -187,7 +187,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     className={`relative flex items-center gap-3 ps-4 pe-3 py-2.5 [@media(max-height:900px)]:py-1.5 ${mobile ? 'min-h-11' : ''} rounded-xl text-sm font-medium transition-all ${
                       isActive
                         ? "bg-gradient-to-r rtl:bg-gradient-to-l from-[var(--bid-orange)]/[0.12] to-[var(--bid-orange)]/[0.02] text-[var(--bid-orange)] shadow-[inset_0_0_0_1px_rgba(254,60,1,0.12)]"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-200"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-200 active:bg-muted dark:active:bg-gray-800/50"
                     }`}
                   >
                     {isActive && (
@@ -237,7 +237,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center gap-2 px-3 py-2 ${mobile ? 'min-h-11' : ''} rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-200 transition-colors`}
+          className={`w-full flex items-center gap-2 px-3 py-2 ${mobile ? 'min-h-11' : ''} rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:bg-muted dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-200 active:bg-muted dark:active:bg-gray-800/50 transition-colors`}
         >
           <LogOut className="h-4 w-4 rtl:-scale-x-100" />
           {t('admin.navLogout')}
@@ -259,7 +259,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           aria-label={t('admin.openMenu')}
           aria-haspopup="dialog"
           aria-expanded={menuOpen}
-          className="h-11 w-11 flex-shrink-0 inline-flex items-center justify-center rounded-xl text-gray-700 dark:text-gray-200 hover:bg-muted"
+          className="h-11 w-11 flex-shrink-0 inline-flex items-center justify-center rounded-xl text-gray-700 dark:text-gray-200 hover:bg-muted active:bg-muted active:opacity-70"
         >
           <Menu className="h-6 w-6" />
         </button>

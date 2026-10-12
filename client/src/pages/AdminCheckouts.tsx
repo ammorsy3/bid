@@ -9,6 +9,7 @@ import { arSA, enUS } from "date-fns/locale";
 import { CreditCard, Mail, MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList, SkeletonKpis } from "@/components/admin/AdminUI";
 
@@ -96,8 +97,8 @@ export default function AdminCheckouts() {
                   key={f}
                   role="tab"
                   aria-selected={filter === f}
-                  onClick={() => setFilter(f)}
-                  className={`px-4 md:px-3 py-1.5 max-md:min-h-11 rounded-full text-sm ${filter === f ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted"}`}
+                  onClick={() => withViewTransition(() => setFilter(f))}
+                  className={`px-4 md:px-3 py-1.5 max-md:min-h-11 rounded-full text-sm ${filter === f ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted active:bg-muted"} active:opacity-70`}
                   data-testid={`filter-checkouts-${f}`}
                 >
                   {t(`admin.checkoutsFilter_${f}`)}

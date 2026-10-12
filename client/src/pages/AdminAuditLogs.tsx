@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { StatusBadge, type BidState } from "@/components/brand/StatusDot";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
@@ -137,7 +138,7 @@ export default function AdminAuditLogs() {
               <Button
                 variant="outline"
                 className="w-full h-11 md:hidden"
-                onClick={() => setVisibleCount((c) => c + 10)}
+                onClick={() => withViewTransition(() => setVisibleCount((c) => c + 10))}
               >
                 {t('admin.showMoreLeft', { count: filteredLogs.length - visibleCount })}
               </Button>

@@ -11,6 +11,7 @@ import { ar, enUS } from "date-fns/locale";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader } from "@/components/admin/AdminUI";
 
@@ -56,17 +57,35 @@ export default function AdminNotifications() {
     queryClient.invalidateQueries({ queryKey: ["/api/admin/metrics"] });
   };
 
+  // Low-risk "mark as read": flip the row(s) instantly, roll back on error.
+  const KEY = ["/api/admin/notifications"];
+  const optimisticRead = async (ids: string[] | "all") => {
+    await queryClient.cancelQueries({ queryKey: KEY });
+    const previous = queryClient.getQueryData<AdminNotification[]>(KEY);
+    queryClient.setQueryData<AdminNotification[]>(KEY, (old) =>
+      old?.map((n) => (ids === "all" || ids.includes(n.id) ? { ...n, isRead: true } : n)),
+    );
+    return { previous };
+  };
+  const rollback = (_e: unknown, _v: unknown, ctx?: { previous?: AdminNotification[] }) => {
+    if (ctx?.previous) queryClient.setQueryData(KEY, ctx.previous);
+  };
+
   const markRead = useMutation({
     mutationFn: async (id: string) => apiRequest("POST", `/api/admin/notifications/${id}/read`),
-    onSuccess: invalidate,
+    onMutate: (id: string) => optimisticRead([id]),
+    onError: rollback,
+    onSettled: invalidate,
   });
 
   const markAllRead = useMutation({
     mutationFn: async () => apiRequest("POST", `/api/admin/notifications/read-all`),
+    onMutate: () => optimisticRead("all"),
+    onError: rollback,
     onSuccess: () => {
-      invalidate();
       toast({ title: t("adminNotifications.allRead") });
     },
+    onSettled: invalidate,
   });
 
   const list = (notifications ?? []).filter((n) => (unreadOnly ? !n.isRead : true));
@@ -102,11 +121,11 @@ export default function AdminNotifications() {
           ].map((tab) => (
             <button
               key={String(tab.key)}
-              onClick={() => setUnreadOnly(tab.key)}
+              onClick={() => withViewTransition(() => setUnreadOnly(tab.key))}
               className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 min-h-11 sm:min-h-0 text-xs font-medium transition-colors ${
                 unreadOnly === tab.key
                   ? "bg-[var(--bid-orange)] text-white"
-                  : "bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  : "bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 active:opacity-70"
               }`}
             >
               {tab.label}
@@ -185,7 +204,7 @@ export default function AdminNotifications() {
                             <button
                               onClick={() => markRead.mutate(n.id)}
                               disabled={markRead.isPending}
-                              className="min-h-11 sm:min-h-0 text-[11px] font-medium text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                              className="min-h-11 sm:min-h-0 text-[11px] font-medium text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 active:opacity-70"
                             >
                               {t("adminNotifications.markRead")}
                             </button>

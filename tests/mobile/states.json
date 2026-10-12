@@ -10343,6 +10343,703 @@
           "wait": 800
         }
       ]
+    },
+    {
+      "id": "b10-upgrade-free",
+      "batch": "batch-10",
+      "page": "upgrade",
+      "title": "Upgrade: free plan, plan boxes",
+      "route": "/upgrade",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "free",
+            "gated": true,
+            "tendersUsed": 3,
+            "tenderLimit": 3,
+            "canCreateTender": false,
+            "seatsUsed": 1,
+            "seatLimit": 1,
+            "features": {
+              "marketplace": false,
+              "aiBuilder": false,
+              "ownTemplates": false,
+              "qa": false,
+              "traction": false,
+              "seats": false,
+              "aiAnalysis": false,
+              "comparison": false,
+              "api": false
+            },
+            "canManageBilling": true
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": null,
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": true
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b10-upgrade-yearly",
+      "batch": "batch-10",
+      "page": "upgrade",
+      "title": "Upgrade: yearly switch",
+      "route": "/upgrade",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "free",
+            "gated": true,
+            "tendersUsed": 3,
+            "tenderLimit": 3,
+            "canCreateTender": false,
+            "seatsUsed": 1,
+            "seatLimit": 1,
+            "features": {
+              "marketplace": false,
+              "aiBuilder": false,
+              "ownTemplates": false,
+              "qa": false,
+              "traction": false,
+              "seats": false,
+              "aiAnalysis": false,
+              "comparison": false,
+              "api": false
+            },
+            "canManageBilling": true
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": null,
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": true
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        },
+        {
+          "click": "[data-testid=billing-term-yearly]"
+        },
+        {
+          "wait": 600
+        }
+      ]
+    },
+    {
+      "id": "b10-upgrade-reason-seats",
+      "batch": "batch-10",
+      "page": "upgrade",
+      "title": "Upgrade: sent here by the seats limit (Pro)",
+      "route": "/upgrade?reason=seats",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "free",
+            "gated": true,
+            "tendersUsed": 3,
+            "tenderLimit": 3,
+            "canCreateTender": false,
+            "seatsUsed": 1,
+            "seatLimit": 1,
+            "features": {
+              "marketplace": false,
+              "aiBuilder": false,
+              "ownTemplates": false,
+              "qa": false,
+              "traction": false,
+              "seats": false,
+              "aiAnalysis": false,
+              "comparison": false,
+              "api": false
+            },
+            "canManageBilling": true
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": null,
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": true
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b10-upgrade-reason-api",
+      "batch": "batch-10",
+      "page": "upgrade",
+      "title": "Upgrade: sent here by API keys (Business)",
+      "route": "/upgrade?reason=api",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "free",
+            "gated": true,
+            "tendersUsed": 3,
+            "tenderLimit": 3,
+            "canCreateTender": false,
+            "seatsUsed": 1,
+            "seatLimit": 1,
+            "features": {
+              "marketplace": false,
+              "aiBuilder": false,
+              "ownTemplates": false,
+              "qa": false,
+              "traction": false,
+              "seats": false,
+              "aiAnalysis": false,
+              "comparison": false,
+              "api": false
+            },
+            "canManageBilling": true
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": null,
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": true
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b10-upgrade-reason-tenders",
+      "batch": "batch-10",
+      "page": "upgrade",
+      "title": "Upgrade: sent here by the tender limit",
+      "route": "/upgrade?reason=tenders",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "free",
+            "gated": true,
+            "tendersUsed": 3,
+            "tenderLimit": 3,
+            "canCreateTender": false,
+            "seatsUsed": 1,
+            "seatLimit": 1,
+            "features": {
+              "marketplace": false,
+              "aiBuilder": false,
+              "ownTemplates": false,
+              "qa": false,
+              "traction": false,
+              "seats": false,
+              "aiAnalysis": false,
+              "comparison": false,
+              "api": false
+            },
+            "canManageBilling": true
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": null,
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": true
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b10-upgrade-member",
+      "batch": "batch-10",
+      "page": "upgrade",
+      "title": "Upgrade: a member who cannot pay (no buy buttons)",
+      "route": "/upgrade",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "free",
+            "gated": true,
+            "tendersUsed": 3,
+            "tenderLimit": 3,
+            "canCreateTender": false,
+            "seatsUsed": 1,
+            "seatLimit": 1,
+            "features": {
+              "marketplace": false,
+              "aiBuilder": false,
+              "ownTemplates": false,
+              "qa": false,
+              "traction": false,
+              "seats": false,
+              "aiAnalysis": false,
+              "comparison": false,
+              "api": false
+            },
+            "canManageBilling": false
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": null,
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": false
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b10-upgrade-unlocked-pro",
+      "batch": "batch-10",
+      "page": "upgrade",
+      "title": "Upgrade: after paying, Pro unlocked",
+      "route": "/upgrade",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "pro",
+            "gated": true,
+            "tendersUsed": 12,
+            "tenderLimit": null,
+            "canCreateTender": true,
+            "seatsUsed": 1,
+            "seatLimit": null,
+            "features": {
+              "marketplace": true,
+              "aiBuilder": true,
+              "ownTemplates": true,
+              "qa": true,
+              "traction": true,
+              "seats": true,
+              "aiAnalysis": false,
+              "comparison": false,
+              "api": false
+            },
+            "canManageBilling": true
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": {
+              "plan": "pro",
+              "term": "yearly",
+              "status": "active",
+              "live": true,
+              "currentPeriodEnd": "2027-10-12T00:00:00.000Z",
+              "cancelAtPeriodEnd": false
+            },
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": true
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b10-upgrade-unlocked-business",
+      "batch": "batch-10",
+      "page": "upgrade",
+      "title": "Upgrade: after paying, Business unlocked",
+      "route": "/upgrade",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "business",
+            "gated": true,
+            "tendersUsed": 12,
+            "tenderLimit": null,
+            "canCreateTender": true,
+            "seatsUsed": 1,
+            "seatLimit": null,
+            "features": {
+              "marketplace": true,
+              "aiBuilder": true,
+              "ownTemplates": true,
+              "qa": true,
+              "traction": true,
+              "seats": true,
+              "aiAnalysis": true,
+              "comparison": true,
+              "api": true
+            },
+            "canManageBilling": true
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": {
+              "plan": "business",
+              "term": "yearly",
+              "status": "active",
+              "live": true,
+              "currentPeriodEnd": "2027-10-12T00:00:00.000Z",
+              "cancelAtPeriodEnd": false
+            },
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": true
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b10-upgrade-details",
+      "batch": "batch-10",
+      "page": "upgrade",
+      "title": "Upgrade: billing details step after choosing Pro",
+      "route": "/upgrade",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "free",
+            "gated": true,
+            "tendersUsed": 3,
+            "tenderLimit": 3,
+            "canCreateTender": false,
+            "seatsUsed": 1,
+            "seatLimit": 1,
+            "features": {
+              "marketplace": false,
+              "aiBuilder": false,
+              "ownTemplates": false,
+              "qa": false,
+              "traction": false,
+              "seats": false,
+              "aiAnalysis": false,
+              "comparison": false,
+              "api": false
+            },
+            "canManageBilling": true
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": null,
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": true
+          }
+        },
+        "POST /api/billing/checkouts": {
+          "json": {
+            "checkoutId": "c-demo",
+            "plan": "pro",
+            "term": "monthly",
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            }
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        },
+        {
+          "click": "[data-testid=billing-plan-pro]"
+        },
+        {
+          "wait": 2500
+        }
+      ]
     }
   ]
 }

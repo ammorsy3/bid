@@ -11210,6 +11210,553 @@
           "wait": 1500
         }
       ]
+    },
+    {
+      "id": "b10-admin-joinreq-rows",
+      "batch": "batch-10",
+      "page": "admin-join-requests",
+      "title": "Admin: join requests (3 pending rows)",
+      "route": "/admin/join-requests",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/admin/join-requests": {
+          "json": [
+            {
+              "id": "jr1",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة",
+                "verificationStatus": "unverified"
+              },
+              "requesterCompany": {
+                "name": "Seet Contracting"
+              }
+            },
+            {
+              "id": "jr2",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "Al-Rashid International Engineering & Industrial Maintenance Services Company",
+                "verificationStatus": "pending"
+              },
+              "requesterCompany": {
+                "name": "شركة نور للمقاولات"
+              }
+            },
+            {
+              "id": "jr3",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "Nour",
+                "verificationStatus": "verified"
+              },
+              "requesterCompany": {
+                "name": "Seet"
+              }
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b10-admin-joinreq-approve",
+      "batch": "batch-10",
+      "page": "admin-join-requests",
+      "title": "Admin: approve join request popup",
+      "route": "/admin/join-requests",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/admin/join-requests": {
+          "json": [
+            {
+              "id": "jr1",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة",
+                "verificationStatus": "unverified"
+              },
+              "requesterCompany": {
+                "name": "Seet Contracting"
+              }
+            },
+            {
+              "id": "jr2",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "Al-Rashid International Engineering & Industrial Maintenance Services Company",
+                "verificationStatus": "pending"
+              },
+              "requesterCompany": {
+                "name": "شركة نور للمقاولات"
+              }
+            },
+            {
+              "id": "jr3",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "Nour",
+                "verificationStatus": "verified"
+              },
+              "requesterCompany": {
+                "name": "Seet"
+              }
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid=button-approve-jr1]"
+        },
+        {
+          "wait": 800
+        }
+      ],
+      "expectDialog": true
+    },
+    {
+      "id": "b10-admin-joinreq-reject",
+      "batch": "batch-10",
+      "page": "admin-join-requests",
+      "title": "Admin: reject join request popup (reason typed)",
+      "route": "/admin/join-requests",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/admin/join-requests": {
+          "json": [
+            {
+              "id": "jr1",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة",
+                "verificationStatus": "unverified"
+              },
+              "requesterCompany": {
+                "name": "Seet Contracting"
+              }
+            },
+            {
+              "id": "jr2",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "Al-Rashid International Engineering & Industrial Maintenance Services Company",
+                "verificationStatus": "pending"
+              },
+              "requesterCompany": {
+                "name": "شركة نور للمقاولات"
+              }
+            },
+            {
+              "id": "jr3",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "Nour",
+                "verificationStatus": "verified"
+              },
+              "requesterCompany": {
+                "name": "Seet"
+              }
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid=button-reject-jr1]"
+        },
+        {
+          "wait": 600
+        },
+        {
+          "fill": [
+            "[data-testid=input-reason]",
+            "سبب الرفض: المستندات غير مكتملة"
+          ]
+        },
+        {
+          "wait": 400
+        }
+      ],
+      "expectDialog": true
+    },
+    {
+      "id": "b10-admin-checkouts-rows",
+      "batch": "batch-10",
+      "page": "admin-checkouts",
+      "title": "Admin: checkouts (5 rows, every status)",
+      "route": "/admin/checkouts",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/admin/billing/checkouts": {
+          "json": [
+            {
+              "id": "ck1",
+              "plan": "pro",
+              "term": "monthly",
+              "status": "abandoned",
+              "failureReason": null,
+              "lastActivityAt": "2026-10-10T12:00:00.000Z",
+              "followupSentAt": null,
+              "createdAt": "2026-10-10T11:00:00.000Z",
+              "companyId": "co1",
+              "companyName": "شركة الأفق المتقدم للمقاولات العامة والصيانة",
+              "userName": "عبدالرحمن بن محمد الشهري",
+              "email": "abdulrahman.alshehri.long.address@example-company-name.com.sa",
+              "phone": "+966501234567",
+              "total": 90.85
+            },
+            {
+              "id": "ck2",
+              "plan": "business",
+              "term": "yearly",
+              "status": "failed",
+              "failureReason": "Card declined by the issuing bank",
+              "lastActivityAt": "2026-10-10T12:00:00.000Z",
+              "followupSentAt": null,
+              "createdAt": "2026-10-10T11:00:00.000Z",
+              "companyId": "co2",
+              "companyName": "Seet Contracting",
+              "userName": "Ahmed",
+              "email": "a@b.co",
+              "phone": "+966501234567",
+              "total": 2058.0
+            },
+            {
+              "id": "ck3",
+              "plan": "pro",
+              "term": "yearly",
+              "status": "redirected",
+              "failureReason": null,
+              "lastActivityAt": "2026-10-10T12:00:00.000Z",
+              "followupSentAt": "2026-10-11T09:00:00.000Z",
+              "createdAt": "2026-10-10T11:00:00.000Z",
+              "companyId": "co3",
+              "companyName": "Nour",
+              "userName": "Nour",
+              "email": "n@n.co",
+              "phone": "+966501234567",
+              "total": 910.8
+            },
+            {
+              "id": "ck4",
+              "plan": "business",
+              "term": "monthly",
+              "status": "paid",
+              "failureReason": null,
+              "lastActivityAt": "2026-10-10T12:00:00.000Z",
+              "followupSentAt": null,
+              "createdAt": "2026-10-10T11:00:00.000Z",
+              "companyId": "co4",
+              "companyName": "Al-Rashid International Engineering & Maintenance",
+              "userName": "Khalid Al-Rashid",
+              "email": "khalid@example.com",
+              "phone": "+966501234567",
+              "total": 205.85
+            },
+            {
+              "id": "ck5",
+              "plan": "pro",
+              "term": "monthly",
+              "status": "draft",
+              "failureReason": null,
+              "lastActivityAt": "2026-10-10T12:00:00.000Z",
+              "followupSentAt": null,
+              "createdAt": "2026-10-10T11:00:00.000Z",
+              "companyId": "co5",
+              "companyName": "Draft Co",
+              "userName": "Sara",
+              "email": "sara@example.com",
+              "phone": "+966501234567",
+              "total": 90.85
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid=filter-checkouts-all]"
+        },
+        {
+          "wait": 600
+        }
+      ]
+    },
+    {
+      "id": "b10-admin-campaign-create",
+      "batch": "batch-10",
+      "page": "admin-campaigns",
+      "title": "Admin: new campaign popup",
+      "route": "/admin/campaigns",
+      "keyboard": false,
+      "overrides": {},
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid=button-new-campaign]"
+        },
+        {
+          "wait": 800
+        }
+      ],
+      "expectDialog": true
+    },
+    {
+      "id": "b10-admin-campaign-detail",
+      "batch": "batch-10",
+      "page": "admin-campaigns",
+      "title": "Admin: campaign detail popup",
+      "route": "/admin/campaigns",
+      "keyboard": false,
+      "overrides": {},
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid^=button-detail-]"
+        },
+        {
+          "wait": 2500
+        }
+      ],
+      "expectDialog": true
+    },
+    {
+      "id": "b10-admin-vendors-approve",
+      "batch": "batch-10",
+      "page": "admin-vendors",
+      "title": "Admin: approve company popup",
+      "route": "/admin/vendors",
+      "keyboard": false,
+      "overrides": {},
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid^=button-approve-]"
+        },
+        {
+          "wait": 800
+        }
+      ],
+      "expectDialog": true
+    },
+    {
+      "id": "b10-admin-vendors-reject",
+      "batch": "batch-10",
+      "page": "admin-vendors",
+      "title": "Admin: reject company popup",
+      "route": "/admin/vendors",
+      "keyboard": false,
+      "overrides": {},
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid^=button-reject-]"
+        },
+        {
+          "wait": 800
+        }
+      ],
+      "expectDialog": true
+    },
+    {
+      "id": "b10-admin-vendors-view",
+      "batch": "batch-10",
+      "page": "admin-vendors",
+      "title": "Admin: company details popup",
+      "route": "/admin/vendors",
+      "keyboard": false,
+      "overrides": {},
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid^=button-view-]"
+        },
+        {
+          "wait": 1500
+        }
+      ],
+      "expectDialog": true
+    },
+    {
+      "id": "b10-admin-marketplace-rows",
+      "batch": "batch-10",
+      "page": "admin-marketplace",
+      "title": "Admin: marketplace pending (2 tenders)",
+      "route": "/admin/marketplace",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/admin/marketplace/pending": {
+          "json": [
+            {
+              "id": "mt1",
+              "title": "توريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية للمجمع السكني والتجاري",
+              "description": "وصف طويل للمناقصة يشمل نطاق العمل والمتطلبات الفنية والمالية وجميع الشروط الخاصة بالتقديم والتقييم والترسية والتنفيذ.",
+              "category": "Construction & Infrastructure",
+              "deadline": "2026-12-01T00:00:00.000Z",
+              "budget": "1250000",
+              "status": "published",
+              "invitationToken": "tok",
+              "referenceNumber": "BID-0001",
+              "tenderType": "open_tender",
+              "documentFee": 500,
+              "inquiryDeadline": "2026-11-01T00:00:00.000Z",
+              "marketplaceStatus": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "company": {
+                "id": "c1",
+                "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة",
+                "city": "الرياض",
+                "verificationStatus": "verified"
+              },
+              "profile": {
+                "displayName": null,
+                "logoUrl": null
+              }
+            },
+            {
+              "id": "mt2",
+              "title": "Supply and installation of an integrated smart building management system",
+              "description": "وصف طويل للمناقصة يشمل نطاق العمل والمتطلبات الفنية والمالية وجميع الشروط الخاصة بالتقديم والتقييم والترسية والتنفيذ.",
+              "category": "Construction & Infrastructure",
+              "deadline": "2026-12-01T00:00:00.000Z",
+              "budget": "1250000",
+              "status": "published",
+              "invitationToken": "tok",
+              "referenceNumber": "BID-0001",
+              "tenderType": "open_tender",
+              "documentFee": 500,
+              "inquiryDeadline": "2026-11-01T00:00:00.000Z",
+              "marketplaceStatus": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "company": {
+                "id": "c1",
+                "name": "Al-Rashid International Engineering",
+                "city": "Jeddah",
+                "verificationStatus": "verified"
+              },
+              "profile": {
+                "displayName": null,
+                "logoUrl": null
+              }
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 3000
+        }
+      ]
+    },
+    {
+      "id": "b10-admin-marketplace-reject",
+      "batch": "batch-10",
+      "page": "admin-marketplace",
+      "title": "Admin: reject marketplace tender popup",
+      "route": "/admin/marketplace",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/admin/marketplace/pending": {
+          "json": [
+            {
+              "id": "mt1",
+              "title": "توريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية للمجمع السكني والتجاري",
+              "description": "وصف طويل للمناقصة يشمل نطاق العمل والمتطلبات الفنية والمالية وجميع الشروط الخاصة بالتقديم والتقييم والترسية والتنفيذ.",
+              "category": "Construction & Infrastructure",
+              "deadline": "2026-12-01T00:00:00.000Z",
+              "budget": "1250000",
+              "status": "published",
+              "invitationToken": "tok",
+              "referenceNumber": "BID-0001",
+              "tenderType": "open_tender",
+              "documentFee": 500,
+              "inquiryDeadline": "2026-11-01T00:00:00.000Z",
+              "marketplaceStatus": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "company": {
+                "id": "c1",
+                "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة",
+                "city": "الرياض",
+                "verificationStatus": "verified"
+              },
+              "profile": {
+                "displayName": null,
+                "logoUrl": null
+              }
+            },
+            {
+              "id": "mt2",
+              "title": "Supply and installation of an integrated smart building management system",
+              "description": "وصف طويل للمناقصة يشمل نطاق العمل والمتطلبات الفنية والمالية وجميع الشروط الخاصة بالتقديم والتقييم والترسية والتنفيذ.",
+              "category": "Construction & Infrastructure",
+              "deadline": "2026-12-01T00:00:00.000Z",
+              "budget": "1250000",
+              "status": "published",
+              "invitationToken": "tok",
+              "referenceNumber": "BID-0001",
+              "tenderType": "open_tender",
+              "documentFee": 500,
+              "inquiryDeadline": "2026-11-01T00:00:00.000Z",
+              "marketplaceStatus": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "company": {
+                "id": "c1",
+                "name": "Al-Rashid International Engineering",
+                "city": "Jeddah",
+                "verificationStatus": "verified"
+              },
+              "profile": {
+                "displayName": null,
+                "logoUrl": null
+              }
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "button[class*=destructive]"
+        },
+        {
+          "wait": 800
+        }
+      ],
+      "expectDialog": true
     }
   ]
 }

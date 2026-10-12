@@ -9,7 +9,7 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useI18n } from "@/lib/i18n";
 import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
@@ -301,7 +301,7 @@ export default function AdminVendors() {
                           {company.vatNumber && <div><strong>{t('admin.vatHash')}</strong> {company.vatNumber}</div>}
                           <div><strong>{t('admin.city')}</strong> {company.city || t('admin.na')}</div>
                           {company.category && <div><strong>{t('admin.categoryLabel')}</strong> {company.category}</div>}
-                          <div><strong>{t('admin.submitted')}</strong> {format(new Date(company.createdAt), 'PPp')}</div>
+                          <div><strong>{t('admin.submitted')}</strong> {formatLocalDate(new Date(company.createdAt), 'PPp')}</div>
                         </div>
 
                         {/* Owner info */}
@@ -445,7 +445,7 @@ export default function AdminVendors() {
                 <div className="text-sm space-y-1">
                   <div><strong>{t('admin.verificationLabel')}</strong> {statusLabel(selectedCompany.verificationStatus)}</div>
                   <div><strong>{t('admin.onboardingLabel')}</strong> {selectedCompany.onboardingState}</div>
-                  <div><strong>{t('admin.createdLabel')}</strong> {format(new Date(selectedCompany.createdAt), 'PPp')}</div>
+                  <div><strong>{t('admin.createdLabel')}</strong> {formatLocalDate(new Date(selectedCompany.createdAt), 'PPp')}</div>
                 </div>
               </div>
 
@@ -485,7 +485,7 @@ export default function AdminVendors() {
                               {docLabel(doc)}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {doc.originalName || t('admin.documentLabel')} &middot; {format(new Date(doc.uploadedAt), 'PP')}
+                              {doc.originalName || t('admin.documentLabel')} &middot; {formatLocalDate(new Date(doc.uploadedAt), 'PP')}
                             </p>
                           </div>
                         </div>

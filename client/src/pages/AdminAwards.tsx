@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertTriangle, Unlock, ShieldCheck, Eye, XCircle, Building2, FileText, ExternalLink, Download, User, Mail, Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
@@ -160,8 +160,8 @@ export default function AdminAwards() {
                             <strong>{t('admin.verificationLabelShort')}</strong>
                             {getStatusBadge(award.company?.verificationStatus)}
                           </div>
-                          <div><strong>{t('admin.tenderDeadlineLabel')}</strong> {award.tender?.deadline ? format(new Date(award.tender.deadline), 'PP') : t('admin.na')}</div>
-                          <div><strong>{t('admin.blockedSinceLabel')}</strong> {award.createdAt ? format(new Date(award.createdAt), 'PP') : t('admin.na')}</div>
+                          <div><strong>{t('admin.tenderDeadlineLabel')}</strong> {award.tender?.deadline ? formatLocalDate(new Date(award.tender.deadline), 'PP') : t('admin.na')}</div>
+                          <div><strong>{t('admin.blockedSinceLabel')}</strong> {award.createdAt ? formatLocalDate(new Date(award.createdAt), 'PP') : t('admin.na')}</div>
                         </div>
 
                         {award.blockReason && (
@@ -289,7 +289,7 @@ export default function AdminAwards() {
                               {(DOC_TYPE_KEYS[doc.documentType] ? t(DOC_TYPE_KEYS[doc.documentType]) : null) || doc.label || doc.documentType}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {doc.originalName || t('admin.documentLabel')} &middot; {format(new Date(doc.uploadedAt), 'PP')}
+                              {doc.originalName || t('admin.documentLabel')} &middot; {formatLocalDate(new Date(doc.uploadedAt), 'PP')}
                             </p>
                           </div>
                         </div>

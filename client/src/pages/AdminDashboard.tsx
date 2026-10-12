@@ -4,7 +4,8 @@ import {
   ClipboardList, Send, ArrowUpRight, CheckCircle2, Building2, Sparkles,
 } from "lucide-react";
 import { Link } from "wouter";
-import { format, isValid } from "date-fns";
+import { isValid } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
 import {
@@ -253,7 +254,7 @@ function RefinedTenders({ tendersOverview, tendersLoading, t }: { tendersOvervie
                     <div className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500 mt-0.5">{t("adminTenders.colOffers")}</div>
                   </div>
                   <div className="hidden md:block text-end text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap w-20 flex-shrink-0">
-                    {isValid(d) ? format(d, "PP") : "—"}
+                    {isValid(d) ? formatLocalDate(d, "PP") : "—"}
                   </div>
                 </Link>
               );

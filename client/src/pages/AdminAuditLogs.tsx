@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FileText, User, Search } from "lucide-react";
-import { format } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -91,7 +91,7 @@ export default function AdminAuditLogs() {
                         data-testid={`badge-action-${log.id}`}
                       />
                       <bdi dir="ltr" className="text-xs text-gray-400 dark:text-gray-500 font-mono">
-                        {format(new Date(log.createdAt), "PPpp")}
+                        {formatLocalDate(new Date(log.createdAt), "PPpp")}
                       </bdi>
                     </div>
                   </div>

@@ -510,6 +510,10 @@ function CreateCampaignDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 value={handle}
                 onChange={(e) => setHandle(e.target.value)}
                 placeholder="@saraalharbi"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                data-audit-ok="email-field"
                 data-testid="input-influencer-handle"
               />
             </div>
@@ -538,6 +542,9 @@ function CreateCampaignDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 value={utmCampaign}
                 onChange={(e) => setUtmCampaign(e.target.value)}
                 placeholder="launch-2026-09"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 data-testid="input-utm-campaign"
               />
               <p className="text-[11px] text-gray-400 mt-1">{t("admin.fieldCampaignTagHelp")}</p>

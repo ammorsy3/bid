@@ -8,7 +8,7 @@ import { CheckCircle, XCircle, User as UserIcon, Users } from "lucide-react";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
@@ -67,6 +67,12 @@ export default function AdminJoinRequests() {
       });
     },
   });
+
+  const STATUS_KEYS: Record<string, string> = {
+    under_review: 'admin.statusUnderReview', verified: 'admin.statusVerified',
+    rejected: 'admin.statusRejected', not_verified: 'admin.statusNotVerified',
+  };
+  const statusLabel = (status?: string | null) => (!status ? t('admin.na') : STATUS_KEYS[status] ? t(STATUS_KEYS[status]) : status);
 
   const handleClose = () => {
     setSelectedRequest(null);
@@ -129,9 +135,9 @@ export default function AdminJoinRequests() {
                         <div className="space-y-1">
                           <div>{t('admin.requestedBy')} {request.requesterCompany?.name || t('admin.na')}</div>
                           <div>
-                            {t('admin.submittedAt')} {request.createdAt ? format(new Date(request.createdAt), "PPP") : t('admin.na')}
+                            {t('admin.submittedAt')} {request.createdAt ? formatLocalDate(new Date(request.createdAt), "PPP") : t('admin.na')}
                           </div>
-                          <div>{t('admin.vendorStatusLabel')} {request.vendorCompany?.verificationStatus || t('admin.na')}</div>
+                          <div>{t('admin.vendorStatusLabel')} {statusLabel(request.vendorCompany?.verificationStatus)}</div>
                         </div>
                       </CardDescription>
                     </div>

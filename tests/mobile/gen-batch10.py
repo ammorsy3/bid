@@ -60,6 +60,49 @@ S += [
 for slug in ["getting-started", "webhook", "mcp", "rate-limits"]:
     S.append({"id": f"b10-docs-{slug}", "batch": "batch-10", "page": "docs", "title": f"Developer docs: {slug}", "route": f"/docs/{slug}",
               "keyboard": False, "actions": [{"wait": 1500}]})
+# ---- Part B: admin rows and popups (admin account, default workspace; reads faked/real, saves blocked) ----
+def jr(i, vendor, requester, vs="unverified"):
+    return {"id": f"jr{i}", "status": "pending", "createdAt": "2026-10-01T09:00:00.000Z",
+            "vendorCompany": {"name": vendor, "verificationStatus": vs}, "requesterCompany": {"name": requester}}
+JRS = [jr(1, "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة", "Seet Contracting"),
+       jr(2, "Al-Rashid International Engineering & Industrial Maintenance Services Company", "شركة نور للمقاولات", "pending"),
+       jr(3, "Nour", "Seet", "verified")]
+def ck(i, status, plan, term, co, user, email, total, fu=None, reason=None):
+    return {"id": f"ck{i}", "plan": plan, "term": term, "status": status, "failureReason": reason,
+            "lastActivityAt": "2026-10-10T12:00:00.000Z", "followupSentAt": fu, "createdAt": "2026-10-10T11:00:00.000Z",
+            "companyId": f"co{i}", "companyName": co, "userName": user, "email": email, "phone": "+966501234567", "total": total}
+CKS = [ck(1, "abandoned", "pro", "monthly", "شركة الأفق المتقدم للمقاولات العامة والصيانة", "عبدالرحمن بن محمد الشهري", "abdulrahman.alshehri.long.address@example-company-name.com.sa", 90.85),
+       ck(2, "failed", "business", "yearly", "Seet Contracting", "Ahmed", "a@b.co", 2058.0, reason="Card declined by the issuing bank"),
+       ck(3, "redirected", "pro", "yearly", "Nour", "Nour", "n@n.co", 910.8, fu="2026-10-11T09:00:00.000Z"),
+       ck(4, "paid", "business", "monthly", "Al-Rashid International Engineering & Maintenance", "Khalid Al-Rashid", "khalid@example.com", 205.85),
+       ck(5, "draft", "pro", "monthly", "Draft Co", "Sara", "sara@example.com", 90.85)]
+def mt(i, title, company, city):
+    return {"id": f"mt{i}", "title": title, "description": "وصف طويل للمناقصة يشمل نطاق العمل والمتطلبات الفنية والمالية وجميع الشروط الخاصة بالتقديم والتقييم والترسية والتنفيذ.",
+            "category": "Construction & Infrastructure", "deadline": "2026-12-01T00:00:00.000Z", "budget": "1250000", "status": "published",
+            "invitationToken": "tok", "referenceNumber": "BID-0001", "tenderType": "open_tender", "documentFee": 500, "inquiryDeadline": "2026-11-01T00:00:00.000Z",
+            "marketplaceStatus": "pending", "createdAt": "2026-10-01T09:00:00.000Z",
+            "company": {"id": "c1", "name": company, "city": city, "verificationStatus": "verified"}, "profile": {"displayName": None, "logoUrl": None}}
+MTS = [mt(1, "توريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية للمجمع السكني والتجاري", "شركة الأفق المتقدم للمقاولات العامة والصيانة", "الرياض"),
+       mt(2, "Supply and installation of an integrated smart building management system", "Al-Rashid International Engineering", "Jeddah")]
+A = lambda id_, page, title, route, ov=None, actions=None, dialog=False, **kw: {"id": id_, "batch": "batch-10", "page": page, "title": title, "route": route,
+     "keyboard": False, "overrides": ov or {}, "actions": [{"wait": 3000}] + (actions or []), **({"expectDialog": True} if dialog else {}), **kw}
+JROV = {"GET /api/admin/join-requests": {"json": JRS}}
+S += [
+ A("b10-admin-joinreq-rows", "admin-join-requests", "Admin: join requests (3 pending rows)", "/admin/join-requests", JROV),
+ A("b10-admin-joinreq-approve", "admin-join-requests", "Admin: approve join request popup", "/admin/join-requests", JROV, [{"click": "[data-testid=button-approve-jr1]"}, {"wait": 800}], True),
+ A("b10-admin-joinreq-reject", "admin-join-requests", "Admin: reject join request popup (reason typed)", "/admin/join-requests", JROV,
+   [{"click": "[data-testid=button-reject-jr1]"}, {"wait": 600}, {"fill": ["[data-testid=input-reason]", "سبب الرفض: المستندات غير مكتملة"]}, {"wait": 400}], True),
+ A("b10-admin-checkouts-rows", "admin-checkouts", "Admin: checkouts (5 rows, every status)", "/admin/checkouts", {"GET /api/admin/billing/checkouts": {"json": CKS}},
+   [{"click": "[data-testid=filter-checkouts-all]"}, {"wait": 600}]),
+ A("b10-admin-campaign-create", "admin-campaigns", "Admin: new campaign popup", "/admin/campaigns", None, [{"click": "[data-testid=button-new-campaign]"}, {"wait": 800}], True),
+ A("b10-admin-campaign-detail", "admin-campaigns", "Admin: campaign detail popup", "/admin/campaigns", None, [{"click": "[data-testid^=button-detail-]"}, {"wait": 2500}], True),
+ A("b10-admin-vendors-approve", "admin-vendors", "Admin: approve company popup", "/admin/vendors", None, [{"click": "[data-testid^=button-approve-]"}, {"wait": 800}], True),
+ A("b10-admin-vendors-reject", "admin-vendors", "Admin: reject company popup", "/admin/vendors", None, [{"click": "[data-testid^=button-reject-]"}, {"wait": 800}], True),
+ A("b10-admin-vendors-view", "admin-vendors", "Admin: company details popup", "/admin/vendors", None, [{"click": "[data-testid^=button-view-]"}, {"wait": 1500}], True),
+ A("b10-admin-marketplace-rows", "admin-marketplace", "Admin: marketplace pending (2 tenders)", "/admin/marketplace", {"GET /api/admin/marketplace/pending": {"json": MTS}}),
+ A("b10-admin-marketplace-reject", "admin-marketplace", "Admin: reject marketplace tender popup", "/admin/marketplace", {"GET /api/admin/marketplace/pending": {"json": MTS}},
+   [{"click": "button[class*=destructive]"}, {"wait": 800}], True),
+]
 d["states"] += S
 json.dump(d, open(P, "w"), ensure_ascii=False, indent=2)
 print(len(S), "states")

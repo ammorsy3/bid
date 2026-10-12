@@ -203,7 +203,7 @@ export default function AdminMarketplace() {
                 <Building2 className="h-4 w-4 mt-0.5 shrink-0" />
                 <span className="break-words min-w-0">{tender.profile?.displayName || tender.company.name}</span>
                 {tender.company.city && (
-                  <span className="text-gray-400">· {tender.company.city}</span>
+                  <span className="text-gray-400 whitespace-nowrap">· {tender.company.city}</span>
                 )}
               </div>
 
@@ -223,7 +223,7 @@ export default function AdminMarketplace() {
                   <span>{t('marketplace.submitted')} {formatDate(tender.createdAt)}</span>
                 </div>
                 {tender.budget && (
-                  <span>{t('marketplace.budget')} {tender.budget} {t('marketplace.sar')}</span>
+                  <span>{t('marketplace.budget')} {Number.isFinite(Number(tender.budget)) ? Number(tender.budget).toLocaleString('en-US') : tender.budget} {t('marketplace.sar')}</span>
                 )}
                 <span>
                   {t('marketplace.docFee')} {tender.documentFee ? `${tender.documentFee} ${t('marketplace.sar')}` : t('marketplace.free')}

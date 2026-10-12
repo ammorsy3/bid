@@ -11040,6 +11040,124 @@
           "wait": 2500
         }
       ]
+    },
+    {
+      "id": "b10-traction-editor",
+      "batch": "batch-10",
+      "page": "traction-editor",
+      "title": "Traction link editor",
+      "route": "/traction/b10-demo/edit",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/r/b10-demo": {
+          "json": {
+            "company": {
+              "id": "co-b10",
+              "name": "Seet Contracting",
+              "category": "Construction & Infrastructure",
+              "city": "Riyadh",
+              "verificationStatus": "verified"
+            },
+            "profile": {
+              "displayName": "Seet Contracting",
+              "bio": "We deliver buildings.",
+              "logoUrl": null,
+              "headerUrl": null,
+              "socialLinks": {
+                "website": "https://example.com",
+                "linkedin": "https://linkedin.com/company/example"
+              },
+              "tags": [
+                "Construction",
+                "MEP"
+              ],
+              "tractionTheme": {
+                "themeId": "modern",
+                "primaryColor": "#FE3C01",
+                "accentColor": "#1a1a2e",
+                "headerStyle": "gradient"
+              }
+            }
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b10-traction-editor-long",
+      "batch": "batch-10",
+      "page": "traction-editor",
+      "title": "Traction link editor: long Arabic name",
+      "route": "/traction/b10-demo/edit",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/r/b10-demo": {
+          "json": {
+            "company": {
+              "id": "co-b10",
+              "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة",
+              "category": "Construction & Infrastructure",
+              "city": "Riyadh",
+              "verificationStatus": "verified"
+            },
+            "profile": {
+              "displayName": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة",
+              "bio": "نقدم حلول البناء والتشغيل والصيانة المتكاملة للمشاريع الكبرى في المملكة العربية السعودية ودول الخليج منذ أكثر من عشرين عاماً.",
+              "logoUrl": null,
+              "headerUrl": null,
+              "socialLinks": {
+                "website": "https://example.com",
+                "linkedin": "https://linkedin.com/company/example"
+              },
+              "tags": [
+                "المقاولات العامة",
+                "أنظمة المباني الذكية",
+                "الطاقة الشمسية",
+                "التشغيل والصيانة"
+              ],
+              "tractionTheme": {
+                "themeId": "modern",
+                "primaryColor": "#FE3C01",
+                "accentColor": "#1a1a2e",
+                "headerStyle": "gradient"
+              }
+            }
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b10-traction-editor-error",
+      "batch": "batch-10",
+      "page": "traction-editor",
+      "title": "Traction link editor: link not found",
+      "route": "/traction/b10-missing/edit",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/r/b10-missing": {
+          "status": 404,
+          "json": {
+            "message": "Not found"
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
     }
   ]
 }

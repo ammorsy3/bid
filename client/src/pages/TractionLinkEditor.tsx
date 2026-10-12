@@ -298,7 +298,7 @@ export default function TractionLinkEditor() {
         <div className="text-center">
           <p className="text-muted-foreground mb-4">{t('tractionPage.editorLoginRequired')}</p>
           <Button variant="outline" onClick={() => navigate(`/traction/${slug}`)}>
-            <ArrowLeft className="h-4 w-4 me-2" />{t('tractionPage.editorViewPage')}
+            <ArrowLeft className="h-4 w-4 me-2 rtl:-scale-x-100" />{t('tractionPage.editorViewPage')}
           </Button>
         </div>
       </div>
@@ -335,7 +335,7 @@ export default function TractionLinkEditor() {
         <div className="text-center">
           <p className="text-muted-foreground mb-4">{t('tractionPage.pageNotFound')}</p>
           <Button variant="outline" onClick={() => navigate("/dashboard")}>
-            <ArrowLeft className="h-4 w-4 me-2" />{t('tractionPage.editorBackToDashboard')}
+            <ArrowLeft className="h-4 w-4 me-2 rtl:-scale-x-100" />{t('tractionPage.editorBackToDashboard')}
           </Button>
         </div>
       </div>
@@ -376,9 +376,9 @@ export default function TractionLinkEditor() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(`/traction/${slug}`)}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors active:opacity-70"
+            className="flex items-center justify-center gap-1.5 min-h-11 min-w-11 md:min-h-0 md:min-w-0 text-sm text-muted-foreground hover:text-foreground transition-colors active:opacity-70"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-4 w-4 rtl:-scale-x-100" />
             <span className="hidden sm:inline">{t('tractionPage.editorBackToPage')}</span>
           </button>
           <div className="h-5 w-px bg-gray-200" />
@@ -418,7 +418,7 @@ export default function TractionLinkEditor() {
             onClick={() => saveThemeMutation.mutate(theme)}
             disabled={saveThemeMutation.isPending}
             size="sm"
-            className="h-8 text-white"
+            className="h-11 md:h-8 text-white"
             style={{ background: theme.primaryColor }}
           >
             {saveThemeMutation.isPending
@@ -571,12 +571,13 @@ export default function TractionLinkEditor() {
                       type="color"
                       value={theme.primaryColor}
                       onChange={(e) => updateTheme({ primaryColor: e.target.value })}
-                      className="w-9 h-9 rounded-lg border border-border cursor-pointer p-0.5"
+                      className="w-11 h-11 shrink-0 md:w-9 md:h-9 rounded-lg border border-border cursor-pointer p-0.5"
                     />
                     <Input
                       value={theme.primaryColor}
                       onChange={(e) => updateTheme({ primaryColor: e.target.value })}
-                      className="font-mono text-xs h-9"
+                      className="font-mono text-base md:text-xs h-11 md:h-9"
+                      dir="ltr"
                       maxLength={7}
                     />
                   </div>
@@ -589,12 +590,13 @@ export default function TractionLinkEditor() {
                         type="color"
                         value={theme.accentColor}
                         onChange={(e) => updateTheme({ accentColor: e.target.value })}
-                        className="w-9 h-9 rounded-lg border border-border cursor-pointer p-0.5"
+                        className="w-11 h-11 shrink-0 md:w-9 md:h-9 rounded-lg border border-border cursor-pointer p-0.5"
                       />
                       <Input
                         value={theme.accentColor}
                         onChange={(e) => updateTheme({ accentColor: e.target.value })}
-                        className="font-mono text-xs h-9"
+                        className="font-mono text-base md:text-xs h-11 md:h-9"
+                      dir="ltr"
                         maxLength={7}
                       />
                     </div>
@@ -616,7 +618,7 @@ export default function TractionLinkEditor() {
                     value={theme.welcomeHeading || ''}
                     onChange={(e) => updateTheme({ welcomeHeading: e.target.value || undefined })}
                     placeholder={t('tractionPage.defaultHeading').replace('{company}', data.profile.displayName)}
-                    className="text-sm h-9"
+                    className="text-base md:text-sm h-11 md:h-9"
                   />
                 </div>
                 <div>
@@ -625,7 +627,7 @@ export default function TractionLinkEditor() {
                     value={theme.welcomeSubtext || ''}
                     onChange={(e) => updateTheme({ welcomeSubtext: e.target.value || undefined })}
                     placeholder={t('tractionPage.defaultSubtext')}
-                    className="text-sm resize-none"
+                    className="text-base md:text-sm resize-none"
                     rows={2}
                   />
                 </div>
@@ -635,7 +637,7 @@ export default function TractionLinkEditor() {
                     value={theme.ctaText || ''}
                     onChange={(e) => updateTheme({ ctaText: e.target.value || undefined })}
                     placeholder={t('tractionPage.editorApplyToJoinDefault')}
-                    className="text-sm h-9"
+                    className="text-base md:text-sm h-11 md:h-9"
                   />
                 </div>
               </div>
@@ -778,7 +780,7 @@ function BidTraction_open(e){
                       <button
                         key={v.id}
                         onClick={() => withViewTransition(() => setEmbedVariant(v.id))}
-                        className={`px-2 py-2 rounded-lg text-[10px] font-semibold transition-all active:opacity-70 ${
+                        className={`px-2 py-2 min-h-11 md:min-h-0 rounded-lg text-xs md:text-[10px] font-semibold transition-all active:opacity-70 ${
                           embedVariant === v.id
                             ? 'bg-card ring-2 ring-offset-1 text-foreground'
                             : 'bg-card border border-border text-muted-foreground hover:text-muted-foreground'
@@ -796,13 +798,14 @@ function BidTraction_open(e){
                     readOnly
                     value={currentSnippet}
                     onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-                    className="text-[10px] font-mono resize-none mb-2 bg-muted"
+                    className="text-base md:text-[10px] font-mono resize-none mb-2 bg-muted"
+                    dir="ltr"
                     rows={8}
                   />
                   <Button
                     size="sm"
                     variant="outline"
-                    className="w-full h-8 text-xs"
+                    className="w-full h-11 md:h-8 text-xs"
                     onClick={copyEmbed}
                   >
                     {copiedEmbed ? (

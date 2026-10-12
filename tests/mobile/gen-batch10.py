@@ -103,6 +103,54 @@ S += [
  A("b10-admin-marketplace-reject", "admin-marketplace", "Admin: reject marketplace tender popup", "/admin/marketplace", {"GET /api/admin/marketplace/pending": {"json": MTS}},
    [{"click": "button[class*=destructive]"}, {"wait": 800}], True),
 ]
+# ---- Part B: logged-in tender invite page (Seet workspace signed in; tender data faked; voice note = silent WAV) ----
+import datetime, struct
+PD = json.load(open("tests/mobile/fixtures/public-data.json"))["routes"]
+def in_days(n): return (datetime.datetime.utcnow() + datetime.timedelta(days=n)).strftime("%Y-%m-%dT20:59:00.000Z")
+def wav():  # 1 s of silence, every byte < 0x80 so it survives the text body
+    rate, n = 8192, 8192
+    h = b"RIFF" + struct.pack("<I", 36 + n * 2) + b"WAVEfmt " + struct.pack("<IHHIIHH", 16, 1, 1, rate, rate * 2, 2, 16) + b"data" + struct.pack("<I", n * 2)
+    return (h + b"\x00" * (n * 2)).decode("latin1")
+def invite_ov(tid, src, voice=False):
+    inv = json.loads(json.dumps(PD[f"GET /api/tenders/{src}/invite"]))
+    inv["json"]["id"] = tid
+    if inv["json"].get("deadline", "").startswith("{{"): inv["json"]["deadline"] = in_days(40)
+    ov = {f"GET /api/tenders/{tid}/invite": inv}
+    if f"GET /api/tenders/{src}/questions" in PD: ov[f"GET /api/tenders/{tid}/questions"] = PD[f"GET /api/tenders/{src}/questions"]
+    cid = inv["json"]["company"]["id"]
+    if f"GET /api/companies/{cid}/profile" in PD: ov[f"GET /api/companies/{cid}/profile"] = PD[f"GET /api/companies/{cid}/profile"]
+    if voice: ov["GET /objects/uploads/demo-voice-note"] = {"body": wav(), "contentType": "audio/wav"}
+    return ov
+def IN(id_, title, tid, src, actions=None, dialog=False, kb=False, voice=True, **kw):
+    return {"id": id_, "batch": "batch-10", "page": "tender-invite-in", "title": title, "route": f"/invite/{tid}", "keyboard": kb,
+            "workspace": "seet", "overrides": invite_ov(tid, src, voice), "actions": [{"wait": 3500}] + (actions or []),
+            **({"expectDialog": True} if dialog else {}), **kw}
+S += [
+ IN("b10-invite-in-demo", "Tender invite, signed in: full page with voice note player", "demo-tender", "demo-tender"),
+ IN("b10-invite-in-question", "Tender invite, signed in: asking a question (keyboard open)", "demo-tender", "demo-tender",
+    [{"click": "[data-testid=input-question]"}, {"type": "هل يمكن تمديد موعد التقديم؟"}, {"wait": 500}], kb=True),
+ IN("b10-invite-in-offer-popup", "Tender invite, signed in: submit-offer popup", "demo-tender", "demo-tender",
+    [{"click": "[data-testid=button-submit-offer-inline]:visible, [data-testid=button-submit-offer]:visible"}, {"wait": 1200}], dialog=True),
+ IN("b10-invite-in-closing", "Tender invite, signed in: closes today", "closing-tender", "closing-tender", voice=False),
+ IN("b10-invite-in-expired", "Tender invite, signed in: closed", "expired-tender", "expired-tender", voice=False),
+]
+# Logged out (fixture mode): the voice note asks you to log in
+vo = {"id": "b10-invite-out-voice", "batch": "batch-10", "page": "tender-invite-in", "title": "Tender invite, signed out: voice note says log in",
+      "route": "/invite/demo-tender", "persona": "public-data", "keyboard": False, "actions": [{"wait": 2500}]}
+S.append(vo)
+# ---- Part B: invite-return journey (fixture mode; the social leg itself leaves the site, so it is not photographable) ----
+RET = "%2Finvite%2Fdemo-tender"
+def RS(id_, title, route, persona, extra=None):
+    return {"id": id_, "batch": "batch-10", "page": "invite-return", "title": title, "route": route, "persona": persona, "keyboard": False,
+            "overrides": invite_ov("demo-tender", "demo-tender", False), "actions": [{"wait": 3500}], **(extra or {})}
+S += [
+ RS("b10-return-login-out", "Invite return: logged-out visitor on /login?redirect (what a person sees)", f"/login?redirect={RET}", "logged-out"),
+ RS("b10-return-signup-out", "Invite return: logged-out visitor on /signup?redirect", f"/signup?redirect={RET}", "logged-out"),
+ RS("b10-return-login-in", "Invite return: already signed-in company user opens /login?redirect (should land back on the invite)", f"/login?redirect={RET}", "company-owner"),
+ RS("b10-return-login-new", "Invite return: signed-in person with no company opens /login?redirect (should go to onboarding)", f"/login?redirect={RET}", "verified-new"),
+ RS("b10-return-login-unverified", "Invite return: signed-in but email code not entered opens /login?redirect (should go to verify-email, then back)", f"/login?redirect={RET}", "unverified"),
+ RS("b10-return-onboarding-new", "Invite return: new account lands in onboarding after sign-up", f"/signup?redirect={RET}", "verified-new"),
+]
 d["states"] += S
 json.dump(d, open(P, "w"), ensure_ascii=False, indent=2)
 print(len(S), "states")

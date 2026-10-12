@@ -656,7 +656,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               <Alert>
                 <Banknote className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>{s('tenderBudget')}</strong> {tender.budget} • {s('priceCompetitively')}
+                  <strong>{s('tenderBudget')}</strong>{' '}
+                  {/^\d+(\.\d+)?$/.test(tender.budget) ? <bdi dir="ltr">SAR {Number(tender.budget).toLocaleString('en-US')}</bdi> : tender.budget} • {s('priceCompetitively')}
                 </AlertDescription>
               </Alert>
             )}

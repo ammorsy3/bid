@@ -3,7 +3,7 @@
 Things the loop found that are a product or data decision rather than a layout
 fix. The newest are at the bottom. Answer in chat, or edit this file.
 
-**21 resolved, 1 in progress, 7 still need your answer** (#5, 17, 23, 24, 25, 26, 29).
+**Open questions are all collected in #43 (yes/no, with my recommendation).** Older items still marked open above were closed by your answers in #40 and #42 (faint text, Arabic wording, digits, dev logo) or by later batches (#17, #26, #29).
 
 1. **✅ The two case-duplicate production accounts - merged (2026-09-25).**
    Ahmed confirmed they are the same person. In production
@@ -309,3 +309,21 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     - #26 (dev company's logo): **forget it**, it is only a dev company. Closed, no change.
     - Digits: **Western digits (98,765) everywhere, in both languages.** Done: amounts, dates, times, the shared currency helper, the calendar locale and 3 Arabic strings that had typed-in Arabic digits now use 0-9. The audit checker has a new FAIL rule, `arabic-digits`, so any Arabic-Indic digit on any screen (text people typed themselves excluded) shows up in the next run. All 190 Arabic screen states were scanned: none left.
 
+43. **Batch 10 (2026-10-13): what was found, and the questions that still need you.**
+    What was done without asking (all layout / Arabic / digits, no colour changes):
+    - /upgrade, the traction link editor and all five /docs pages now have screen states and are clean on every phone (/company-onboarding is only a redirect to /onboarding, which batch 1 already covers; a signed-in visit lands there).
+    - First photos of things that were only fixed from code: admin join-request, checkout, campaign (create + detail), company approve/reject/view and marketplace-reject screens; the signed-in tender invite page (voice-note player, question box with keyboard, submit-offer popup, closing/closed); the invite-return login journey (the part that stays on our site); the wizard's marketplace form (with a faked Pro plan, so #36d is answered: it looks right on phones in Arabic).
+    - Real bugs found and fixed on the way: admin pages showed English dates and raw statuses ("pending", "verified") on Arabic pages; the submit-offer popup showed the budget as "98765432100"; Arabic notification emails wrote the date with Arabic digits; inline code in the Arabic docs reordered its arrows and braces; the traction editor had 12-14px fields that make iPhones zoom.
+    - Desktop leftovers (#C): two were the checker mistaking a scrolled-out list item and a sticky bottom bar for "covered" (checker fixed, and the edit-tender page now leaves room under its Save bar when you tab into a field); the third, a "spinner" on desktop b4-tender-submitted, is the small pulsing green dot next to "Under review by requester", not a loading state; left as is.
+    Questions (answer yes or no; my recommendation first):
+    - (a) **Admin join requests: the "View profile" button does nothing** (no link behind it, on every screen size). Make it open the vendor's company page? Recommend: yes.
+    - (b) **Vendors tab (#25).** (1) Inviting a vendor by email would be a new feature: not now? Recommend: not now. (2) On phones "View" says "Vendor profile", the cards are not tappable and the small filter chips are hidden: keep? Recommend: keep. (3) "Not verified" also includes "under review" and "rejected": keep? Recommend: keep.
+    - (c) **Invite page text alignment (#34b).** Arabic text on an English page (and the reverse) lines up with its own language, also on desktop. Keep? Recommend: keep.
+    - (d) **Wizard milestone names (#36c).** Single-line boxes clip very long names on a 360px phone. Let them grow to two lines? Recommend: yes.
+    - (e) **Wizard WhatsApp placeholder (#36f).** The grey example text "+966 50 123 4567 or wa.me/..." is English-only. Translate it (the number stays left-to-right)? Recommend: yes.
+    - (f) **Dollar icon (#35c).** The price field and budget box show "$" for a SAR price (also the marketplace fee field in the wizard). Swap the icon for the letters "SAR"? Recommend: yes.
+    - (g) **Days-left in the vendor tender page's bottom bar (#35a).** Show it? Recommend: no, the deadline is already on the page.
+    - (h) **Desktop "Under Review" badge (#32a).** On the dark banner the badge text is dark on dark. Fixing it changes a colour, so I did not. Fix on desktop? Recommend: yes, it is unreadable.
+    - (i) **Admin phone pages (#41c, #41d).** Dashboard cards have no small "Action needed" badge on phones, and long lists show 10 rows then "Show more". Keep? Recommend: keep.
+    - (j) **Arabic dates in Safari (#24).** Safari may add a comma ("2 يونيو، 2026"). Leave it unless it looks wrong on your iPhone? Recommend: leave.
+    Not photographable here, and not touched: the Google / LinkedIn / Slack sign-in itself (it leaves our site; needs the live bidapp.sa), and the admin notification texts and stored error messages, which stay English by your decision (#41b).

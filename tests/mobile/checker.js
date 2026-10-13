@@ -274,7 +274,7 @@
       // A sticky bar passing over a control is only a defect if the page can't be
       // scrolled far enough to clear it (content at the very end hidden under the bar).
       const bar = (() => { for (let n = hit; n && n !== document.body; n = n.parentElement) { const pos = getComputedStyle(n).position; if (pos === "fixed" || pos === "sticky") return n; } return null; })();
-      if (bar && !bar.contains(el) && bar.getBoundingClientRect().top > vh / 2) {
+      if (bar && !bar.contains(el) && (getComputedStyle(bar).position === "fixed" || bar.getBoundingClientRect().top > vh / 2)) {
         const docEnd = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
         const spaceBelow = docEnd - (window.scrollY + r.bottom);
         if (spaceBelow >= bar.getBoundingClientRect().height) return;

@@ -88,6 +88,20 @@ Baseline (before fixes, 154 captures; commit in `.mobile-audit/batch-8/baseline-
 | admin-users | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | overflow, icon-over-text, email/ltr fields |
 | admin-audit-logs, admin-errors | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | very long rows (errors has 438 warnings) |
 
+## Batch 10 — the remaining gaps (session mode + fixture mode; reports with admin or real data stay local)
+Baseline: new states, first photos taken in this batch (commit in `.mobile-audit/batch-10/baseline-commit.txt`). Generator: `tests/mobile/gen-batch10.py` (re-runnable).
+| Pages | Status | What was done |
+|---|---|---|
+| upgrade | fixed (9 states; 0 phone fails; CheckoutFlow shared with Settings billing, re-checked) | Billing email field no capitalise/spellcheck; Change plan, edit pencils, logo and language switch 44px on phones. |
+| traction-editor | fixed (3 states; 144 -> 0 phone fails) | Fields 16px on phones, colour codes and embed code left-to-right, 44px taps, back arrow mirrors. |
+| company-onboarding | redirect only | `/company-onboarding` redirects to `/onboarding` (batch 1). |
+| docs (5 pages) | fixed (0 fails; Arabic version was already built, decisions #13) | Inline code stays left-to-right in Arabic sentences; arrows in Arabic MCP steps flipped. |
+| admin popups and rows | fixed (11 states; 0 phone fails) | Arabic dates and verification statuses, thousands separators, campaign handle field. |
+| tender-invite signed in, voice note, offer popup | fixed (6 states) | Submit-offer popup budget formatted as SAR with separators. |
+| invite-return journey | exercised (7 states) | Logged-in login visit lands back on the invite; unverified goes to verify-email first. Social leg is on the live site only. |
+| wizard marketplace form | photographed (2 states, faked Pro plan) | Looks right; no change. |
+| Wider checks | done | Server/email digit scan fixed; 3 desktop leftovers fixed or explained (decisions #43). |
+
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |
 |---|---|---|
@@ -99,6 +113,7 @@ Baseline (before fixes, 154 captures; commit in `.mobile-audit/batch-8/baseline-
 | 6 | Owner's tender tabs, proposal comparison, edit | done (decisions.md #37); next: report to Ahmed |
 | 7 | Settings, integrations, profile editors | done (decisions.md #38, #39); next: report to Ahmed |
 | 8 | Admin (first give AdminLayout a phone menu) | done (decisions.md #41); next: report to Ahmed |
+| 10 | Remaining gaps (upgrade, traction editor, docs, first photos of popups and signed-in invite, wider checks) | done (decisions.md #43) |
 | 9 | "Feels like an installed app" pass | done for batches 1-3 (first pass) and 2b, 4-8 (second pass, 2026-10-12; see below) |
 
 ### 9. What changed

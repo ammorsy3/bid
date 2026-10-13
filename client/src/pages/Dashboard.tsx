@@ -1169,7 +1169,7 @@ function ChatHistorySidebar() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-5 w-5"
+          className="h-6 w-6 max-md:h-11 max-md:w-11"
           onClick={() => planGate('aiBuilder', () => setLocation("/tenders/new/ai"))}
           aria-label={planCan('aiBuilder') ? t('dashboard.createTender') : t('upgrade.aiLocked')}
           data-testid="button-new-ai-chat"
@@ -2164,7 +2164,7 @@ function DashboardInner({ user, activeCompany }: {
               <p className="text-xs text-amber-700 dark:text-amber-400 mb-1.5 leading-snug">{t('settings.companyNotVerifiedDesc')}</p>
               <button
                 onClick={() => setLocation('/settings?tab=company')}
-                className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900 active:opacity-70 max-md:inline-flex max-md:min-h-11 max-md:items-center"
+                className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline underline-offset-2 hover:text-amber-900 active:opacity-70 inline-flex min-h-6 items-center max-md:min-h-11"
               >
                 {t('settings.verifyNow')}
               </button>
@@ -2188,7 +2188,7 @@ function DashboardInner({ user, activeCompany }: {
               )}
               <button
                 onClick={() => setLocation('/settings?tab=company')}
-                className="text-xs font-semibold text-red-800 dark:text-red-300 underline underline-offset-2 hover:text-red-900 active:opacity-70 max-md:inline-flex max-md:min-h-11 max-md:items-center"
+                className="text-xs font-semibold text-red-800 dark:text-red-300 underline underline-offset-2 hover:text-red-900 active:opacity-70 inline-flex min-h-6 items-center max-md:min-h-11"
               >
                 {t('settings.reUploadDocuments')}
               </button>
@@ -3392,6 +3392,7 @@ function DashboardInner({ user, activeCompany }: {
                                     <h3 
                                       className="text-xl font-bold text-foreground cursor-pointer hover:text-[var(--bid-orange)]"
                                       onClick={() => setLocation(`/tenders/${tender.id}`)}
+                                      data-user-content
                                       data-testid={`text-tender-title-${tender.id}`}
                                     >
                                       {tender.title}
@@ -3414,7 +3415,7 @@ function DashboardInner({ user, activeCompany }: {
                                       </span>
                                     ))}
                                   </div>
-                                  <p className="text-sm font-medium text-muted-foreground line-clamp-2" data-testid={`text-tender-description-${tender.id}`}>
+                                  <p className="text-sm font-medium text-muted-foreground line-clamp-2" data-user-content data-testid={`text-tender-description-${tender.id}`}>
                                     {tender.description}
                                   </p>
                                 </div>

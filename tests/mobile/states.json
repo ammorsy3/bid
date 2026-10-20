@@ -11227,7 +11227,9 @@
               "createdAt": "2026-10-01T09:00:00.000Z",
               "vendorCompany": {
                 "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة",
-                "verificationStatus": "unverified"
+                "verificationStatus": "unverified",
+                "slug": "vendor-1",
+                "accountType": "company"
               },
               "requesterCompany": {
                 "name": "Seet Contracting"
@@ -11239,7 +11241,9 @@
               "createdAt": "2026-10-01T09:00:00.000Z",
               "vendorCompany": {
                 "name": "Al-Rashid International Engineering & Industrial Maintenance Services Company",
-                "verificationStatus": "pending"
+                "verificationStatus": "pending",
+                "slug": "vendor-2",
+                "accountType": "company"
               },
               "requesterCompany": {
                 "name": "شركة نور للمقاولات"
@@ -11251,7 +11255,9 @@
               "createdAt": "2026-10-01T09:00:00.000Z",
               "vendorCompany": {
                 "name": "Nour",
-                "verificationStatus": "verified"
+                "verificationStatus": "verified",
+                "slug": "vendor-3",
+                "accountType": "company"
               },
               "requesterCompany": {
                 "name": "Seet"
@@ -11282,7 +11288,9 @@
               "createdAt": "2026-10-01T09:00:00.000Z",
               "vendorCompany": {
                 "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة",
-                "verificationStatus": "unverified"
+                "verificationStatus": "unverified",
+                "slug": "vendor-1",
+                "accountType": "company"
               },
               "requesterCompany": {
                 "name": "Seet Contracting"
@@ -11294,7 +11302,9 @@
               "createdAt": "2026-10-01T09:00:00.000Z",
               "vendorCompany": {
                 "name": "Al-Rashid International Engineering & Industrial Maintenance Services Company",
-                "verificationStatus": "pending"
+                "verificationStatus": "pending",
+                "slug": "vendor-2",
+                "accountType": "company"
               },
               "requesterCompany": {
                 "name": "شركة نور للمقاولات"
@@ -11306,7 +11316,9 @@
               "createdAt": "2026-10-01T09:00:00.000Z",
               "vendorCompany": {
                 "name": "Nour",
-                "verificationStatus": "verified"
+                "verificationStatus": "verified",
+                "slug": "vendor-3",
+                "accountType": "company"
               },
               "requesterCompany": {
                 "name": "Seet"
@@ -11344,7 +11356,9 @@
               "createdAt": "2026-10-01T09:00:00.000Z",
               "vendorCompany": {
                 "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة",
-                "verificationStatus": "unverified"
+                "verificationStatus": "unverified",
+                "slug": "vendor-1",
+                "accountType": "company"
               },
               "requesterCompany": {
                 "name": "Seet Contracting"
@@ -11356,7 +11370,9 @@
               "createdAt": "2026-10-01T09:00:00.000Z",
               "vendorCompany": {
                 "name": "Al-Rashid International Engineering & Industrial Maintenance Services Company",
-                "verificationStatus": "pending"
+                "verificationStatus": "pending",
+                "slug": "vendor-2",
+                "accountType": "company"
               },
               "requesterCompany": {
                 "name": "شركة نور للمقاولات"
@@ -11368,7 +11384,9 @@
               "createdAt": "2026-10-01T09:00:00.000Z",
               "vendorCompany": {
                 "name": "Nour",
-                "verificationStatus": "verified"
+                "verificationStatus": "verified",
+                "slug": "vendor-3",
+                "accountType": "company"
               },
               "requesterCompany": {
                 "name": "Seet"
@@ -11398,6 +11416,73 @@
         }
       ],
       "expectDialog": true
+    },
+    {
+      "id": "b10-admin-joinreq-profile",
+      "batch": "batch-10",
+      "page": "admin-join-requests",
+      "title": "Admin: View profile opens the vendor's company page",
+      "route": "/admin/join-requests",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/admin/join-requests": {
+          "json": [
+            {
+              "id": "jr1",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة",
+                "verificationStatus": "unverified",
+                "slug": "vendor-1",
+                "accountType": "company"
+              },
+              "requesterCompany": {
+                "name": "Seet Contracting"
+              }
+            },
+            {
+              "id": "jr2",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "Al-Rashid International Engineering & Industrial Maintenance Services Company",
+                "verificationStatus": "pending",
+                "slug": "vendor-2",
+                "accountType": "company"
+              },
+              "requesterCompany": {
+                "name": "شركة نور للمقاولات"
+              }
+            },
+            {
+              "id": "jr3",
+              "status": "pending",
+              "createdAt": "2026-10-01T09:00:00.000Z",
+              "vendorCompany": {
+                "name": "Nour",
+                "verificationStatus": "verified",
+                "slug": "vendor-3",
+                "accountType": "company"
+              },
+              "requesterCompany": {
+                "name": "Seet"
+              }
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 3000
+        },
+        {
+          "click": "[data-testid=button-view-profile-jr1]"
+        },
+        {
+          "wait": 2000
+        }
+      ]
     },
     {
       "id": "b10-admin-checkouts-rows",
@@ -11775,7 +11860,7 @@
             "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
             "budget": "98765432100",
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "6plus",
             "status": "published",
             "skills": [
@@ -12112,7 +12197,7 @@
             "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
             "budget": "98765432100",
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "6plus",
             "status": "published",
             "skills": [
@@ -12458,7 +12543,7 @@
             "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
             "budget": "98765432100",
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "6plus",
             "status": "published",
             "skills": [
@@ -12802,7 +12887,7 @@
             "description": "Supply and commissioning of imaging equipment across six hospitals. Reference the full requirements at https://tenders.example.com/documents/2026/imaging/spec-v9.pdf and the token ProjectDeliveryManagementSystemPlatformIntegrationWorkflowAutomationFrameworkV12.",
             "budget": null,
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "3to6",
             "status": "published",
             "skills": [
@@ -12979,7 +13064,7 @@
             "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
             "budget": "98765432100",
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "6plus",
             "status": "published",
             "skills": [
@@ -13312,7 +13397,7 @@
             "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
             "budget": "98765432100",
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "6plus",
             "status": "published",
             "skills": [
@@ -13645,7 +13730,7 @@
             "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
             "budget": "98765432100",
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "6plus",
             "status": "published",
             "skills": [
@@ -13978,7 +14063,7 @@
             "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
             "budget": "98765432100",
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "6plus",
             "status": "published",
             "skills": [
@@ -14311,7 +14396,7 @@
             "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
             "budget": "98765432100",
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "6plus",
             "status": "published",
             "skills": [
@@ -14644,7 +14729,7 @@
             "description": "تدعو شركة الأفق المتقدم للمقاولات العامة الموردين والمقاولين المؤهلين لتقديم عروضهم لتوريد وتركيب وتشغيل منظومة متكاملة لإدارة المباني الذكية وأنظمة الطاقة الشمسية لمجمع سكني وتجاري يضم 6 أبراج و240 وحدة و18 محلاً تجارياً.\n\nيشمل النطاق التصميم التفصيلي والتوريد والتركيب والاختبار والتشغيل التجريبي والتدريب، مع عقد تشغيل وصيانة لمدة ثلاث سنوات. تتوفر المخططات والمواصفات الفنية على الرابط https://tenders.example.com/documents/2026/q3/smart-buildings/phase-1-2/technical-specifications-v12-final-rev4-approved-by-consultant-and-client.pdf ويجب الاطلاع عليها قبل تقديم العرض.\n\nتُقبل العروض من التحالفات بشرط تحديد الشريك الرئيسي المسؤول أمام الشركة.",
             "budget": "98765432100",
             "budgetRange": null,
-            "deadline": "2026-11-21T20:59:00.000Z",
+            "deadline": "2026-11-26T20:59:00.000Z",
             "duration": "6plus",
             "status": "published",
             "skills": [

@@ -63,7 +63,7 @@ for slug in ["getting-started", "webhook", "mcp", "rate-limits"]:
 # ---- Part B: admin rows and popups (admin account, default workspace; reads faked/real, saves blocked) ----
 def jr(i, vendor, requester, vs="unverified"):
     return {"id": f"jr{i}", "status": "pending", "createdAt": "2026-10-01T09:00:00.000Z",
-            "vendorCompany": {"name": vendor, "verificationStatus": vs}, "requesterCompany": {"name": requester}}
+            "vendorCompany": {"name": vendor, "verificationStatus": vs, "slug": f"vendor-{i}", "accountType": "company"}, "requesterCompany": {"name": requester}}
 JRS = [jr(1, "شركة الأفق المتقدم للمقاولات العامة والصيانة وتقنية المباني الذكية المحدودة", "Seet Contracting"),
        jr(2, "Al-Rashid International Engineering & Industrial Maintenance Services Company", "شركة نور للمقاولات", "pending"),
        jr(3, "Nour", "Seet", "verified")]
@@ -92,6 +92,7 @@ S += [
  A("b10-admin-joinreq-approve", "admin-join-requests", "Admin: approve join request popup", "/admin/join-requests", JROV, [{"click": "[data-testid=button-approve-jr1]"}, {"wait": 800}], True),
  A("b10-admin-joinreq-reject", "admin-join-requests", "Admin: reject join request popup (reason typed)", "/admin/join-requests", JROV,
    [{"click": "[data-testid=button-reject-jr1]"}, {"wait": 600}, {"fill": ["[data-testid=input-reason]", "سبب الرفض: المستندات غير مكتملة"]}, {"wait": 400}], True),
+ A("b10-admin-joinreq-profile", "admin-join-requests", "Admin: View profile opens the vendor's company page", "/admin/join-requests", JROV, [{"click": "[data-testid=button-view-profile-jr1]"}, {"wait": 2000}]),
  A("b10-admin-checkouts-rows", "admin-checkouts", "Admin: checkouts (5 rows, every status)", "/admin/checkouts", {"GET /api/admin/billing/checkouts": {"json": CKS}},
    [{"click": "[data-testid=filter-checkouts-all]"}, {"wait": 600}]),
  A("b10-admin-campaign-create", "admin-campaigns", "Admin: new campaign popup", "/admin/campaigns", None, [{"click": "[data-testid=button-new-campaign]"}, {"wait": 800}], True),

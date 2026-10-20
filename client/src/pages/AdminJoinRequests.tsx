@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CheckCircle, XCircle, User as UserIcon, Users } from "lucide-react";
 import { useState } from "react";
+import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { formatLocalDate } from "@/lib/admin-date";
@@ -164,9 +165,17 @@ export default function AdminJoinRequests() {
                       <XCircle className="h-4 w-4 me-2" />
                       {t('admin.reject')}
                     </Button>
-                    <Button variant="ghost" size="sm" className="max-md:min-h-11" data-testid={`button-view-profile-${request.id}`}>
-                      {t('admin.viewProfile')}
-                    </Button>
+                    {request.vendorCompany?.slug ? (
+                      <Button variant="ghost" size="sm" className="max-md:min-h-11" asChild data-testid={`button-view-profile-${request.id}`}>
+                        <Link href={`${request.vendorCompany.accountType === 'individual' ? '/people' : '/company'}/${request.vendorCompany.slug}`}>
+                          {t('admin.viewProfile')}
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" size="sm" className="max-md:min-h-11" disabled data-testid={`button-view-profile-${request.id}`}>
+                        {t('admin.viewProfile')}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </AdminCard>

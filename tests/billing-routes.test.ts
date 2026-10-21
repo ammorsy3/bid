@@ -2,7 +2,8 @@
 // return-page allowlist. StreamPay and the database are faked; the real route
 // code and its permission checks run.
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
+import { startTestServer, stopTestServer, type TestServer } from "./helpers/test-server";
 import express from "express";
 import request from "supertest";
 
@@ -54,6 +55,12 @@ const requireRole = (min: string): express.RequestHandler => (req, res, next) =>
 };
 
 const app = express();
+
+let server: TestServer;
+
+beforeAll(async () => { server = await startTestServer(app); });
+
+afterAll(() => stopTestServer(server));
 app.use(express.json());
 registerBillingRoutes(app, {
   authenticateToken: authenticate,
@@ -76,23 +83,23 @@ beforeEach(() => {
 
 describe("POST /api/billing/subscription/cancel", () => {
   it("schedules cancellation at StreamPay, then re-reads the truth", async () => {
-    const res = await request(app).post("/api/billing/subscription/cancel");
+    const res = await request(server).post("/api/billing/subscription/cancel");
     expect(res.status).toBe(200);
     expect(m.calls).toEqual(["cancel:sub1", "sync"]);
   });
 
   it("refuses when there is no live plan, without calling StreamPay", async () => {
     m.sub = liveSub({ status: "canceled" });
-    const res = await request(app).post("/api/billing/subscription/cancel");
+    const res = await request(server).post("/api/billing/subscription/cancel");
     expect(res.status).toBe(409);
     expect(res.body.code).toBe("NO_ACTIVE_PLAN");
     expect(m.calls).toEqual([]);
     m.sub = null;
-    expect((await request(app).post("/api/billing/subscription/cancel")).status).toBe(409);
+    expect((await request(server).post("/api/billing/subscription/cancel")).status).toBe(409);
   });
 
   it("is for owners and admins only", async () => {
-    const res = await request(app).post("/api/billing/subscription/cancel").set("x-role", "member");
+    const res = await request(server).post("/api/billing/subscription/cancel").set("x-role", "member");
     expect(res.status).toBe(403);
     expect(m.calls).toEqual([]);
   });
@@ -101,15 +108,15 @@ describe("POST /api/billing/subscription/cancel", () => {
 describe("POST /api/billing/subscription/resume", () => {
   it("withdraws a scheduled cancellation at StreamPay, then re-reads", async () => {
     m.sub = liveSub({ cancelAtPeriodEnd: true });
-    const res = await request(app).post("/api/billing/subscription/resume");
+    const res = await request(server).post("/api/billing/subscription/resume");
     expect(res.status).toBe(200);
     expect(m.calls).toEqual(["uncancel:sub1", "sync"]);
   });
 
   it("members can't, and a plan that already ended can't be resumed", async () => {
-    expect((await request(app).post("/api/billing/subscription/resume").set("x-role", "member")).status).toBe(403);
+    expect((await request(server).post("/api/billing/subscription/resume").set("x-role", "member")).status).toBe(403);
     m.sub = liveSub({ status: "expired" });
-    expect((await request(app).post("/api/billing/subscription/resume")).status).toBe(409);
+    expect((await request(server).post("/api/billing/subscription/resume")).status).toBe(409);
   });
 });
 
@@ -121,7 +128,7 @@ describe("GET /api/billing/invoices", () => {
       { id: "i3", status: "CANCELED" },
       { id: "i4", status: "SENT", total_amount: "90.850" },
     ];
-    const res = await request(app).get("/api/billing/invoices");
+    const res = await request(server).get("/api/billing/invoices");
     expect(res.status).toBe(200);
     expect(res.body.map((i: any) => [i.id, i.status])).toEqual([["i1", "paid"], ["i4", "open"]]);
     expect(res.body[0]).toMatchObject({ number: 7, total: "90.850", vat: "11.850", currency: "SAR", url: "https://pay/i1" });
@@ -129,27 +136,27 @@ describe("GET /api/billing/invoices", () => {
 
   it("is empty for a workspace that never started paying", async () => {
     m.company = { id: "c1", streampayConsumerId: null };
-    const res = await request(app).get("/api/billing/invoices");
+    const res = await request(server).get("/api/billing/invoices");
     expect(res.body).toEqual([]);
   });
 
   it("is for owners and admins only", async () => {
-    expect((await request(app).get("/api/billing/invoices").set("x-role", "member")).status).toBe(403);
+    expect((await request(server).get("/api/billing/invoices").set("x-role", "member")).status).toBe(403);
   });
 });
 
 describe("POST /api/billing/checkouts/:id/pay — where the payer returns to", () => {
   it("defaults to Settings and accepts only the known pages", async () => {
-    expect((await request(app).post("/api/billing/checkouts/k1/pay").send({})).status).toBe(200);
+    expect((await request(server).post("/api/billing/checkouts/k1/pay").send({})).status).toBe(200);
     expect(m.startPayment.mock.calls[0][3]).toBe("settings");
 
-    expect((await request(app).post("/api/billing/checkouts/k1/pay").send({ returnTo: "upgrade" })).status).toBe(200);
+    expect((await request(server).post("/api/billing/checkouts/k1/pay").send({ returnTo: "upgrade" })).status).toBe(200);
     expect(m.startPayment.mock.calls[1][3]).toBe("upgrade");
   });
 
   it("rejects any other value, so the return URL can't be pointed elsewhere", async () => {
     for (const evil of ["https://evil.example/", "//evil.example", "/admin", "../x", "settings?x=1"]) {
-      const res = await request(app).post("/api/billing/checkouts/k1/pay").send({ returnTo: evil });
+      const res = await request(server).post("/api/billing/checkouts/k1/pay").send({ returnTo: evil });
       expect(res.status, evil).toBe(400);
     }
     expect(m.startPayment).not.toHaveBeenCalled();

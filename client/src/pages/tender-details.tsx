@@ -693,7 +693,8 @@ export default function TenderDetails() {
 
   const copyInvitationLink = async () => {
     if (!tender) return;
-    const invitationLink = `${window.location.origin}/invite/${tender.id}`;
+    // The token, not the tender id: only the token authorizes link visitors (server/lib/tender-access.ts).
+    const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
     try {
       await navigator.clipboard.writeText(invitationLink);
       setCopiedLink(true);
@@ -849,7 +850,7 @@ export default function TenderDetails() {
 
   const statusBadge = getStatusBadge(tender.status);
   const daysRemaining = Math.ceil((new Date(tender.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-  const invitationLink = `${window.location.origin}/invite/${tender.id}`;
+  const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
 
   const hasSkills = tender.skills && tender.skills.length > 0;
   const hasDeliverables = tender.deliverables && (tender.deliverables as any[]).length > 0;

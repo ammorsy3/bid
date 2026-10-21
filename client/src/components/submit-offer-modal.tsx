@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, ApiError } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { FileText, DollarSign, Banknote, AlertTriangle, Clock, ClipboardList, Check, X, ShieldAlert, Video, Info, Files, File } from "lucide-react";
@@ -24,6 +24,10 @@ import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
 
 type SubmissionType = 'quote_only' | 'tech_fin_proposal' | 'video_only' | 'tech_fin_with_video';
+
+// Offer file fields the server can refuse (REUPLOAD_REQUIRED names one) → their upload slot.
+const OFFER_FILE_SLOTS = { technicalFileUrl: 'technical', financialFileUrl: 'financial', combinedFileUrl: 'combined' } as const;
+type OfferFileField = keyof typeof OFFER_FILE_SLOTS;
 type UploadMode = 'combined' | 'separate';
 
 const baseSchema = z.object({
@@ -131,6 +135,9 @@ const modalStrings: Record<string, Record<string, string>> = {
     completeProfile: "Verify Now",
     viewDashboard: "View Dashboard",
     errorTitle: "Error",
+    notInvited: "You're not invited to submit a proposal for this request. Use the invitation link you received, or ask the requester to invite you.",
+    reuploadRequired: "Upload the affected file again, then submit your proposal.",
+    selfSubmission: "You can't submit a proposal to your own company's request.",
     failedToSubmit: "Failed to submit offer",
     priceQuoteLabel: "Your Price Quote (SAR) *",
     enterPrice: "Enter your price in SAR",
@@ -202,6 +209,9 @@ const modalStrings: Record<string, Record<string, string>> = {
     completeProfile: "أكمل التوثيق",
     viewDashboard: "عرض لوحة التحكم",
     errorTitle: "خطأ",
+    notInvited: "لست مدعوًا لتقديم عرض على هذا الطلب. استخدم رابط الدعوة الذي وصلك، أو اطلب من الجهة الطالبة دعوتك.",
+    reuploadRequired: "أعد رفع الملف المطلوب، ثم أرسل عرضك.",
+    selfSubmission: "لا يمكنك تقديم عرض على طلب تابع لشركتك.",
     failedToSubmit: "فشل تقديم العرض",
     priceQuoteLabel: "عرض السعر (ريال سعودي) *",
     enterPrice: "أدخل السعر بالريال السعودي",
@@ -259,6 +269,8 @@ interface VendorRequirement {
 interface SubmitOfferModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** The invitation link's token, when the vendor came through the link (see server/lib/tender-access.ts). */
+  invitationToken?: string;
   tender: {
     id: string;
     title: string;
@@ -290,7 +302,7 @@ function getRequiredFields(submissionType?: SubmissionType, uploadMode?: UploadM
   }
 }
 
-export default function SubmitOfferModal({ isOpen, onClose, tender, requester }: SubmitOfferModalProps) {
+export default function SubmitOfferModal({ isOpen, onClose, tender, requester, invitationToken }: SubmitOfferModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeCompany, user } = useAuthStore();
@@ -427,7 +439,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   const submitOfferMutation = useMutation({
     mutationFn: async (data: SubmitOfferForm) => {
-      const response = await apiRequest('POST', `/api/tenders/${tender.id}/offers`, data);
+      const response = await apiRequest('POST', `/api/tenders/${tender.id}/offers`, data,
+        invitationToken ? { 'X-Invitation-Token': invitationToken } : undefined);
       return response.json();
     },
     onSuccess: () => {
@@ -443,6 +456,23 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
       setUploadedFiles({});
     },
     onError: (error: any) => {
+      // Eligibility refusals (server/lib/tender-access.ts) get localized text instead of the server's English.
+      const refusalKey = error instanceof ApiError && error.code === 'NOT_INVITED' ? 'notInvited'
+        : error instanceof ApiError && error.code === 'SELF_SUBMISSION' ? 'selfSubmission'
+        : error instanceof ApiError && error.code === 'REUPLOAD_REQUIRED' ? 'reuploadRequired' : null;
+      if (refusalKey) {
+        // A file that must be uploaded again: clear only that file (the others stay)
+        // and mark its upload field, so the vendor can replace it and resubmit.
+        const field = error.details?.field as OfferFileField | undefined;
+        if (refusalKey === 'reuploadRequired' && field && field in OFFER_FILE_SLOTS) {
+          form.setValue(field, '', { shouldDirty: true });
+          setUploadedFiles(prev => ({ ...prev, [OFFER_FILE_SLOTS[field]]: undefined }));
+          form.setError(field, { type: 'server', message: s('reuploadRequired') });
+          requestAnimationFrame(() => document.querySelector(`[data-offer-file="${field}"]`)?.scrollIntoView({ block: 'center' }));
+        }
+        toast({ title: s('errorTitle'), description: s(refusalKey), variant: "destructive" });
+        return;
+      }
       const message = error?.message || s('failedToSubmit');
       toast({
         title: message.includes("already submitted") ? s('alreadySubmitted') : s('errorTitle'),
@@ -802,7 +832,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                     control={form.control}
                     name="combinedFileUrl"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem data-offer-file="combinedFileUrl">
                         <FormLabel>{s('combinedLabel')}</FormLabel>
                         <FormControl>
                           <div className="space-y-2">
@@ -843,7 +873,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                       control={form.control}
                       name="technicalFileUrl"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem data-offer-file="technicalFileUrl">
                           <FormLabel>{s('technicalLabel')}</FormLabel>
                           <FormControl>
                             <div className="space-y-2">
@@ -881,7 +911,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                       control={form.control}
                       name="financialFileUrl"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem data-offer-file="financialFileUrl">
                           <FormLabel>{s('financialLabel')}</FormLabel>
                           <FormControl>
                             <div className="space-y-2">

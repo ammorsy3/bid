@@ -23,6 +23,7 @@
 import express, { type Express } from "express";
 import request from "supertest";
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
+import { startTestServer, stopTestServer, type TestServer } from "./helpers/test-server";
 
 import { registerRoutes } from "../server/routes";
 import {
@@ -40,6 +41,10 @@ import {
 
 let app: Express;
 
+
+let server: TestServer;
+
+afterAll(() => stopTestServer(server));
 let supplierOwner: { id: string };
 let supplierMate: { id: string };
 let buyerOwner: { id: string };
@@ -58,6 +63,7 @@ beforeAll(async () => {
   app = express();
   app.use(express.json());
   await registerRoutes(app);
+  server = await startTestServer(app);
 
   supplierOwner = await makeUser();
   supplierMate = await makeUser();
@@ -127,7 +133,7 @@ const as = (user: { id: string }, companyId?: string, isAdmin = false) =>
   tokenFor({ id: user.id, activeCompanyId: companyId ?? null, isAdmin });
 
 const get = (path: string, token: string) =>
-  request(app).get(path).set("Authorization", `Bearer ${token}`);
+  request(server).get(path).set("Authorization", `Bearer ${token}`);
 
 describe("the supplier's own bid", () => {
   it("the person who submitted it can read it", async () => {

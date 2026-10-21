@@ -8,7 +8,6 @@ import multer from "multer";
 import {
   registerUserSchema,
   createCompanySchema,
-  verifyCompanySchema,
   updateCompanyProfileSchema,
   createTenderSchema,
   createOfferSchema,
@@ -20,11 +19,14 @@ import {
   VENDOR_CATEGORIES,
   ACCOUNT_TYPES,
   type AccountType,
+  type Company,
+  type CompanyProfile,
 } from "@shared/schema";
 import { getEmailDomain, isPublicEmailDomain } from "./publicEmailDomains";
 import { generateJoinCode, marketplaceAudienceFor, gateWhatsappVisibility } from "./lib/individual-sourcing";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { ObjectPermission } from "./objectAcl";
+import { getObjectAclPolicy, getObjectProvenance, publishCompanyObject } from "./objectAcl";
+import { referenceIsTrusted, attachProblem } from "./lib/object-provenance";
 import { registerCopilotRoutes } from "./ai/copilot";
 import { registerCopilotV1Routes } from "./routes/v1/copilot";
 import { registerWebhookAdapter } from "./routes/integrations/webhook";
@@ -32,9 +34,20 @@ import { registerMcpAdapter } from "./routes/integrations/mcp";
 import { registerIntegrationsAdminRoutes } from "./routes/settings/integrations";
 import { registerMarketingRoutes } from "./routes/marketing";
 import { registerBillingRoutes } from "./routes/billing";
+import { registerCompanyVerificationRoutes, sendVerificationError } from "./routes/company-verification";
+import { verificationStore, type VerificationDetailsPatch } from "./lib/company-verification-store";
+import { CR_NUMBER_PATTERN, isUploadObjectPath, isVerificationDocumentType } from "@shared/company-verification";
 import { sendPlanRequired, assertFeature, assertSeatAvailable, requireFeature, PlanRequiredError } from "./lib/entitlements";
 import { attributeSignup } from "./lib/campaigns";
 import { normalizeEmail } from "./lib/email-address";
+import { tenderForAudience } from "./lib/tender-audience";
+import { resolveTenderReadGrant, resolveSubmissionEligibility } from "./lib/tender-access";
+import { findOfferFileProblem } from "./lib/offer-files";
+import { trustedOfferProposalText } from "./lib/offer-file-extraction";
+import { checkBrandAssetReference, classifyBrandValue, type BrandAssetCheck } from "./lib/brand-assets";
+import { createCompanyWithOnboardingFiles, OnboardingFileError, type OnboardingDocument } from "./lib/company-onboarding";
+import { assertTenderFilesAllowed, TenderFileError } from "./lib/tender-files";
+import { db } from "./db";
 import { rateLimiter } from "./middleware/rate-limit";
 import {
   sendNewOfferNotification,
@@ -2076,13 +2089,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { logoUrl, bio, websiteUrl, documents: rawDocuments, ...rest } = req.body;
       const companyData = createCompanySchema.parse(rest);
 
-      const validDocTypes = ['cr_certificate', 'vat_certificate', 'gosi_certificate', 'national_address_certificate', 'other'];
-      const inputDocuments: Array<{ documentType: string; fileUrl: string; originalName?: string | null; label?: string | null }> =
-        Array.isArray(rawDocuments)
-          ? rawDocuments.filter((d: any) =>
-              d && typeof d.documentType === 'string' && typeof d.fileUrl === 'string' && validDocTypes.includes(d.documentType)
-            )
-          : [];
+      // Onboarding files (documents and a private-upload logo) were uploaded before
+      // the company existed, as pending onboarding uploads. They are bound to the
+      // new company inside the creation transaction, all or nothing
+      // (server/lib/company-onboarding.ts). Malformed entries are refused here, not
+      // dropped; a public-bucket or external logo needs no binding.
+      const logoKind = classifyBrandValue(logoUrl);
+      if (logoKind === "invalid") {
+        return res.status(400).json({ message: "Invalid logo", code: "INVALID_BRAND_ASSET", field: "logoUrl" });
+      }
+      if (rawDocuments !== undefined && !Array.isArray(rawDocuments)) {
+        return res.status(400).json({ message: "Invalid documents", code: "INVALID_DOCUMENT" });
+      }
+      const inputDocuments: OnboardingDocument[] = [];
+      for (const d of (rawDocuments ?? []) as any[]) {
+        if (!d || !isVerificationDocumentType(d.documentType) || !isUploadObjectPath(d.fileUrl)) {
+          return res.status(400).json({ message: "Invalid document", code: "INVALID_DOCUMENT", field: `documents.${d?.documentType ?? ""}` });
+        }
+        inputDocuments.push({ documentType: d.documentType, fileUrl: d.fileUrl, originalName: d.originalName ?? null, label: d.label ?? null });
+      }
 
       // CR uniqueness only matters when one is supplied (light onboarding lets
       // workspaces start without a CR number and add it later via verify-info).
@@ -2113,21 +2138,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // later will not un-verify accounts already created. Removing
       // auto-verification therefore needs a migration resetting existing
       // individual/team rows to 'not_verified' as well.
+      // A company starts 'not_verified' even with documents attached: uploading is
+      // not submitting. The owner submits the request explicitly once the legal
+      // details and required documents are in (POST .../verification/submit).
       const initialVerificationStatus = companyData.accountType === 'company'
-        ? (inputDocuments.length > 0 ? 'under_review' : 'not_verified')
+        ? 'not_verified'
         : 'verified';
 
-      // Create company
-      const company = await storage.createCompany({
-        ...companyData,
-        slug,
-        // An individual workspace is one person — there is nobody to invite
-        // into it, so it gets no join code. Companies and teams do. (Q-035)
-        joinCode: companyData.accountType === 'individual' ? null : await uniqueJoinCode(),
-        verificationStatus: initialVerificationStatus,
-        onboardingState: 'draft',
-        ...(companyData.accountType !== 'company' && { ownerUserId: req.auth!.userId }),
-      });
+      // An individual workspace is one person — there is nobody to invite
+      // into it, so it gets no join code. Companies and teams do. (Q-035)
+      const joinCode = companyData.accountType === 'individual' ? null : await uniqueJoinCode();
 
       // Build social links from profile data
       const socialLinks: Record<string, string> = {};
@@ -2145,54 +2165,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         autoTractionSlug = candidate;
       }
 
-      // Create profile with any provided profile data (logo, bio, etc.)
-      const profile = await storage.createCompanyProfile({
-        companyId: company.id,
-        displayName: companyData.name,
-        bio: bio || null,
-        tags: [],
-        logoUrl: logoUrl || null,
-        headerUrl: null,
-        brochureUrl: null,
-        socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : {},
-        isPublic: false,
-        tractionSlug: autoTractionSlug
-      });
-
-      // Add user as owner
-      await storage.addUserToCompany({
-        userId: req.auth!.userId,
-        companyId: company.id,
-        roleInCompany: 'owner',
-        invitedBy: null
-      });
-
-      // Persist verification documents inline (single-handler atomic-ish path —
-      // closes the cross-request gap where company existed but doc rows didn't).
-      const failedDocuments: Array<{ documentType: string; error: string }> = [];
-      for (const d of inputDocuments) {
-        try {
-          const doc = await storage.createCompanyDocument({
-            companyId: company.id,
-            documentType: d.documentType,
-            fileUrl: d.fileUrl,
-            originalName: d.originalName || null,
-            label: d.label || null,
-            uploadedBy: req.auth!.userId,
-          });
-          await storage.logMemberActivity({
-            companyId: company.id,
-            actorUserId: req.auth!.userId,
-            action: 'company.verification_doc_uploaded',
-            targetType: 'document',
-            targetId: doc.id,
-            summary: `Uploaded verification document: ${d.documentType}`,
-            metadata: { documentType: d.documentType, originalName: d.originalName || null },
-          });
-        } catch (docErr: any) {
-          console.error('Inline document create failed:', d.documentType, docErr);
-          failedDocuments.push({ documentType: d.documentType, error: docErr?.message || 'unknown error' });
+      // Company, profile, owner membership, documents and file bindings commit
+      // together or not at all.
+      let company: Company;
+      let profile: CompanyProfile;
+      try {
+        ({ company, profile } = await createCompanyWithOnboardingFiles(db, {
+          userId: req.auth!.userId,
+          company: {
+            ...companyData,
+            slug,
+            joinCode,
+            verificationStatus: initialVerificationStatus,
+            onboardingState: 'draft',
+            ...(companyData.accountType !== 'company' && { ownerUserId: req.auth!.userId }),
+          },
+          profile: {
+            displayName: companyData.name,
+            bio: bio || null,
+            tags: [],
+            logoUrl: logoUrl || null,
+            headerUrl: null,
+            brochureUrl: null,
+            socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : {},
+            isPublic: false,
+            tractionSlug: autoTractionSlug,
+          },
+          documents: inputDocuments,
+          logoUploadPath: logoKind === "upload" ? (logoUrl as string) : null,
+        }));
+      } catch (bindError) {
+        if (bindError instanceof OnboardingFileError) {
+          return res.status(400).json({ message: bindError.message, code: 'ONBOARDING_FILE_NOT_BINDABLE', fields: bindError.fields });
         }
+        throw bindError;
       }
 
       // Generate new token with active company
@@ -2222,7 +2228,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           role: 'owner',
           profile
         },
-        failedDocuments: failedDocuments.length > 0 ? failedDocuments : undefined,
       });
     } catch (error: any) {
       console.error('Create company error:', error);
@@ -2271,6 +2276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           vatNumber: company.vatNumber ?? '',
           city: company.city ?? '',
           verificationStatus: company.verificationStatus,
+          rejectionReason: company.verificationStatus === 'rejected' ? company.rejectionReason ?? null : null,
         });
       } catch (error) {
         console.error('Get verification info error:', error);
@@ -2279,70 +2285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   );
 
-  // Submit / update verification info for the active company. This is the
-  // back-half of light onboarding — users provide legalName, CR, VAT, and city
-  // here when they're ready, instead of upfront at signup time.
-  app.patch("/api/companies/:companyId/verify-info",
-    authenticateToken,
-    requireCompanyContext,
-    requireCompanyRole('admin'),
-    async (req: AuthRequest, res) => {
-      try {
-        const { companyId } = req.params;
-        if (companyId !== req.auth!.activeCompanyId) {
-          return res.status(403).json({ message: 'Cannot update a different company' });
-        }
-
-        const data = verifyCompanySchema.parse(req.body);
-
-        // CR uniqueness check (excluding this company)
-        const existingByCr = await storage.getCompanyByCrNumber(data.crNumber);
-        if (existingByCr && existingByCr.id !== companyId) {
-          return res.status(409).json({
-            code: 'CR_TAKEN',
-            message: "This CR number is already registered to another workspace on Bid.",
-          });
-        }
-
-        const updated = await storage.updateCompany(companyId, {
-          legalName: data.legalName,
-          crNumber: data.crNumber,
-          vatNumber: data.vatNumber || null,
-          city: data.city,
-        });
-
-        res.json({
-          company: {
-            id: updated.id,
-            legalName: updated.legalName,
-            crNumber: updated.crNumber,
-            vatNumber: updated.vatNumber,
-            city: updated.city,
-            verificationStatus: updated.verificationStatus,
-          },
-        });
-      } catch (error: any) {
-        console.error('Update verification info error:', error);
-        if (error?.name === 'ZodError') {
-          const firstIssue = error.errors?.[0];
-          const message = firstIssue
-            ? `${firstIssue.path.join('.')}: ${firstIssue.message}`
-            : "Invalid verification data";
-          return res.status(400).json({ message, errors: error.errors });
-        }
-        if (error?.code === '23505') {
-          const constraint = error?.constraint || '';
-          if (constraint.includes('vat_number')) {
-            return res.status(409).json({ message: "This VAT number is already registered to another workspace." });
-          }
-          if (constraint.includes('cr_number')) {
-            return res.status(409).json({ code: 'CR_TAKEN', message: "This CR number is already registered to another workspace." });
-          }
-        }
-        res.status(500).json({ message: error?.message || "Failed to update verification info" });
-      }
-    }
-  );
+  // PATCH verify-info lives in server/routes/company-verification.ts.
 
   // Invite team members to company
   app.post("/api/companies/:companyId/invite-team", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
@@ -2982,6 +2925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const { displayName, bio, logoUrl, socialLinks, legalName, crNumber, vatNumber, city, category, tractionTheme, tags, companySize, portfolio, yearFounded, serviceAreas, languages, industriesServed, availabilityStatus, availabilityNote, introVideoUrl, stats, certifications: profileCertifications, insurancePolicies, whatsappNumber, whatsappVisibility, slug } = req.body;
 
+
         // Get current company
         const company = await storage.getCompany(companyId);
         if (!company) {
@@ -2994,26 +2938,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Company profile not found" });
         }
 
-        // Check CR number uniqueness if it's being changed
-        if (crNumber && crNumber !== company.crNumber) {
-          const existingCompany = await storage.getCompanyByCrNumber(crNumber);
-          if (existingCompany) {
-            return res.status(400).json({ message: "A company with this CR number already exists" });
-          }
+        // A managed logo must be a file issued for this company (any member's
+        // upload); it is published once the profile is saved (S6). Re-sending the logo the profile already has is not
+        // a change: it is accepted without an ownership check, without publishing
+        // and without touching its ACL, so saving other fields works when a
+        // colleague uploaded the logo — and saving never widens access to any file,
+        // including a forged reference stored before S6. Checked before any write.
+        const logoUnchanged = logoUrl !== undefined && logoUrl === existingProfile.logoUrl;
+        const logoCheck: BrandAssetCheck = logoUnchanged
+          ? { ok: true }
+          : await checkBrandAssetReference(logoUrl, companyId, getObjectProvenance);
+        if (!logoCheck.ok) {
+          return res.status(400).json({ message: "Invalid logo", code: logoCheck.code, field: "logoUrl" });
         }
 
-        // Determine if legal identity fields are changing
-        const legalFieldsChanged = 
-          (legalName && legalName !== company.legalName) ||
-          (crNumber && crNumber !== company.crNumber) ||
-          (vatNumber && vatNumber !== company.vatNumber);
+        // Legal details (legal name, CR, VAT, city) are verification data. They
+        // are written through the verification store below, which refuses
+        // changes while a request is under review and removes a verified badge
+        // when the legal identity changes — never directly from here.
+        const verificationPatch: VerificationDetailsPatch = {};
+        if (legalName) verificationPatch.legalName = String(legalName);
+        if (crNumber) verificationPatch.crNumber = String(crNumber);
+        if (vatNumber !== undefined) verificationPatch.vatNumber = vatNumber === null ? null : String(vatNumber);
+        if (city) verificationPatch.city = String(city);
+        if (verificationPatch.crNumber && !CR_NUMBER_PATTERN.test(verificationPatch.crNumber.trim())) {
+          return res.status(400).json({ message: "CR number must be exactly 10 digits" });
+        }
 
         // Update company fields if provided
         const companyUpdates: any = {};
-        if (legalName) companyUpdates.legalName = legalName;
-        if (crNumber) companyUpdates.crNumber = crNumber;
-        if (vatNumber !== undefined) companyUpdates.vatNumber = vatNumber;
-        if (city) companyUpdates.city = city;
         if (category) companyUpdates.category = category;
 
         // Username (@handle) — stored as the company slug, drives /company/:slug.
@@ -3036,26 +2989,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           companyUpdates.onboardingState = 'completed';
         }
 
-        // Reset verification if legal identity changed.
-        // Companies only: individuals and teams are auto-verified because there
-        // is no lawful way to verify them yet, and there is no UI for them to
-        // resubmit. Demoting one to 'under_review' would strand it in a review
-        // queue it can never leave, silently losing every verification-gated
-        // action. (Q-015)
-        if (company.accountType === 'company' && legalFieldsChanged && company.verificationStatus === 'verified') {
-          companyUpdates.verificationStatus = 'under_review';
-          companyUpdates.verifiedAt = null;
-          
-          // Log event for verification reset
-          await storage.logProductEvent({
-            eventType: 'company_updated',
-            companyId,
-            userId: req.auth!.userId,
-            metadata: { 
-              verificationReset: true,
-              reason: 'legal_identity_changed'
-            }
-          });
+        // Locked, validated write of the legal details (see the note above).
+        // Individuals and teams keep their status: they are auto-verified and
+        // have no review path to send them back into (Q-015).
+        if (Object.keys(verificationPatch).length > 0) {
+          const { invalidated } = await verificationStore().saveDetails(companyId, req.auth!.userId, verificationPatch);
+          if (invalidated) {
+            await storage.logProductEvent({
+              eventType: 'company_updated',
+              companyId,
+              userId: req.auth!.userId,
+              metadata: { verificationReset: true, reason: 'legal_identity_changed' },
+            });
+          }
         }
 
         // Update company if there are changes
@@ -3219,9 +3165,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const profile = await storage.updateCompanyProfile(companyId, profileUpdates);
+        if (logoCheck.publishPath) await publishCompanyObject(logoCheck.publishPath, companyId);
 
         res.json(profile);
-      } catch (error) {
+      } catch (error: any) {
+        if (sendVerificationError(res, error)) return;
+        if (error?.code === '23505' && String(error?.constraint || '').includes('cr_number')) {
+          return res.status(409).json({ code: 'CR_TAKEN', message: "This CR number is already registered to another workspace." });
+        }
         console.error('Update company profile error:', error);
         res.status(400).json({ message: "Invalid profile data" });
       }
@@ -3232,79 +3183,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // COMPANY DOCUMENT ROUTES
   // ==========================================================================
 
-  // Upload a company verification document
-  app.post("/api/companies/:companyId/documents",
-    authenticateToken,
-    async (req: AuthRequest, res) => {
-      try {
-        const { companyId } = req.params;
-        const userId = req.auth!.userId;
-
-        // Verify user belongs to this company
-        const role = await storage.getUserRoleInCompany(userId, companyId);
-        if (!role) {
-          return res.status(403).json({ message: "Access denied" });
-        }
-
-        const { documentType, fileUrl, originalName, label } = req.body;
-
-        if (!documentType || !fileUrl) {
-          return res.status(400).json({ message: "documentType and fileUrl are required" });
-        }
-
-        const validTypes = ['cr_certificate', 'vat_certificate', 'gosi_certificate', 'national_address_certificate', 'other'];
-        if (!validTypes.includes(documentType)) {
-          return res.status(400).json({ message: "Invalid document type" });
-        }
-
-        const doc = await storage.createCompanyDocument({
-          companyId,
-          documentType,
-          fileUrl,
-          originalName: originalName || null,
-          label: label || null,
-          uploadedBy: userId,
-        });
-
-        await storage.logMemberActivity({
-          companyId,
-          actorUserId: userId,
-          action: 'company.verification_doc_uploaded',
-          targetType: 'document',
-          targetId: doc.id,
-          summary: `Uploaded verification document: ${documentType}`,
-          metadata: { documentType, originalName: originalName || null },
-        });
-
-        // Move to under_review when documents are first uploaded (or resubmitted after rejection)
-        const company = await storage.getCompany(companyId);
-        if (company && company.accountType === 'company' &&
-            (company.verificationStatus === 'not_verified' || company.verificationStatus === 'rejected')) {
-          await storage.updateCompany(companyId, { verificationStatus: 'under_review' });
-          // Notify admins that a workspace is awaiting verification review.
-          // This used to branch on an `isFreelancer` flag, but only company
-          // workspaces reach this block now (individuals and teams are
-          // auto-verified and have no document upload surface), so that branch
-          // was unreachable — and its '/admin/freelancers' link points at a
-          // route that does not exist in App.tsx anyway.
-          storage.createAdminNotification({
-            type: 'company_verification',
-            title: `Company awaiting verification: ${company.name}`,
-            body: `${company.name} uploaded verification documents and is now awaiting review.`,
-            severity: 'info',
-            link: '/admin/vendors',
-            relatedId: companyId,
-            metadata: { accountType: company.accountType },
-          }).catch(err => console.error('[Admin] Verification notification failed:', err));
-        }
-
-        res.status(201).json(doc);
-      } catch (error) {
-        console.error('Create company document error:', error);
-        res.status(500).json({ message: "Server error" });
-      }
-    }
-  );
+  // POST documents (attach a verification document) lives in
+  // server/routes/company-verification.ts, with the explicit submit endpoint.
 
   // Get all documents for a company
   app.get("/api/companies/:companyId/documents",
@@ -3405,6 +3285,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: error.message, requiresVerification: true });
         }
         if (sendPlanRequired(res, error)) return;
+        if (error instanceof TenderFileError) {
+          return res.status(400).json({ message: error.message, code: error.code, field: error.field });
+        }
         if (error instanceof MarketplaceValidationError) {
           return res.status(400).json({ message: error.message });
         }
@@ -3749,22 +3632,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json(tender);
         }
 
-        // Marketplace tenders that are live are accessible to any authenticated user
-        if (tender.isMarketplace && tender.marketplaceStatus === 'approved') {
-          return res.json(tender);
-        }
-
-        // Invited vendors have access
-        const invitationList = await storage.getInvitationsByTender(req.params.id);
-        const isInvited = invitationList.some(inv => inv.companyId === userCompanyId);
-        if (isInvited) {
-          return res.json(tender);
-        }
-
-        // Vendors who submitted an offer have read access
-        const submittedOffer = await storage.getOfferByTenderAndCompany(req.params.id, userCompanyId!);
-        if (submittedOffer) {
-          return res.json(tender);
+        // Everyone else: the shared read policy — approved marketplace (published),
+        // invited (published/closed), offer holder (published/closed/cancelled),
+        // never a draft (server/lib/tender-access.ts). Hidden price fields are withheld.
+        const grant = await resolveTenderReadGrant(tender, { userId: req.auth!.userId, companyId: userCompanyId }, storage);
+        if (grant) {
+          return res.json(tenderForAudience(tender, userCompanyId));
         }
 
         return res.status(403).json({ message: "Access denied" });
@@ -3782,8 +3655,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!tender) {
         return res.status(404).json({ message: "Tender not found or invitation expired" });
       }
+      // A public link never serves a draft (only the owner may see one).
+      if (tender.status === 'draft') {
+        return res.status(404).json({ message: "Tender not found or invitation expired" });
+      }
 
-      res.json(tender);
+      // Unauthenticated: always the non-owner view.
+      res.json(tenderForAudience(tender));
     } catch (error) {
       console.error('Get tender by token error:', error);
       res.status(500).json({ message: "Server error" });
@@ -3815,27 +3693,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Tender not found" });
       }
 
-      // Only show published tenders
-      if (tender.status !== 'published' && tender.status !== 'draft') {
+      // Only show published tenders — never a draft through a public link
+      if (tender.status !== 'published') {
         return res.status(404).json({ message: "Tender not available" });
       }
 
-      const showPrice = tender.showPriceToVendors !== false;
+      // Public endpoint: the non-owner view (hidden price fields and milestone amounts withheld).
+      const view = tenderForAudience(tender);
 
       // Return only public information
       res.json({
         id: tender.id,
         title: tender.title,
         description: tender.description,
-        budget: showPrice ? tender.budget : null,
-        budgetRange: showPrice ? tender.budgetRange : null,
+        budget: view.budget,
+        budgetRange: view.budgetRange,
         deadline: tender.deadline,
         duration: tender.duration,
         status: tender.status,
         skills: tender.skills,
         scope: tender.scope,
         pricingModel: tender.pricingModel,
-        milestones: tender.milestones,
+        milestones: view.milestones,
         voiceNoteUrl: tender.voiceNoteUrl,
         videoUrl: tender.videoUrl,
         projectTimeline: tender.projectTimeline,
@@ -3856,8 +3735,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Price display settings
         showPriceToVendors: tender.showPriceToVendors,
         projectSize: tender.projectSize,
-        budgetMin: showPrice ? tender.budgetMin : null,
-        budgetMax: showPrice ? tender.budgetMax : null,
+        budgetMin: view.budgetMin,
+        budgetMax: view.budgetMax,
         category: tender.category,
         attachments: tender.attachments,
         formCards: tender.formCards,
@@ -4168,6 +4047,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const updates = createTenderSchema.partial().parse(req.body);
+        // Newly added request files must be issued for this company (r8); files
+        // already on the request are existing references and stay as they are.
+        await assertTenderFilesAllowed(updates, tender, tender.companyId!, getObjectProvenance);
         if ((updates as { inquiryType?: string | null }).inquiryType === 'inside_bid' && tender.inquiryType !== 'inside_bid') {
           await assertFeature(tender.companyId!, 'qa');
         }
@@ -4184,6 +4066,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(updatedTender);
       } catch (error) {
         if (sendPlanRequired(res, error)) return;
+        if (error instanceof TenderFileError) {
+          return res.status(400).json({ message: error.message, code: error.code, field: error.field });
+        }
         console.error('Update tender error:', error);
         res.status(400).json({ message: "Invalid tender data" });
       }
@@ -4914,19 +4799,11 @@ Respond with ONLY a JSON object. Example:
     // ── Step 2: Extract proposal text (shared input for Agents 2 & 3)
     let proposalText = "";
     try {
+      // Only files the offer really owns are read (server/lib/offer-file-extraction.ts).
       const { fetchAndExtractFile } = await import("./textExtraction");
-      if (offerData.combinedFileUrl) {
-        const t = await fetchAndExtractFile(offerData.combinedFileUrl);
-        if (t) proposalText += `\n--- PROPOSAL DOCUMENT ---\n${t}`;
-      }
-      if (offerData.technicalFileUrl) {
-        const t = await fetchAndExtractFile(offerData.technicalFileUrl);
-        if (t) proposalText += `\n--- TECHNICAL PROPOSAL ---\n${t}`;
-      }
-      if (offerData.financialFileUrl) {
-        const t = await fetchAndExtractFile(offerData.financialFileUrl);
-        if (t) proposalText += `\n--- FINANCIAL PROPOSAL ---\n${t}`;
-      }
+      const { text, withheld } = await trustedOfferProposalText(offerData, { getObjectProvenance, extract: fetchAndExtractFile });
+      proposalText += text;
+      if (withheld.length > 0) console.warn(`[ai] offer ${offerData.id}: withheld untrusted files ${withheld.join(",")}`);
     } catch (err) {
       console.error(`File extraction failed for offer ${offerData.id}:`, err);
     }
@@ -5128,6 +5005,8 @@ Respond with ONLY a JSON object. Example:
   app.post("/api/tenders/:id/offers",
     authenticateToken,
     requireCompanyContext,
+    // Viewers are read-only (approved P5); member and above may submit.
+    requireCompanyRole('member'),
     requireVerifiedCompany,
     async (req: AuthRequest, res) => {
       try {
@@ -5204,6 +5083,40 @@ Respond with ONLY a JSON object. Example:
           });
         }
 
+        // Explicit eligibility (S7): marketplace, an invitation, the request's own
+        // link token, or an authorized resubmission — never the requester's own
+        // company, never just knowing the tender id. Decided before any write.
+        const eligibility = await resolveSubmissionEligibility(
+          tender,
+          { userId: req.auth!.userId, companyId: req.auth!.activeCompanyId, invitationToken: req.get("x-invitation-token") ?? null },
+          storage,
+        );
+        if (!eligibility.ok) {
+          return res.status(403).json({
+            message: eligibility.code === 'SELF_SUBMISSION'
+              ? "You cannot submit a proposal to your own company's request."
+              : "You are not invited to submit a proposal to this request.",
+            code: eligibility.code,
+          });
+        }
+
+        // Validate before touching any existing offer, so a malformed
+        // resubmission cannot supersede the current offer and then fail.
+        const parsedOffer = createOfferSchema.safeParse(req.body ?? {});
+        if (!parsedOffer.success) {
+          return res.status(400).json({ message: "Invalid offer data" });
+        }
+        // Each document must be issued for this company and uploaded by the
+        // submitter — checked before any existing offer is superseded (S5).
+        const fileProblem = await findOfferFileProblem(
+          parsedOffer.data,
+          { userId: req.auth!.userId, companyId: req.auth!.activeCompanyId! },
+          getObjectProvenance,
+        );
+        if (fileProblem) {
+          return res.status(400).json({ message: "Invalid offer data", code: fileProblem.code, field: fileProblem.field });
+        }
+
         // Check for existing offer from this company for this tender
         const existingOffer = await storage.getOfferByTenderAndCompany(
           req.params.id,
@@ -5221,14 +5134,18 @@ Respond with ONLY a JSON object. Example:
           }
         }
 
-        const offerData = createOfferSchema.parse(req.body);
-
+        // Only the allowlisted vendor fields come from the request; ownership,
+        // workflow and decision fields are always set here.
         const offer = await storage.createOffer({
-          ...offerData,
+          ...parsedOffer.data,
           tenderId: req.params.id,
           companyId: req.auth!.activeCompanyId!,
           createdBy: req.auth!.userId,
-          conditionalSubmission: false
+          conditionalSubmission: false,
+          status: 'pending',
+          resubmissionAllowed: false,
+          decidedBy: null,
+          decidedAt: null,
         });
 
         // Log event
@@ -5360,7 +5277,8 @@ Respond with ONLY a JSON object. Example:
     async (req: AuthRequest, res) => {
       try {
         const offers = await storage.getOffersByCompany(req.auth!.activeCompanyId!);
-        res.json(offers);
+        // The nested tender belongs to the requester: the vendor gets the non-owner view.
+        res.json(offers.map((o) => ({ ...o, tender: tenderForAudience(o.tender, req.auth!.activeCompanyId) })));
       } catch (error) {
         console.error('Get my offers error:', error);
         res.status(500).json({ message: "Server error" });
@@ -6513,8 +6431,23 @@ Respond with ONLY a JSON object. Example:
         return res.status(400).json({ error: `File type "${fileType}" is not allowed. Accepted types: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, audio, and video.` });
       }
 
+      // Provenance is fixed here (migrations/0017). An upload belongs to the active
+      // company — re-checked against current membership, not the token alone —
+      // unless the client is preparing a company that does not exist yet
+      // (purpose "onboarding"), or there is no active company at all; those are
+      // pending onboarding uploads, bindable once when the company is created.
+      const onboarding = req.body?.purpose === "onboarding" || !req.auth!.activeCompanyId;
+      let companyId: string | null = null;
+      if (!onboarding) {
+        const role = await storage.getUserRoleInCompany(req.auth!.userId, req.auth!.activeCompanyId!);
+        if (!role) {
+          return res.status(403).json({ error: "You no longer have access to this company", requiresCompany: true });
+        }
+        companyId = req.auth!.activeCompanyId!;
+      }
+
       const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      const { uploadURL } = await objectStorageService.issueObjectEntityUpload(req.auth!.userId, companyId);
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting upload URL:", error);
@@ -6529,80 +6462,104 @@ Respond with ONLY a JSON object. Example:
     const objectStorageService = new ObjectStorageService();
     try {
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      let canAccess = await objectStorageService.canAccessObjectEntity({
-        objectFile,
-        userId: userId,
-        requestedPermission: ObjectPermission.READ,
-      });
-      
       const filePath = req.path;
-      
-      // If standard ACL check fails, check if user's company owns a tender 
-      // that has a proposal with this file, or if user's company submitted the proposal
-      if (!canAccess && activeCompanyId) {
-        const offerWithFile = await storage.getOfferByFileUrl(filePath);
-        if (offerWithFile) {
-          if (offerWithFile.companyId === activeCompanyId) {
-            canAccess = true;
-          } else {
-            const tender = await storage.getTender(offerWithFile.tenderId);
-            if (tender && tender.companyId === activeCompanyId) {
-              canAccess = true;
-            }
-          }
-        }
+
+      // Live company context. A company-derived grant needs CURRENT membership:
+      // the token's activeCompanyId outlives a removed member (R8-R2), so every
+      // rule below uses `companyId`, which is null when the caller is no longer
+      // a member of the token's company. Independently authorized access does not
+      // depend on it: public objects, invitation link/email, marketplace, and a
+      // personal (pending onboarding or legacy) upload's own uploader.
+      const companyId = activeCompanyId && (await storage.getUserRoleInCompany(userId, activeCompanyId)) ? activeCompanyId : null;
+      const isCurrentMember = async (candidate: string | null | undefined) =>
+        !!candidate && (candidate === companyId || !!(await storage.getUserRoleInCompany(userId, candidate)));
+
+      // Provenance: a record that merely names a file does not make it that
+      // record's file. Whether a reference counts is decided by the file's ACL
+      // provenance, written by the server when the upload was issued
+      // (server/lib/object-provenance.ts): a company-issued file counts for
+      // records of the same company (any member's upload, including people who
+      // have left); a legacy file (pre-0017) counts only when its uploader
+      // authored the record; a pending onboarding upload counts for none. So an
+      // offer, request, profile or verification document that names another
+      // party's file grants nothing.
+      const acl = await getObjectProvenance(filePath);
+      const belongsTo = (owner: string | null | undefined, authorId: string | null | undefined) =>
+        referenceIsTrusted(acl, { companyId: owner, authorId });
+
+      // Direct ACL grants. Public objects are public. The uploader reads their
+      // own file — but a company-issued file belongs to the company, so only
+      // while they are still a member of it; pending onboarding and legacy files
+      // stay personal to their uploader. A legacy per-user grant (tenderAccess,
+      // written by the ACL backfill for the requester of an offer) holds only
+      // while that user is still a member of the request's company.
+      let canAccess = objectFile.isPublic || acl?.visibility === "public";
+      if (!canAccess && acl?.ownerId === userId) {
+        canAccess = acl.provenance === "company" ? await isCurrentMember(acl.ownerCompanyId) : true;
       }
-      
-      // A tender's own media — voice note or video. Same rule as the tender:
-      // visible on a published tender, and always to the owning company.
       if (!canAccess) {
-        const tenderWithMedia = await storage.getTenderByMediaUrl(filePath);
-        if (tenderWithMedia) {
-          if (tenderWithMedia.status === 'published') {
-            canAccess = true;
-          }
-          if (activeCompanyId && tenderWithMedia.companyId === activeCompanyId) {
-            canAccess = true;
-          }
+        const legacyGrant = (await getObjectAclPolicy(objectFile))?.tenderAccess;
+        if (legacyGrant?.allowedUserIds?.includes(userId)) {
+          const grantTender = await storage.getTender(legacyGrant.tenderId);
+          canAccess = !!grantTender && (await isCurrentMember(grantTender.companyId));
         }
       }
 
-      // A company's public-facing brand assets (logo, header, brochure) are part
-      // of a profile anyone can view, so they must not be locked to whoever
-      // uploaded them. Some were uploaded through the generic private-upload
-      // flow and therefore live under uploads/ with a private ACL.
-      if (!canAccess && (await storage.isCompanyBrandAsset(filePath))) {
-        canAccess = true;
-      }
-
-      // Check if this is an attachment on a published tender
-      if (!canAccess) {
-        const tenderWithAttachment = await storage.getTenderByAttachmentUrl(filePath);
-        if (tenderWithAttachment) {
-          if (tenderWithAttachment.status === 'published') {
-            canAccess = true;
-          }
-          if (activeCompanyId && tenderWithAttachment.companyId === activeCompanyId) {
-            canAccess = true;
-          }
+      // Offer documents are sealed bids: the offering company and the company that
+      // owns the request, nobody else. Request visibility (marketplace, invitation,
+      // link) never opens an offer file.
+      if (!canAccess && companyId) {
+        for (const offer of await storage.getOffersByFileUrl(filePath)) {
+          if (!belongsTo(offer.companyId, offer.createdBy)) continue;
+          if (offer.companyId === companyId) { canAccess = true; break; }
+          const tender = await storage.getTender(offer.tenderId);
+          if (tender && tender.companyId === companyId) { canAccess = true; break; }
         }
       }
-      
-      // Company verification documents (CR, VAT, ...). Readable by the company
-      // the document belongs to, and by platform admins, who have to open them
-      // to approve or reject a pending company registration.
+
+      // A request's own files — voice note, video, attachments — follow the
+      // request's read policy (server/lib/tender-access.ts), including the
+      // lifecycle rules. A signed-in caller holding the invitation link may send
+      // its token as X-Invitation-Token to open this one request's files.
+      if (!canAccess) {
+        const requestTenders = [
+          ...(await storage.getTendersByMediaUrl(filePath)),
+          ...(await storage.getTendersByAttachmentUrl(filePath)),
+        ];
+        const viewer = { userId, companyId, invitationToken: req.get("x-invitation-token") ?? null };
+        for (const tender of requestTenders) {
+          if (!belongsTo(tender.companyId, tender.createdBy)) continue;
+          if (await resolveTenderReadGrant(tender, viewer, storage, { forFiles: true })) { canAccess = true; break; }
+        }
+      }
+
+      // Brand assets (logo, header, brochure) are public by intent. New ones are
+      // published explicitly: setting a profile logo to a file issued for that
+      // company marks it public (PUT /api/companies/:id/profile, company creation),
+      // so the ACL check above already serves it. This rule covers the rest: a
+      // company-issued file on that company's own profile, or a legacy
+      // private-folder asset the backfill attributed to the company's owner.
+      if (!canAccess) {
+        for (const brand of await storage.getCompaniesByBrandAssetUrl(filePath)) {
+          if (belongsTo(brand.companyId, brand.ownerUserId)) { canAccess = true; break; }
+        }
+      }
+
+      // Company verification documents (CR, VAT, ...). Readable by current
+      // members of the company the document belongs to, and by platform admins,
+      // who have to open them to approve or reject a pending company
+      // registration — but only when the file really is that company's (R8-R1):
+      // a document row that names another company's file (or, for legacy files,
+      // a file its uploader did not attach) grants nobody anything, admins
+      // included.
       //
       // Deliberately scoped to these documents rather than granting admins
       // blanket read on every object: offer documents are sealed bids and stay
       // restricted to the parties to the tender.
       if (!canAccess) {
-        const companyDoc = await storage.getCompanyDocumentByFileUrl(filePath);
-        if (companyDoc) {
-          if (req.auth!.isAdmin) {
-            canAccess = true;
-          } else if (activeCompanyId && companyDoc.companyId === activeCompanyId) {
-            canAccess = true;
-          }
+        for (const companyDoc of await storage.getCompanyDocumentsByFileUrl(filePath)) {
+          if (!belongsTo(companyDoc.companyId, companyDoc.uploadedBy)) continue;
+          if (req.auth!.isAdmin || companyDoc.companyId === companyId) { canAccess = true; break; }
         }
       }
 
@@ -6643,7 +6600,10 @@ Respond with ONLY a JSON object. Example:
       const { getObjectAclPolicy } = await import("./objectAcl");
       const existingAcl = await getObjectAclPolicy(objectFile);
 
-      if (existingAcl && existingAcl.owner !== userId) {
+      // Only the user the upload was issued to may finalize it. An object with
+      // no ACL row was never issued through POST /api/objects/upload (or predates
+      // issuance-time ownership) and cannot be claimed here.
+      if (!existingAcl || existingAcl.owner !== userId) {
         return res.status(403).json({ error: "Not authorized to modify this file" });
       }
 
@@ -7045,6 +7005,7 @@ Respond with ONLY a JSON object. Example:
   registerIntegrationsAdminRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole, requireAccountType });
   registerMarketingRoutes(app, { authenticateToken, requireAdmin });
   registerBillingRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole, requireAdmin });
+  registerCompanyVerificationRoutes(app, { authenticateToken, requireCompanyContext });
 
   // ============================================================================
   // AI CHAT HISTORY
@@ -7369,7 +7330,8 @@ Respond with ONLY a JSON object. Example:
         callerAccountType,
         audienceType,
       });
-      res.json(result);
+      // Public list: each tender in its non-owner view (an owner still sees its own in full).
+      res.json({ ...result, tenders: result.tenders.map((t) => tenderForAudience(t, req.auth?.activeCompanyId)) });
     } catch (error) {
       console.error("Error fetching marketplace tenders:", error);
       res.status(500).json({ message: "Server error" });
@@ -7593,19 +7555,44 @@ Respond with ONLY a JSON object. Example:
   // PURCHASE ORDER ROUTES
   // ==========================================================================
 
+  // Purchase orders are private documents of the requesting company (SEC-PO-AUTHZ-R1).
+  //   list / download   current members of the request's company (live membership,
+  //                     not the token's company claim), and platform admins
+  //   create / delete   current members of that company with a writer role
+  //                     (owner, admin, business_developer, member — not viewer);
+  //                     platform admins may delete (moderation) but not create
+  // A PO's file is a reference like any other (server/lib/object-provenance.ts):
+  // it must be the caller's own upload issued for the request's company when it
+  // is attached, and the stored reference is re-checked before every download —
+  // for admins too — so a forged or pre-existing foreign reference opens nothing.
+  const PO_WRITER_ROLES = ['owner', 'admin', 'business_developer', 'member'];
+  async function purchaseOrderAccess(req: AuthRequest, tender: { companyId: string | null } | undefined) {
+    const companyId = tender?.companyId ?? null;
+    const role = companyId && req.auth!.activeCompanyId === companyId
+      ? await storage.getUserRoleInCompany(req.auth!.userId, companyId)
+      : null;
+    return {
+      read: !!role || req.auth!.isAdmin,
+      write: !!role && PO_WRITER_ROLES.includes(role),
+      moderate: req.auth!.isAdmin,
+    };
+  }
+
   app.post("/api/tenders/:id/purchase-orders", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const tender = await storage.getTender(req.params.id);
       if (!tender) return res.status(404).json({ message: "Tender not found" });
 
-      const isAdmin = req.auth!.isAdmin;
-      const isOwner = tender.companyId === req.auth!.activeCompanyId;
-      if (!isAdmin && !isOwner) {
+      if (!(await purchaseOrderAccess(req, tender)).write) {
         return res.status(403).json({ message: "Not authorized" });
       }
 
       const { fileUrl, originalName, notes } = req.body;
       if (!fileUrl) return res.status(400).json({ message: "File URL required" });
+      if (typeof fileUrl !== 'string' || !isUploadObjectPath(fileUrl)
+        || attachProblem(await getObjectProvenance(fileUrl), tender.companyId, req.auth!.userId)) {
+        return res.status(400).json({ code: "INVALID_FILE", message: "Upload the file again, then attach it." });
+      }
 
       const po = await storage.createPurchaseOrder({
         tenderId: tender.id,
@@ -7628,9 +7615,7 @@ Respond with ONLY a JSON object. Example:
       const tender = await storage.getTender(req.params.id);
       if (!tender) return res.status(404).json({ message: "Tender not found" });
 
-      const isAdmin = req.auth!.isAdmin;
-      const isOwner = tender.companyId === req.auth!.activeCompanyId;
-      if (!isAdmin && !isOwner) {
+      if (!(await purchaseOrderAccess(req, tender)).read) {
         return res.status(403).json({ message: "Not authorized — PO is private" });
       }
 
@@ -7642,38 +7627,30 @@ Respond with ONLY a JSON object. Example:
     }
   });
 
-  // Serve PO file by PO ID (admin only)
+  // Serve a PO's file by PO ID.
   app.get("/api/purchase-orders/:id/file", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const po = await storage.getPurchaseOrder(req.params.id);
       if (!po) return res.status(404).json({ message: "Purchase order not found" });
 
-      // Allow admin or tender owner
       const tender = await storage.getTender(po.tenderId);
-      const isAdmin = req.auth!.isAdmin;
-      const isOwner = tender?.companyId === req.auth!.activeCompanyId;
-      if (!isAdmin && !isOwner) {
+      if (!(await purchaseOrderAccess(req, tender)).read) {
         return res.status(403).json({ message: "Not authorized" });
       }
 
+      // Only a private upload that really is the request company's file is served:
+      // no public-bucket fallback, no raw legacy paths.
       const fileUrl = po.fileUrl;
-      if (!fileUrl) return res.status(404).json({ message: "No file attached" });
-
-      // If it's already an /objects/ path, use the standard object storage flow
-      const objectStorageService = new ObjectStorageService();
-      if (fileUrl.startsWith('/objects/')) {
-        try {
-          const objectFile = await objectStorageService.getPublicFile(fileUrl);
-          return objectStorageService.downloadObject(objectFile, res);
-        } catch {}
-        const objectFile = await objectStorageService.getObjectEntityFile(fileUrl);
-        return objectStorageService.downloadObject(objectFile, res);
+      if (!fileUrl || !isUploadObjectPath(fileUrl)
+        || !referenceIsTrusted(await getObjectProvenance(fileUrl), { companyId: tender?.companyId, authorId: po.uploadedBy })) {
+        return res.status(403).json({ message: "Not authorized" });
       }
 
-      // Anything not under /objects/ is a raw path from the old Replit object
-      // store, which no longer exists post-Supabase migration.
-      return res.status(404).json({ message: "File not found in storage" });
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(fileUrl);
+      return objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
+      if (error instanceof ObjectNotFoundError) return res.status(404).json({ message: "File not found in storage" });
       console.error("Error serving PO file:", error);
       if (!res.headersSent) res.status(500).json({ message: "Server error" });
     }
@@ -7701,9 +7678,8 @@ Respond with ONLY a JSON object. Example:
       const tender = await storage.getTender(po.tenderId);
       if (!tender) return res.status(404).json({ message: "Tender not found" });
 
-      const isAdmin = req.auth!.isAdmin;
-      const isOwner = tender.companyId === req.auth!.activeCompanyId;
-      if (!isAdmin && !isOwner) {
+      const access = await purchaseOrderAccess(req, tender);
+      if (!access.write && !access.moderate) {
         return res.status(403).json({ message: "Not authorized" });
       }
 

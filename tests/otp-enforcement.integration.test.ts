@@ -11,6 +11,7 @@
 import express, { type Express } from "express";
 import request from "supertest";
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
+import { startTestServer, stopTestServer, type TestServer } from "./helpers/test-server";
 import { sql } from "drizzle-orm";
 
 import { registerRoutes } from "../server/routes";
@@ -18,6 +19,10 @@ import { db } from "../server/db";
 import { makeUser, makeCompany, tokenFor, teardown } from "./helpers/fixtures";
 
 let app: Express;
+
+let server: TestServer;
+
+afterAll(() => stopTestServer(server));
 let unverified: { id: string };
 let verified: { id: string };
 let unverifiedCo: { id: string };
@@ -26,6 +31,7 @@ beforeAll(async () => {
   app = express();
   app.use(express.json());
   await registerRoutes(app);
+  server = await startTestServer(app);
 
   unverified = await makeUser({ otpVerified: false });
   verified = await makeUser();
@@ -40,20 +46,20 @@ const asUnverified = () => tokenFor({ id: unverified.id, activeCompanyId: unveri
 
 describe("a token from login, before the code is entered", () => {
   it("cannot list the company's tenders", async () => {
-    const res = await request(app).get("/api/tenders").set("Authorization", `Bearer ${asUnverified()}`);
+    const res = await request(server).get("/api/tenders").set("Authorization", `Bearer ${asUnverified()}`);
     expect(res.status).toBe(403);
     expect(res.body.requiresOtp).toBe(true);
   });
 
   it("cannot read a private file", async () => {
-    const res = await request(app)
+    const res = await request(server)
       .get("/objects/uploads/whatever")
       .set("Authorization", `Bearer ${asUnverified()}`);
     expect(res.status).toBe(403);
   });
 
   it("cannot create a tender", async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post("/api/tenders")
       .set("Authorization", `Bearer ${asUnverified()}`)
       .send({ title: "should never exist" });
@@ -64,11 +70,11 @@ describe("a token from login, before the code is entered", () => {
   it("still reaches the screens needed to finish verifying", async () => {
     // /api/auth/me must keep working: the client logs the user out when it
     // fails, which would strand them at the login page instead of the code screen.
-    const me = await request(app).get("/api/auth/me").set("Authorization", `Bearer ${asUnverified()}`);
+    const me = await request(server).get("/api/auth/me").set("Authorization", `Bearer ${asUnverified()}`);
     expect(me.status).toBe(200);
 
     // A wrong code is still rejected on its own merits, not by the gate.
-    const verify = await request(app)
+    const verify = await request(server)
       .post("/api/auth/verify-otp")
       .set("Authorization", `Bearer ${asUnverified()}`)
       .send({ code: "000000" });
@@ -79,7 +85,7 @@ describe("a token from login, before the code is entered", () => {
 describe("once the code is confirmed", () => {
   it("the same kind of request goes through", async () => {
     const co = await makeCompany(verified.id);
-    const res = await request(app)
+    const res = await request(server)
       .get("/api/tenders")
       .set("Authorization", `Bearer ${tokenFor({ id: verified.id, activeCompanyId: co.id })}`);
     expect(res.status).toBe(200);
@@ -90,14 +96,14 @@ describe("once the code is confirmed", () => {
     const lateCo = await makeCompany(late.id);
     const token = tokenFor({ id: late.id, activeCompanyId: lateCo.id });
 
-    const before = await request(app).get("/api/tenders").set("Authorization", `Bearer ${token}`);
+    const before = await request(server).get("/api/tenders").set("Authorization", `Bearer ${token}`);
     expect(before.status).toBe(403);
 
     // What /api/auth/verify-otp does on success, without needing the email.
     await db.execute(sql`update users set otp_verified = true where id = ${late.id}`);
 
     // Same token as before — no new login needed.
-    const after = await request(app).get("/api/tenders").set("Authorization", `Bearer ${token}`);
+    const after = await request(server).get("/api/tenders").set("Authorization", `Bearer ${token}`);
     expect(after.status).toBe(200);
   });
 });

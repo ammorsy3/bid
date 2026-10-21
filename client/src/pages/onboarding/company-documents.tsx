@@ -78,7 +78,8 @@ export default function CompanyDocuments() {
   }, [user, setLocation]);
 
   const handleGetUploadURL = async () => {
-    const response = await apiRequest('POST', '/api/objects/upload', {});
+    // The company does not exist yet: a pending onboarding upload, bound to it at creation.
+    const response = await apiRequest('POST', '/api/objects/upload', { purpose: 'onboarding' });
     const data = await response.json();
     return { method: 'PUT' as const, url: data.uploadURL };
   };

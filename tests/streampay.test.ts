@@ -2,7 +2,8 @@
 // signature checks, phone/VAT/CR rules, prefill, prices, and the webhook route
 // with the billing module mocked out.
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from "vitest";
+import { startTestServer, stopTestServer, type TestServer } from "./helpers/test-server";
 import express from "express";
 import request from "supertest";
 
@@ -270,6 +271,9 @@ describe("plan ↔ StreamPay product mapping", () => {
 
 describe("POST /api/billing/streampay/webhook", () => {
   const app = express();
+  let server: TestServer;
+  beforeAll(async () => { server = await startTestServer(app); });
+  afterAll(() => stopTestServer(server));
   registerBillingWebhook(app);
   app.use(express.json()); // mounted after, exactly like server/app.ts
 
@@ -285,7 +289,7 @@ describe("POST /api/billing/streampay/webhook", () => {
   });
 
   it("processes a correctly signed event", async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post("/api/billing/streampay/webhook")
       .set("Content-Type", "application/json")
       .set("X-Webhook-Signature", signWebhookBody(raw, SECRET, 1700000001))
@@ -296,7 +300,7 @@ describe("POST /api/billing/streampay/webhook", () => {
   });
 
   it("rejects a bad signature without touching anything", async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post("/api/billing/streampay/webhook")
       .set("Content-Type", "application/json")
       .set("X-Webhook-Signature", signWebhookBody(raw, "wrong-secret"))
@@ -306,13 +310,13 @@ describe("POST /api/billing/streampay/webhook", () => {
   });
 
   it("rejects an unsigned request", async () => {
-    const res = await request(app).post("/api/billing/streampay/webhook").set("Content-Type", "application/json").send(raw);
+    const res = await request(server).post("/api/billing/streampay/webhook").set("Content-Type", "application/json").send(raw);
     expect(res.status).toBe(401);
   });
 
   it("verifies the exact bytes, even when JSON re-serialisation would differ", async () => {
     const spaced = '{ "event_type" : "SUBSCRIPTION_ACTIVATED", "entity_type": "SUBSCRIPTION", "entity_id": "sub_1" }';
-    const res = await request(app)
+    const res = await request(server)
       .post("/api/billing/streampay/webhook")
       .set("Content-Type", "application/json")
       .set("X-Webhook-Signature", signWebhookBody(spaced, SECRET))
@@ -322,7 +326,7 @@ describe("POST /api/billing/streampay/webhook", () => {
 
   it("answers 503 (so StreamPay retries) when the secret isn't configured", async () => {
     delete process.env.STREAMPAY_WEBHOOK_SECRET;
-    const res = await request(app)
+    const res = await request(server)
       .post("/api/billing/streampay/webhook")
       .set("Content-Type", "application/json")
       .set("X-Webhook-Signature", signWebhookBody(raw, SECRET))
@@ -332,7 +336,7 @@ describe("POST /api/billing/streampay/webhook", () => {
 
   it("answers 500 when processing fails, so StreamPay retries later", async () => {
     vi.mocked(handleWebhookEvent).mockRejectedValueOnce(new Error("db down"));
-    const res = await request(app)
+    const res = await request(server)
       .post("/api/billing/streampay/webhook")
       .set("Content-Type", "application/json")
       .set("X-Webhook-Signature", signWebhookBody(raw, SECRET))

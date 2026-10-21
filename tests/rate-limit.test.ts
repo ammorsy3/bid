@@ -1,7 +1,8 @@
 // Unit tests for the rate-limit policy table. No database or network: these
 // check which tier a request lands in, and that a bucket actually runs out.
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, beforeAll, afterAll } from "vitest";
+import { startTestServer, stopTestServer, type TestServer } from "./helpers/test-server";
 import express from "express";
 import request from "supertest";
 import { matchTier, bucketKey, rateLimiter, TIERS } from "../server/middleware/rate-limit";
@@ -79,6 +80,9 @@ describe("bucketKey — who shares a budget", () => {
 
 describe("the limiter actually refuses traffic", () => {
   const app = express();
+  let server: TestServer;
+  beforeAll(async () => { server = await startTestServer(app); });
+  afterAll(() => stopTestServer(server));
   app.use(rateLimiter);
   app.post("/api/auth/login", (_req, res) => res.json({ ok: true }));
 
@@ -87,11 +91,11 @@ describe("the limiter actually refuses traffic", () => {
     const capacity = TIERS.find((t) => t.name === "auth")!.capacity;
 
     for (let i = 0; i < capacity; i++) {
-      const res = await request(app).post("/api/auth/login").set("x-forwarded-for", ip);
+      const res = await request(server).post("/api/auth/login").set("x-forwarded-for", ip);
       expect(res.status).toBe(200);
     }
 
-    const blocked = await request(app).post("/api/auth/login").set("x-forwarded-for", ip);
+    const blocked = await request(server).post("/api/auth/login").set("x-forwarded-for", ip);
     expect(blocked.status).toBe(429);
     expect(Number(blocked.headers["retry-after"])).toBeGreaterThan(0);
     expect(blocked.body.message).toMatch(/too many requests/i);
@@ -101,9 +105,9 @@ describe("the limiter actually refuses traffic", () => {
     const ip = "198.51.100.8";
     const capacity = TIERS.find((t) => t.name === "auth")!.capacity;
     for (let i = 0; i < capacity + 5; i++) {
-      await request(app).post("/api/auth/login").set("x-forwarded-for", ip);
+      await request(server).post("/api/auth/login").set("x-forwarded-for", ip);
     }
-    const other = await request(app).post("/api/auth/login").set("x-forwarded-for", "198.51.100.9");
+    const other = await request(server).post("/api/auth/login").set("x-forwarded-for", "198.51.100.9");
     expect(other.status).toBe(200);
   });
 });

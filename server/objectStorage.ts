@@ -7,6 +7,7 @@ import {
   ObjectPermission,
   canAccessObject,
   getObjectAclPolicy,
+  issueObjectAcl,
   setObjectAclPolicy,
 } from "./objectAcl";
 
@@ -165,7 +166,14 @@ export class ObjectStorageService {
   }
 
   // Returns a short-lived signed URL the browser can PUT the file straight to.
-  async getObjectEntityUploadURL(): Promise<string> {
+  // Issues a signed upload URL for a new private object and records its owner
+  // (the requesting user) and provenance before the URL is handed out: the
+  // company it is issued for, or "pending onboarding" when that company does not
+  // exist yet (server/objectAcl.ts issueObjectAcl). Ownership and provenance are
+  // therefore fixed at issuance: finalizing the upload (PUT /api/objects/metadata)
+  // is refused for anyone else, and an unclaimed path can no longer be claimed by
+  // whoever finalizes it first.
+  async issueObjectEntityUpload(ownerId: string, companyId: string | null): Promise<{ uploadURL: string; objectPath: string }> {
     const name = `uploads/${randomUUID()}`;
 
     const { data, error } = await supabaseStorage
@@ -176,7 +184,9 @@ export class ObjectStorageService {
       throw new Error(`Failed to create signed upload URL: ${error?.message}`);
     }
 
-    return data.signedUrl;
+    const object = makeObject(PRIVATE_BUCKET, name);
+    await issueObjectAcl(object.objectPath, ownerId, companyId);
+    return { uploadURL: data.signedUrl, objectPath: object.objectPath };
   }
 
   // Gets a private object entity from its app path.

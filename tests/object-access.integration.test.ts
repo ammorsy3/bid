@@ -22,6 +22,7 @@
 import express, { type Express } from "express";
 import request from "supertest";
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
+import { startTestServer, stopTestServer, type TestServer } from "./helpers/test-server";
 
 import { registerRoutes } from "../server/routes";
 import {
@@ -39,6 +40,10 @@ import {
 
 let app: Express;
 
+
+let server: TestServer;
+
+afterAll(() => stopTestServer(server));
 // Actors
 let owner: { id: string };            // uploaded the file / owns the company
 let stranger: { id: string };         // unrelated user at another company
@@ -60,6 +65,7 @@ beforeAll(async () => {
   app = express();
   app.use(express.json());
   await registerRoutes(app);
+  server = await startTestServer(app);
 
   owner = await makeUser();
   stranger = await makeUser();
@@ -115,7 +121,7 @@ afterAll(async () => {
 }, 60_000);
 
 const get = (path: string, token?: string) => {
-  const r = request(app).get(path);
+  const r = request(server).get(path);
   return token ? r.set("Authorization", `Bearer ${token}`) : r;
 };
 

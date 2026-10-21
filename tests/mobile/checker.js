@@ -268,7 +268,7 @@
       // (collapsed boxes show nothing; truncated text shows only its visible part).
       const clipTo = (el, r) => {
         let L = r.left, T = r.top, R = r.right, B = r.bottom;
-        for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+        for (let n = el; n && n !== document.body; n = n.parentElement) {
           const st = getComputedStyle(n);
           if (st.overflowX === "visible" && st.overflowY === "visible") continue;
           const c = n.getBoundingClientRect();

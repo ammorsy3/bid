@@ -538,7 +538,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className={`max-w-3xl max-h-[90vh] overflow-y-auto overscroll-contain max-sm:[@media(max-height:500px)]:max-h-dvh max-sm:[@media(max-height:500px)]:rounded-t-none ${isRtl ? 'text-right' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
+      <DialogContent className={`max-w-3xl grid-cols-[minmax(0,1fr)] max-h-[90vh] overflow-y-auto overscroll-contain max-sm:[@media(max-height:500px)]:max-h-dvh max-sm:[@media(max-height:500px)]:rounded-t-none ${isRtl ? 'text-right' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
         <DialogHeader>
           <div className={`flex items-center justify-between`}>
             <DialogTitle className={`font-display font-black text-2xl text-foreground flex items-center gap-2 tracking-[-0.03em]`}>
@@ -616,8 +616,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
               </Alert>
             )}
 
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+              <div className="flex-1 min-w-[10rem]">
                 <FormProgress
                   progress={progress}
                   language={language}
@@ -646,7 +646,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester }:
                   }
                 />
               </div>
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isUrgent ? 'bg-error-50 text-error-700' : 'bg-muted text-muted-foreground'}`}>
+              <div className={`flex max-w-full items-center gap-2 px-3 py-2 rounded-lg ${isUrgent ? 'bg-error-50 text-error-700' : 'bg-muted text-muted-foreground'}`}>
                 <Clock className="h-4 w-4" />
                 <span className="text-sm font-medium">{timeRemaining}</span>
               </div>

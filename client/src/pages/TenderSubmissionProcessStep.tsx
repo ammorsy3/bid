@@ -605,7 +605,7 @@ export default function TenderSubmissionProcessStep() {
                             dir="ltr"
                             inputMode="tel"
                             autoComplete="tel"
-                            placeholder="+966 50 123 4567 or wa.me/966501234567"
+                            placeholder={t('tenderFlow.whatsappPlaceholder')}
                             value={whatsappContact}
                             onChange={(e) => setWhatsappContact(e.target.value)}
                             className="w-full px-3 py-2 max-sm:min-h-11 text-base md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"

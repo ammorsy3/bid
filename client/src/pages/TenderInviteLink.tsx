@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { SarMark } from "@/components/SarMark";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -305,7 +306,7 @@ function MobileAtAGlance({
             </div>
             <div className="bg-muted rounded-lg p-2.5 border border-border min-w-0">
               <div className="flex items-center gap-1.5 mb-1">
-                <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
+                <SarMark className="text-emerald-600" />
                 <span className={captionCls}>{t('tenderFlow.budgetColumn')}</span>
               </div>
               <p className={valueCls}>{getBudgetDisplay()}</p>
@@ -1354,7 +1355,7 @@ export default function TenderInviteLink() {
                                     )}
                                     {milestone.amount && (
                                       <span className={`inline-flex items-center gap-1.5 text-xs font-bold bg-[#FE3C01]/8 px-3 py-1.5 rounded-lg ${ORANGE_INK}`}>
-                                        <DollarSign className="h-3.5 w-3.5" /> <bdi dir="ltr">SAR {Number(milestone.amount).toLocaleString('en-US')}</bdi>
+                                        <bdi dir="ltr">SAR {Number(milestone.amount).toLocaleString('en-US')}</bdi>
                                       </span>
                                     )}
                                   </div>
@@ -1802,7 +1803,7 @@ export default function TenderInviteLink() {
                     </div>
                     <div className="bg-muted rounded-lg p-2.5 border border-border">
                       <div className="flex items-center gap-1.5 mb-1">
-                        <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
+                        <SarMark className="text-emerald-600" />
                         <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.budgetColumn')}</span>
                       </div>
                       <p className="text-xs font-bold text-foreground leading-tight">{getBudgetDisplay()}</p>

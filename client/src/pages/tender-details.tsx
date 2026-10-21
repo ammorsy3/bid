@@ -3,6 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { SarMark } from "@/components/SarMark";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ArrowRight, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, FileCheck, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store, Upload, Globe, Paperclip, Banknote } from "lucide-react";
@@ -2403,7 +2404,7 @@ export default function TenderDetails() {
                       {selectedOffer.quotePrice && (
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground flex items-center gap-2">
-                            <DollarSign className="h-3.5 w-3.5 text-gray-300" /> {t('tenderFlow.quotePriceLabel')}
+                            <SarMark className="text-gray-400" /> {t('tenderFlow.quotePriceLabel')}
                           </span>
                           <span className="text-lg font-bold text-foreground">
                             {t('tenderFlow.sarCurrency')} {selectedOffer.quotePrice.toLocaleString('en-US')}

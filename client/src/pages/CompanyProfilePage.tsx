@@ -342,8 +342,8 @@ export default function CompanyProfilePage() {
         <div className="min-w-0 flex-1">
           <h1 className="font-display font-black text-xl md:text-2xl text-white tracking-[-0.03em] drop-shadow break-words"><bdi>{displayName}</bdi></h1>
           <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-            {/* The badge colours are made for a light page; on the dark banner they need their own light chip on phones. */}
-            <span className="inline-flex rounded-full bg-card max-md:p-0.5 md:bg-transparent"><VerificationBadge status={company.verificationStatus} /></span>
+            {/* The badge colours are made for a light page; on the dark banner they need their own light chip. */}
+            <span className="inline-flex rounded-full bg-card p-0.5"><VerificationBadge status={company.verificationStatus} /></span>
             {company.category && (
               <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{categoryLabel(company.category, isRtl)}</span>
             )}

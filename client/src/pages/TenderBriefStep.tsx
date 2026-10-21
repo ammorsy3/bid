@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { SarMark } from "@/components/SarMark";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy, Languages, Paperclip, Upload, X } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
@@ -460,7 +461,7 @@ export default function TenderBriefStep() {
 
             <div className="bg-muted rounded-xl p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <DollarSign className="h-4 w-4" />
+                <SarMark className="text-[10px]" />
                 <span className="text-xs font-medium uppercase tracking-wider">{t('tenderFlow.budgetColumn')}</span>
               </div>
               <p className="font-semibold text-sm text-foreground" data-testid="brief-budget">
@@ -953,7 +954,7 @@ export default function TenderBriefStep() {
                       {draft.budgetType && (
                         <div className="bg-muted rounded-xl p-3 border border-border">
                           <div className="flex items-center gap-1.5 mb-1">
-                            <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+                            <SarMark className="text-emerald-600" />
                             <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.budgetTypeLabel')}</span>
                           </div>
                           <p className="text-xs font-bold text-foreground leading-tight">

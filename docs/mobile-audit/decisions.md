@@ -318,12 +318,12 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     Questions (answer yes or no; my recommendation first):
     - (a) **✅ Admin join requests: "View profile" button — Ahmed said yes (2026-10-18).** It now opens the vendor's company page (`/company/<slug>`, or `/people/<slug>` for individuals); disabled if the vendor has no slug. Verified 2026-10-20: tapping it lands on /company/vendor-1 (phone and desktop, Arabic and English).
     - (b) **✅ Vendors tab (#25) — Ahmed answered (2026-10-18).** (1) Invite by email: not now, nothing built. (2) Phone labels / tap behaviour: keep as is. (3) "Not verified" including under review and rejected: keep as is.
-    - (c) **Invite page text alignment (#34b).** Arabic text on an English page (and the reverse) lines up with its own language, also on desktop. Keep? Recommend: keep.
+    - (c) **✅ Invite page text alignment (#34b) — Ahmed took my recommendation (2026-10-21): keep.** Each text lines up with its own language, also on desktop.
     - (d) **Wizard milestone names (#36c).** Found on re-check: this was already done in batch 5 (names and descriptions are auto-growing boxes, see tender-wizard-project-scope/result.md). Nothing to decide; shown as done in decisions.html.
-    - (e) **Wizard WhatsApp placeholder (#36f).** The grey example text "+966 50 123 4567 or wa.me/..." is English-only. Translate it (the number stays left-to-right)? Recommend: yes.
-    - (f) **Dollar icon (#35c).** The price field and budget box show "$" for a SAR price (also the marketplace fee field in the wizard). Swap the icon for the letters "SAR"? Recommend: yes.
-    - (g) **Days-left in the vendor tender page's bottom bar (#35a).** Found on re-check: batch 4 already added it (small line above the button). So the real question is: keep it, or remove it? Recommend: keep.
-    - (h) **Desktop "Under Review" badge (#32a).** On the dark banner the badge text is dark on dark. Fixing it changes a colour, so I did not. Fix on desktop? Recommend: yes, it is unreadable.
-    - (i) **Admin phone pages (#41c, #41d).** Dashboard cards have no small "Action needed" badge on phones, and long lists show 10 rows then "Show more". Keep? Recommend: keep.
-    - (j) **Arabic dates in Safari (#24).** Safari may add a comma ("2 يونيو، 2026"). Leave it unless it looks wrong on your iPhone? Recommend: leave.
+    - (e) **✅ Wizard WhatsApp placeholder (#36f) — yes, translated (2026-10-21).** New key `tenderFlow.whatsappPlaceholder` (EN + AR); the number stays left-to-right.
+    - (f) **✅ Dollar icon (#35c) — yes, swapped for "SAR" (2026-10-21).** New `SarMark` component replaces the dollar icon on the wizard marketplace fee label, the vendor tender page price row, the wizard budget cards and the invite-page budget boxes; the invite milestone amount already says SAR so its icon was just removed. Dollar icons that mean "financial file" are unchanged.
+    - (g) **✅ Days-left in the vendor tender page bottom bar (#35a) — keep it (2026-10-21).** Already there since batch 4.
+    - (h) **✅ Desktop "Under Review" badge (#32a) — yes, fixed (2026-10-21).** The badge now sits on the same light chip on desktop as on phones, so its dark text is readable on the dark banner. No colour was changed, only the chip behind it.
+    - (i) **✅ Admin phone pages (#41c, #41d) — keep (2026-10-21).** No change.
+    - (j) **✅ Arabic dates in Safari (#24) — leave (2026-10-21).** No change unless it looks wrong on a real iPhone.
     Not photographable here, and not touched: the Google / LinkedIn / Slack sign-in itself (it leaves our site; needs the live bidapp.sa), and the admin notification texts and stored error messages, which stay English by your decision (#41b).

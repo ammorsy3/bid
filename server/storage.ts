@@ -219,9 +219,9 @@ export interface IStorage {
   createTender(tender: InsertTender): Promise<Tender>;
   getTender(id: string): Promise<Tender | undefined>;
   getTenderByVoiceNoteUrl(voiceNoteUrl: string): Promise<Tender | null>;
-  getTenderByAttachmentUrl(attachmentUrl: string): Promise<Tender | null>;
-  getTenderByMediaUrl(mediaUrl: string): Promise<Tender | null>;
-  isCompanyBrandAsset(fileUrl: string): Promise<boolean>;
+  getTendersByAttachmentUrl(attachmentUrl: string): Promise<Tender[]>;
+  getTendersByMediaUrl(mediaUrl: string): Promise<Tender[]>;
+  getCompaniesByBrandAssetUrl(fileUrl: string): Promise<{ companyId: string; ownerUserId: string | null }[]>;
   getTenderWithProposalCount(id: string): Promise<(Tender & { proposalCount: number }) | undefined>;
   getTendersByCompany(companyId: string): Promise<Tender[]>;
   getTendersWithProposalCounts(companyId: string): Promise<(Tender & { proposalCount: number })[]>;
@@ -242,8 +242,8 @@ export interface IStorage {
   getOfferCountsByTenders(tenderIds: string[]): Promise<Map<string, number>>;
   hasAppliedToRequester(applicantCompanyId: string, requesterCompanyId: string): Promise<boolean>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
-  getOfferByFileUrl(fileUrl: string): Promise<Offer | null>;
-  getCompanyDocumentByFileUrl(fileUrl: string): Promise<CompanyDocument | null>;
+  getOffersByFileUrl(fileUrl: string): Promise<Offer[]>;
+  getCompanyDocumentsByFileUrl(fileUrl: string): Promise<CompanyDocument[]>;
   getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: SafeCompany; profile?: CompanyProfile })[]>;
   getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: SafeCompany; profile?: CompanyProfile; isViewed: boolean })[]>;
   updateOfferStatus(offerId: string, status: string, decidedBy: string): Promise<Offer>;
@@ -1116,7 +1116,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCompanyDocuments(companyId: string): Promise<CompanyDocument[]> {
-    return db.select().from(companyDocuments).where(eq(companyDocuments.companyId, companyId));
+    // Newest first, so "the current document of a type" is the first match.
+    return db.select().from(companyDocuments)
+      .where(eq(companyDocuments.companyId, companyId))
+      .orderBy(desc(companyDocuments.uploadedAt));
   }
 
   // ============================================================================
@@ -1152,26 +1155,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   /** A tender's own media (voice note or video), whichever field it lives in. */
-  async getTenderByMediaUrl(mediaUrl: string): Promise<Tender | null> {
-    const [tender] = await db
+  // Every tender that lists this file — not just the first — so a record that
+  // merely names someone else's file cannot shadow the real one at read time.
+  async getTendersByMediaUrl(mediaUrl: string): Promise<Tender[]> {
+    return db
       .select()
       .from(tenders)
-      .where(or(eq(tenders.voiceNoteUrl, mediaUrl), eq(tenders.videoUrl, mediaUrl)))
-      .limit(1);
-    return tender || null;
+      .where(or(eq(tenders.voiceNoteUrl, mediaUrl), eq(tenders.videoUrl, mediaUrl)));
   }
 
   /**
-   * True when the file is a company's public-facing brand asset — logo, header
-   * or brochure. These are shown on the company profile to anyone who can see
-   * the profile, so they must not be restricted to whoever happened to upload
-   * them. Most live in the public bucket, but some were uploaded through the
-   * generic private-upload flow and sit under uploads/.
+   * Companies whose profile uses this file as a brand asset (logo, header,
+   * brochure), with each company's owner. Most brand assets live in the public
+   * bucket; some legacy ones were uploaded through the generic private-upload
+   * flow, sit under uploads/, and were attributed to the company owner by
+   * scripts/backfill-object-acl.ts.
    */
-  async isCompanyBrandAsset(fileUrl: string): Promise<boolean> {
-    const [row] = await db
-      .select({ id: companyProfiles.id })
+  async getCompaniesByBrandAssetUrl(fileUrl: string): Promise<{ companyId: string; ownerUserId: string | null }[]> {
+    return db
+      .select({ companyId: companyProfiles.companyId, ownerUserId: companies.ownerUserId })
       .from(companyProfiles)
+      .innerJoin(companies, eq(companies.id, companyProfiles.companyId))
       .where(
         or(
           eq(companyProfiles.logoUrl, fileUrl),
@@ -1181,23 +1185,17 @@ export class DatabaseStorage implements IStorage {
           eq(companyProfiles.brochureUrl, fileUrl),
           eq(companyProfiles.introVideoUrl, fileUrl),
         ),
-      )
-      .limit(1);
-    return !!row;
+      );
   }
 
-  async getTenderByAttachmentUrl(attachmentUrl: string): Promise<Tender | null> {
+  async getTendersByAttachmentUrl(attachmentUrl: string): Promise<Tender[]> {
     const allTenders = await db
       .select()
       .from(tenders)
       .where(sql`attachments IS NOT NULL`);
-    for (const tender of allTenders) {
-      const attachments = tender.attachments as any[];
-      if (attachments?.some((a: any) => a.url === attachmentUrl)) {
-        return tender;
-      }
-    }
-    return null;
+    return allTenders.filter((tender) =>
+      (tender.attachments as any[] | null)?.some((a: any) => a.url === attachmentUrl),
+    );
   }
 
   async getTendersByCompany(companyId: string): Promise<Tender[]> {
@@ -1400,8 +1398,8 @@ export class DatabaseStorage implements IStorage {
     return offer || null;
   }
 
-  async getOfferByFileUrl(fileUrl: string): Promise<Offer | null> {
-    const [offer] = await db
+  async getOffersByFileUrl(fileUrl: string): Promise<Offer[]> {
+    return db
       .select()
       .from(offers)
       .where(
@@ -1410,21 +1408,15 @@ export class DatabaseStorage implements IStorage {
           eq(offers.financialFileUrl, fileUrl),
           eq(offers.combinedFileUrl, fileUrl)
         )
-      )
-      .limit(1);
-
-    return offer || null;
+      );
   }
 
-  async getCompanyDocumentByFileUrl(fileUrl: string): Promise<CompanyDocument | null> {
-    const [doc] = await db
-      .select()
-      .from(companyDocuments)
-      .where(eq(companyDocuments.fileUrl, fileUrl))
-      .limit(1);
-
-    return doc || null;
+  // Every verification document that names this file — not just the first — so
+  // a forged row cannot shadow the genuine one when access is decided.
+  async getCompanyDocumentsByFileUrl(fileUrl: string): Promise<CompanyDocument[]> {
+    return db.select().from(companyDocuments).where(eq(companyDocuments.fileUrl, fileUrl));
   }
+
 
   async getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: SafeCompany; profile?: CompanyProfile })[]> {
     const results = await db

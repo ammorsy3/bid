@@ -2,7 +2,8 @@
 // shared/entitlements.ts cover everything the pricing page promises. The
 // database and StreamPay are faked: these are rules, not plumbing.
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
+import { startTestServer, stopTestServer, type TestServer } from "./helpers/test-server";
 import fs from "fs";
 import path from "path";
 import express from "express";
@@ -222,6 +223,9 @@ describe("billing permission flag", () => {
 
 describe("requireFeature middleware", () => {
   const app = express();
+  let server: TestServer;
+  beforeAll(async () => { server = await startTestServer(app); });
+  afterAll(() => stopTestServer(server));
   app.use((req, _res, next) => {
     (req as any).auth = req.header("x-company") ? { activeCompanyId: req.header("x-company") } : {};
     next();
@@ -229,7 +233,7 @@ describe("requireFeature middleware", () => {
   app.get("/gated", requireFeature("marketplace"), (_req, res) => res.json({ ok: true }));
 
   it("403 PLAN_REQUIRED with the feature and plan, for a free company", async () => {
-    const res = await request(app).get("/gated").set("x-company", "c1");
+    const res = await request(server).get("/gated").set("x-company", "c1");
     expect(res.status).toBe(403);
     expect(res.body).toMatchObject({ code: "PLAN_REQUIRED", feature: "marketplace", requiredPlan: "pro" });
     expect(typeof res.body.message).toBe("string");
@@ -237,11 +241,11 @@ describe("requireFeature middleware", () => {
 
   it("passes once the plan includes it", async () => {
     state.subscription = sub("pro");
-    expect((await request(app).get("/gated").set("x-company", "c1")).status).toBe(200);
+    expect((await request(server).get("/gated").set("x-company", "c1")).status).toBe(200);
   });
 
   it("no active company → 400, never an open door", async () => {
-    expect((await request(app).get("/gated")).status).toBe(400);
+    expect((await request(server).get("/gated")).status).toBe(400);
   });
 });
 

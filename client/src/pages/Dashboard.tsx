@@ -448,7 +448,7 @@ function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, date
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/invite/${tender.id}`);
+      await navigator.clipboard.writeText(`${window.location.origin}/invite/${tender.invitationToken}`);
       toast({ title: t('dashboard.rfpLinkCopied') });
     } catch {
       toast({ title: t('dashboard.rfpCopyFailed'), variant: "destructive" });
@@ -1735,7 +1735,7 @@ function DashboardInner({ user, activeCompany }: {
 
   // Copy invitation link
   const copyInvitationLink = async (tender: TenderWithCounts) => {
-    const invitationLink = `${window.location.origin}/invite/${tender.id}`;
+    const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
     try {
       await navigator.clipboard.writeText(invitationLink);
       setCopiedLinkId(tender.id);
@@ -3457,7 +3457,7 @@ function DashboardInner({ user, activeCompany }: {
                                   {t('dashboard.view')}
                                 </Button>
                                 <AnimatedCopyButton
-                                  text={`${window.location.origin}/invite/${tender.id}`}
+                                  text={`${window.location.origin}/invite/${tender.invitationToken}`}
                                   isRtl={isRtl}
                                   data-testid={`button-copy-link-${tender.id}`}
                                 >

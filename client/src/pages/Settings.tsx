@@ -28,8 +28,7 @@ import { openUpgrade } from "@/lib/upgrade-store";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTour } from "@/lib/tour";
 import { SETTINGS_TOUR_STEPS, getSteps } from "@/lib/tour-steps";
-import { ObjectUploader } from "@/components/ObjectUploader";
-import type { UploadResult } from "@/components/ObjectUploader";
+import { CompanyVerificationFlow } from "@/components/CompanyVerificationFlow";
 import { SettingsNotifications } from "@/pages/SettingsNotifications";
 import { SettingsBilling } from "@/pages/SettingsBilling";
 import { displayRoleName } from "@/lib/roles";
@@ -54,13 +53,6 @@ const LANGUAGES = [
 type ThemeOption = "light" | "dark" | "system";
 
 type SettingsTab = "account" | "company" | "billing" | "notifications";
-
-const VERIFICATION_DOCUMENT_SLOTS = [
-  { type: 'cr_certificate', labelKey: 'docCrLabel', descriptionKey: 'docCrDesc', required: true },
-  { type: 'vat_certificate', labelKey: 'docVatLabel', descriptionKey: 'docVatDesc', required: false },
-  { type: 'gosi_certificate', labelKey: 'docGosiLabel', descriptionKey: 'docGosiDesc', required: false },
-  { type: 'national_address_certificate', labelKey: 'docNationalAddressLabel', descriptionKey: 'docNationalAddressDesc', required: false },
-];
 
 interface TeamMember {
   userId: string;
@@ -505,7 +497,6 @@ export default function Settings() {
     const params = new URLSearchParams(window.location.search);
     return params.get('highlight') === 'verification';
   });
-  const [docUploadedTypes, setDocUploadedTypes] = useState<Set<string>>(new Set());
 
   const { overlay: tourOverlay, tourDismissed, retake: retakeTour, activeStep: settingsTourStep } = usePageTour({
     tourId: 'settings',
@@ -853,107 +844,6 @@ export default function Settings() {
       });
     },
   });
-
-  const { data: companyDocuments = [] } = useQuery<{ id: string; documentType: string; fileUrl: string; originalName: string | null }[]>({
-    queryKey: ['/api/companies', activeCompany?.id, 'documents'],
-    queryFn: async () => {
-      if (!activeCompany?.id) return [];
-      const res = await apiRequest('GET', `/api/companies/${activeCompany.id}/documents`);
-      if (!res.ok) return [];
-      return res.json();
-    },
-    enabled: !!activeCompany?.id && activeTab === 'company',
-  });
-
-  // Verification info (legal name, CR, VAT, city) — populated lazily so users
-  // who signed up via the light onboarding flow can fill these in here.
-  const { data: verifyInfo } = useQuery<{ legalName: string; crNumber: string; vatNumber: string; city: string; verificationStatus: string }>({
-    queryKey: ['/api/companies', activeCompany?.id, 'verify-info'],
-    queryFn: async () => {
-      const res = await apiRequest('GET', `/api/companies/${activeCompany!.id}/verify-info`);
-      if (!res.ok) throw new Error('Failed to load verification info');
-      return res.json();
-    },
-    enabled: !!activeCompany?.id && activeTab === 'company',
-  });
-
-  const [legalName, setLegalName] = useState('');
-  const [crNumber, setCrNumber] = useState('');
-  const [vatNumberField, setVatNumberField] = useState('');
-  const [cityField, setCityField] = useState('');
-
-  useEffect(() => {
-    if (!verifyInfo) return;
-    setLegalName(verifyInfo.legalName || '');
-    setCrNumber(verifyInfo.crNumber || '');
-    setVatNumberField(verifyInfo.vatNumber || '');
-    setCityField(verifyInfo.city || '');
-  }, [verifyInfo]);
-
-  const saveVerifyInfoMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest('PATCH', `/api/companies/${activeCompany!.id}/verify-info`, {
-        legalName: legalName.trim(),
-        crNumber: crNumber.trim(),
-        vatNumber: vatNumberField.trim() || undefined,
-        city: cityField.trim(),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Failed to save verification info');
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompany?.id, 'verify-info'] });
-      toast({ title: t('settings.verifyInfoSavedTitle'), description: t('settings.verifyInfoSavedDesc') });
-    },
-    onError: (error: Error) => {
-      toast({ title: t('settings.couldNotSaveTitle'), description: error.message, variant: 'destructive' });
-    },
-  });
-
-  const verifyInfoDirty =
-    !!verifyInfo && (
-      legalName !== (verifyInfo.legalName || '') ||
-      crNumber !== (verifyInfo.crNumber || '') ||
-      vatNumberField !== (verifyInfo.vatNumber || '') ||
-      cityField !== (verifyInfo.city || '')
-    );
-
-  const verifyInfoValid = legalName.trim().length >= 2 && /^\d{10}$/.test(crNumber.trim()) && cityField.trim().length >= 1;
-
-  const saveDocumentMutation = useMutation({
-    mutationFn: async ({ documentType, fileUrl, originalName }: { documentType: string; fileUrl: string; originalName?: string }) => {
-      const res = await apiRequest('POST', `/api/companies/${activeCompany!.id}/documents`, { documentType, fileUrl, originalName });
-      if (!res.ok) throw new Error('Failed to save document');
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/companies', activeCompany?.id, 'documents'] });
-    },
-  });
-
-  const handleDocumentUploadComplete = (docType: string) => async (result: UploadResult) => {
-    if (!result.successful?.[0]) return;
-    try {
-      const uploadURL = result.successful[0].uploadURL;
-      const fileName = result.successful[0].name || docType;
-      const metaRes = await apiRequest('PUT', '/api/objects/metadata', { fileURL: uploadURL });
-      const { objectPath } = await metaRes.json();
-      await saveDocumentMutation.mutateAsync({ documentType: docType, fileUrl: objectPath, originalName: fileName });
-      setDocUploadedTypes(prev => new Set([...prev, docType]));
-      toast({ title: t('settings.documentUploadedToast'), description: t('settings.documentUploadedDesc', { name: fileName }) });
-    } catch {
-      toast({ title: t('settings.uploadFailedToast'), description: t('settings.uploadFailedDesc'), variant: "destructive" });
-    }
-  };
-
-  const handleGetUploadURL = async () => {
-    const response = await apiRequest('POST', '/api/objects/upload', {});
-    const data = await response.json();
-    return { method: 'PUT' as const, url: data.uploadURL };
-  };
 
   const handleSendInvites = () => {
     if (!planCan('seats')) { openUpgrade('seats'); return; }
@@ -1827,169 +1717,19 @@ export default function Settings() {
               </div>
               )}
 
-              {/* Legal info — required for verification */}
-              {isCompanyWorkspace && (<div id="verification-info">
-                <Card>
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
-                        <Shield className="h-4 w-4 text-amber-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{t('settings.legalInformation')}</CardTitle>
-                        <CardDescription className="text-xs">
-                          {t('settings.legalInformationDesc')}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="legalName">{t('settings.legalNameFieldLabel')}</Label>
-                      <Input
-                        id="legalName"
-                        value={legalName}
-                        onChange={(e) => setLegalName(e.target.value)}
-                        placeholder={t('settings.legalNameFieldPlaceholder')}
-                        disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
-                        data-testid="input-legal-name"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="crNumber">{t('settings.crNumberFieldLabel')}</Label>
-                        <Input
-                          id="crNumber"
-                          value={crNumber}
-                          inputMode="numeric"
-                          dir="ltr"
-                          maxLength={10}
-                          onChange={(e) => setCrNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                          placeholder={t('settings.crNumberFieldPlaceholder')}
-                          disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
-                          data-testid="input-cr"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="vatNumber">{t('settings.vatNumberFieldLabel')}</Label>
-                        <Input
-                          id="vatNumber"
-                          value={vatNumberField}
-                          onChange={(e) => setVatNumberField(e.target.value)}
-                          placeholder={t('settings.vatNumberFieldPlaceholder')}
-                          disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
-                          data-testid="input-vat"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="city">{t('settings.cityFieldLabel')}</Label>
-                      <Input
-                        id="city"
-                        value={cityField}
-                        onChange={(e) => setCityField(e.target.value)}
-                        placeholder={t('settings.cityFieldPlaceholder')}
-                        disabled={!canManageCompany || saveVerifyInfoMutation.isPending}
-                        data-testid="input-city"
-                      />
-                    </div>
-
-                    {canManageCompany && (
-                      <div className="pt-2 flex justify-end">
-                        <Button
-                          onClick={() => saveVerifyInfoMutation.mutate()}
-                          disabled={!verifyInfoDirty || !verifyInfoValid || saveVerifyInfoMutation.isPending}
-                          data-testid="button-save-verify-info"
-                        >
-                          {saveVerifyInfoMutation.isPending ? (
-                            <>
-                              <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                              {t('settings.saving')}
-                            </>
-                          ) : (
-                            t('settings.saveLegalInfo')
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>)}
-
-              {/* Verification Documents */}
-              {isCompanyWorkspace && (<div
-                id="verification"
-                className={`rounded-xl transition-all duration-700 ${
-                  highlightVerification
-                    ? 'ring-2 ring-[#FE3C01] ring-offset-4 shadow-[0_0_0_4px_rgba(254,60,1,0.12)]'
-                    : 'ring-0 ring-offset-0'
-                }`}
-              >
-                <Card>
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-[var(--bid-orange)]/5 rounded-xl flex items-center justify-center">
-                        <FileCheck2 className="h-4 w-4 text-[var(--bid-orange)]" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{t('settings.verificationDocsTitle')}</CardTitle>
-                        <CardDescription className="text-xs">{t('settings.verificationDocsDesc')}</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {VERIFICATION_DOCUMENT_SLOTS.map((slot) => {
-                      const existingDoc = companyDocuments.find(d => d.documentType === slot.type);
-                      const justUploaded = docUploadedTypes.has(slot.type);
-                      const isUploaded = !!existingDoc || justUploaded;
-                      return (
-                        <div
-                          key={slot.type}
-                          className={`border rounded-xl p-4 transition-colors ${isUploaded ? 'border-green-200 bg-green-50/40' : 'border-border bg-card'}`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-sm font-medium text-foreground">{t(`onboardingPanel.${slot.labelKey}`)}</span>
-                                {slot.required && !isUploaded && (
-                                  <span className="text-xs font-medium text-[#FE3C01] bg-[#FE3C01]/10 px-1.5 py-0.5 rounded">
-                                    {t('settings.requiredForTenders')}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-neutral-400">{t(`onboardingPanel.${slot.descriptionKey}`)}</p>
-                              {isUploaded && (
-                                <p className="text-xs text-green-600 flex items-center gap-1 mt-1.5">
-                                  <CheckCircle2 className="h-3.5 w-3.5" />
-                                  {existingDoc?.originalName || t('settings.uploaded')}
-                                </p>
-                              )}
-                            </div>
-                            {canManageCompany && (
-                              <ObjectUploader
-                                maxNumberOfFiles={1}
-                                maxFileSize={52428800}
-                                allowedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
-                                onGetUploadParameters={handleGetUploadURL}
-                                onComplete={handleDocumentUploadComplete(slot.type)}
-                                buttonVariant="outline"
-                                buttonClassName="shrink-0"
-                              >
-                                <div className="flex items-center gap-1.5 text-sm">
-                                  <Upload className="h-3.5 w-3.5" />
-                                  {isUploaded ? t('settings.replace') : t('settings.upload')}
-                                </div>
-                              </ObjectUploader>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </CardContent>
-                </Card>
-              </div>)}
+              {/* Company verification — details, documents and the explicit submit, in one flow */}
+              {isCompanyWorkspace && (
+                <div
+                  id="verification"
+                  className={`rounded-2xl transition-all duration-700 ${
+                    highlightVerification
+                      ? 'ring-2 ring-[#FE3C01] ring-offset-4 shadow-[0_0_0_4px_rgba(254,60,1,0.12)]'
+                      : 'ring-0 ring-offset-0'
+                  }`}
+                >
+                  <CompanyVerificationFlow companyId={activeCompany.id} canManage={!!canManageCompany} />
+                </div>
+              )}
             </div>
           )}
 

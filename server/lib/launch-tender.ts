@@ -11,6 +11,8 @@
 
 import { storage } from "../storage";
 import { createTenderSchema, type CreateTender } from "@shared/schema";
+import { getObjectProvenance } from "../objectAcl";
+import { assertTenderFilesAllowed } from "./tender-files";
 import { draftToTenderPayload, type DraftToTenderPayloadExtras } from "@shared/tender-mapping";
 import { suggestTenderCategory, buildTenderTranslation } from "./tender-ai";
 import { sendTenderCreatedNotification, getBaseUrl } from "../email";
@@ -87,6 +89,9 @@ export async function launchTenderFromPayload(
   }
 
   const tenderData = createTenderSchema.parse(payload);
+
+  // Request files must be issued for this company (company provenance, r8).
+  await assertTenderFilesAllowed(tenderData, null, ctx.company.id, getObjectProvenance);
 
   // Plan limits (free-tender count, marketplace, in-app Q&A). Here, not in each
   // route, so the web wizard, API keys, webhooks and MCP can't differ. Throws

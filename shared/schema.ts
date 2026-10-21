@@ -1542,12 +1542,51 @@ export const insertTenderSchema = createInsertSchema(tenders).omit({
   updatedAt: true,
 });
 
-export const createTenderSchema = insertTenderSchema.omit({
-  companyId: true,
-  createdBy: true,
-  status: true,
-  invitationToken: true,
-  allowConditionalSubmission: true,
+// What a requester may write when creating (launchTenderFromPayload) or editing
+// (PATCH /api/tenders/:id) a request — an explicit allowlist (S8). Everything
+// else is set by the server only: ownership (companyId, createdBy, requesterId),
+// lifecycle (status), the invitation token, policy gates, marketplace moderation
+// and listing (isMarketplace, marketplaceStatus, marketplaceApprovedBy/At,
+// marketplaceRejectionReason, referenceNumber, tenderType, documentFee,
+// inquiryDeadline — through the marketplace submission and admin review paths),
+// and server-generated caches (translatedContent, rfpRequirements,
+// rfpRequirementsAr). Unknown keys are stripped.
+export const createTenderSchema = insertTenderSchema.pick({
+  title: true,
+  description: true,
+  category: true,
+  deadline: true,
+  skills: true,
+  scope: true,
+  budget: true,
+  budgetRange: true,
+  budgetMin: true,
+  budgetMax: true,
+  currency: true,
+  projectSize: true,
+  showPriceToVendors: true,
+  pricingModel: true,
+  milestones: true,
+  duration: true,
+  projectTimeline: true,
+  startDate: true,
+  endDate: true,
+  submissionType: true,
+  videoRequired: true,
+  inquiryType: true,
+  whatsappContact: true,
+  emailContact: true,
+  evaluationCriteria: true,
+  objective: true,
+  deliverables: true,
+  vendorRequirements: true,
+  voiceNoteUrl: true,
+  videoUrl: true,
+  attachments: true,
+  formCards: true,
+  language: true,
+  allowTranslation: true,
+  targetAudienceTypes: true,
 });
 
 // Offer schemas
@@ -1556,11 +1595,17 @@ export const insertOfferSchema = createInsertSchema(offers).omit({
   submittedAt: true,
 });
 
-export const createOfferSchema = insertOfferSchema.omit({
-  tenderId: true,
-  companyId: true,
-  createdBy: true,
-  conditionalSubmission: true,
+// What a vendor may send when submitting an offer — an explicit allowlist.
+// Ownership, workflow and decision fields (tenderId, companyId, createdBy,
+// conditionalSubmission, status, resubmissionAllowed, decidedBy, decidedAt)
+// are set by the server; unknown keys are stripped.
+export const createOfferSchema = insertOfferSchema.pick({
+  technicalFileUrl: true,
+  financialFileUrl: true,
+  combinedFileUrl: true,
+  notes: true,
+  quotePrice: true,
+  videoUrl: true,
 });
 
 // Offer View schemas

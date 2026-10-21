@@ -10,6 +10,7 @@
 import express, { type Express } from "express";
 import request from "supertest";
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
+import { startTestServer, stopTestServer, type TestServer } from "./helpers/test-server";
 import { sql } from "drizzle-orm";
 
 import { registerRoutes } from "../server/routes";
@@ -20,6 +21,10 @@ import {
 
 let app: Express;
 
+
+let server: TestServer;
+
+afterAll(() => stopTestServer(server));
 // Two unrelated buyers, each with their own closed tender and a bid on it.
 let attacker: { id: string }, attackerCo: { id: string }, attackerTender: { id: string };
 let victim: { id: string }, victimCo: { id: string }, victimTender: { id: string };
@@ -30,6 +35,7 @@ beforeAll(async () => {
   app = express();
   app.use(express.json());
   await registerRoutes(app);
+  server = await startTestServer(app);
 
   attacker = await makeUser();
   attackerCo = await makeCompany(attacker.id);
@@ -59,7 +65,7 @@ const asAttacker = () => tokenFor({ id: attacker.id, activeCompanyId: attackerCo
 
 describe("V2 — negotiation actions are bound to the tender in the URL", () => {
   it("refuses an offer that belongs to another company's tender", async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post(`/api/tenders/${attackerTender.id}/negotiation-actions`)
       .set("Authorization", `Bearer ${asAttacker()}`)
       .send({ actions: [{
@@ -83,7 +89,7 @@ describe("V2 — negotiation actions are bound to the tender in the URL", () => 
   });
 
   it("refuses an offer on this tender if the company id does not match it", async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post(`/api/tenders/${attackerTender.id}/negotiation-actions`)
       .set("Authorization", `Bearer ${asAttacker()}`)
       .send({ actions: [{
@@ -98,7 +104,7 @@ describe("V2 — negotiation actions are bound to the tender in the URL", () => 
   });
 
   it("still allows the genuine case — own tender, own offer", async () => {
-    const res = await request(app)
+    const res = await request(server)
       .post(`/api/tenders/${attackerTender.id}/negotiation-actions`)
       .set("Authorization", `Bearer ${asAttacker()}`)
       .send({ actions: [{
@@ -114,7 +120,7 @@ describe("V2 — negotiation actions are bound to the tender in the URL", () => 
   it("is closed to viewers — awarding is not a viewer's job", async () => {
     const viewer = await makeUser();
     await addMember(attackerCo.id, viewer.id, "viewer");
-    const res = await request(app)
+    const res = await request(server)
       .post(`/api/tenders/${attackerTender.id}/negotiation-actions`)
       .set("Authorization", `Bearer ${tokenFor({ id: viewer.id, activeCompanyId: attackerCo.id })}`)
       .send({ actions: [{
@@ -132,7 +138,7 @@ describe("V3 — access follows the membership, not the week-old token", () => {
     await addMember(victimCo.id, employee.id, "member");
     const token = tokenFor({ id: employee.id, activeCompanyId: victimCo.id });
 
-    const before = await request(app).get("/api/tenders").set("Authorization", `Bearer ${token}`);
+    const before = await request(server).get("/api/tenders").set("Authorization", `Bearer ${token}`);
     expect(before.status).toBe(200);
 
     // Exactly what DELETE /api/companies/:id/members/:userId does.
@@ -141,7 +147,7 @@ describe("V3 — access follows the membership, not the week-old token", () => {
            where user_id = ${employee.id} and company_id = ${victimCo.id}`,
     );
 
-    const after = await request(app).get("/api/tenders").set("Authorization", `Bearer ${token}`);
+    const after = await request(server).get("/api/tenders").set("Authorization", `Bearer ${token}`);
     expect(after.status).toBe(403);
     expect(after.body.requiresCompany).toBe(true);
   });
@@ -157,7 +163,7 @@ describe("V3 — access follows the membership, not the week-old token", () => {
            where user_id = ${wasAdmin.id} and company_id = ${victimCo.id}`,
     );
 
-    const res = await request(app)
+    const res = await request(server)
       .post(`/api/tenders/${victimTender.id}/negotiation-actions`)
       .set("Authorization", `Bearer ${token}`)
       .send({ actions: [{ offerId: victimOffer.id, companyId: vendorCo.id, actionType: "free_message", message: "hi" }] });

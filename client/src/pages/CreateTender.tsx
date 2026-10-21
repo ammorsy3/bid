@@ -240,7 +240,7 @@ export default function CreateTender() {
 
   const copyInvitationLink = async () => {
     if (!createdTender) return;
-    const invitationLink = `${window.location.origin}/invite/${createdTender.id}`;
+    const invitationLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
     try {
       await navigator.clipboard.writeText(invitationLink);
       setInvitationCopied(true);
@@ -260,7 +260,7 @@ export default function CreateTender() {
 
   // Success State
   if (createdTender) {
-    const invitationLink = `${window.location.origin}/invite/${createdTender.id}`;
+    const invitationLink = `${window.location.origin}/invite/${createdTender.invitationToken}`;
     
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4">

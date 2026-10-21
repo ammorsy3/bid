@@ -114,7 +114,9 @@ const ORANGE_INK = 'text-[#FE3C01]';
 // True when the text holds Arabic letters (so it gets Arabic-friendly line height).
 const hasArabic = (s?: string | null) => !!s && /[؀-ۿ]/.test(s);
 
-function AudioPlayer({ src }: { src: string }) {
+// `invitationToken`: the link's token, sent so the server can open this one
+// request's files to a signed-in visitor who holds the link (server/lib/tender-access.ts).
+function AudioPlayer({ src, invitationToken }: { src: string; invitationToken?: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -132,7 +134,10 @@ function AudioPlayer({ src }: { src: string }) {
         const token = localStorage.getItem("token");
         const headers: HeadersInit = {};
         if (token) headers.Authorization = `Bearer ${token}`;
+        if (invitationToken) headers["X-Invitation-Token"] = invitationToken;
         const response = await fetch(src, { headers });
+        // 403: this visitor may not open the request's files — say so, rather than "failed".
+        if (response.status === 403) { setError(t('tenderFlow.voiceAccessDenied')); return; }
         if (!response.ok) throw new Error("Failed to load audio");
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
@@ -145,7 +150,7 @@ function AudioPlayer({ src }: { src: string }) {
     };
     loadAudio();
     return () => { if (audioUrl) URL.revokeObjectURL(audioUrl); };
-  }, [src]);
+  }, [src, invitationToken]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -1283,7 +1288,13 @@ export default function TenderInviteLink() {
                                     const token = localStorage.getItem("token");
                                     const headers: HeadersInit = {};
                                     if (token) headers.Authorization = `Bearer ${token}`;
+                                    if (tenderId) headers["X-Invitation-Token"] = tenderId;
                                     const response = await fetch(file.url, { headers });
+                                    if (response.status === 403) {
+                                      // Not a transient failure: retrying will not help, so explain the access state.
+                                      toast({ title: t('tenderFlow.fileAccessDenied'), description: t('tenderFlow.fileAccessDeniedDesc'), variant: "destructive" });
+                                      return;
+                                    }
                                     if (!response.ok) throw new Error("Download failed");
                                     const blob = await response.blob();
                                     const blobUrl = URL.createObjectURL(blob);
@@ -1743,7 +1754,7 @@ export default function TenderInviteLink() {
                                 <Mic className="h-4 w-4 text-pink-500" /> {t('tenderFlow.voiceNoteLabel')}
                               </h3>
                               {user ? (
-                                <AudioPlayer src={tender.voiceNoteUrl} />
+                                <AudioPlayer src={tender.voiceNoteUrl} invitationToken={tenderId} />
                               ) : (
                                 <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-3 p-4 bg-muted rounded-xl border border-border">
                                   <div className="flex items-center gap-3 min-w-0">
@@ -2075,6 +2086,7 @@ export default function TenderInviteLink() {
 
       {showOfferModal && (
         <SubmitOfferModal
+          invitationToken={tenderId}
           tender={{
             id: tender.id,
             title: tender.title,

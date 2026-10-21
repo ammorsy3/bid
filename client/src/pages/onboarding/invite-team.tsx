@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, ApiError } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
 import { useDebouncedSave } from "@/lib/autosave";
 import { emailInputProps } from "@/lib/form-validation";
@@ -197,6 +197,30 @@ export default function InviteTeam() {
 
       setLocation(getPostOnboardingRedirect());
     } catch (error: any) {
+      // Files that could not be bound to the new company (expired, already used, or
+      // uploaded before provenance): nothing was created. Remove only those files
+      // from the draft — valid uploads are kept — and take the user to the step
+      // where they upload them again: documents first, otherwise the logo step.
+      if (error instanceof ApiError && error.code === 'ONBOARDING_FILE_NOT_BINDABLE') {
+        const fields = (error.details?.fields as string[] | undefined) ?? [];
+        const current = getDraft();
+        const documents = { ...(current.documents || {}) };
+        const documentNames = { ...(current.documentNames || {}) };
+        for (const f of fields) {
+          if (!f.startsWith('documents.')) continue;
+          const docType = f.slice('documents.'.length);
+          delete documents[docType];
+          delete documentNames[docType];
+        }
+        saveDraft({ documents, documentNames, ...(fields.includes('logoUrl') ? { logoUrl: '' } : {}) });
+        toast({
+          title: t('onboardingSetup.filesNeedReupload'),
+          description: t('onboardingSetup.filesNeedReuploadDesc'),
+          variant: "destructive",
+        });
+        setLocation(fields.some((f) => f.startsWith('documents.')) ? '/onboarding/company-documents' : '/onboarding/company-profile');
+        return;
+      }
       toast({
         title: t('onboardingSetup.somethingWentWrong'),
         description: error.message || t('onboardingSetup.failedToComplete'),

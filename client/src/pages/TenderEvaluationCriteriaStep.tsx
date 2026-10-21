@@ -366,7 +366,7 @@ export default function TenderEvaluationCriteriaStep() {
               <div className="p-6 space-y-6">
 
                 {/* Weight ring */}
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border border-border">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-3 p-4 rounded-xl bg-gradient-to-r from-gray-50 to-gray-100 border border-border">
                   <div className="relative w-16 h-16 flex-shrink-0">
                     <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
                       <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="none" className="text-gray-200" />
@@ -384,7 +384,7 @@ export default function TenderEvaluationCriteriaStep() {
                     </div>
                     {totalWeight === 100 && <div className="absolute inset-0 rounded-full animate-ping bg-green-400/20" />}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-[9rem]">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-foreground">{totalWeight === 100 ? t('tenderFlow.perfectBalance') : t('tenderFlow.weightDistribution')}</span>
                       {totalWeight === 100 && <Check className="h-4 w-4 text-green-500" />}
@@ -400,7 +400,7 @@ export default function TenderEvaluationCriteriaStep() {
                       variant="outline"
                       onClick={balanceWeights}
                       data-testid="button-balance-weights"
-                      className="flex-shrink-0 max-sm:h-11 rounded-full border-[#FE3C01]/40 text-[#FE3C01] hover:bg-[#FE3C01] hover:text-white transition-colors"
+                      className="flex-shrink-0 max-sm:h-11 max-sm:w-full rounded-full border-[#FE3C01]/40 text-[#FE3C01] hover:bg-[#FE3C01] hover:text-white transition-colors"
                     >
                       {t('tenderFlow.balanceTo100')}
                     </Button>

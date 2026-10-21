@@ -317,13 +317,13 @@ export default function TenderSubmissionProcessStep() {
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-start font-normal h-12 border-2",
+                          "w-full justify-start text-start font-normal h-12 border-2 overflow-hidden",
                           !submissionDeadline && "text-muted-foreground"
                         )}
                         data-testid="input-submission-deadline"
                       >
-                        <CalendarIcon className="me-2 h-4 w-4" />
-                        {submissionDeadline ? format(submissionDeadline, "PPP", { locale: dateLocale }) : t('tenderFlow.selectSubmissionDeadline')}
+                        <CalendarIcon className="me-2 h-4 w-4 shrink-0" />
+                        <span className="truncate">{submissionDeadline ? format(submissionDeadline, "PPP", { locale: dateLocale }) : t('tenderFlow.selectSubmissionDeadline')}</span>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">

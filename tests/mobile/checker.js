@@ -11,6 +11,7 @@
 //   overflow            something sticks out past the screen edge
 //   text-clipped        text cut off inside its box
 //   text-spills         text runs outside its box
+//   text-overlap        text or a button sits on top of other text or a button
 //   covered             a control is covered by something else (e.g. an icon)
 //   icon-over-text      an icon inside a field sits on top of the typing area
 //   small-form-text     field text under 16px (iPhone zooms in and stays zoomed)
@@ -252,6 +253,67 @@
       else if (tall && ["hidden", "clip"].includes(s.overflowY) && !lineClamp && s.textOverflow !== "ellipsis") add("fail", "text-clipped", el, "text is cut off at the bottom");
       else if (wide && s.overflowX === "visible" && s.display !== "inline" && s.whiteSpace !== "normal") add("fail", "text-spills", el, `text runs ${el.scrollWidth - el.clientWidth}px outside its box`);
     });
+
+    // --- text or controls sitting on top of each other ------------------------
+    // (e.g. a button squeezed beside a wrapping title that ends up over it)
+    {
+      const fixedish = (el) => {
+        for (let n = el; n && n !== document.body; n = n.parentElement) {
+          const pos = getComputedStyle(n).position;
+          if (pos === "fixed" || pos === "sticky") return true;
+        }
+        return false;
+      };
+      // Text inside a box with overflow hidden only counts where the box actually shows it
+      // (collapsed boxes show nothing; truncated text shows only its visible part).
+      const clipTo = (el, r) => {
+        let L = r.left, T = r.top, R = r.right, B = r.bottom;
+        for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+          const st = getComputedStyle(n);
+          if (st.overflowX === "visible" && st.overflowY === "visible") continue;
+          const c = n.getBoundingClientRect();
+          if (st.overflowX !== "visible") { L = Math.max(L, c.left); R = Math.min(R, c.right); }
+          if (st.overflowY !== "visible") { T = Math.max(T, c.top); B = Math.min(B, c.bottom); }
+          if (R - L < 2 || B - T < 2) return null;
+        }
+        return { left: L, top: T, right: R, bottom: B, width: R - L, height: B - T };
+      };
+      const items = [];
+      visibleEls.forEach((el) => {
+        if (["svg", "IMG", "CANVAS", "VIDEO", "IFRAME", "INPUT", "TEXTAREA", "SELECT", "OPTION"].includes(el.tagName)) return;
+        const isCtl = el.matches('button, a[href], [role="button"]') && !el.disabled;
+        const text = ownText(el);
+        if (!isCtl && text.length < 2) return;
+        if (fixedish(el)) return;
+        let rects;
+        if (isCtl) rects = [el.getBoundingClientRect()];
+        else {
+          const range = document.createRange();
+          rects = [];
+          Array.from(el.childNodes).filter((n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim()).forEach((n) => {
+            range.selectNodeContents(n);
+            rects.push(...Array.from(range.getClientRects()));
+          });
+        }
+        rects = rects.map((r) => clipTo(el, r)).filter((r) => r && r.width > 2 && r.height > 2);
+        if (rects.length) items.push({ el, rects, ctl: isCtl, text });
+      });
+      const hit = (a, b) => {
+        const w = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        return w > 3 && h > 3 && w * h > 24;
+      };
+      let found = 0;
+      for (let i = 0; i < items.length && found < 8; i++) {
+        for (let j = i + 1; j < items.length && found < 8; j++) {
+          const a = items[i], b = items[j];
+          if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+          if (!a.rects.some((ra) => b.rects.some((rb) => hit(ra, rb)))) continue;
+          add("fail", "text-overlap", a.el, `sits on top of ${selectorOf(b.el)} "${(b.text || shortText(b.el)).slice(0, 30)}" (page y=${round(a.rects[0].top + window.scrollY)})`);
+          found++;
+        }
+      }
+    }
 
     // --- controls ------------------------------------------------------------
     const controls = visibleEls.filter((el) => el.matches(INTERACTIVE) && !el.disabled);

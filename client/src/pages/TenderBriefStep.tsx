@@ -545,7 +545,7 @@ export default function TenderBriefStep() {
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--state-won)]/10 text-[var(--state-won)] flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                              <p className="font-medium text-foreground">{deliverable.name}</p>
+                              <p className="min-w-0 break-words font-medium text-foreground">{deliverable.name}</p>
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
                               {deliverable.quantity && deliverable.unit && (
@@ -579,17 +579,17 @@ export default function TenderBriefStep() {
               <BriefSectionHeader index={sectionNumber('milestones')} title={t('tenderFlow.milestonesTitle')} />
                                     <div className="space-y-3" data-testid="brief-milestones">
                     {draft.milestones.map((milestone: any, index: number) => (
-                      <div key={milestone.id || index} className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                      <div key={milestone.id || index} className="flex items-center gap-4 max-sm:flex-wrap max-sm:gap-y-2 p-4 bg-muted rounded-lg">
                         <div className="flex-shrink-0 h-8 w-8 rounded-full bg-violet-100 text-violet-700 dark:text-violet-300 flex items-center justify-center text-sm font-bold">
                           {index + 1}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground">{milestone.name}</p>
+                          <p className="break-words font-medium text-foreground">{milestone.name}</p>
                           {milestone.description && (
                             <p className="text-sm text-muted-foreground mt-0.5">{milestone.description}</p>
                           )}
                         </div>
-                        <div className="flex-shrink-0 text-right space-y-0.5">
+                        <div className="flex-shrink-0 text-right space-y-0.5 max-sm:basis-full max-sm:ps-12 max-sm:text-start">
                           {milestone.dueDate && (
                             <p className="text-sm font-medium text-muted-foreground">{formatDate(milestone.dueDate)}</p>
                           )}

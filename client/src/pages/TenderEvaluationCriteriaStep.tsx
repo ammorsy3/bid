@@ -503,9 +503,9 @@ export default function TenderEvaluationCriteriaStep() {
                       {customCriteria.map((criterion) => (
                         <div key={criterion.id} className="px-3 py-2 bg-[#FE3C01]/5 border border-[#FE3C01]/20 rounded-lg space-y-2">
                           <div className="flex items-center gap-2">
-                            <span className="flex-1 text-sm text-foreground">{criterion.text}</span>
-                            <span className="text-xs font-medium text-[#FE3C01]">{criterion.weight}%</span>
-                            <button type="button" onClick={() => removeCustomCriterion(criterion.id)} className="active:opacity-70 text-gray-400 hover:text-red-500 transition-colors max-sm:p-3 max-sm:-m-3">
+                            <span className="flex-1 min-w-0 break-words text-sm text-foreground">{criterion.text}</span>
+                            <span className="text-xs font-medium text-[#FE3C01] whitespace-nowrap">{criterion.weight}%</span>
+                            <button type="button" onClick={() => removeCustomCriterion(criterion.id)} className="active:opacity-70 text-gray-400 hover:text-red-500 transition-colors shrink-0 max-sm:inline-flex max-sm:h-11 max-sm:w-11 max-sm:items-center max-sm:justify-center max-sm:-my-2">
                               <X className="h-4 w-4" />
                             </button>
                           </div>

@@ -217,14 +217,14 @@ export function MarketplacePublishOption({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full h-9 justify-start text-start font-normal",
+                    "w-full h-9 justify-start text-start font-normal overflow-hidden",
                     !value.inquiryDeadline && "text-muted-foreground"
                   )}
                 >
-                  <Calendar className={`h-4 w-4 me-2`} />
-                  {value.inquiryDeadline
+                  <Calendar className={`h-4 w-4 me-2 shrink-0`} />
+                  <span className="truncate">{value.inquiryDeadline
                     ? format(new Date(value.inquiryDeadline), "PPP", { locale: language === 'ar' ? arLocale : undefined })
-                    : t('marketplace.selectInquiryDeadline') || 'Select a date'}
+                    : t('marketplace.selectInquiryDeadline') || 'Select a date'}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -278,7 +278,7 @@ export function MarketplacePublishOption({
               type="button"
               variant="outline"
               size="sm"
-              className="h-9 w-full"
+              className="h-auto min-h-9 w-full whitespace-normal py-1.5"
               disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
             >

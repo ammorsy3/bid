@@ -181,7 +181,7 @@ export default function TenderCreateChoice() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-0.5">
                             <span className="text-sm font-medium text-foreground">{slot.label}</span>
                             {slot.required && !isUploaded && (
                               <span className="text-xs font-medium text-[#FE3C01] bg-[#FE3C01]/10 px-1.5 py-0.5 rounded">

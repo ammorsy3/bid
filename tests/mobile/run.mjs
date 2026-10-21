@@ -22,6 +22,8 @@ env.AUDIT_BATCH = opt("batch") ?? env.AUDIT_BATCH ?? "batch-1";
 if (opt("states")) env.AUDIT_STATES = opt("states");
 if (opt("langs")) env.AUDIT_LANGS = opt("langs");
 if (opt("port")) env.AUDIT_PORT = opt("port");
+if (opt("text-scale")) env.AUDIT_TEXT_SCALE = opt("text-scale");
+if (opt("out-phase")) env.AUDIT_OUT_PHASE = opt("out-phase");
 // Session mode: --workspace seet uses tests/e2e/.auth/seet.json (make it with use-workspace.mjs).
 if (opt("workspace")) env.AUDIT_SIGNIN = opt("workspace");
 
@@ -33,7 +35,7 @@ const run = spawnSync("npx", ["playwright", "test", "-c", "playwright.mobile.con
 });
 
 if (args.includes("--summary")) {
-  const summaryArgs = ["tests/mobile/summary.mjs", "--batch", env.AUDIT_BATCH, "--phase", env.AUDIT_PHASE === "assert" ? "after" : env.AUDIT_PHASE];
+  const summaryArgs = ["tests/mobile/summary.mjs", "--batch", env.AUDIT_BATCH, "--phase", env.AUDIT_OUT_PHASE ?? (env.AUDIT_PHASE === "assert" ? "after" : env.AUDIT_PHASE)];
   if (env.AUDIT_STATES) summaryArgs.push("--states", env.AUDIT_STATES);
   spawnSync("node", summaryArgs, { cwd: ROOT, stdio: "inherit" });
 }

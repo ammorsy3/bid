@@ -89,10 +89,10 @@ export function registerCompanyVerificationRoutes(app: Express, mw: Middleware) 
 
       const parsed = verifyCompanySchema.safeParse(req.body);
       if (!parsed.success) {
-        const first = parsed.error.errors[0];
+        const first = parsed.error.issues[0];
         return res.status(400).json({
           message: first ? `${first.path.join(".")}: ${first.message}` : "Invalid verification data",
-          errors: parsed.error.errors,
+          errors: parsed.error.issues,
         });
       }
       const data = parsed.data;

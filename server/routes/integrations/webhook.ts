@@ -410,7 +410,7 @@ export function registerWebhookAdapter(app: Express): void {
           if (launchErr && typeof launchErr === "object" && (launchErr as any).name === "ZodError") {
             return res.status(409).json({
               message: "Tender draft is not ready to launch",
-              validationErrors: (launchErr as any).errors ?? [],
+              validationErrors: (launchErr as any).issues ?? [],
             });
           }
           throw launchErr;

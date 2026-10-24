@@ -1501,7 +1501,7 @@ export const createCompanySchema = insertCompanySchema.omit({
   vatNumber: z.string().optional(),
   city: z.string().optional(),
   category: z.enum(VENDOR_CATEGORIES, {
-    errorMap: () => ({ message: "Please select a valid category" })
+    error: "Please select a valid category"
   }).optional(),
 });
 
@@ -1665,7 +1665,7 @@ export const createMembershipRequestSchema = z.object({
 
 export const decideMembershipRequestSchema = z.object({
   decision: z.enum(["approved", "rejected"], {
-    errorMap: () => ({ message: "Decision must be 'approved' or 'rejected'" }),
+    error: "Decision must be 'approved' or 'rejected'",
   }),
   reason: z.string().max(500).optional(),
   role: z.enum(["admin", "member", "viewer"]).optional(), // role to assign on approval

@@ -64,4 +64,3 @@ export type SubmitOfferForm = {
   videoUrl?: string;
   notes?: string;
 };
-

@@ -41,6 +41,14 @@ jobs:
         run: npm run check
 
       - name: Unit tests
+        # Placeholders: the server modules refuse to load without these, but the
+        # tests that import them replace every network call. Nothing here is a
+        # real credential and nothing reaches Supabase.
+        env:
+          JWT_SECRET: ci-placeholder-jwt-secret-not-real
+          SUPABASE_URL: https://ci-placeholder.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role-key
+          OPENAI_API_KEY: ci-placeholder-openai-key
         run: npm run test:unit
 
       - name: Known vulnerabilities in shipped dependencies

@@ -10,6 +10,7 @@ import { Building2, Calendar, Clock, CheckCircle, XCircle, Loader2, FileText, Ta
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 import { StatusBadge } from "@/components/brand/StatusDot";
@@ -158,7 +159,7 @@ export default function AdminMarketplace() {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
+    return d.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', {
       year: 'numeric', month: 'short', day: 'numeric',
     });
   };
@@ -170,7 +171,7 @@ export default function AdminMarketplace() {
 
     return (
       <Card key={tender.id} className="hover:shadow-md transition-shadow">
-        <CardContent className="p-6">
+        <CardContent className="p-4 md:p-6">
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -194,15 +195,15 @@ export default function AdminMarketplace() {
                 )}
               </div>
 
-              <h3 className="text-lg font-semibold text-foreground mb-1">
+              <h3 className="text-lg font-semibold text-foreground mb-1 break-words">
                 {tender.title}
               </h3>
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                <Building2 className="h-4 w-4" />
-                <span>{tender.profile?.displayName || tender.company.name}</span>
+              <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
+                <Building2 className="h-4 w-4 mt-0.5 shrink-0" />
+                <span className="break-words min-w-0">{tender.profile?.displayName || tender.company.name}</span>
                 {tender.company.city && (
-                  <span className="text-gray-400">· {tender.company.city}</span>
+                  <span className="text-gray-400 whitespace-nowrap">· {tender.company.city}</span>
                 )}
               </div>
 
@@ -222,7 +223,7 @@ export default function AdminMarketplace() {
                   <span>{t('marketplace.submitted')} {formatDate(tender.createdAt)}</span>
                 </div>
                 {tender.budget && (
-                  <span>{t('marketplace.budget')} {tender.budget} {t('marketplace.sar')}</span>
+                  <span>{t('marketplace.budget')} {Number.isFinite(Number(tender.budget)) ? Number(tender.budget).toLocaleString('en-US') : tender.budget} {t('marketplace.sar')}</span>
                 )}
                 <span>
                   {t('marketplace.docFee')} {tender.documentFee ? `${tender.documentFee} ${t('marketplace.sar')}` : t('marketplace.free')}
@@ -248,21 +249,21 @@ export default function AdminMarketplace() {
                 ) : (
                   <div className="space-y-1.5">
                     {pos.map(po => (
-                      <div key={po.id} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-muted border border-border">
-                        <div className="flex items-center gap-2 min-w-0">
+                      <div key={po.id} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-muted border border-border">
+                        <div className="flex flex-wrap items-center gap-2 min-w-0">
                           <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
                           <span className="text-xs font-medium text-muted-foreground truncate">{po.originalName || 'PO Document'}</span>
                           <StatusBadge
                             state={po.status === 'verified' ? 'won' : po.status === 'rejected' ? 'lost' : 'pending'}
-                            label={po.status}
+                            label={po.status === 'verified' ? t('marketplace.poVerified') : po.status === 'rejected' ? t('marketplace.poRejected') : po.status === 'pending' ? t('marketplace.poPending') : po.status}
                           />
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1">
                           {po.fileUrl && (
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 px-2 text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50"
+                              className="h-7 px-2 max-md:h-11 text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50"
                               onClick={() => {
                                 // Open window immediately so browser doesn't block popup
                                 const win = window.open('', '_blank');
@@ -291,7 +292,7 @@ export default function AdminMarketplace() {
                                   });
                               }}
                             >
-                              <ExternalLink className="h-3.5 w-3.5 mr-0.5" />
+                              <ExternalLink className="h-3.5 w-3.5 me-0.5" />
                               <span className="text-xs">{t('admin.viewBtn')}</span>
                             </Button>
                           )}
@@ -300,21 +301,21 @@ export default function AdminMarketplace() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 px-2 text-green-600 hover:text-green-700 dark:text-green-300 hover:bg-green-50"
+                                className="h-7 px-2 max-md:h-11 text-green-600 hover:text-green-700 dark:text-green-300 hover:bg-green-50"
                                 onClick={() => verifyPOMutation.mutate({ poId: po.id, status: 'verified' })}
                                 disabled={verifyPOMutation.isPending}
                               >
-                                <CheckCircle className="h-3.5 w-3.5 mr-0.5" />
+                                <CheckCircle className="h-3.5 w-3.5 me-0.5" />
                                 <span className="text-xs">{t('marketplace.verifyPo') || 'Verify'}</span>
                               </Button>
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 px-2 text-red-600 hover:text-red-700 dark:text-red-300 hover:bg-red-50"
+                                className="h-7 px-2 max-md:h-11 text-red-600 hover:text-red-700 dark:text-red-300 hover:bg-red-50"
                                 onClick={() => verifyPOMutation.mutate({ poId: po.id, status: 'rejected' })}
                                 disabled={verifyPOMutation.isPending}
                               >
-                                <XCircle className="h-3.5 w-3.5 mr-0.5" />
+                                <XCircle className="h-3.5 w-3.5 me-0.5" />
                                 <span className="text-xs">{t('marketplace.rejectPo') || 'Reject'}</span>
                               </Button>
                             </>
@@ -327,10 +328,10 @@ export default function AdminMarketplace() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 lg:flex-col lg:items-end shrink-0">
+            <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-end shrink-0">
               <Link href={`/invite/${tender.invitationToken}`}>
                 <Button variant="outline" size="sm">
-                  <ExternalLink className="h-4 w-4 mr-1" />
+                  <ExternalLink className="h-4 w-4 me-1" />
                   {t('marketplace.viewRfp')}
                 </Button>
               </Link>
@@ -343,9 +344,9 @@ export default function AdminMarketplace() {
                     disabled={approveMutation.isPending}
                   >
                     {approveMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      <Loader2 className="h-4 w-4 animate-spin me-1" />
                     ) : (
-                      <CheckCircle className="h-4 w-4 mr-1" />
+                      <CheckCircle className="h-4 w-4 me-1" />
                     )}
                     {t('marketplace.approve')}
                   </Button>
@@ -354,7 +355,7 @@ export default function AdminMarketplace() {
                     variant="destructive"
                     onClick={() => setRejectDialog(tender.id)}
                   >
-                    <XCircle className="h-4 w-4 mr-1" />
+                    <XCircle className="h-4 w-4 me-1" />
                     {t('marketplace.reject')}
                   </Button>
                 </>
@@ -365,7 +366,7 @@ export default function AdminMarketplace() {
                   variant="destructive"
                   onClick={() => setRejectDialog(tender.id)}
                 >
-                  <XCircle className="h-4 w-4 mr-1" />
+                  <XCircle className="h-4 w-4 me-1" />
                   {t('marketplace.removeFromMarketplace') || 'Remove'}
                 </Button>
               )}
@@ -387,27 +388,27 @@ export default function AdminMarketplace() {
           subtitle={t('marketplace.requestsSubtitle')}
         />
 
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-col sm:flex-row gap-2 mb-6">
           <Button
             variant={activeTab === 'pending' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('pending')}
-            className={activeTab === 'pending' ? 'bg-[#FE3C01] hover:bg-[#d54d35]' : ''}
+            onClick={() => withViewTransition(() => setActiveTab('pending'))}
+            className={`w-full sm:w-auto ${activeTab === 'pending' ? 'bg-[#FE3C01] hover:bg-[#d54d35]' : ''}`}
           >
-            <Clock className="h-4 w-4 mr-1.5" />
+            <Clock className="h-4 w-4 me-1.5" />
             {t('marketplace.pendingReview')}
             {pendingTenders.length > 0 && (
-              <Badge className="ml-2 bg-card/20 text-white text-xs">{pendingTenders.length}</Badge>
+              <Badge className="ms-2 bg-card/20 text-white text-xs">{pendingTenders.length}</Badge>
             )}
           </Button>
           <Button
             variant={activeTab === 'approved' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('approved')}
-            className={activeTab === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}
+            onClick={() => withViewTransition(() => setActiveTab('approved'))}
+            className={`w-full sm:w-auto ${activeTab === 'approved' ? 'bg-green-600 hover:bg-green-700' : ''}`}
           >
-            <Store className="h-4 w-4 mr-1.5" />
+            <Store className="h-4 w-4 me-1.5" />
             {t('marketplace.liveOnMarketplace')}
             {approvedTenders.length > 0 && (
-              <Badge className="ml-2 bg-card/20 text-white text-xs">{approvedTenders.length}</Badge>
+              <Badge className="ms-2 bg-card/20 text-white text-xs">{approvedTenders.length}</Badge>
             )}
           </Button>
         </div>
@@ -442,7 +443,7 @@ export default function AdminMarketplace() {
             placeholder={t('marketplace.rejectionPlaceholder')}
             rows={3}
           />
-          <div className="flex justify-end gap-2 mt-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-2">
             <Button variant="outline" onClick={() => { setRejectDialog(null); setRejectionReason(""); }}>
               {t('marketplace.cancel')}
             </Button>
@@ -451,7 +452,7 @@ export default function AdminMarketplace() {
               onClick={() => rejectDialog && rejectMutation.mutate({ tenderId: rejectDialog, reason: rejectionReason })}
               disabled={!rejectionReason.trim() || rejectMutation.isPending}
             >
-              {rejectMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
+              {rejectMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin me-1" /> : null}
               {t('marketplace.confirmReject')}
             </Button>
           </div>

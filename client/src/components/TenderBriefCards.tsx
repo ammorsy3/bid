@@ -83,12 +83,12 @@ function formatBudget(tender: AnyRecord, t: TFn): string | null {
   const { budget, budgetMin, budgetMax } = tender;
   if (Number.isFinite(budgetMin) && Number.isFinite(budgetMax)) {
     return t("copilot.briefBudgetRange", {
-      min: Number(budgetMin).toLocaleString(),
-      max: Number(budgetMax).toLocaleString(),
+      min: Number(budgetMin).toLocaleString('en-US'),
+      max: Number(budgetMax).toLocaleString('en-US'),
     });
   }
-  if (Number.isFinite(budgetMin)) return t("copilot.briefBudgetFrom", { amount: Number(budgetMin).toLocaleString() });
-  if (Number.isFinite(budgetMax)) return t("copilot.briefBudgetUpTo", { amount: Number(budgetMax).toLocaleString() });
+  if (Number.isFinite(budgetMin)) return t("copilot.briefBudgetFrom", { amount: Number(budgetMin).toLocaleString('en-US') });
+  if (Number.isFinite(budgetMax)) return t("copilot.briefBudgetUpTo", { amount: Number(budgetMax).toLocaleString('en-US') });
   if (typeof budget === "string" && budget.trim()) return budget.trim();
   return null;
 }

@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { TourBanner } from "@/lib/tour";
 import { TOUR_BANNERS } from "@/lib/tour-steps";
+import { withViewTransition } from "@/lib/view-transition";
 
 type SubmissionType = "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video";
 type InquiryType = "inside_bid" | "email_whatsapp";
@@ -316,13 +317,13 @@ export default function TenderSubmissionProcessStep() {
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-start font-normal h-12 border-2",
+                          "w-full justify-start text-start font-normal h-12 border-2 overflow-hidden",
                           !submissionDeadline && "text-muted-foreground"
                         )}
                         data-testid="input-submission-deadline"
                       >
-                        <CalendarIcon className="me-2 h-4 w-4" />
-                        {submissionDeadline ? format(submissionDeadline, "PPP", { locale: dateLocale }) : t('tenderFlow.selectSubmissionDeadline')}
+                        <CalendarIcon className="me-2 h-4 w-4 shrink-0" />
+                        <span className="truncate">{submissionDeadline ? format(submissionDeadline, "PPP", { locale: dateLocale }) : t('tenderFlow.selectSubmissionDeadline')}</span>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -398,13 +399,13 @@ export default function TenderSubmissionProcessStep() {
                       <button
                         key={option.type}
                         type="button"
-                        onClick={() => {
+                        onClick={() => withViewTransition(() => {
                           setSubmissionType(option.type);
                           if (option.type !== "tech_fin_with_video") {
                             setVideoRequired(false);
                           }
-                        }}
-                        className={`flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all text-start ${
+                        })}
+                        className={`active:scale-[0.98] flex items-start gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all text-start ${
                           isSelected
                             ? "border-[#FE3C01] bg-[#FE3C01]/5"
                             : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"
@@ -458,7 +459,7 @@ export default function TenderSubmissionProcessStep() {
                       <button
                         type="button"
                         onClick={() => setVideoRequired(!videoRequired)}
-                        className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors after:absolute after:-inset-2.5 after:content-[''] md:after:hidden ${
+                        className={`active:opacity-70 relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors after:absolute after:-inset-2.5 after:content-[''] md:after:hidden ${
                           videoRequired ? "bg-[#FE3C01]" : "bg-gray-300 dark:bg-gray-600"
                         }`}
                         data-testid="toggle-video-required"
@@ -496,7 +497,7 @@ export default function TenderSubmissionProcessStep() {
                             onClick={() => {
                               setInquiryType(option.type);
                             }}
-                            className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all text-start ${
+                            className={`active:scale-[0.98] flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all text-start ${
                               isSelected
                                 ? "border-[#FE3C01] bg-[#FE3C01]/5"
                                 : "border-border dark:border-border hover:border-border dark:hover:border-gray-600"
@@ -604,7 +605,7 @@ export default function TenderSubmissionProcessStep() {
                             dir="ltr"
                             inputMode="tel"
                             autoComplete="tel"
-                            placeholder="+966 50 123 4567 or wa.me/966501234567"
+                            placeholder={t('tenderFlow.whatsappPlaceholder')}
                             value={whatsappContact}
                             onChange={(e) => setWhatsappContact(e.target.value)}
                             className="w-full px-3 py-2 max-sm:min-h-11 text-base md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"

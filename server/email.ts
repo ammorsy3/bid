@@ -360,7 +360,7 @@ export async function sendNewOfferNotification(params: {
     const lang: Lang = recipient.language || 'en';
     const isAr = lang === 'ar';
 
-    const formattedDate = submittedAt.toLocaleDateString(isAr ? "ar-SA-u-ca-gregory" : "en-US", {
+    const formattedDate = submittedAt.toLocaleDateString(isAr ? "ar-SA-u-ca-gregory-nu-latn" : "en-US", {
       year: "numeric", month: "long", day: "numeric",
       hour: "2-digit", minute: "2-digit",
     });
@@ -1067,7 +1067,7 @@ export async function sendMarketplaceTenderNotification(params: {
   }
   details.push({
     iconEmoji: "&#128176;", iconBg: "#FFF7ED", label: "Document Fee",
-    value: documentFee ? `${documentFee.toLocaleString()} SAR` : "Free",
+    value: documentFee ? `${documentFee.toLocaleString("en-US")} SAR` : "Free",
   });
 
   for (const recipient of recipients) {

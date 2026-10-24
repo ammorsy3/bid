@@ -16,7 +16,9 @@ const ROOT = path.resolve(HERE, "../..");
 const CHECKER = path.join(HERE, "checker.js");
 const PHASE = process.env.AUDIT_PHASE ?? "after";
 const BATCH = process.env.AUDIT_BATCH ?? "batch-1";
-const OUT_PHASE = PHASE === "assert" ? "after" : PHASE;
+const OUT_PHASE = process.env.AUDIT_OUT_PHASE ?? (PHASE === "assert" ? "after" : PHASE);
+// Stress runs: AUDIT_TEXT_SCALE=1.3 makes all text 30% bigger (like Android's "large font" setting).
+const TEXT_SCALE = Number(process.env.AUDIT_TEXT_SCALE ?? "1");
 const PHONES = new Set([
   "android-chrome",
   "iphone-chrome",
@@ -151,6 +153,14 @@ for (const state of states) {
           { storage, session: state.sessionStorage ?? {}, keepSignIn: SESSION_MODE },
         );
         await context.addInitScript({ path: CHECKER });
+        if (TEXT_SCALE !== 1)
+          await context.addInitScript((k) => {
+            document.addEventListener("DOMContentLoaded", () => {
+              const st = document.createElement("style");
+              st.textContent = `html{font-size:${16 * k}px !important}`;
+              document.head.appendChild(st);
+            });
+          }, TEXT_SCALE);
 
         await page.goto(state.route, { waitUntil: "domcontentloaded" });
         for (const action of state.actions ?? []) await runAction(page, action);

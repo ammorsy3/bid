@@ -22,6 +22,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { UploadResult } from "@/components/ObjectUploader";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 
 type SubmissionType = 'quote_only' | 'tech_fin_proposal' | 'video_only' | 'tech_fin_with_video';
 
@@ -562,12 +563,12 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester, i
   };
 
   function handleUploadModeChange(mode: UploadMode) {
-    setUploadMode(mode);
+    withViewTransition(() => setUploadMode(mode));
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className={`max-w-3xl max-h-[90vh] overflow-y-auto overscroll-contain max-sm:[@media(max-height:500px)]:max-h-dvh max-sm:[@media(max-height:500px)]:rounded-t-none ${isRtl ? 'text-right' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
+      <DialogContent className={`max-w-3xl grid-cols-[minmax(0,1fr)] max-h-[90vh] overflow-y-auto overscroll-contain max-sm:[@media(max-height:500px)]:max-h-dvh max-sm:[@media(max-height:500px)]:rounded-t-none ${isRtl ? 'text-right' : ''}`} dir={isRtl ? 'rtl' : 'ltr'}>
         <DialogHeader>
           <div className={`flex items-center justify-between`}>
             <DialogTitle className={`font-display font-black text-2xl text-foreground flex items-center gap-2 tracking-[-0.03em]`}>
@@ -645,8 +646,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester, i
               </Alert>
             )}
 
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+              <div className="flex-1 min-w-[10rem]">
                 <FormProgress
                   progress={progress}
                   language={language}
@@ -675,7 +676,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester, i
                   }
                 />
               </div>
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${isUrgent ? 'bg-error-50 text-error-700' : 'bg-muted text-muted-foreground'}`}>
+              <div className={`flex max-w-full items-center gap-2 px-3 py-2 rounded-lg ${isUrgent ? 'bg-error-50 text-error-700' : 'bg-muted text-muted-foreground'}`}>
                 <Clock className="h-4 w-4" />
                 <span className="text-sm font-medium">{timeRemaining}</span>
               </div>
@@ -685,7 +686,8 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester, i
               <Alert>
                 <Banknote className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>{s('tenderBudget')}</strong> {tender.budget} • {s('priceCompetitively')}
+                  <strong>{s('tenderBudget')}</strong>{' '}
+                  {/^\d+(\.\d+)?$/.test(tender.budget) ? <bdi dir="ltr">SAR {Number(tender.budget).toLocaleString('en-US')}</bdi> : tender.budget} • {s('priceCompetitively')}
                 </AlertDescription>
               </Alert>
             )}
@@ -793,7 +795,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester, i
                     <button
                       type="button"
                       onClick={() => handleUploadModeChange('combined')}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
+                      className={`active:scale-[0.98] flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
                         uploadMode === 'combined'
                           ? 'border-[#FE3C01] bg-[#FE3C01]/5'
                           : 'border-border hover:border-border'
@@ -810,7 +812,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester, i
                     <button
                       type="button"
                       onClick={() => handleUploadModeChange('separate')}
-                      className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
+                      className={`active:scale-[0.98] flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-start ${
                         uploadMode === 'separate'
                           ? 'border-[#FE3C01] bg-[#FE3C01]/5'
                           : 'border-border hover:border-border'

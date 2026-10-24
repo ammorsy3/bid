@@ -31,6 +31,7 @@ import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/
 import { usePlan } from "@/lib/usePlan";
 import { openUpgrade } from "@/lib/upgrade-store";
 import { PlanBadge } from "@/components/billing/PlanBadge";
+import { withViewTransition } from "@/lib/view-transition";
 
 const TENDER_STATE_KEY = "tender_form_state";
 
@@ -547,9 +548,9 @@ export default function TenderReview() {
       if (card.type === "budget") {
         const visibilityNote = card.value.showToVendors === false ? ` ${t('tenderFlow.hiddenFromVendorsNote')}` : "";
         if (card.value.type === "exact") {
-          return `SAR ${card.value.amount?.toLocaleString() || 0}${visibilityNote}`;
+          return `SAR ${card.value.amount?.toLocaleString('en-US') || 0}${visibilityNote}`;
         }
-        return `SAR ${card.value.min?.toLocaleString() || 0} – ${card.value.max?.toLocaleString() || 0}${visibilityNote}`;
+        return `SAR ${card.value.min?.toLocaleString('en-US') || 0} – ${card.value.max?.toLocaleString('en-US') || 0}${visibilityNote}`;
       }
       if (card.type === "milestones") {
         const count = card.value.length || 0;
@@ -666,7 +667,7 @@ export default function TenderReview() {
               <button
                 type="button"
                 onClick={() => setRfpLanguage('en')}
-                className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
+                className={`active:opacity-70 flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
                   rfpLanguage === 'en'
                     ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
                     : 'border-gray-200 dark:border-gray-600 text-muted-foreground dark:text-muted-foreground hover:border-gray-300'
@@ -677,7 +678,7 @@ export default function TenderReview() {
               <button
                 type="button"
                 onClick={() => setRfpLanguage('ar')}
-                className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
+                className={`active:opacity-70 flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
                   rfpLanguage === 'ar'
                     ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
                     : 'border-gray-200 dark:border-gray-600 text-muted-foreground dark:text-muted-foreground hover:border-gray-300'
@@ -875,8 +876,8 @@ export default function TenderReview() {
             type="button"
             aria-expanded={templateExpanded}
             aria-controls="template-section"
-            onClick={() => setTemplateExpanded(!templateExpanded)}
-            className="w-full p-6 flex items-center justify-between hover:bg-muted dark:hover:bg-gray-700/50 transition-colors"
+            onClick={() => withViewTransition(() => setTemplateExpanded(!templateExpanded))}
+            className="active:bg-muted w-full p-6 flex items-center justify-between hover:bg-muted dark:hover:bg-gray-700/50 transition-colors"
           >
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-[#FE3C01]/10 flex-shrink-0">
@@ -998,7 +999,7 @@ export default function TenderReview() {
                   key={value}
                   type="button"
                   onClick={() => toggleAudienceType(value)}
-                  className={`flex-1 min-w-[100px] py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
+                  className={`active:opacity-70 flex-1 min-w-[100px] py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 ${
                     selected
                       ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
                       : 'border-gray-200 dark:border-gray-600 text-muted-foreground hover:border-gray-300'

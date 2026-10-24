@@ -58,6 +58,50 @@ Baseline (before fixes, 308 captures, commit in `.mobile-audit/batch-2b/baseline
 | traction | fixed (2 rounds; 0 fails and 0 warnings on phones except the company's own English text; decisions.md #33) | No fails, warnings only (11-25 per capture, mostly tap sizes and English on the Arabic page). Check the join-request area, long Arabic company name, "no such company" page. |
 | tender-invite | fixed (1 round; 70 phone fails -> 0; decisions.md #34) | Up to 8 phone fails: text spills, things covering other things, the page wider than the screen on the small Android in Arabic, the floating submit bar covering text. Closed-tender and closes-today variants, "link not found" page. |
 
+## Batch 6 — owner's tender page, proposal comparison, edit (session mode: Seet workspace, made-up open tender + real closed tenders)
+Baseline (before fixes, 196 captures, commit in `.mobile-audit/batch-6/baseline-commit.txt`): 584 fails; phone fails are page overflow (owner page, comparison), small form text and covered content (edit page).
+| Pages | Status | What to fix (known before the loop) |
+|---|---|---|
+| tender-details-owner | fixed (2 rounds; page's own phone fails cleared, 584 -> 45 across the batch; remaining 45 are overflow inside the comparison table = next row; page still ~9,000px, see decisions) | Page is 9,233px tall on a phone with 4 offers; overflow on Android 360; offers list, status actions, invite box, marketplace panel. |
+| proposal-comparison | fixed (1 round + digits fix; 6 -> 0 phone fails; desktop table unchanged; stacked vendor cards on phones; amounts now Western digits; reviewer could only read thumbnails so I cropped and read the Arabic photos myself) | Comparison table/cards overflow on phones; Arabic names and amounts; negotiation actions. |
+| tender-edit | fixed (1 round; 11-13 -> 0 phone fails; desktop keeps 2 'covered' fails per state = sticky Save bar over the deadline field in a full-page photo, same as before; questions in decisions.md #37) | 11 small-form-text fails on iPhone, covered content on Android; sticky save bar; keyboard state. |
+
+## Batch 7 — settings, integrations, profile editors (session mode: Seet workspace + Ahmed's empty default workspace)
+Baseline (before fixes, 126 captures; commit in `.mobile-audit/batch-7/baseline-commit.txt`): 414 fails; phones: page overflow on every settings tab and the profile editor, email/ltr fields on account + company tabs. Two passes: Seet states, then `-new` states with the default sign-in.
+| Pages | Status | What to fix (known before the loop) |
+|---|---|---|
+| settings-account | fixed (1 round; 3-4 -> 0 phone fails; tab strip wraps with 44px tabs, email/phone/LinkedIn fields ltr + right keyboards, 44px pickers; I read the Arabic photo myself; decisions.md #38) | |
+| settings-company | fixed (1 round; 3-7 -> 0 phone fails; CR/VAT/invite email fields ltr + right keyboards, Preview rows wrap with 44px links; desktop keeps 1 existing 'covered' fail on the verify state) | overflow, email/ltr fields, verification highlight, member list |
+| settings-billing | fixed (1 round; 4 -> 0 phone fails; 44px buttons, invoice amounts read left-to-right) | overflow (English), plan/invoice rows |
+| settings-notifications | fixed (1 round; 3-4 -> 0 phone fails; whole switch row is a 44px tap) | overflow, switch rows 44px |
+| profile-editor | fixed (1 round; 6 -> 0 phone fails; tab strip wraps with 44px tabs; URL fields ltr; portfolio/certification rows and keyboard+save bar not opened by hand, see decisions) | 6 overflow fails on phones; company + individual editor, traction link editor, keyboard |
+| settings-integrations | fixed (1 round; 0 phone fails, warnings 12-15 -> 4-5, all contrast; API keys are cards on phones; Back pill arrow no longer overlaps the word in Arabic) | 0 phone fails, warnings only: tap sizes, English on Arabic page |
+
+## Batch 8 — admin (session mode: Ahmed's admin account, real data; reports stay local)
+Baseline (before fixes, 154 captures; commit in `.mobile-audit/batch-8/baseline-commit.txt`): 526 fails. Every page has "covered" fails (the fixed 272px sidebar sits over the content on phones); dashboard, users, vendors, notifications also overflow; users has icon-over-text and email/ltr field fails.
+| Pages | Status | What to fix (known before the loop) |
+|---|---|---|
+| admin-shell (AdminLayout.tsx) | fixed (shell 'covered' fails -> 0 on every phone state and desktop; sticky top bar + start-side menu drawer, document scroll on phones; new Arabic: فتح القائمة) | Phone top bar + menu drawer (the layout is a fixed 272px sidebar), RTL mirroring, 44px rows, scroll on the page not a h-screen box, shared page header/table helpers. |
+| admin-dashboard, admin-notifications | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | overflow, not-settled |
+| admin-vendors, admin-marketplace, admin-awards | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | tables to cards on phones, text-clipped, filters |
+| admin-join-requests, admin-campaigns, admin-checkouts | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | |
+| admin-users | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | overflow, icon-over-text, email/ltr fields |
+| admin-audit-logs, admin-errors | fixed (1 round; 0 fails on every phone and desktop capture; see decisions.md #41) | very long rows (errors has 438 warnings) |
+
+## Batch 10 — the remaining gaps (session mode + fixture mode; reports with admin or real data stay local)
+Baseline: new states, first photos taken in this batch (commit in `.mobile-audit/batch-10/baseline-commit.txt`). Generator: `tests/mobile/gen-batch10.py` (re-runnable).
+| Pages | Status | What was done |
+|---|---|---|
+| upgrade | fixed (9 states; 0 phone fails; CheckoutFlow shared with Settings billing, re-checked) | Billing email field no capitalise/spellcheck; Change plan, edit pencils, logo and language switch 44px on phones. |
+| traction-editor | fixed (3 states; 144 -> 0 phone fails) | Fields 16px on phones, colour codes and embed code left-to-right, 44px taps, back arrow mirrors. |
+| company-onboarding | redirect only | `/company-onboarding` redirects to `/onboarding` (batch 1). |
+| docs (5 pages) | fixed (0 fails; Arabic version was already built, decisions #13) | Inline code stays left-to-right in Arabic sentences; arrows in Arabic MCP steps flipped. |
+| admin popups and rows | fixed (11 states; 0 phone fails) | Arabic dates and verification statuses, thousands separators, campaign handle field. |
+| tender-invite signed in, voice note, offer popup | fixed (6 states) | Submit-offer popup budget formatted as SAR with separators. |
+| invite-return journey | exercised (7 states) | Logged-in login visit lands back on the invite; unverified goes to verify-email first. Social leg is on the live site only. |
+| wizard marketplace form | photographed (2 states, faked Pro plan) | Looks right; no change. |
+| Wider checks | done | Server/email digit scan fixed; 3 desktop leftovers fixed or explained (decisions #43). |
+
 ## Later batches (session mode: your real account, every save still blocked)
 | Batch | Pages | Status |
 |---|---|---|
@@ -66,10 +110,11 @@ Baseline (before fixes, 308 captures, commit in `.mobile-audit/batch-2b/baseline
 | 3 | App shell + dashboard tabs (sidebar, bottom bar) | done, all five pages fixed (see the batch 3 table above); next: report to Ahmed |
 | 4 | Vendor side: tender page, submit offer, form fill | done (decisions.md #35) |
 | 5 | Tender wizard | done: all 12 steps fixed (32 states, 0 phone fails; see decisions.md #36); next: report to Ahmed |
-| 6 | Owner's tender tabs, proposal comparison, edit | todo |
-| 7 | Settings, integrations, profile editors | todo |
-| 8 | Admin (first give AdminLayout a phone menu) | todo |
-| 9 | "Feels like an installed app" pass, scoped to the pages already fixed (batches 1, 2, 3) | done for now (see below); 2b/4-8 get their own pass once each has its base fix |
+| 6 | Owner's tender tabs, proposal comparison, edit | done (decisions.md #37); next: report to Ahmed |
+| 7 | Settings, integrations, profile editors | done (decisions.md #38, #39); next: report to Ahmed |
+| 8 | Admin (first give AdminLayout a phone menu) | done (decisions.md #41); next: report to Ahmed |
+| 10 | Remaining gaps (upgrade, traction editor, docs, first photos of popups and signed-in invite, wider checks) | done (decisions.md #43) |
+| 9 | "Feels like an installed app" pass | done for batches 1-3 (first pass) and 2b, 4-8 (second pass, 2026-10-12; see below) |
 
 ### 9. What changed
 | Part | Status | What it did |
@@ -81,3 +126,5 @@ Baseline (before fixes, 308 captures, commit in `.mobile-audit/batch-2b/baseline
 | **Extension 2: instant actions** | fixed | Accept/reject/shortlist an offer, remove a vendor, and delete an AI chat now update the screen the instant you tap, instead of waiting on the round trip to the server (React Query optimistic updates, rolled back if the server disagrees). |
 | **Extension 3: skeleton loading sweep** | fixed | Checked every full-page spinner on the already-fixed pages against a shape-matching skeleton instead. Only `team-invite.tsx` needed the change (most others were button-level "submitting..." spinners, which are correct as-is, or genuinely brief handoffs with no fixed shape to hint at). Found and fixed a real bug while checking it live: the placeholder color and that page's own background used the same design token, so the first version was invisible. |
 | **Extension 4: count-up animation** | fixed | The dashboard's three summary numbers (Active RFPs, Pending Proposals, Vendors in Base) now count up/down from whatever's on screen to the new value, instead of swapping the digit in place - on first real load and on a live change (e.g. right after creating a tender), never on a plain revisit where nothing changed. |
+| **Extension 5: the same pass over batches 2b and 4-8** | fixed (2026-10-12) | Four parallel passes, each only touching its own files. **Press feedback:** ~95 hand-rolled controls that gave no response to a tap now dim or shrink (tender wizard option cards, chips, accordions and "add" buttons; settings and profile-editor tabs, theme cards, upload buttons; admin drawer rows, filter pills, tabs, expanders), and every dropdown/select/menu item in the app now dims when tapped (this closes decisions #29). **Motion:** ~60 content swaps now cross-fade (marketplace filters and pages, settings tabs, editor sections, tender description and accordions, wizard options, admin tabs/filters/Show more). **Skeletons:** notifications, integrations, individual and traction editors, tender edit page (admin and the rest already had them). **Instant actions:** only admin "mark read" (one/all) is optimistic; notification switches now lock only the row being saved. Nothing with real consequences (approve, reject, verify, delete, publish, pay, send) was made optimistic. Manifest and icons rechecked: nothing to fix. Full recheck after the pass: 0 fails on every phone in batches 2b, 4, 5, 6, 7, 8 (one flaky "covered" state re-run clean); the only fails left are desktop ones that were already there. |
+

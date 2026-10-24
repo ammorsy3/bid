@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { SarMark } from "@/components/SarMark";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -19,8 +20,10 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import { formatSAREnglish } from "@/lib/format-currency";
 import { useI18n } from "@/lib/i18n";
+import { authUrlWithReturn } from "@/lib/return-to";
 import { isolateLtr, withLtrUrls } from "@/lib/bidi";
 import { Skeleton } from "@/components/ui/skeleton";
+import { withViewTransition } from "@/lib/view-transition";
 
 interface Milestone {
   id?: string;
@@ -281,7 +284,7 @@ function MobileAtAGlance({
   return (
     <div className="lg:hidden mb-4">
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => withViewTransition(() => setOpen(!open))}
         aria-expanded={open}
         className="w-full min-h-11 flex items-center justify-between bg-card rounded-xl border border-border shadow-sm px-4 py-3 transition-[background-color,transform] duration-100 active:scale-[0.99] active:bg-muted"
       >
@@ -308,7 +311,7 @@ function MobileAtAGlance({
             </div>
             <div className="bg-muted rounded-lg p-2.5 border border-border min-w-0">
               <div className="flex items-center gap-1.5 mb-1">
-                <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
+                <SarMark className="text-emerald-600" />
                 <span className={captionCls}>{t('tenderFlow.budgetColumn')}</span>
               </div>
               <p className={valueCls}>{getBudgetDisplay()}</p>
@@ -522,11 +525,12 @@ export default function TenderInviteLink() {
     return () => observer.disconnect();
   }, [hasTender]);
 
-  // A logged-out visitor is sent to sign in or sign up. A new tab is kept when the browser allows
-  // it; some in-app browsers (WhatsApp, Instagram) block it, and then the same tab is used.
+  // A logged-out visitor is sent to sign in or sign up in this same tab (a new tab
+  // loses the way back, and in-app browsers like WhatsApp/Instagram block it). The
+  // invite's own address, including the emailed ?i= token, rides along as
+  // ?redirect=, so after signing in, or signing up and onboarding, they land back here.
   const openAuthPage = (path: '/login' | '/signup') => {
-    const opened = window.open(path, "_blank");
-    if (!opened) navigate(path);
+    navigate(authUrlWithReturn(path, `/invite/${tenderId}${window.location.search}`));
   };
 
   if (!tenderId) {
@@ -717,7 +721,6 @@ export default function TenderInviteLink() {
   const handleSubmitOffer = () => {
     if (!user) {
       toast({ title: t('tenderFlow.loginRequired'), description: t('tenderFlow.loginRequiredDesc') });
-      localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`);
       openAuthPage("/login");
       return;
     }
@@ -1270,7 +1273,7 @@ export default function TenderInviteLink() {
                                     size="sm"
                                     variant="outline"
                                     className="w-full sm:w-auto max-md:h-11"
-                                    onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); openAuthPage("/login"); }}
+                                    onClick={() => { openAuthPage("/login"); }}
                                   >
                                     {t('tenderFlow.logInToDownload')}
                                   </Button>
@@ -1363,7 +1366,7 @@ export default function TenderInviteLink() {
                                     )}
                                     {milestone.amount && (
                                       <span className={`inline-flex items-center gap-1.5 text-xs font-bold bg-[#FE3C01]/8 px-3 py-1.5 rounded-lg ${ORANGE_INK}`}>
-                                        <DollarSign className="h-3.5 w-3.5" /> <bdi dir="ltr">SAR {Number(milestone.amount).toLocaleString('en-US')}</bdi>
+                                        <bdi dir="ltr">SAR {Number(milestone.amount).toLocaleString('en-US')}</bdi>
                                       </span>
                                     )}
                                   </div>
@@ -1516,7 +1519,7 @@ export default function TenderInviteLink() {
                                   <div key={w.categoryId} className="rounded-xl border border-border overflow-hidden">
                                     <button
                                       type="button"
-                                      onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
+                                      onClick={() => withViewTransition(() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] })))}
                                       aria-expanded={isExpanded}
                                       className="w-full flex items-center gap-3 px-5 py-4 min-h-11 bg-muted hover:bg-muted/80 active:bg-card transition-[color,background-color] duration-100 text-start"
                                     >
@@ -1763,7 +1766,7 @@ export default function TenderInviteLink() {
                                       <p className="text-sm text-muted-foreground">{t('tenderFlow.logInToListen')}</p>
                                     </div>
                                   </div>
-                                  <Button size="sm" className="max-sm:w-full max-md:h-11 bg-[#FE3C01] hover:bg-[#1A1613] text-white" onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); openAuthPage("/login"); }} data-testid="button-login-voice">{t('tenderFlow.loginBtn')}</Button>
+                                  <Button size="sm" className="max-sm:w-full max-md:h-11 bg-[#FE3C01] hover:bg-[#1A1613] text-white" onClick={() => { openAuthPage("/login"); }} data-testid="button-login-voice">{t('tenderFlow.loginBtn')}</Button>
                                 </div>
                               )}
                             </div>
@@ -1811,7 +1814,7 @@ export default function TenderInviteLink() {
                     </div>
                     <div className="bg-muted rounded-lg p-2.5 border border-border">
                       <div className="flex items-center gap-1.5 mb-1">
-                        <DollarSign className="h-3 w-3 flex-shrink-0 text-emerald-500" />
+                        <SarMark className="text-emerald-600" />
                         <span className="text-gray-400 text-[10px] font-medium uppercase tracking-wide leading-none">{t('tenderFlow.budgetColumn')}</span>
                       </div>
                       <p className="text-xs font-bold text-foreground leading-tight">{getBudgetDisplay()}</p>
@@ -1923,7 +1926,7 @@ export default function TenderInviteLink() {
                           {remainingReqCount > 0 && (
                             <button
                               onClick={() => scrollToSection('submission')}
-                              className="text-xs text-[#FE3C01] hover:underline ps-6"
+                              className="text-xs text-[#FE3C01] hover:underline ps-6 transition-[opacity,transform] duration-100 active:opacity-70 active:scale-[0.98]"
                             >
                               +{remainingReqCount} {remainingReqCount !== 1 ? t('tenderFlow.moreRequirements') : t('tenderFlow.moreRequirement')} <span className="inline-block rtl:-scale-x-100">→</span>
                             </button>
@@ -2043,7 +2046,7 @@ export default function TenderInviteLink() {
                     <Button
                       size="sm"
                       className="bg-[#FE3C01] hover:bg-[#1A1613] max-md:h-11"
-                      onClick={() => { localStorage.setItem('postLoginRedirect', `/invite/${tenderId}`); openAuthPage("/login"); }}
+                      onClick={() => { openAuthPage("/login"); }}
                     >
                       {t('tenderFlow.loginToAskBtn')}
                     </Button>

@@ -3,7 +3,7 @@
 Things the loop found that are a product or data decision rather than a layout
 fix. The newest are at the bottom. Answer in chat, or edit this file.
 
-**21 resolved, 1 in progress, 7 still need your answer** (#5, 17, 23, 24, 25, 26, 29).
+**Open questions are all collected in #43 (yes/no, with my recommendation).** Older items still marked open above were closed by your answers in #40 and #42 (faint text, Arabic wording, digits, dev logo) or by later batches (#17, #26, #29).
 
 1. **✅ The two case-duplicate production accounts - merged (2026-09-25).**
    Ahmed confirmed they are the same person. In production
@@ -261,3 +261,69 @@ fix. The newest are at the bottom. Answer in chat, or edit this file.
     (f) The WhatsApp placeholder on the submission step ("+966 50 123 4567 or
     wa.me/...") is hard-coded English; left as is.
     Not photographed / needs a real iPhone: the AI assistant chat with a real reply.
+
+37. **Owner tender page, proposal comparison, tender edit (batch 6, 2026-10-11): questions.**
+    (a) The owner's tender page is still ~9,000px tall on a phone (was 9,345): offers start about 70% of the way down. I added a "Proposals (N)" chip to the section strip, a Show more for long descriptions, and 2-column 44px offer buttons, but did not collapse or reorder the scope/requirements/criteria sections. Want offers moved above them on phones?
+    (b) Edit page: its text direction now follows the app language, not the tender's own language. Is that what you want?
+    (c) Faint text, logged and NOT changed (colours rule): Save Changes button 3.58:1, "N words" 3.30:1, duration badge 3.58:1, unit chips 3.33:1, grey price text 3.58:1, a "3.0" rating on the offer card 1.37:1.
+    (d) New Arabic: عرض المزيد / عرض أقل (description Show more / Show less). Edit page dates still show English-style dates ("Jun 30, 2028") in some fields.
+    (e) Proposal comparison on phones is now stacked cards (desktop keeps the table). Amounts use Western digits; the "analysed at" date still uses Arabic digits.
+    (f) Not photographed / needs a real iPhone: the award, discount and message dialogs, and the invite-by-email send.
+
+38. **Settings, account tab (batch 7, 2026-10-11).**
+    (a) Real bug, not layout, NOT fixed here (offered as a separate task): opening Settings as owner/admin auto-saves your profile and company info ~1s later even with no edit (PATCH /api/user/profile + /api/company/profile), and shows a "Company updated" toast every visit, which on phones covers the tab bar. Cause: the auto-save effects in Settings.tsx also run on first load.
+    (b) Email, phone and LinkedIn fields now read left-to-right on the Arabic page (desktop too), per the quality bar.
+    (c) Faint text, logged, NOT changed: "Back" pill 3.33:1, active tab name 3.58:1, avatar initials on #C96B7E 3.57:1.
+
+39. **Settings tabs, integrations, profile editor (batch 7, 2026-10-11): questions.**
+    (a) Faint text, logged and NOT changed (colours rule): the "Back" pill 3.33:1, active tab names 3.43-3.58:1, avatar initials 2.31-3.57:1, "All changes saved" 3.02:1, white on the orange Create buttons 3.33:1. Want any darkened, as on the tender page?
+    (b) Real bug found earlier (#38a): Settings saves your profile and company info on open and shows "Company updated" on every visit. Offered as a separate task, not fixed.
+    (c) Fixed in a shared component: the Back pill's arrow overlapped the word "رجوع" in Arabic (settings, company editor, integrations).
+    (d) Four new Arabic aria-labels on the integrations page need a native-speaker look (listed in .mobile-audit/batch-7/pages/settings-integrations/result.md). The "Claude Desktop" brand name stays English in the Arabic intro.
+    (e) Not opened by hand: profile editor sections that need data (portfolio and certification rows, long-name chips, the sticky save bar with the keyboard open), the individual editor with real data, and the traction link editor. Worth a look on a real phone.
+    (f) The desktop company-verify state keeps 1 existing "covered" fail (a sticky element over a field in a full-page photo).
+
+40. **Ahmed's answers (2026-10-11) and what was done.**
+    - Faint small text (#5, #30, #35b, #36a, #37c, #39a): **leave as is.** Nothing changes.
+    - Arabic wording (#23, #31a, #32c, #33, #34e, #39d): no review list. Instead every Arabic phrase the audit added was matched to how the rest of the app already writes Arabic (42 of ~490 adjusted, see arabic-alignment.md).
+    - #34a (return to the invite after logging in) and #34c (same tab): **done.**
+    - #37a (offers higher up on phones): **done.** #37b (edit page follows the app language): **keep.**
+    - #31b (grid switch hidden on phones): **keep hidden**; the phone page still scrolls normally in one column.
+    - #32b ("couldn't load, try again" instead of "no such company"): **done.**
+    - #17 (a server hiccup signed people out): **fixed.** The server now answers 503, and the app only signs out on a really rejected login.
+    - Settings auto-saving when opened (#38a): **fixed.** It saves only after a real edit.
+    - #26 (broken vendor logo): cause found, **not changed yet.** One dev-database company ("BIDDDD", display name "Bid") has an old-style logo path that needs a login to load. Options: owner re-uploads the logo, or the stored value is cleared. Production not checked.
+    - Open, new: Arabic digits. Some screens show amounts and dates with Arabic digits (٩٨٫٧٦٥) and others with Western (98,765). The comparison cards now use Western; the offer cards above them on the owner page still use Arabic. Pick one for the whole app.
+
+41. **Admin pages (batch 8, 2026-10-12): questions.**
+    (a) Campaigns: the trash button deletes a campaign with no "are you sure". On phones it is now a bigger tap target, so it is easier to hit by accident. Want a confirm popup (like AI-chat history got)? **Campaign delete confirm: done** (2026-10-12).
+    (b) Admin notifications come from the server in English only, so they stay English on the Arabic page; same for stored error messages, audit-log notes and target types, and the onboarding state code in the vendor details. Fixing the notifications needs a server change (translate at the source); the rest is stored data. Want the notifications translated? **Admin notifications stay English: Ahmed decided: leave as is, no translation.**
+    (c) On phones the dashboard cards no longer show the small "Action needed" badge (the box above them already lists the same items). Desktop still shows it. OK?
+    (d) Lists on phones show 10 rows then "Show more" (users, audit logs, errors, vendors); desktop shows everything, as before.
+    (e) Not photographed because the test data had nothing to show: the join-request and checkout rows (both lists are empty), the campaign create/detail popups, the approve/reject popups. Fixed from the code only; worth a look on a real phone with real data.
+    (f) Faint text: left alone (admin eyebrow 2.96:1, orange counts and green/purple button labels 3.4-3.8:1).
+    (g) New Arabic: فتح القائمة (open menu), the vendor tab/document names, and 8 audit-action names. Already matched to the app's wording by the Arabic pass, so no list to review.
+    (h) Still open from before: the vendor logo (#26), and Arabic digits vs Western digits across the app (#40).
+
+42. **Ahmed's answers (2026-10-12, second round).**
+    - #26 (dev company's logo): **forget it**, it is only a dev company. Closed, no change.
+    - Digits: **Western digits (98,765) everywhere, in both languages.** Done: amounts, dates, times, the shared currency helper, the calendar locale and 3 Arabic strings that had typed-in Arabic digits now use 0-9. The audit checker has a new FAIL rule, `arabic-digits`, so any Arabic-Indic digit on any screen (text people typed themselves excluded) shows up in the next run. All 190 Arabic screen states were scanned: none left.
+
+43. **Batch 10 (2026-10-13): what was found, and the questions that still need you.**
+    What was done without asking (all layout / Arabic / digits, no colour changes):
+    - /upgrade, the traction link editor and all five /docs pages now have screen states and are clean on every phone (/company-onboarding is only a redirect to /onboarding, which batch 1 already covers; a signed-in visit lands there).
+    - First photos of things that were only fixed from code: admin join-request, checkout, campaign (create + detail), company approve/reject/view and marketplace-reject screens; the signed-in tender invite page (voice-note player, question box with keyboard, submit-offer popup, closing/closed); the invite-return login journey (the part that stays on our site); the wizard's marketplace form (with a faked Pro plan, so #36d is answered: it looks right on phones in Arabic).
+    - Real bugs found and fixed on the way: admin pages showed English dates and raw statuses ("pending", "verified") on Arabic pages; the submit-offer popup showed the budget as "98765432100"; Arabic notification emails wrote the date with Arabic digits; inline code in the Arabic docs reordered its arrows and braces; the traction editor had 12-14px fields that make iPhones zoom.
+    - Desktop leftovers (#C): two were the checker mistaking a scrolled-out list item and a sticky bottom bar for "covered" (checker fixed, and the edit-tender page now leaves room under its Save bar when you tab into a field); the third, a "spinner" on desktop b4-tender-submitted, is the small pulsing green dot next to "Under review by requester", not a loading state; left as is.
+    Questions (answer yes or no; my recommendation first):
+    - (a) **✅ Admin join requests: "View profile" button — Ahmed said yes (2026-10-18).** It now opens the vendor's company page (`/company/<slug>`, or `/people/<slug>` for individuals); disabled if the vendor has no slug. Verified 2026-10-20: tapping it lands on /company/vendor-1 (phone and desktop, Arabic and English).
+    - (b) **✅ Vendors tab (#25) — Ahmed answered (2026-10-18).** (1) Invite by email: not now, nothing built. (2) Phone labels / tap behaviour: keep as is. (3) "Not verified" including under review and rejected: keep as is.
+    - (c) **✅ Invite page text alignment (#34b) — Ahmed took my recommendation (2026-10-21): keep.** Each text lines up with its own language, also on desktop.
+    - (d) **Wizard milestone names (#36c).** Found on re-check: this was already done in batch 5 (names and descriptions are auto-growing boxes, see tender-wizard-project-scope/result.md). Nothing to decide; shown as done in decisions.html.
+    - (e) **✅ Wizard WhatsApp placeholder (#36f) — yes, translated (2026-10-21).** New key `tenderFlow.whatsappPlaceholder` (EN + AR); the number stays left-to-right.
+    - (f) **✅ Dollar icon (#35c) — yes, swapped for "SAR" (2026-10-21).** New `SarMark` component replaces the dollar icon on the wizard marketplace fee label, the vendor tender page price row, the wizard budget cards and the invite-page budget boxes; the invite milestone amount already says SAR so its icon was just removed. Dollar icons that mean "financial file" are unchanged.
+    - (g) **✅ Days-left in the vendor tender page bottom bar (#35a) — keep it (2026-10-21).** Already there since batch 4.
+    - (h) **✅ Desktop "Under Review" badge (#32a) — yes, fixed (2026-10-21).** The badge now sits on the same light chip on desktop as on phones, so its dark text is readable on the dark banner. No colour was changed, only the chip behind it. Checked on the "Al Hudood" fixture page (desktop + phones): readable; the Verified badge also sits on the chip and looks fine.
+    - (i) **✅ Admin phone pages (#41c, #41d) — keep (2026-10-21).** No change.
+    - (j) **✅ Arabic dates in Safari (#24) — leave (2026-10-21).** No change unless it looks wrong on a real iPhone.
+    Not photographable here, and not touched: the Google / LinkedIn / Slack sign-in itself (it leaves our site; needs the live bidapp.sa), and the admin notification texts and stored error messages, which stay English by your decision (#41b).

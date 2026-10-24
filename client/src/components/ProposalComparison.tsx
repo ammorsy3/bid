@@ -207,7 +207,7 @@ export default function ProposalComparison({
     onSuccess: (data) => {
       toast({
         title: t('tenderFlow.vendorSelected'),
-        description: `${t('tenderFlow.savingsRecorded')}: ${t('tenderFlow.sarCurrency')} ${data.savingsAmount?.toLocaleString() || 0} (${data.savingsPercentage || 0}% ${t('tenderFlow.savingsAmount')})`,
+        description: `${t('tenderFlow.savingsRecorded')}: ${t('tenderFlow.sarCurrency')} ${data.savingsAmount?.toLocaleString('en-US') || 0} (${data.savingsPercentage || 0}% ${t('tenderFlow.savingsAmount')})`,
       });
     },
     onError: (error: Error) => {
@@ -355,13 +355,13 @@ export default function ProposalComparison({
                   {(offer.combinedFileUrl || offer.technicalFileUrl) && (
                     <button
                       onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
-                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md px-2 py-1 hover:bg-muted"
+                      className="active:opacity-70 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md px-2 py-1 hover:bg-muted"
                     >
                       <FileText className="h-3 w-3" /> {t('tenderFlow.viewProposal')}
                     </button>
                   )}
                   {offer.quotePrice != null && (
-                    <span className="text-xs font-bold text-foreground">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString()}</span>
+                    <span className="text-xs font-bold text-foreground">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString('en-US')}</span>
                   )}
                 </div>
 
@@ -428,7 +428,7 @@ export default function ProposalComparison({
                       )}
                     </div>
                     <span className="text-[10px] text-gray-300 flex-shrink-0 mt-0.5">
-                      {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
+                      {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
                 );
@@ -478,6 +478,143 @@ export default function ProposalComparison({
     </tr>
   );
 
+  const renderVendorHeader = (offer: Offer, idx: number) => {
+    const gradient = VENDOR_COLORS[idx % VENDOR_COLORS.length];
+    const total = getTotal(offer.id);
+    const isCheapest = cheapestId === offer.id;
+    const isSelected = selectedVendor === offer.id;
+    const name = getVendorName(offer);
+    return (
+                      <div className={`px-3 py-3 ${isOfferAwarded(offer.id) ? 'bg-[var(--state-won)]/5/60' : negotiationMode && checkedVendors.has(offer.id) ? 'bg-[#FE3C01]/5 ring-2 ring-[#FE3C01]/20 ring-inset' : isSelected ? 'bg-[var(--bid-orange)]/5/60' : 'bg-card'}`}>
+                        {/* Avatar + name row */}
+                        <div className="flex items-center gap-2 mb-2">
+                          {negotiationMode && (
+                            <Checkbox
+                              checked={checkedVendors.has(offer.id)}
+                              onCheckedChange={() => toggleVendor(offer.id)}
+                              className="flex-shrink-0"
+                            />
+                          )}
+                          {offer.profile?.logoUrl ? (
+                            <img src={offer.profile.logoUrl} alt={`${name} logo`} className="h-8 w-8 rounded-lg object-cover flex-shrink-0 ring-1 ring-gray-200" />
+                          ) : (
+                            <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                              <span className="text-white text-[10px] font-bold leading-none">{name.slice(0, 2).toUpperCase()}</span>
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-foreground truncate leading-tight">{name}</p>
+                            {offer.company.category && (
+                              <p className="text-[10px] text-gray-400 truncate leading-tight">{offer.company.category}</p>
+                            )}
+                          </div>
+                        </div>
+  
+                        {/* Negotiation history badges */}
+                        {negotiationMode && getActionBadges(offer.id).length > 0 && (
+                          <div className="flex flex-wrap gap-0.5 mb-1.5">
+                            {getActionBadges(offer.id).map((badge, i) => (
+                              <span key={i} className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.color}`}>
+                                {badge.label}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+  
+                        {/* Price + badges on one line */}
+                        <div className="flex items-center justify-between flex-wrap gap-1 mb-1.5">
+                          {total != null ? (
+                            <span className={`text-xs font-bold ${isCheapest ? 'text-[var(--state-won)]' : 'text-foreground'}`}>
+                              {t('tenderFlow.sarCurrency')} {total.toLocaleString('en-US')}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400">{t('tenderFlow.noPrice')}</span>
+                          )}
+                          <div className="flex gap-0.5 flex-shrink-0">
+                            {isCheapest && (
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold bg-[var(--state-won)]/10 text-[var(--state-won)] px-1.5 py-0.5 rounded-full border border-emerald-200">
+                                <Award className="h-2 w-2" /> {t('tenderFlow.bestLabel')}
+                              </span>
+                            )}
+                            {isSelected && (
+                              <span className="text-[9px] font-bold bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] px-1.5 py-0.5 rounded-full border border-[var(--bid-orange)]/20">
+                                ✓ {t('tenderFlow.selectedLabel')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+  
+                        {/* Price bar */}
+                        {total != null && highestPrice > 0 && (
+                          <div className="h-1 bg-muted rounded-full overflow-hidden mb-2">
+                            <div
+                              className={`h-full rounded-full transition-all ${isCheapest ? 'bg-[var(--state-won)]' : isSelected ? 'bg-blue-400' : 'bg-gray-300'}`}
+                              style={{ width: `${(total / highestPrice) * 100}%` }}
+                            />
+                          </div>
+                        )}
+  
+                        {/* Watch Video link — always visible when videoUrl exists */}
+                        {offer.videoUrl && (
+                          <a
+                            href={offer.videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mb-1.5 flex items-center justify-center gap-1 text-[10px] text-[var(--bid-orange)] hover:text-blue-800 dark:text-blue-300 border border-[var(--bid-orange)]/20 rounded-md px-2 py-1 hover:bg-[var(--bid-orange)]/5 w-full"
+                          >
+                            <FileText className="h-2.5 w-2.5" /> {t('tenderFlow.watchVideo')}
+                          </a>
+                        )}
+  
+                        {/* Actions - hidden in negotiation mode */}
+                        {!negotiationMode && (
+                          <div className="flex items-center gap-1">
+                            {isSelected ? (
+                              <div className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold text-[var(--bid-orange)] bg-[var(--bid-orange)]/5 border border-[var(--bid-orange)]/20 rounded-md py-1 px-2">
+                                <CheckCircle className="h-2.5 w-2.5" /> {t('tenderFlow.selectedLabel')}
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                className="flex-1 h-6 max-md:h-11 text-[10px] bg-[#FE3C01] hover:bg-[#d54d35] text-white px-2 font-medium"
+                                onClick={() => handleSelectVendor(offer)}
+                                disabled={savingsMutation.isPending || total == null || isOfferAwarded(offer.id)}
+                              >
+                                <CheckCircle className="h-2.5 w-2.5 me-1" /> {t('tenderFlow.selectBtn')}
+                              </Button>
+                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="sm" className="h-6 w-6 max-md:h-11 max-md:w-11 shrink-0 p-0 border-border" disabled={isOfferAwarded(offer.id)}>
+                                  <MoreHorizontal className="h-3 w-3" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem
+                                  onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
+                                  disabled={!offer.combinedFileUrl && !offer.technicalFileUrl}
+                                >
+                                  <FileText className="h-4 w-4 me-2" /> {t('tenderFlow.viewProposal')}
+                                </DropdownMenuItem>
+                                {offer.financialFileUrl && (
+                                  <DropdownMenuItem onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}>
+                                    <DollarSign className="h-4 w-4 me-2" /> {t('tenderFlow.viewFinancial')}
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                  onClick={() => setHiddenOffers(prev => new Set([...Array.from(prev), offer.id]))}
+                                  className="text-red-500 focus:text-red-500"
+                                >
+                                  <X className="h-4 w-4 me-2" /> {t('tenderFlow.removeLabel')}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        )}
+                      </div>
+    );
+  };
+
   const isScrollable = visibleOffers.length >= 3;
   const LABEL_W = "w-40 min-w-[160px] max-w-[160px]";
   const COL_W = isScrollable ? "w-[200px] min-w-[200px] max-w-[200px]" : "";
@@ -488,14 +625,14 @@ export default function ProposalComparison({
       <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
       {/* ── Card header ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+      <div className="flex items-center justify-between flex-wrap gap-2 px-5 py-4 border-b border-border">
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#FE3C01] text-white text-xs font-bold">
             <Sparkles className="h-3 w-3" />
           </div>
           <div>
             <span className="text-sm font-bold text-foreground">{t('tenderFlow.proposalComparisonTitle')}</span>
-            <span className="text-xs text-gray-400 ml-2">{t('tenderFlow.vendorsCount').replace('{count}', String(visibleOffers.length))}</span>
+            <span className="text-xs text-gray-400 ms-2">{t('tenderFlow.vendorsCount').replace('{count}', String(visibleOffers.length))}</span>
           </div>
         </div>
         {isQuoteOnly ? (
@@ -507,8 +644,8 @@ export default function ProposalComparison({
             <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 border border-violet-200">
               {t('tenderFlow.aiBetaBadge')}
             </span>
-            <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7">
-              {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RotateCcw className="h-3 w-3 mr-1" />}
+            <Button variant="outline" size="sm" onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending} className="text-xs h-7 max-md:h-11">
+              {analyzeMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin me-1" /> : <RotateCcw className="h-3 w-3 me-1" />}
               {t('tenderFlow.reAnalyze')}
             </Button>
           </div>
@@ -520,14 +657,107 @@ export default function ProposalComparison({
         <div className="mx-5 mt-4 flex items-center gap-3 bg-[var(--state-won)]/5 border border-emerald-200 rounded-xl px-4 py-2.5">
           <TrendingUp className="h-4 w-4 text-[var(--state-won)] flex-shrink-0" />
           <span className="text-sm text-emerald-800 dark:text-emerald-300">
-            <span className="font-bold">{t('tenderFlow.sarCurrency')} {(highestPrice - lowestPrice).toLocaleString()}</span>
+            <span className="font-bold">{t('tenderFlow.sarCurrency')} {(highestPrice - lowestPrice).toLocaleString('en-US')}</span>
             {" "}{t('tenderFlow.potentialSavings')} · {Math.round(((highestPrice - lowestPrice) / highestPrice) * 100)}% {t('tenderFlow.spreadAcrossOffers')}
           </span>
         </div>
       )}
 
       {/* ── Comparison table ─────────────────────────────────────────────── */}
-      <div className="overflow-x-auto mt-4">
+      {/* Phones: one card per vendor, stacked (no sideways scrolling) */}
+      <div className="md:hidden mt-4 px-4 pb-2 flex flex-col gap-4" data-testid="comparison-cards">
+        {visibleOffers.map((offer, idx) => {
+          const total = getTotal(offer.id);
+          const fin = getFinancial(offer.id);
+          const analysis = completedAnalyses.find(a => a.offerId === offer.id);
+          const isMostExp = mostExpensiveId === offer.id && cheapestId !== mostExpensiveId;
+          const rowCls = "flex items-start justify-between gap-3 px-4 py-2.5 border-t border-border";
+          return (
+            <div key={offer.id} className={`rounded-xl border border-border overflow-hidden ${isOfferAwarded(offer.id) ? 'border-t-2 border-t-emerald-500' : ''}`}>
+              {renderVendorHeader(offer, idx)}
+              <div className={rowCls}>
+                <span className="text-xs font-semibold text-muted-foreground">{t('tenderFlow.totalPrice')}</span>
+                {total != null ? (
+                  <span className={`text-sm font-bold ${cheapestId === offer.id ? 'text-[var(--state-won)]' : isMostExp ? 'text-red-500' : 'text-foreground'}`}>
+                    {t('tenderFlow.sarCurrency')} {total.toLocaleString('en-US')}
+                  </span>
+                ) : <span className="text-gray-300 text-xs">—</span>}
+              </div>
+              <div className={rowCls}>
+                <span className="text-xs font-medium text-muted-foreground">{t('tenderFlow.vatLabel')}</span>
+                {fin?.vat != null ? <span className="text-sm font-medium text-foreground">{fin.vat}%</span> : <span className="text-gray-300">—</span>}
+              </div>
+              <div className={rowCls}>
+                <span className="text-xs font-medium text-muted-foreground shrink-0">{t('tenderFlow.paymentTerms')}</span>
+                {fin?.paymentTerms ? <span className="text-xs text-muted-foreground min-w-0 break-words text-end">{fin.paymentTerms}</span> : <span className="text-gray-300">—</span>}
+              </div>
+              {allDeliverables.size > 0 && (
+                <>
+                  <div className="flex items-center gap-2.5 px-4 py-2.5 bg-muted border-y border-border">
+                    <div className="h-3.5 w-0.5 rounded-full bg-[#FE3C01]" />
+                    <Check className="h-3 w-3 text-gray-400" />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('tenderFlow.deliverablesCoverage')}</span>
+                  </div>
+                  {Array.from(allDeliverables).map(deliverable => {
+                    const hasIt = analysis?.deliverables?.some(d =>
+                      d.toLowerCase().includes(deliverable.toLowerCase()) ||
+                      deliverable.toLowerCase().includes(d.toLowerCase())
+                    );
+                    return (
+                      <div key={deliverable} className="flex items-start justify-between gap-3 px-4 py-2.5 border-b border-border last:border-b-0">
+                        <span className="text-xs text-muted-foreground leading-snug min-w-0 break-words">{deliverable}</span>
+                        {hasIt ? (
+                          <div className="h-5 w-5 shrink-0 rounded-full bg-[var(--state-won)]/10 border border-emerald-200 flex items-center justify-center">
+                            <Check className="h-3 w-3 text-[var(--state-won)]" />
+                          </div>
+                        ) : (
+                          <div className="h-5 w-5 shrink-0 rounded-full bg-muted border border-border flex items-center justify-center">
+                            <Minus className="h-3 w-3 text-gray-300" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+              {allCriteria.size > 0 && (
+                <>
+                  <div className="flex items-center gap-2.5 px-4 py-2.5 bg-muted border-y border-border">
+                    <div className="h-3.5 w-0.5 rounded-full bg-[#FE3C01]" />
+                    <Sparkles className="h-3 w-3 text-gray-400" />
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('tenderFlow.requirementsCoverage')}</span>
+                  </div>
+                  {Array.from(allCriteria).map(criterion => {
+                    const ref = analysis?.criteriaMapping?.[criterion];
+                    const found = ref && ref !== 'Not Found' && ref !== 'غير موجود';
+                    return (
+                      <div key={criterion} className="flex items-start justify-between gap-3 px-4 py-2.5 border-b border-border last:border-b-0">
+                        <span className="text-xs text-muted-foreground leading-snug min-w-0 break-words">{criterion}</span>
+                        {found ? (
+                          <div className="flex flex-col items-center gap-0.5 shrink-0">
+                            <div className="h-5 w-5 rounded-full bg-[var(--state-won)]/10 border border-emerald-200 flex items-center justify-center">
+                              <Check className="h-3 w-3 text-[var(--state-won)]" />
+                            </div>
+                            <span className="text-[9px] font-mono text-[var(--state-won)]" dir="ltr">{ref}</span>
+                          </div>
+                        ) : ref === 'Not Found' ? (
+                          <div className="h-5 w-5 shrink-0 rounded-full bg-red-100 border border-red-200 flex items-center justify-center">
+                            <X className="h-3 w-3 text-red-500" />
+                          </div>
+                        ) : (
+                          <span className="text-gray-300 text-xs shrink-0">—</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden md:block overflow-x-auto mt-4">
         <table
           className="border-collapse table-fixed w-full"
           style={isScrollable ? { width: `${160 + visibleOffers.length * 200}px` } : undefined}
@@ -539,144 +769,12 @@ export default function ProposalComparison({
 
               {/* Vendor compact header cells */}
               {visibleOffers.map((offer, idx) => {
-                const gradient = VENDOR_COLORS[idx % VENDOR_COLORS.length];
-                const total = getTotal(offer.id);
-                const isCheapest = cheapestId === offer.id;
-                const isSelected = selectedVendor === offer.id;
-                const name = getVendorName(offer);
-
                 return (
                   <th
                     key={offer.id}
                     className={`${COL_W} p-0 align-top border-r border-border last:border-r-0 ${isOfferAwarded(offer.id) ? 'border-t-2 border-t-emerald-500' : ''}`}
                   >
-                    <div className={`px-3 py-3 ${isOfferAwarded(offer.id) ? 'bg-[var(--state-won)]/5/60' : negotiationMode && checkedVendors.has(offer.id) ? 'bg-[#FE3C01]/5 ring-2 ring-[#FE3C01]/20 ring-inset' : isSelected ? 'bg-[var(--bid-orange)]/5/60' : 'bg-card'}`}>
-                      {/* Avatar + name row */}
-                      <div className="flex items-center gap-2 mb-2">
-                        {negotiationMode && (
-                          <Checkbox
-                            checked={checkedVendors.has(offer.id)}
-                            onCheckedChange={() => toggleVendor(offer.id)}
-                            className="flex-shrink-0"
-                          />
-                        )}
-                        {offer.profile?.logoUrl ? (
-                          <img src={offer.profile.logoUrl} alt={`${name} logo`} className="h-8 w-8 rounded-lg object-cover flex-shrink-0 ring-1 ring-gray-200" />
-                        ) : (
-                          <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                            <span className="text-white text-[10px] font-bold leading-none">{name.slice(0, 2).toUpperCase()}</span>
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-foreground truncate leading-tight">{name}</p>
-                          {offer.company.category && (
-                            <p className="text-[10px] text-gray-400 truncate leading-tight">{offer.company.category}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Negotiation history badges */}
-                      {negotiationMode && getActionBadges(offer.id).length > 0 && (
-                        <div className="flex flex-wrap gap-0.5 mb-1.5">
-                          {getActionBadges(offer.id).map((badge, i) => (
-                            <span key={i} className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full border ${badge.color}`}>
-                              {badge.label}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Price + badges on one line */}
-                      <div className="flex items-center justify-between gap-1 mb-1.5">
-                        {total != null ? (
-                          <span className={`text-xs font-bold ${isCheapest ? 'text-[var(--state-won)]' : 'text-foreground'}`}>
-                            {t('tenderFlow.sarCurrency')} {total.toLocaleString()}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-gray-400">{t('tenderFlow.noPrice')}</span>
-                        )}
-                        <div className="flex gap-0.5 flex-shrink-0">
-                          {isCheapest && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold bg-[var(--state-won)]/10 text-[var(--state-won)] px-1.5 py-0.5 rounded-full border border-emerald-200">
-                              <Award className="h-2 w-2" /> {t('tenderFlow.bestLabel')}
-                            </span>
-                          )}
-                          {isSelected && (
-                            <span className="text-[9px] font-bold bg-[var(--bid-orange)]/10 text-[var(--bid-orange)] px-1.5 py-0.5 rounded-full border border-[var(--bid-orange)]/20">
-                              ✓ {t('tenderFlow.selectedLabel')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Price bar */}
-                      {total != null && highestPrice > 0 && (
-                        <div className="h-1 bg-muted rounded-full overflow-hidden mb-2">
-                          <div
-                            className={`h-full rounded-full transition-all ${isCheapest ? 'bg-[var(--state-won)]' : isSelected ? 'bg-blue-400' : 'bg-gray-300'}`}
-                            style={{ width: `${(total / highestPrice) * 100}%` }}
-                          />
-                        </div>
-                      )}
-
-                      {/* Watch Video link — always visible when videoUrl exists */}
-                      {offer.videoUrl && (
-                        <a
-                          href={offer.videoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mb-1.5 flex items-center justify-center gap-1 text-[10px] text-[var(--bid-orange)] hover:text-blue-800 dark:text-blue-300 border border-[var(--bid-orange)]/20 rounded-md px-2 py-1 hover:bg-[var(--bid-orange)]/5 w-full"
-                        >
-                          <FileText className="h-2.5 w-2.5" /> {t('tenderFlow.watchVideo')}
-                        </a>
-                      )}
-
-                      {/* Actions - hidden in negotiation mode */}
-                      {!negotiationMode && (
-                        <div className="flex items-center gap-1">
-                          {isSelected ? (
-                            <div className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold text-[var(--bid-orange)] bg-[var(--bid-orange)]/5 border border-[var(--bid-orange)]/20 rounded-md py-1 px-2">
-                              <CheckCircle className="h-2.5 w-2.5" /> {t('tenderFlow.selectedLabel')}
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              className="flex-1 h-6 text-[10px] bg-[#FE3C01] hover:bg-[#d54d35] text-white px-2 font-medium"
-                              onClick={() => handleSelectVendor(offer)}
-                              disabled={savingsMutation.isPending || total == null || isOfferAwarded(offer.id)}
-                            >
-                              <CheckCircle className="h-2.5 w-2.5 mr-1" /> {t('tenderFlow.selectBtn')}
-                            </Button>
-                          )}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="sm" className="h-6 w-6 p-0 border-border" disabled={isOfferAwarded(offer.id)}>
-                                <MoreHorizontal className="h-3 w-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-44">
-                              <DropdownMenuItem
-                                onClick={() => { const f = offer.combinedFileUrl || offer.technicalFileUrl; if (f) viewAuthenticatedFile(f); }}
-                                disabled={!offer.combinedFileUrl && !offer.technicalFileUrl}
-                              >
-                                <FileText className="h-4 w-4 mr-2" /> {t('tenderFlow.viewProposal')}
-                              </DropdownMenuItem>
-                              {offer.financialFileUrl && (
-                                <DropdownMenuItem onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)}>
-                                  <DollarSign className="h-4 w-4 mr-2" /> {t('tenderFlow.viewFinancial')}
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem
-                                onClick={() => setHiddenOffers(prev => new Set([...Array.from(prev), offer.id]))}
-                                className="text-red-500 focus:text-red-500"
-                              >
-                                <X className="h-4 w-4 mr-2" /> {t('tenderFlow.removeLabel')}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      )}
-                    </div>
+                    {renderVendorHeader(offer, idx)}
                   </th>
                 );
               })}
@@ -700,7 +798,7 @@ export default function ProposalComparison({
                   <td key={offer.id} className={`${COL_W} px-4 py-3 text-center border-r border-border last:border-r-0 ${selectedVendor === offer.id ? 'bg-[var(--bid-orange)]/5/30' : ''}`}>
                     {total != null ? (
                       <span className={`text-sm font-bold ${isCheapest ? 'text-[var(--state-won)]' : isMostExp ? 'text-red-500' : 'text-foreground'}`}>
-                        {t('tenderFlow.sarCurrency')} {total.toLocaleString()}
+                        {t('tenderFlow.sarCurrency')} {total.toLocaleString('en-US')}
                       </span>
                     ) : <span className="text-gray-300 text-xs">—</span>}
                   </td>
@@ -914,7 +1012,7 @@ export default function ProposalComparison({
                     )}
                   </div>
                   <span className="text-[10px] text-gray-300 flex-shrink-0 mt-0.5">
-                    {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(action.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', { month: 'short', day: 'numeric' })}
                   </span>
                 </div>
               );
@@ -1037,7 +1135,7 @@ export default function ProposalComparison({
           )}
           {completedAnalyses[0]?.analyzedAt && (
             <p className="text-xs text-gray-400 ml-auto">
-              {t('tenderFlow.analyzedLabel')} {new Date(completedAnalyses[0].analyzedAt).toLocaleString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US')}
+              {t('tenderFlow.analyzedLabel')} {new Date(completedAnalyses[0].analyzedAt).toLocaleString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US')}
             </p>
           )}
         </div>

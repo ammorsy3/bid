@@ -10,6 +10,7 @@ import { eq, and, isNull } from "drizzle-orm";
 import { storage } from "../storage";
 import { extractKeyPrefix, verifyApiKey, type ApiKeyScope } from "../lib/api-keys";
 import type { AuthRequest, JWTPayload } from "./auth-types";
+import { respondToAuthError } from "./auth-errors";
 import { assertFeature, sendPlanRequired } from "../lib/entitlements";
 
 // Hard-fail at startup if JWT_SECRET is missing — a literal default would let
@@ -167,8 +168,8 @@ export async function authenticateApiKeyOrJwt(
       }
     }
     next();
-  } catch {
-    res.status(403).json({ message: "Invalid token" });
+  } catch (error) {
+    respondToAuthError(res, error);
   }
 }
 

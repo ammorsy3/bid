@@ -9,8 +9,9 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 import { viewAuthenticatedFile, downloadAuthenticatedFile } from "@/lib/downloadFile";
@@ -53,23 +54,30 @@ interface PendingCompany {
   };
 }
 
-const DOC_TYPE_LABELS: Record<string, string> = {
-  cr_certificate: "Commercial Registration (CR)",
-  vat_certificate: "VAT Certificate",
-  gosi_certificate: "GOSI Certificate",
-  national_address_certificate: "National Address Certificate",
-  other: "Other Document",
-};
-
 type StatusFilter = 'under_review' | 'all' | 'verified' | 'rejected' | 'not_verified';
 
-const STATUS_TABS: { value: StatusFilter; label: string }[] = [
-  { value: 'under_review', label: 'Pending Review' },
-  { value: 'all', label: 'All Companies' },
-  { value: 'verified', label: 'Verified' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'not_verified', label: 'Not Verified' },
+const STATUS_TABS: { value: StatusFilter; labelKey: string }[] = [
+  { value: 'under_review', labelKey: 'admin.vendorTabPending' },
+  { value: 'all', labelKey: 'admin.vendorTabAll' },
+  { value: 'verified', labelKey: 'admin.statusVerified' },
+  { value: 'rejected', labelKey: 'admin.statusRejected' },
+  { value: 'not_verified', labelKey: 'admin.statusNotVerified' },
 ];
+
+const DOC_TYPE_KEYS: Record<string, string> = {
+  cr_certificate: 'admin.vendorDocCr',
+  vat_certificate: 'admin.vendorDocVat',
+  gosi_certificate: 'admin.vendorDocGosi',
+  national_address_certificate: 'admin.vendorDocNationalAddress',
+  other: 'admin.vendorDocOther',
+};
+
+const STATUS_KEYS: Record<string, string> = {
+  under_review: 'admin.statusUnderReview',
+  verified: 'admin.statusVerified',
+  rejected: 'admin.statusRejected',
+  not_verified: 'admin.statusNotVerified',
+};
 
 export default function AdminVendors() {
   const { toast } = useToast();
@@ -80,6 +88,10 @@ export default function AdminVendors() {
   const [showApproveWarning, setShowApproveWarning] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('under_review');
   const [searchQuery, setSearchQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(10);
+  const docLabel = (doc: CompanyDoc) =>
+    (DOC_TYPE_KEYS[doc.documentType] ? t(DOC_TYPE_KEYS[doc.documentType]) : null) || doc.label || doc.documentType;
+  const statusLabel = (status: string) => (STATUS_KEYS[status] ? t(STATUS_KEYS[status]) : status);
 
   // Pending companies (existing endpoint — includes documents & owner)
   const { data: pendingCompanies, isLoading: pendingLoading } = useQuery<PendingCompany[]>({
@@ -207,16 +219,16 @@ export default function AdminVendors() {
           {STATUS_TABS.map(tab => (
             <button
               key={tab.value}
-              onClick={() => { setStatusFilter(tab.value); setSearchQuery(""); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              onClick={() => withViewTransition(() => { setStatusFilter(tab.value); setSearchQuery(""); setVisibleCount(10); })}
+              className={`px-3 py-1.5 max-md:min-h-11 rounded-lg text-xs font-medium transition-colors ${
                 statusFilter === tab.value
                   ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300'
-                  : 'bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  : 'bg-gray-100 dark:bg-card text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 active:opacity-70'
               }`}
             >
-              {tab.label}
+              {t(tab.labelKey)}
               {tab.value === 'under_review' && pendingCompanies && pendingCompanies.length > 0 && (
-                <span className="ml-1.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-semibold bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">
+                <span className="ms-1.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full text-[10px] font-semibold bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">
                   {pendingCompanies.length}
                 </span>
               )}
@@ -227,12 +239,12 @@ export default function AdminVendors() {
         {/* Search */}
         <div className="mb-6">
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder={t('admin.searchVendorsPlaceholder')}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(10); }}
+              className="ps-9 text-base md:text-sm"
             />
           </div>
         </div>
@@ -248,58 +260,58 @@ export default function AdminVendors() {
           />
         ) : (
           <div className="space-y-4">
-            {filteredCompanies.map((company) => {
+            {filteredCompanies.map((company, index) => {
               const docs = company.documents || [];
               const hasCR = docs.some(d => d.documentType === 'cr_certificate');
               const resubmission = isResubmission(company);
 
               return (
-                <AdminCard key={company.id} data-testid={`card-company-${company.id}`}>
+                <AdminCard key={company.id} className={index >= visibleCount ? 'hidden md:block' : undefined} data-testid={`card-company-${company.id}`}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="flex items-center gap-2 text-base flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="flex items-center gap-2 text-base flex-wrap break-words min-w-0">
                           {company.name}
                           <Badge variant="outline" className="text-[11px]">
-                            {company.verificationStatus}
+                            {statusLabel(company.verificationStatus)}
                           </Badge>
                           {resubmission && (
                             <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[11px]">
-                              <RotateCcw className="h-3 w-3 mr-1" />
+                              <RotateCcw className="h-3 w-3 me-1" />
                               {t('admin.resubmission')}
                             </Badge>
                           )}
                           {docs.length === 0 && (
                             <Badge className="bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-[11px]">
-                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              <AlertTriangle className="h-3 w-3 me-1" />
                               {t('admin.noDocumentsBadge')}
                             </Badge>
                           )}
                           {docs.length > 0 && !hasCR && (
                             <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[11px]">
-                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              <AlertTriangle className="h-3 w-3 me-1" />
                               {t('admin.missingCr')}
                             </Badge>
                           )}
                         </CardTitle>
 
-                        <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-gray-600 dark:text-gray-400">
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-xs break-words text-gray-600 dark:text-gray-400">
                           <div><strong>{t('admin.legalName')}</strong> {company.legalName}</div>
                           <div><strong>{t('admin.crHash')}</strong> {company.crNumber}</div>
                           {company.vatNumber && <div><strong>{t('admin.vatHash')}</strong> {company.vatNumber}</div>}
                           <div><strong>{t('admin.city')}</strong> {company.city || t('admin.na')}</div>
                           {company.category && <div><strong>{t('admin.categoryLabel')}</strong> {company.category}</div>}
-                          <div><strong>{t('admin.submitted')}</strong> {format(new Date(company.createdAt), 'PPp')}</div>
+                          <div><strong>{t('admin.submitted')}</strong> {formatLocalDate(new Date(company.createdAt), 'PPp')}</div>
                         </div>
 
                         {/* Owner info */}
                         {company.owner && (
-                          <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                            <User className="h-3.5 w-3.5" />
-                            <span>{company.owner.name}</span>
+                          <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                            <User className="h-3.5 w-3.5 shrink-0" />
+                            <span className="break-words min-w-0">{company.owner.name}</span>
                             <span className="text-gray-300 dark:text-gray-600">|</span>
-                            <Mail className="h-3.5 w-3.5" />
-                            <span>{company.owner.email}</span>
+                            <Mail className="h-3.5 w-3.5 shrink-0" />
+                            <bdi dir="ltr" className="break-all min-w-0">{company.owner.email}</bdi>
                           </div>
                         )}
 
@@ -307,7 +319,7 @@ export default function AdminVendors() {
                         {resubmission && (
                           <div className="mt-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs">
                             <strong className="text-amber-800 dark:text-amber-300">{t('admin.previousRejection')}</strong>{" "}
-                            <span className="text-amber-700 dark:text-amber-400">{company.rejectionReason}</span>
+                            <span className="text-amber-700 dark:text-amber-400 break-words">{company.rejectionReason}</span>
                           </div>
                         )}
 
@@ -321,8 +333,8 @@ export default function AdminVendors() {
                                 className="text-[11px] cursor-pointer hover:bg-muted dark:hover:bg-gray-800"
                                 onClick={() => viewAuthenticatedFile(doc.fileUrl)}
                               >
-                                <FileText className="h-3 w-3 mr-1" />
-                                {DOC_TYPE_LABELS[doc.documentType] || doc.label || doc.documentType}
+                                <FileText className="h-3 w-3 me-1" />
+                                {docLabel(doc)}
                               </Badge>
                             ))}
                           </div>
@@ -331,34 +343,36 @@ export default function AdminVendors() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
                         size="sm"
+                        className="max-md:min-h-11"
                         onClick={() => { setSelectedCompany(company); setActionType("view"); }}
                         data-testid={`button-view-${company.id}`}
                       >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Eye className="h-4 w-4 me-2" />
                         {t('admin.viewDetails')}
                       </Button>
                       {company.verificationStatus === 'under_review' && (
                         <>
                           <Button
                             size="sm"
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white max-md:min-h-11"
                             onClick={() => handleApproveClick(company)}
                             data-testid={`button-approve-${company.id}`}
                           >
-                            <CheckCircle className="h-4 w-4 mr-2" />
+                            <CheckCircle className="h-4 w-4 me-2" />
                             {t('admin.verify')}
                           </Button>
                           <Button
                             variant="destructive"
                             size="sm"
+                            className="max-md:min-h-11"
                             onClick={() => { setSelectedCompany(company); setActionType("reject"); }}
                             data-testid={`button-reject-${company.id}`}
                           >
-                            <XCircle className="h-4 w-4 mr-2" />
+                            <XCircle className="h-4 w-4 me-2" />
                             {t('admin.reject')}
                           </Button>
                         </>
@@ -368,13 +382,22 @@ export default function AdminVendors() {
                 </AdminCard>
               );
             })}
+            {filteredCompanies.length > visibleCount && (
+              <Button
+                variant="outline"
+                className="w-full md:hidden"
+                onClick={() => withViewTransition(() => setVisibleCount((c) => c + 10))}
+              >
+                {t('admin.showMoreLeft', { count: filteredCompanies.length - visibleCount })}
+              </Button>
+            )}
           </div>
         )}
       </AdminPage>
 
       {/* View Details Dialog */}
       <Dialog open={actionType === "view"} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto break-words">
           <DialogHeader>
             <DialogTitle>{t('admin.companyDetails')}</DialogTitle>
             <DialogDescription>{t('admin.companyDetailsDesc')}</DialogDescription>
@@ -384,7 +407,7 @@ export default function AdminVendors() {
               {/* Basic Info */}
               <div>
                 <h3 className="font-semibold mb-2 text-sm">{t('admin.basicInfo')}</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm break-words">
                   <div><strong>{t('admin.companyNameLabel')}</strong> {selectedCompany.name}</div>
                   <div><strong>{t('admin.legalName')}</strong> {selectedCompany.legalName}</div>
                   <div><strong>{t('admin.crNumber')}</strong> {selectedCompany.crNumber}</div>
@@ -398,9 +421,9 @@ export default function AdminVendors() {
               {selectedCompany.owner && (
                 <div>
                   <h3 className="font-semibold mb-2 text-sm">{t('admin.ownerSection')}</h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm break-words">
                     <div><strong>{t('admin.nameLabel')}</strong> {selectedCompany.owner.name}</div>
-                    <div><strong>{t('admin.emailLabel')}</strong> {selectedCompany.owner.email}</div>
+                    <div><strong>{t('admin.emailLabel')}</strong> <bdi dir="ltr" className="break-all">{selectedCompany.owner.email}</bdi></div>
                   </div>
                 </div>
               )}
@@ -420,9 +443,9 @@ export default function AdminVendors() {
               <div>
                 <h3 className="font-semibold mb-2 text-sm">{t('admin.statusSection')}</h3>
                 <div className="text-sm space-y-1">
-                  <div><strong>{t('admin.verificationLabel')}</strong> {selectedCompany.verificationStatus}</div>
+                  <div><strong>{t('admin.verificationLabel')}</strong> {statusLabel(selectedCompany.verificationStatus)}</div>
                   <div><strong>{t('admin.onboardingLabel')}</strong> {selectedCompany.onboardingState}</div>
-                  <div><strong>{t('admin.createdLabel')}</strong> {format(new Date(selectedCompany.createdAt), 'PPp')}</div>
+                  <div><strong>{t('admin.createdLabel')}</strong> {formatLocalDate(new Date(selectedCompany.createdAt), 'PPp')}</div>
                 </div>
               </div>
 
@@ -451,7 +474,7 @@ export default function AdminVendors() {
                     {selectedCompany.documents.map(doc => (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border dark:border-border bg-gray-50 dark:bg-card/50"
+                        className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border border-border dark:border-border bg-gray-50 dark:bg-card/50"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center flex-shrink-0">
@@ -459,30 +482,30 @@ export default function AdminVendors() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
-                              {DOC_TYPE_LABELS[doc.documentType] || doc.label || doc.documentType}
+                              {docLabel(doc)}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {doc.originalName || t('admin.documentLabel')} &middot; {format(new Date(doc.uploadedAt), 'PP')}
+                              {doc.originalName || t('admin.documentLabel')} &middot; {formatLocalDate(new Date(doc.uploadedAt), 'PP')}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:flex-shrink-0">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                            className="h-8 px-2 max-md:h-11 text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                             onClick={() => viewAuthenticatedFile(doc.fileUrl)}
                           >
-                            <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                            <ExternalLink className="h-3.5 w-3.5 me-1" />
                             <span className="text-xs">{t('admin.viewBtn')}</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-gray-700"
+                            className="h-8 px-2 max-md:h-11 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-gray-700"
                             onClick={() => downloadAuthenticatedFile(doc.fileUrl, doc.originalName || undefined)}
                           >
-                            <Download className="h-3.5 w-3.5 mr-1" />
+                            <Download className="h-3.5 w-3.5 me-1" />
                             <span className="text-xs">{t('admin.downloadBtn')}</span>
                           </Button>
                         </div>
@@ -551,7 +574,7 @@ export default function AdminVendors() {
               className="bg-emerald-600 hover:bg-emerald-700"
               data-testid="button-confirm-approve"
             >
-              {approveMutation.isPending ? t('admin.verifying') : (showApproveWarning ? 'Verify Anyway' : t('admin.verifyCompanyBtn'))}
+              {approveMutation.isPending ? t('admin.verifying') : (showApproveWarning ? t('admin.verifyAnyway') : t('admin.verifyCompanyBtn'))}
             </Button>
           </DialogFooter>
         </DialogContent>

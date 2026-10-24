@@ -5,6 +5,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
 import { useState, useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 
 // Comprehensive skills database
 const SKILLS_DATABASE = [
@@ -379,7 +380,7 @@ export default function TenderSkillsStep() {
                             <span>{skill}</span>
                             <button
                               onClick={() => handleRemoveSkill(skill)}
-                              className="hover:text-[#FE3C01]"
+                              className="active:opacity-70 hover:text-[#FE3C01]"
                               data-testid={`button-remove-${skill}`}
                             >
                               <X className="h-4 w-4" />
@@ -397,8 +398,8 @@ export default function TenderSkillsStep() {
                         {t('tenderSteps.searchSkillsLabel')}
                       </label>
                       <button
-                        onClick={() => setShowCustomInput(!showCustomInput)}
-                        className="text-xs font-medium text-[#FE3C01] hover:underline"
+                        onClick={() => withViewTransition(() => setShowCustomInput(!showCustomInput))}
+                        className="active:opacity-70 text-xs font-medium text-[#FE3C01] hover:underline"
                         data-testid="button-toggle-custom-input"
                       >
                         {showCustomInput ? t('tenderSteps.cancelBtn') : t('tenderSteps.addCustomSkillToggle')}
@@ -437,7 +438,7 @@ export default function TenderSkillsStep() {
                               key={skill}
                               onClick={() => handleAddSkill(skill)}
                               disabled={selectedSkills.includes(skill)}
-                              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-muted-foreground dark:text-muted-foreground hover:border-[#FE3C01] hover:text-[#FE3C01] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              className="enabled:active:opacity-70 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-muted-foreground dark:text-muted-foreground hover:border-[#FE3C01] hover:text-[#FE3C01] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               data-testid={`button-add-${skill}`}
                             >
                               {skill} <span className="ml-1">+</span>

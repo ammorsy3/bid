@@ -9,6 +9,7 @@ import { arSA, enUS } from "date-fns/locale";
 import { CreditCard, Mail, MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList, SkeletonKpis } from "@/components/admin/AdminUI";
 
@@ -85,19 +86,19 @@ export default function AdminCheckouts() {
               ] as const).map(([k, v]) => (
                 <AdminCard key={k} className="p-4">
                   <p className="text-xs text-gray-500 dark:text-muted-foreground">{t(`admin.${k}`)}</p>
-                  <p className="font-display font-black text-2xl mt-1">{v.toLocaleString()}</p>
+                  <p className="font-display font-black text-2xl mt-1">{v.toLocaleString("en-US")}</p>
                 </AdminCard>
               ))}
             </div>
 
-            <div className="flex gap-2 mb-4" role="tablist">
+            <div className="flex flex-wrap gap-2 mb-4" role="tablist">
               {FILTERS.map((f) => (
                 <button
                   key={f}
                   role="tab"
                   aria-selected={filter === f}
-                  onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 rounded-full text-sm ${filter === f ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted"}`}
+                  onClick={() => withViewTransition(() => setFilter(f))}
+                  className={`px-4 md:px-3 py-1.5 max-md:min-h-11 rounded-full text-sm ${filter === f ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted active:bg-muted"} active:opacity-70`}
                   data-testid={`filter-checkouts-${f}`}
                 >
                   {t(`admin.checkoutsFilter_${f}`)}
@@ -116,7 +117,7 @@ export default function AdminCheckouts() {
                       <div className="flex flex-col md:flex-row md:items-center gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-semibold truncate">{r.companyName}</span>
+                            <span className="font-semibold break-words min-w-0 max-w-full">{r.companyName}</span>
                             <Badge className={`text-[11px] font-medium border-0 ${STATUS_TONE[r.status]}`}>
                               {t(`admin.checkoutStatus_${r.status}`)}
                             </Badge>
@@ -125,7 +126,7 @@ export default function AdminCheckouts() {
                               <span dir="ltr">SAR {r.total.toLocaleString("en-US")}</span>
                             </span>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1 truncate">
+                          <p className="text-sm text-muted-foreground mt-1 break-words md:truncate">
                             {r.userName} · <span dir="ltr">{r.email}</span>{r.phone && <> · <span dir="ltr">{r.phone}</span></>}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -135,10 +136,10 @@ export default function AdminCheckouts() {
                           </p>
                         </div>
                         {r.status !== "paid" && (
-                          <div className="flex gap-2 shrink-0">
+                          <div className="flex gap-2 shrink-0 max-md:w-full">
                             <a
                               href={`mailto:${r.email}`}
-                              className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+                              className="inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted max-md:flex-1 max-md:min-h-11"
                             >
                               <Mail className="h-4 w-4" />{t("admin.checkoutsEmail")}
                             </a>
@@ -147,7 +148,7 @@ export default function AdminCheckouts() {
                                 href={wa}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+                                className="inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted max-md:flex-1 max-md:min-h-11"
                               >
                                 <MessageCircle className="h-4 w-4" />WhatsApp
                               </a>

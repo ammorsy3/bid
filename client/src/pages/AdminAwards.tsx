@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertTriangle, Unlock, ShieldCheck, Eye, XCircle, Building2, FileText, ExternalLink, Download, User, Mail, Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
@@ -16,12 +16,12 @@ import { viewAuthenticatedFile, downloadAuthenticatedFile } from "@/lib/download
 import { StatusBadge } from "@/components/brand/StatusDot";
 import { verificationStatusToState } from "@/components/brand/statusMap";
 
-const DOC_TYPE_LABELS: Record<string, string> = {
-  cr_certificate: "Commercial Registration (CR)",
-  vat_certificate: "VAT Certificate",
-  gosi_certificate: "GOSI Certificate",
-  national_address_certificate: "National Address Certificate",
-  other: "Other Document",
+const DOC_TYPE_KEYS: Record<string, string> = {
+  cr_certificate: 'admin.vendorDocCr',
+  vat_certificate: 'admin.vendorDocVat',
+  gosi_certificate: 'admin.vendorDocGosi',
+  national_address_certificate: 'admin.vendorDocNationalAddress',
+  other: 'admin.vendorDocOther',
 };
 
 export default function AdminAwards() {
@@ -145,29 +145,29 @@ export default function AdminAwards() {
                 <AdminCard key={award.id} data-testid={`card-award-${award.id}`}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="flex items-center gap-2 text-base flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="flex items-center gap-2 text-base flex-wrap break-words min-w-0">
                           {award.tender?.title || t('admin.unknownTender')}
                           <Badge variant="destructive" className="text-xs">{t('admin.blockedBadge')}</Badge>
                         </CardTitle>
 
-                        <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-1.5 text-xs text-gray-600 dark:text-gray-400">
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs break-words text-gray-600 dark:text-gray-400">
                           <div className="flex items-center gap-1.5">
-                            <Building2 className="h-3.5 w-3.5" />
+                            <Building2 className="h-3.5 w-3.5 shrink-0" />
                             <strong>{t('admin.vendorLabelShort')}</strong> {award.company?.name || t('admin.unknownLabel')}
                           </div>
                           <div className="flex items-center gap-1.5">
                             <strong>{t('admin.verificationLabelShort')}</strong>
                             {getStatusBadge(award.company?.verificationStatus)}
                           </div>
-                          <div><strong>{t('admin.tenderDeadlineLabel')}</strong> {award.tender?.deadline ? format(new Date(award.tender.deadline), 'PP') : t('admin.na')}</div>
-                          <div><strong>{t('admin.blockedSinceLabel')}</strong> {award.createdAt ? format(new Date(award.createdAt), 'PP') : t('admin.na')}</div>
+                          <div><strong>{t('admin.tenderDeadlineLabel')}</strong> {award.tender?.deadline ? formatLocalDate(new Date(award.tender.deadline), 'PP') : t('admin.na')}</div>
+                          <div><strong>{t('admin.blockedSinceLabel')}</strong> {award.createdAt ? formatLocalDate(new Date(award.createdAt), 'PP') : t('admin.na')}</div>
                         </div>
 
                         {award.blockReason && (
                           <div className="mt-2 p-2.5 bg-red-50 dark:bg-red-950/30 rounded-lg text-xs border border-red-100 dark:border-red-900/50">
                             <strong className="text-red-800 dark:text-red-300">{t('admin.blockReason')}</strong>{" "}
-                            <span className="text-red-700 dark:text-red-400">{award.blockReason}</span>
+                            <span className="text-red-700 dark:text-red-400 break-words">{award.blockReason}</span>
                           </div>
                         )}
                       </div>
@@ -178,29 +178,30 @@ export default function AdminAwards() {
                       <Button
                         variant="outline"
                         size="sm"
+                        className="max-md:min-h-11"
                         onClick={() => { setSelectedAward(award); setActionType("view_vendor"); }}
                       >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Eye className="h-4 w-4 me-2" />
                         {t('admin.viewVendor')}
                       </Button>
 
                       {isVendorVerified ? (
                         <Button
                           size="sm"
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white max-md:min-h-11"
                           onClick={() => unblockMutation.mutate(award.id)}
                           disabled={unblockMutation.isPending}
                         >
-                          <Unlock className="h-4 w-4 mr-2" />
+                          <Unlock className="h-4 w-4 me-2" />
                           {t('admin.unblockAwardBtn')}
                         </Button>
                       ) : (
                         <Button
                           size="sm"
-                          className="bg-purple-600 hover:bg-purple-700 text-white"
+                          className="bg-purple-600 hover:bg-purple-700 text-white max-md:min-h-11"
                           onClick={() => { setSelectedAward(award); setActionType("verify_unblock"); }}
                         >
-                          <ShieldCheck className="h-4 w-4 mr-2" />
+                          <ShieldCheck className="h-4 w-4 me-2" />
                           {t('admin.verifyVendorUnblock')}
                         </Button>
                       )}
@@ -208,9 +209,10 @@ export default function AdminAwards() {
                       <Button
                         variant="destructive"
                         size="sm"
+                        className="max-md:min-h-11"
                         onClick={() => { setSelectedAward(award); setActionType("reject_award"); }}
                       >
-                        <XCircle className="h-4 w-4 mr-2" />
+                        <XCircle className="h-4 w-4 me-2" />
                         {t('admin.dismissAward')}
                       </Button>
                     </div>
@@ -224,7 +226,7 @@ export default function AdminAwards() {
 
       {/* View Vendor Dialog */}
       <Dialog open={actionType === "view_vendor"} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto break-words">
           <DialogHeader>
             <DialogTitle>{t('admin.vendorDetails')}</DialogTitle>
             <DialogDescription>{t('admin.vendorDetailsDesc')}</DialogDescription>
@@ -234,7 +236,7 @@ export default function AdminAwards() {
               {/* Company Info */}
               <div>
                 <h3 className="font-semibold mb-2 text-sm">{t('admin.companyInformation')}</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm break-words">
                   <div><strong>{t('admin.nameLabel')}</strong> {selectedAward.company.name}</div>
                   <div><strong>{t('admin.legalName')}</strong> {selectedAward.company.legalName || t('admin.na')}</div>
                   <div><strong>{t('admin.crHash')}</strong> {selectedAward.company.crNumber || t('admin.na')}</div>
@@ -276,7 +278,7 @@ export default function AdminAwards() {
                     {vendorDocs.map((doc: any) => (
                       <div
                         key={doc.id}
-                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border dark:border-border bg-gray-50 dark:bg-card/50"
+                        className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-lg border border-border dark:border-border bg-gray-50 dark:bg-card/50"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center flex-shrink-0">
@@ -284,30 +286,30 @@ export default function AdminAwards() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
-                              {DOC_TYPE_LABELS[doc.documentType] || doc.label || doc.documentType}
+                              {(DOC_TYPE_KEYS[doc.documentType] ? t(DOC_TYPE_KEYS[doc.documentType]) : null) || doc.label || doc.documentType}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                              {doc.originalName || t('admin.documentLabel')} &middot; {format(new Date(doc.uploadedAt), 'PP')}
+                              {doc.originalName || t('admin.documentLabel')} &middot; {formatLocalDate(new Date(doc.uploadedAt), 'PP')}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:flex-shrink-0">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                            className="h-8 px-2 max-md:h-11 text-blue-600 hover:text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                             onClick={() => viewAuthenticatedFile(doc.fileUrl)}
                           >
-                            <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                            <ExternalLink className="h-3.5 w-3.5 me-1" />
                             <span className="text-xs">{t('admin.viewBtn')}</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-gray-700"
+                            className="h-8 px-2 max-md:h-11 text-muted-foreground hover:text-muted-foreground hover:bg-muted dark:hover:bg-gray-700"
                             onClick={() => downloadAuthenticatedFile(doc.fileUrl, doc.originalName || undefined)}
                           >
-                            <Download className="h-3.5 w-3.5 mr-1" />
+                            <Download className="h-3.5 w-3.5 me-1" />
                             <span className="text-xs">{t('admin.downloadBtn')}</span>
                           </Button>
                         </div>

@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CheckCircle, XCircle, User as UserIcon, Users } from "lucide-react";
 import { useState } from "react";
+import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
@@ -68,6 +69,12 @@ export default function AdminJoinRequests() {
     },
   });
 
+  const STATUS_KEYS: Record<string, string> = {
+    under_review: 'admin.statusUnderReview', verified: 'admin.statusVerified',
+    rejected: 'admin.statusRejected', not_verified: 'admin.statusNotVerified',
+  };
+  const statusLabel = (status?: string | null) => (!status ? t('admin.na') : STATUS_KEYS[status] ? t(STATUS_KEYS[status]) : status);
+
   const handleClose = () => {
     setSelectedRequest(null);
     setActionType(null);
@@ -113,8 +120,8 @@ export default function AdminJoinRequests() {
               <AdminCard key={request.id} hover data-testid={`card-request-${request.id}`}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2 text-base">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="flex flex-wrap items-center gap-2 text-base break-words">
                         {request.vendorCompany?.name || t('admin.na')}
                         <Badge variant="secondary" className="text-xs" data-testid={`badge-status-${request.id}`}>
                           {t('admin.pendingBadge')}
@@ -129,37 +136,46 @@ export default function AdminJoinRequests() {
                         <div className="space-y-1">
                           <div>{t('admin.requestedBy')} {request.requesterCompany?.name || t('admin.na')}</div>
                           <div>
-                            {t('admin.submittedAt')} {request.createdAt ? format(new Date(request.createdAt), "PPP") : t('admin.na')}
+                            {t('admin.submittedAt')} {request.createdAt ? formatLocalDate(new Date(request.createdAt), "PPP") : t('admin.na')}
                           </div>
-                          <div>{t('admin.vendorStatusLabel')} {request.vendorCompany?.verificationStatus || t('admin.na')}</div>
+                          <div>{t('admin.vendorStatusLabel')} {statusLabel(request.vendorCompany?.verificationStatus)}</div>
                         </div>
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white max-md:min-h-11"
                       onClick={() => { setSelectedRequest(request); setActionType("approve"); }}
                       data-testid={`button-approve-${request.id}`}
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <CheckCircle className="h-4 w-4 me-2" />
                       {t('admin.approve')}
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
+                      className="max-md:min-h-11"
                       onClick={() => { setSelectedRequest(request); setActionType("reject"); }}
                       data-testid={`button-reject-${request.id}`}
                     >
-                      <XCircle className="h-4 w-4 mr-2" />
+                      <XCircle className="h-4 w-4 me-2" />
                       {t('admin.reject')}
                     </Button>
-                    <Button variant="ghost" size="sm" data-testid={`button-view-profile-${request.id}`}>
-                      {t('admin.viewProfile')}
-                    </Button>
+                    {request.vendorCompany?.slug ? (
+                      <Button variant="ghost" size="sm" className="max-md:min-h-11" asChild data-testid={`button-view-profile-${request.id}`}>
+                        <Link href={`${request.vendorCompany.accountType === 'individual' ? '/people' : '/company'}/${request.vendorCompany.slug}`}>
+                          {t('admin.viewProfile')}
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" size="sm" className="max-md:min-h-11" disabled data-testid={`button-view-profile-${request.id}`}>
+                        {t('admin.viewProfile')}
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </AdminCard>
@@ -182,8 +198,8 @@ export default function AdminJoinRequests() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium mb-2">{t('admin.vendorLabel')} {selectedRequest?.vendorCompany?.name || t('admin.na')}</p>
-              <p className="text-sm text-muted-foreground">{t('admin.requestedBy')} {selectedRequest?.requesterCompany?.name || t('admin.na')}</p>
+              <p className="text-sm font-medium mb-2 break-words">{t('admin.vendorLabel')} {selectedRequest?.vendorCompany?.name || t('admin.na')}</p>
+              <p className="text-sm text-muted-foreground break-words">{t('admin.requestedBy')} {selectedRequest?.requesterCompany?.name || t('admin.na')}</p>
             </div>
             {actionType === "reject" && (
               <div>

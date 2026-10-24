@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, ApiError } from "@/lib/queryClient";
 import {
   Building2, MapPin, Briefcase, ShieldCheck, Globe, Linkedin, Twitter,
   FileText, ArrowLeft, AlertCircle, Clock, CheckCircle2, ExternalLink, Users,
@@ -208,10 +208,12 @@ export default function CompanyProfilePage() {
   const { t, language } = useI18n();
   const isRtl = language === "ar";
 
-  const { data, isLoading, error } = useQuery<CompanyProfileData>({
+  const { data, isLoading, error, refetch, isFetching } = useQuery<CompanyProfileData>({
     queryKey: ['/api/companies/by-slug', slug, 'profile'],
     queryFn: () => apiRequest('GET', `/api/companies/by-slug/${slug}/profile`).then(r => r.json()),
     enabled: !!slug,
+    // A real 404 is a final answer; anything else (5xx, offline) may pass, so retry once.
+    retry: (count, err) => !(err instanceof ApiError && err.statusCode === 404) && count < 1,
   });
 
   // Individuals live at /people/:slug (not /company/:slug — they aren't companies).
@@ -228,6 +230,34 @@ export default function CompanyProfilePage() {
   // Individuals get a dedicated, minimal, social-style profile.
   if (data && data.company.accountType === 'individual') {
     return <IndividualProfilePage data={data as any} />;
+  }
+
+  // Only a real 404 means "no such company". A server error or no connection
+  // gets its own retry screen (never signs out or navigates away).
+  const isNotFound = !error || (error instanceof ApiError && error.statusCode === 404);
+  if (error && !isNotFound) {
+    return (
+      <div className="min-h-dvh bg-muted flex items-center justify-center px-6 py-10">
+        <div className="text-center space-y-4 w-full max-w-sm" role="alert" data-testid="company-load-error">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
+            <AlertCircle className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h1 className="text-xl font-bold text-foreground">{t('companyProfile.loadFailed')}</h1>
+          <p className="text-sm text-muted-foreground max-w-sm">{t('companyProfile.loadFailedDesc')}</p>
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-[#FE3C01] hover:bg-[#1A1613] px-6 min-h-11 text-sm font-semibold text-white transition-[color,background-color,border-color,transform] duration-100 active:scale-[0.97] disabled:opacity-60"
+              data-testid="button-company-retry"
+            >
+              {t('companyProfile.tryAgain')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error || !data) {
@@ -312,8 +342,8 @@ export default function CompanyProfilePage() {
         <div className="min-w-0 flex-1">
           <h1 className="font-display font-black text-xl md:text-2xl text-white tracking-[-0.03em] drop-shadow break-words"><bdi>{displayName}</bdi></h1>
           <div className="flex items-center gap-2.5 mt-1 flex-wrap">
-            {/* The badge colours are made for a light page; on the dark banner they need their own light chip on phones. */}
-            <span className="inline-flex rounded-full bg-card max-md:p-0.5 md:bg-transparent"><VerificationBadge status={company.verificationStatus} /></span>
+            {/* The badge colours are made for a light page; on the dark banner they need their own light chip. */}
+            <span className="inline-flex rounded-full bg-card p-0.5"><VerificationBadge status={company.verificationStatus} /></span>
             {company.category && (
               <span className="flex items-center gap-1 text-xs text-white/80 font-medium"><Briefcase className="h-3 w-3 flex-shrink-0" />{categoryLabel(company.category, isRtl)}</span>
             )}

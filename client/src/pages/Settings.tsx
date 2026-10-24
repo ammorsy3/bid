@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/lib/auth";
+import { emailInputProps } from "@/lib/form-validation";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import JoinCodeCard from "@/components/JoinCodeCard";
@@ -31,6 +32,7 @@ import { CompanyVerificationFlow } from "@/components/CompanyVerificationFlow";
 import { SettingsNotifications } from "@/pages/SettingsNotifications";
 import { SettingsBilling } from "@/pages/SettingsBilling";
 import { displayRoleName } from "@/lib/roles";
+import { withViewTransition } from "@/lib/view-transition";
 
 const TIMEZONES = [
   { value: "Asia/Riyadh", label: "Riyadh (GMT+3)" },
@@ -614,10 +616,17 @@ export default function Settings() {
   // Auto-save personal info with debounce
   const autoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
   
+  // What the server already has (the values the page opened with, then whatever was last
+  // saved). Auto-save only fires when the fields differ from this, so just opening the
+  // page never writes anything or shows a "saved" toast.
+  const lastSavedPersonal = useRef(JSON.stringify([firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]));
+
   const autoSavePersonalInfo = useCallback(() => {
     if (autoSaveTimeout.current) {
       clearTimeout(autoSaveTimeout.current);
     }
+    const snapshot = JSON.stringify([firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]);
+    if (snapshot === lastSavedPersonal.current) return;
     autoSaveTimeout.current = setTimeout(() => {
       const fullName = `${firstName} ${lastName}`.trim();
       if (fullName) {
@@ -627,7 +636,7 @@ export default function Settings() {
           timezone: timezone || undefined,
           linkedinUrl: linkedinUrl || undefined,
           phoneNumber: phoneNumber || undefined,
-        });
+        }, { onSuccess: () => { lastSavedPersonal.current = snapshot; } });
       }
     }, 1000);
   }, [firstName, lastName, jobTitle, timezone, linkedinUrl, phoneNumber]);
@@ -650,17 +659,22 @@ export default function Settings() {
 
   const autoSaveCompanyTimeout = useRef<NodeJS.Timeout | null>(null);
   
+  // Same idea as lastSavedPersonal: only save the company info after a real edit.
+  const lastSavedCompany = useRef(JSON.stringify([companyDisplayName, companyBio]));
+
   const autoSaveCompanyInfo = useCallback(() => {
     if (!canManageCompany) return;
     if (autoSaveCompanyTimeout.current) {
       clearTimeout(autoSaveCompanyTimeout.current);
     }
+    const snapshot = JSON.stringify([companyDisplayName, companyBio]);
+    if (snapshot === lastSavedCompany.current) return;
     autoSaveCompanyTimeout.current = setTimeout(() => {
       if (companyDisplayName) {
         updateCompanyMutation.mutate({
           displayName: companyDisplayName,
           bio: companyBio,
-        });
+        }, { onSuccess: () => { lastSavedCompany.current = snapshot; } });
       }
     }, 1000);
   }, [companyDisplayName, companyBio, canManageCompany]);
@@ -913,7 +927,7 @@ export default function Settings() {
 
   return (
     <>
-    <div className={`min-h-screen bg-gray-50 dark:bg-background flex flex-col md:flex-row`}>
+    <div className={`min-h-dvh md:min-h-screen bg-gray-50 dark:bg-background flex flex-col md:flex-row`}>
       {/* Sidebar - horizontal scroll tab bar on mobile, vertical panel on desktop */}
       <div className={`w-full bg-white dark:bg-card flex flex-col md:w-64 ${isRtl ? 'border-b md:border-b-0 md:border-l' : 'border-b md:border-b-0 md:border-r'}`}>
         <div className="p-4 border-b">
@@ -927,15 +941,15 @@ export default function Settings() {
         </div>
 
         {/* Mobile: horizontal scrollable tab bar */}
-        <nav className="no-scrollbar flex md:hidden flex-row overflow-x-auto gap-1 px-2 py-2">
+        <nav className="flex md:hidden flex-row flex-wrap gap-1 px-2 py-2">
           {sidebarItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+              onClick={() => withViewTransition(() => setActiveTab(item.id))}
+              className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 min-h-11 rounded-lg text-sm font-medium whitespace-nowrap transition-colors active:opacity-70 ${
                 activeTab === item.id
                   ? 'bg-[#FE3C01]/10 text-[#FE3C01]'
-                  : 'text-muted-foreground hover:bg-muted'
+                  : 'text-muted-foreground hover:bg-muted active:bg-accent'
               }`}
               data-testid={`sidebar-${item.id}`}
               data-tour={item.id === 'account' ? 'settings-account-tab' : item.id === 'company' ? 'settings-company-tab' : undefined}
@@ -955,7 +969,7 @@ export default function Settings() {
           {isCompanyWorkspace && (
             <button
               onClick={() => setLocation("/settings/integrations")}
-              className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors"
+              className="flex-shrink-0 flex items-center gap-2 px-3 py-2 min-h-11 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors active:opacity-70 active:bg-accent"
               data-testid="sidebar-integrations"
             >
               <Plug className="h-4 w-4 flex-shrink-0" />
@@ -969,11 +983,11 @@ export default function Settings() {
           {sidebarItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isRtl ? 'text-right' : 'text-start'} ${
+              onClick={() => withViewTransition(() => setActiveTab(item.id))}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors active:opacity-70 ${isRtl ? 'text-right' : 'text-start'} ${
                 activeTab === item.id
                   ? 'bg-[#FE3C01]/10 text-[#FE3C01]'
-                  : 'hover:bg-muted dark:hover:bg-gray-700'
+                  : 'hover:bg-muted dark:hover:bg-gray-700 active:bg-accent'
               }`}
               data-testid={`sidebar-${item.id}`}
               data-tour={item.id === 'account' ? 'settings-account-tab' : item.id === 'company' ? 'settings-company-tab' : undefined}
@@ -1001,7 +1015,7 @@ export default function Settings() {
             <div className="mt-4 pt-4 border-t border-border dark:border-border">
               <button
                 onClick={() => setLocation("/settings/integrations")}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 ${isRtl ? 'text-right' : 'text-start'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 active:opacity-70 active:bg-accent ${isRtl ? 'text-right' : 'text-start'}`}
                 data-testid="sidebar-integrations"
               >
                 <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
@@ -1028,8 +1042,8 @@ export default function Settings() {
               {/* Profile Picture */}
               <Card>
                 <CardContent className="pt-6">
-                  <div className={`flex items-center gap-6`}>
-                    <div className="relative">
+                  <div className="flex items-center gap-4 sm:gap-6">
+                    <div className="relative shrink-0">
                       {profilePicturePreview ? (
                         <img 
                           src={profilePicturePreview} 
@@ -1047,7 +1061,7 @@ export default function Settings() {
                         </div>
                       )}
                     </div>
-                    <div className={isRtl ? 'text-right' : ''}>
+                    <div className={`min-w-0 flex-1 ${isRtl ? 'text-right' : ''}`}>
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -1111,6 +1125,8 @@ export default function Settings() {
                     <Input
                       id="email"
                       value={user.email}
+                      {...emailInputProps}
+                      autoComplete="email"
                       disabled
                       className="bg-muted"
                       data-testid="input-email"
@@ -1140,6 +1156,10 @@ export default function Settings() {
                       id="phoneNumber"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
+                      type="tel"
+                      inputMode="tel"
+                      dir="ltr"
+                      autoComplete="tel"
                       placeholder="+966 50 123 4567"
                       data-testid="input-phone"
                     />
@@ -1154,6 +1174,11 @@ export default function Settings() {
                       id="linkedinUrl"
                       value={linkedinUrl}
                       onChange={(e) => setLinkedinUrl(e.target.value)}
+                      type="url"
+                      inputMode="url"
+                      dir="ltr"
+                      autoCapitalize="none"
+                      spellCheck={false}
                       placeholder="e.g. https://linkedin.com/in/yourprofile"
                       data-testid="input-linkedin"
                     />
@@ -1165,7 +1190,7 @@ export default function Settings() {
                       {t('settings.timezoneHelper')}
                     </p>
                     <Select value={timezone} onValueChange={setTimezone}>
-                      <SelectTrigger data-testid="select-timezone">
+                      <SelectTrigger className="max-md:h-11" data-testid="select-timezone">
                         <SelectValue placeholder={t('settings.chooseTimezone')} />
                       </SelectTrigger>
                       <SelectContent>
@@ -1196,10 +1221,10 @@ export default function Settings() {
                       <div className="flex gap-3">
                         <button
                           onClick={() => setTheme("light")}
-                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
+                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all active:scale-[0.97] active:opacity-80 ${
                             theme === "light" 
                               ? "ring-2 ring-[#FE3C01]" 
-                              : "hover:bg-muted dark:hover:bg-gray-700"
+                              : "hover:bg-muted dark:hover:bg-gray-700 active:bg-accent"
                           }`}
                           data-testid="theme-light"
                         >
@@ -1215,10 +1240,10 @@ export default function Settings() {
                         </button>
                         <button
                           onClick={() => setTheme("dark")}
-                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
+                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all active:scale-[0.97] active:opacity-80 ${
                             theme === "dark" 
                               ? "ring-2 ring-[#FE3C01]" 
-                              : "hover:bg-muted dark:hover:bg-gray-700"
+                              : "hover:bg-muted dark:hover:bg-gray-700 active:bg-accent"
                           }`}
                           data-testid="theme-dark"
                         >
@@ -1234,10 +1259,10 @@ export default function Settings() {
                         </button>
                         <button
                           onClick={() => setTheme("system")}
-                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all ${
+                          className={`relative flex flex-col items-center gap-2 p-1 rounded-lg transition-all active:scale-[0.97] active:opacity-80 ${
                             theme === "system" 
                               ? "ring-2 ring-[#FE3C01]" 
-                              : "hover:bg-muted dark:hover:bg-gray-700"
+                              : "hover:bg-muted dark:hover:bg-gray-700 active:bg-accent"
                           }`}
                           data-testid="theme-system"
                         >
@@ -1255,7 +1280,7 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    <div className={`flex items-start justify-between`}>
+                    <div className={`flex items-start justify-between gap-4`}>
                       <div className={isRtl ? 'text-right' : ''}>
                         <Label>{t('settings.language')}</Label>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -1263,7 +1288,7 @@ export default function Settings() {
                         </p>
                       </div>
                       <Select value={language} onValueChange={handleLanguageChange}>
-                        <SelectTrigger className="w-40" data-testid="select-language">
+                        <SelectTrigger className="w-40 max-md:h-11" data-testid="select-language">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1469,7 +1494,8 @@ export default function Settings() {
                         <div key={index} className="flex items-center gap-3">
                           <div className="flex-1">
                             <Input
-                              type="email"
+                              {...emailInputProps}
+                              autoComplete="email"
                               placeholder={t('settings.inviteEmailPlaceholder')}
                               value={row.email}
                               onChange={(e) => {
@@ -1506,7 +1532,7 @@ export default function Settings() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => setInviteRows(inviteRows.filter((_, i) => i !== index))}
+                              onClick={() => withViewTransition(() => setInviteRows(inviteRows.filter((_, i) => i !== index)))}
                               className="text-muted-foreground hover:text-red-500"
                               data-testid={`button-remove-invite-${index}`}
                             >
@@ -1522,7 +1548,7 @@ export default function Settings() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setInviteRows([...inviteRows, { email: '', role: 'member' }])}
+                        onClick={() => withViewTransition(() => setInviteRows([...inviteRows, { email: '', role: 'member' }]))}
                         data-testid="button-add-invite-row"
                       >
                         <UserPlus className="h-4 w-4 me-2" />
@@ -1591,7 +1617,7 @@ export default function Settings() {
                         ? 'Customize how your team profile appears to clients when they review your proposals.'
                         : t('settings.companyProfilePageDesc')}
                     </p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <a href="/company/edit">
                         <Button style={{ background: '#FE3C01' }} className="text-white">
                           <Palette className="h-4 w-4 me-2" />
@@ -1603,7 +1629,7 @@ export default function Settings() {
                           href={`/company/${activeCompany.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          className="inline-flex items-center gap-1.5 min-h-11 text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <Eye className="h-4 w-4" />
                           {t('settings.preview')}
@@ -1628,7 +1654,7 @@ export default function Settings() {
                     <p className="text-sm text-muted-foreground">
                       {t('settings.myProfileDesc')}
                     </p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <a href="/company/edit">
                         <Button style={{ background: '#FE3C01' }} className="text-white">
                           <Palette className="h-4 w-4 me-2" />
@@ -1640,7 +1666,7 @@ export default function Settings() {
                           href={`/traction/${activeCompany.profile.tractionSlug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          className="inline-flex items-center gap-1.5 min-h-11 text-sm text-muted-foreground hover:text-foreground transition-colors"
                         >
                           <Eye className="h-4 w-4" />
                           {t('settings.preview')}
@@ -1668,7 +1694,7 @@ export default function Settings() {
                     <p className="text-sm text-muted-foreground">
                       {t('dashboard.tractionPageDesc')}
                     </p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <a href={`/traction/${activeCompany.profile?.tractionSlug}/edit`}>
                         <Button style={{ background: '#FE3C01' }} className="text-white">
                           <Palette className="h-4 w-4 me-2" />
@@ -1679,7 +1705,7 @@ export default function Settings() {
                         href={`/traction/${activeCompany.profile?.tractionSlug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        className="inline-flex items-center gap-1.5 min-h-11 text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <Eye className="h-4 w-4" />
                         {t('dashboard.tractionPreviewPage')}

@@ -377,7 +377,7 @@ export function CheckoutFlow({
                   {inputFields.length === 0 ? t("billing.detailsAllSet") : t("billing.detailsDesc")}
                 </p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setCheckout(null)} data-testid="billing-change-plan">
+              <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={() => setCheckout(null)} data-testid="billing-change-plan">
                 {t("billing.changePlan")}
               </Button>
             </div>
@@ -403,7 +403,7 @@ export function CheckoutFlow({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 px-2"
+                          className="h-11 min-h-11 min-w-11 px-2 sm:h-8 sm:min-h-0 sm:min-w-0"
                           onClick={() => setInputFields((x) => [...x, f])}
                           aria-label={`${t("billing.edit")} — ${label}`}
                           data-testid={`billing-edit-${f}`}
@@ -441,6 +441,9 @@ export function CheckoutFlow({
                       placeholder={t(`billing.ph_${f}`)}
                       inputMode={f === "billingPhone" ? "tel" : f === "vatNumber" || f === "crNumber" ? "numeric" : f === "billingEmail" ? "email" : undefined}
                       type={f === "billingEmail" ? "email" : "text"}
+                      autoCapitalize={f === "billingEmail" ? "none" : undefined}
+                      autoCorrect={f === "billingEmail" ? "off" : undefined}
+                      spellCheck={f === "billingEmail" ? false : undefined}
                       autoComplete={f === "billingEmail" ? "email" : f === "billingPhone" ? "tel" : f === "billingName" ? "organization" : f === "address" ? "street-address" : f === "city" ? "address-level2" : "off"}
                       dir={isTextField ? undefined : "ltr"}
                       className={`${isTextField ? "" : "text-start"} ${showErr ? "border-destructive focus-visible:ring-destructive" : ""}`}

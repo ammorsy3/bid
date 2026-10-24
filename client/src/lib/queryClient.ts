@@ -17,12 +17,33 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * True only when the server has said the session itself is no good: a 401 about the token, or
+ * the 403 "Invalid token" the auth middleware sends for a bad/expired token.
+ * A 5xx, a network error or a permission-denied 403 ("Access denied") must
+ * never sign the user out.
+ */
+export function isSessionRejection(status: number, body: string): boolean {
+  if (status !== 401 && status !== 403) return false;
+  let message = body;
+  try {
+    const parsed = JSON.parse(body);
+    if (parsed && typeof parsed.message === 'string') message = parsed.message;
+  } catch {
+    // not JSON: fall back to the raw text
+  }
+  // A 401 that is about the token ("Access token required"). Other 401s, such as
+  // a wrong password on the login form, are ordinary errors.
+  if (status === 401) return /token/i.test(message);
+  return /invalid token|token expired|jwt expired/i.test(message);
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = await res.text();
     
-    if (res.status === 401 || res.status === 403) {
-      if (text.includes('token') || text.includes('Access token required') || text.includes('Invalid token')) {
+    if (isSessionRejection(res.status, text)) {
+      {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('auth-storage');

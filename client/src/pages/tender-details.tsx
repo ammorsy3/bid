@@ -3,6 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { SarMark } from "@/components/SarMark";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Building, Clock, DollarSign, Mail, Copy, Check, ArrowLeft, ArrowRight, ExternalLink, Edit, Trash2, Send, Users, Loader2, FileText, FileCheck, AlertCircle, Eye, EyeOff, Download, Mic, Video, Play, Pause, X, CheckCircle, XCircle, Target, ListChecks, Star, Phone, MessageSquare, Flag, BarChart, HelpCircle, Shield, Layers, Tag, CheckCircle2, ChevronRight, MapPin, Sparkles, Handshake, Store, Upload, Globe, Paperclip, Banknote } from "lucide-react";
@@ -29,9 +30,11 @@ import MarketplaceGuide from "@/components/MarketplaceGuide";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { useI18n } from "@/lib/i18n";
+import { emailInputProps } from "@/lib/form-validation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTour, TourBanner } from "@/lib/tour";
 import { TENDER_DETAILS_TOUR_STEPS, TOUR_BANNERS, getSteps } from "@/lib/tour-steps";
+import { withViewTransition } from "@/lib/view-transition";
 
 const SUBMISSION_TYPE_LABELS: Record<string, Record<string, string>> = {
   quote_only: { en: "Price Quote Only", ar: "عرض سعر فقط" },
@@ -64,7 +67,7 @@ type EvalReqInfo = { label: string; description: string; formatValue?: (v: strin
 const EVAL_REQUIREMENT_INFO: Record<string, Record<string, EvalReqInfo>> = {
   years_in_market: { en: { label: "Minimum Years in Market", description: "The company must have been operating for at least this many years in a relevant field.", formatValue: (v) => `${v}+ years required` }, ar: { label: "الحد الأدنى لسنوات العمل", description: "يجب أن تكون الشركة عاملة في المجال لهذا العدد من السنوات على الأقل.", formatValue: (v) => `${v}+ سنوات مطلوبة` } },
   similar_projects_count: { en: { label: "Similar Projects Completed", description: "The company must have successfully delivered this many comparable projects.", formatValue: (v) => `At least ${v} project${Number(v) > 1 ? 's' : ''} required` }, ar: { label: "مشاريع مماثلة منجزة", description: "يجب أن تكون الشركة قد أنجزت هذا العدد من المشاريع المماثلة.", formatValue: (v) => `${v} مشاريع على الأقل` } },
-  min_project_value: { en: { label: "Minimum Project Value", description: "The company must have delivered at least one project of this value or higher.", formatValue: (v) => `${Number(v).toLocaleString()} SAR or higher` }, ar: { label: "الحد الأدنى لقيمة المشروع", description: "يجب أن تكون الشركة قد نفذت مشروعاً واحداً على الأقل بهذه القيمة أو أعلى.", formatValue: (v) => `${Number(v).toLocaleString()} ريال أو أكثر` } },
+  min_project_value: { en: { label: "Minimum Project Value", description: "The company must have delivered at least one project of this value or higher.", formatValue: (v) => `${Number(v).toLocaleString('en-US')} SAR or higher` }, ar: { label: "الحد الأدنى لقيمة المشروع", description: "يجب أن تكون الشركة قد نفذت مشروعاً واحداً على الأقل بهذه القيمة أو أعلى.", formatValue: (v) => `${Number(v).toLocaleString('en-US')} ريال أو أكثر` } },
   client_references: { en: { label: "Client References Required", description: "The company must provide verifiable references from previous clients for similar work." }, ar: { label: "مراجع العملاء مطلوبة", description: "يجب على الشركة تقديم مراجع يمكن التحقق منها من عملاء سابقين لأعمال مماثلة." } },
   financial_statements: { en: { label: "Financial Statements Required", description: "The company must submit audited financial statements to demonstrate financial stability." }, ar: { label: "القوائم المالية مطلوبة", description: "يجب على الشركة تقديم قوائم مالية مدققة لإثبات الاستقرار المالي." } },
   bank_guarantee: { en: { label: "Bank Guarantee Capability", description: "The company must be able to provide a bank guarantee if required during the project." }, ar: { label: "القدرة على تقديم ضمان بنكي", description: "يجب أن تكون الشركة قادرة على تقديم ضمان بنكي إذا تطلب المشروع ذلك." } },
@@ -361,6 +364,7 @@ export default function TenderDetails() {
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
   const [expandedEvalCategories, setExpandedEvalCategories] = useState<Record<string, boolean>>({});
   const [activeSection, setActiveSection] = useState<string>('description');
+  const [descExpanded, setDescExpanded] = useState(false);
   const [isNegotiationMode, setIsNegotiationMode] = useState(false);
 
   const canManage = activeCompany && ['owner', 'admin'].includes(activeCompany.role);
@@ -707,7 +711,7 @@ export default function TenderDetails() {
 
   const formatDate = (dateStr: string | Date) => {
     const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return date.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
+    return date.toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric'
@@ -754,12 +758,12 @@ export default function TenderDetails() {
     }
 
     if (tender.budgetMin && tender.budgetMax) {
-      return `${sar} ${tender.budgetMin.toLocaleString()} – ${tender.budgetMax.toLocaleString()}`;
+      return `${sar} ${tender.budgetMin.toLocaleString('en-US')} – ${tender.budgetMax.toLocaleString('en-US')}`;
     }
     if (tender.budget) {
       const numBudget = Number(tender.budget);
       if (!isNaN(numBudget) && numBudget > 0) {
-        return `${sar} ${numBudget.toLocaleString()}`;
+        return `${sar} ${numBudget.toLocaleString('en-US')}`;
       }
       return tender.budget;
     }
@@ -920,7 +924,7 @@ export default function TenderDetails() {
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">
                   {t('tenderFlow.rfpLabel')} · <span className="font-mono">RFP-{tender.id?.slice(0, 8).toUpperCase()}</span>
                 </p>
-                <h1 className="font-display font-black text-3xl sm:text-4xl text-foreground leading-[0.95] tracking-[-0.04em] mb-3" data-testid="text-tender-title">
+                <h1 className={`font-display font-black text-3xl sm:text-4xl text-foreground mb-3 ${/[\u0600-\u06FF]/.test(tender.title ?? "") ? "leading-[1.35]" : "leading-[0.95] tracking-[-0.04em]"}`} data-testid="text-tender-title">
                   {tender.title}
                 </h1>
                 <div className="flex items-center gap-3 text-muted-foreground text-sm">
@@ -1041,12 +1045,12 @@ export default function TenderDetails() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_288px] gap-6">
 
-            {/* Main document column */}
-            <div>
+            {/* Main document column. On phones (flex-col) the owner's offers are ordered right after the section strip when there are any, so they are not buried below the long description. */}
+            <div className="min-w-0 flex flex-col lg:block">
 
               {/* Table of Contents */}
-              <div className="bg-card rounded-xl border border-border shadow-sm mb-6 p-1.5">
-                <div className="flex gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+              <div className={`bg-card rounded-xl border border-border shadow-sm mb-6 p-1.5 ${isOwner && offers.length > 0 ? 'max-lg:order-1' : ''}`}>
+                <div className="flex flex-wrap sm:flex-nowrap gap-1 sm:overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                   {tocSections.map((section, idx) => {
                     const Icon = section.icon;
                     const isActive = activeSection === section.id;
@@ -1054,7 +1058,7 @@ export default function TenderDetails() {
                       <button
                         key={section.id}
                         onClick={() => scrollToSection(section.id)}
-                        className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 max-sm:min-h-11 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                        className={`active:opacity-70 flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 max-sm:min-h-11 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                           isActive
                             ? 'bg-[#FE3C01] text-white shadow-sm'
                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -1062,7 +1066,7 @@ export default function TenderDetails() {
                       >
                         <span className={`text-[10px] font-mono tabular-nums leading-none ${isActive ? 'text-white/60' : 'text-muted-foreground'}`}>{String(idx + 1).padStart(2, '0')}</span>
                         <Icon className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">{section.label}</span>
+                        <span className={section.id === 'proposals' ? '' : 'hidden sm:inline'}>{section.label}{section.id === 'proposals' ? ` (${offers.length})` : ''}</span>
                       </button>
                     );
                   })}
@@ -1070,16 +1074,21 @@ export default function TenderDetails() {
               </div>
 
               {/* Continuous Document */}
-              <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div className={`bg-card rounded-2xl border border-border shadow-sm overflow-hidden ${isOwner && offers.length > 0 ? 'max-lg:order-4 max-lg:mt-6' : ''}`}>
 
                 {/* § Project Scope */}
                 <div id="section-description" className="p-6 sm:p-8 scroll-mt-24">
                   <TDSectionHeader index={sectionNumber('description')} title={t('tenderFlow.projectScope')} />
 
                   <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">{t('tenderFlow.descriptionLabel')}</p>
-                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-[15px] mb-6 break-words [overflow-wrap:anywhere]" data-testid="text-description">
+                  <p className={`text-muted-foreground whitespace-pre-wrap leading-relaxed text-[15px] break-words [overflow-wrap:anywhere] ${descExpanded ? 'mb-6' : 'max-sm:line-clamp-6 mb-6 max-sm:mb-2'}`} data-testid="text-description">
                     {tender.description}
                   </p>
+                  {(tender.description?.length ?? 0) > 280 && (
+                    <button type="button" onClick={() => withViewTransition(() => setDescExpanded(v => !v))} className="active:opacity-70 sm:hidden min-h-11 mb-4 text-sm font-semibold text-[#FE3C01]" data-testid="button-desc-toggle">
+                      {descExpanded ? t('tenderFlow.descShowLess') : t('tenderFlow.descShowMore')}
+                    </button>
+                  )}
 
                   {durationDisplay && (
                     <div className="mb-6">
@@ -1207,7 +1216,7 @@ export default function TenderDetails() {
                                   </p>
                                 )}
                                 {milestone.amount && (
-                                  <p className="text-xs text-[#FE3C01] mt-1 font-medium">{t('tenderFlow.sarCurrency')} <span className="font-mono">{Number(milestone.amount).toLocaleString()}</span></p>
+                                  <p className="text-xs text-[#FE3C01] mt-1 font-medium">{t('tenderFlow.sarCurrency')} <span className="font-mono">{Number(milestone.amount).toLocaleString('en-US')}</span></p>
                                 )}
                               </div>
                             </div>
@@ -1218,7 +1227,7 @@ export default function TenderDetails() {
                         <div className="mt-4 pt-4 border-t border-border flex items-center justify-between px-2">
                           <span className="text-sm font-semibold text-muted-foreground">{t('tenderFlow.totalMilestoneValue')}</span>
                           <span className="text-base font-display font-black text-[#FE3C01] tabular-nums">
-                            {t('tenderFlow.sarCurrency')} <span className="font-mono">{(tender.milestones as any[]).reduce((sum: number, m: any) => sum + (Number(m.amount) || 0), 0).toLocaleString()}</span>
+                            {t('tenderFlow.sarCurrency')} <span className="font-mono">{(tender.milestones as any[]).reduce((sum: number, m: any) => sum + (Number(m.amount) || 0), 0).toLocaleString('en-US')}</span>
                           </span>
                         </div>
                       )}
@@ -1267,7 +1276,7 @@ export default function TenderDetails() {
                                   toast({ title: t('tenderFlow.downloadFailed'), description: t('tenderFlow.downloadFailedDesc'), variant: "destructive" });
                                 }
                               }}
-                              className="w-full flex items-center gap-3 p-4 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-colors group text-start"
+                              className="active:bg-muted w-full flex items-center gap-3 p-4 bg-muted rounded-xl border border-border hover:border-border hover:bg-muted transition-colors group text-start"
                             >
                               {icon}
                               <div className="flex-1 min-w-0">
@@ -1497,8 +1506,8 @@ export default function TenderDetails() {
                           <div key={w.categoryId} className="rounded-xl border border-amber-100 dark:border-amber-900/30 overflow-hidden">
                             <button
                               type="button"
-                              onClick={() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] }))}
-                              className="w-full flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20 transition-colors text-start"
+                              onClick={() => withViewTransition(() => setExpandedEvalCategories(prev => ({ ...prev, [w.categoryId]: !prev[w.categoryId] })))}
+                              className="active:opacity-70 w-full flex items-center gap-3 px-4 py-3 bg-amber-50 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20 transition-colors text-start"
                             >
                               <ChevronRight className={`h-4 w-4 rtl:-scale-x-100 text-amber-600 dark:text-amber-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
                               <div className="flex-1 min-w-0">
@@ -1615,7 +1624,7 @@ export default function TenderDetails() {
                                         )}
                                         <button
                                           onClick={() => setQaProfileCompany(q.askedByCompany!)}
-                                          className="text-[10px] text-[#FE3C01] hover:text-[#d54d35] font-semibold flex items-center gap-0.5 transition-colors"
+                                          className="active:opacity-70 text-[10px] text-[#FE3C01] hover:text-[#d54d35] font-semibold flex items-center gap-0.5 transition-colors"
                                         >
                                           <Eye className="h-3 w-3" /> {t('tenderFlow.viewProfile')}
                                         </button>
@@ -1623,7 +1632,7 @@ export default function TenderDetails() {
                                     )}
                                     <p className="text-sm text-gray-900 dark:text-foreground">{q.question}</p>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                      {t('tenderFlow.askedLabel')} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', { month: 'short', day: 'numeric' })}
+                                      {t('tenderFlow.askedLabel')} {new Date(q.createdAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', { month: 'short', day: 'numeric' })}
                                       {q.askedByCompany?.category && (
                                         <span className="ms-1 text-muted-foreground">· {q.askedByCompany.category}</span>
                                       )}
@@ -1733,7 +1742,7 @@ export default function TenderDetails() {
 
               {/* Proposals (owner only) */}
               {isOwner && (
-                <div className="mt-6 bg-card rounded-2xl border border-border shadow-sm overflow-hidden" id="section-proposals" data-tour="offers-section">
+                <div className={`mt-6 bg-card rounded-2xl border border-border shadow-sm overflow-hidden ${offers.length > 0 ? 'max-lg:order-2 max-lg:mt-0' : ''}`} id="section-proposals" data-tour="offers-section">
                   <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-0 scroll-mt-24">
                     <div className="flex items-center justify-between mb-5">
                       <div className="flex items-center gap-3">
@@ -1796,10 +1805,10 @@ export default function TenderDetails() {
                                 </div>
 
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-start justify-between gap-3">
+                                  <div className="flex flex-col sm:flex-row items-start justify-between gap-1 sm:gap-3">
                                     <div className="min-w-0">
                                       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                                        <h4 className="font-bold text-foreground text-base leading-tight">{offer.profile?.displayName || offer.company.name}</h4>
+                                        <h4 className="font-bold text-foreground text-base leading-tight break-words [overflow-wrap:anywhere]">{offer.profile?.displayName || offer.company.name}</h4>
                                         {offer.company.verificationStatus === 'verified' && (
                                           <span className="inline-flex items-center gap-1 text-xs text-[var(--state-won)] bg-[var(--state-won)]/5 px-2 py-0.5 rounded-full border border-emerald-200 flex-shrink-0">
                                             <CheckCircle2 className="h-3 w-3" /> {t('tenderFlow.verifiedBadge')}
@@ -1812,8 +1821,8 @@ export default function TenderDetails() {
                                       </p>
                                     </div>
                                     {offer.quotePrice && (
-                                      <div className="flex-shrink-0 text-right">
-                                        <p className="text-xl font-bold text-foreground">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString()}</p>
+                                      <div className="sm:flex-shrink-0 sm:text-end">
+                                        <p className="text-xl font-bold text-foreground">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString('en-US')}</p>
                                         <p className="text-xs text-muted-foreground mt-0.5">{t('tenderFlow.quotedPriceLabel')}</p>
                                       </div>
                                     )}
@@ -1851,37 +1860,37 @@ export default function TenderDetails() {
                               </div>
 
                               {/* Action row */}
-                              <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-border">
-                                <Button variant="outline" size="sm" onClick={() => window.open(`/company/${offer.company.slug}`, '_blank')} className="text-xs font-medium h-8" data-testid={`button-view-${offer.id}`}>
+                              <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 mt-4 pt-4 border-t border-border">
+                                <Button variant="outline" size="sm" onClick={() => window.open(`/company/${offer.company.slug}`, '_blank')} className="text-xs font-medium max-md:h-11 md:h-8 max-sm:w-full" data-testid={`button-view-${offer.id}`}>
                                   <Eye className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.viewProfile')}
                                 </Button>
                                 {offer.combinedFileUrl && (
-                                  <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)} className="text-xs h-8" data-testid={`button-combined-${offer.id}`}>
+                                  <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.combinedFileUrl!)} className="text-xs max-md:h-11 md:h-8 max-sm:w-full" data-testid={`button-combined-${offer.id}`}>
                                     <FileText className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.proposalLabel')}
                                   </Button>
                                 )}
                                 {offer.technicalFileUrl && (
-                                  <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)} className="text-xs h-8" data-testid={`button-tech-${offer.id}`}>
+                                  <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.technicalFileUrl!)} className="text-xs max-md:h-11 md:h-8 max-sm:w-full" data-testid={`button-tech-${offer.id}`}>
                                     <FileText className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.technicalLabel')}
                                   </Button>
                                 )}
                                 {offer.financialFileUrl && (
-                                  <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)} className="text-xs h-8" data-testid={`button-fin-${offer.id}`}>
+                                  <Button variant="outline" size="sm" onClick={() => viewAuthenticatedFile(offer.financialFileUrl!)} className="text-xs max-md:h-11 md:h-8 max-sm:w-full" data-testid={`button-fin-${offer.id}`}>
                                     <DollarSign className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.financialFileLabel')}
                                   </Button>
                                 )}
                                 {offer.videoUrl && (
-                                  <Button variant="outline" size="sm" onClick={() => window.open(offer.videoUrl!, '_blank')} className="text-xs h-8" data-testid={`button-video-${offer.id}`}>
+                                  <Button variant="outline" size="sm" onClick={() => window.open(offer.videoUrl!, '_blank')} className="text-xs max-md:h-11 md:h-8 max-sm:w-full" data-testid={`button-video-${offer.id}`}>
                                     <Video className={`h-3.5 w-3.5 me-1.5`} /> {t('tenderFlow.videoLabel')}
                                   </Button>
                                 )}
-                                <div className="ms-auto">
+                                <div className="max-sm:col-span-2 sm:ms-auto">
                                   {analysis && analysis.status === 'completed' ? (
                                     <Button
                                       variant="outline"
                                       size="sm"
                                       onClick={() => setAnalysisDrawerOfferId(offer.id)}
-                                      className="text-xs text-[var(--bid-orange)] border-[var(--bid-orange)]/20 hover:bg-[var(--bid-orange)]/5 h-8"
+                                      className="text-xs text-[var(--bid-orange)] border-[var(--bid-orange)]/20 hover:bg-[var(--bid-orange)]/5 max-md:h-11 md:h-8 max-sm:w-full"
                                       data-testid={`button-ai-view-${offer.id}`}
                                     >
                                       <Sparkles className={`h-3.5 w-3.5 me-1.5`} />
@@ -1893,7 +1902,7 @@ export default function TenderDetails() {
                                       size="sm"
                                       onClick={() => analyzeOffer.mutate(offer.id)}
                                       disabled={analyzeOffer.isPending}
-                                      className="text-xs text-[var(--bid-orange)] border-[var(--bid-orange)]/20 hover:bg-[var(--bid-orange)]/5 h-8"
+                                      className="text-xs text-[var(--bid-orange)] border-[var(--bid-orange)]/20 hover:bg-[var(--bid-orange)]/5 max-md:h-11 md:h-8 max-sm:w-full"
                                       data-testid={`button-ai-${offer.id}`}
                                     >
                                       {analyzeOffer.isPending && analyzeOffer.variables === offer.id ? (
@@ -1984,7 +1993,7 @@ export default function TenderDetails() {
 
               {/* AI Proposal Comparison (owner only, when 2+ offers exist) */}
               {isOwner && offers.length >= 2 && (
-                <div className="mt-6" data-tour="proposal-comparison">
+                <div className="mt-6 max-lg:order-3" data-tour="proposal-comparison">
                   <ProposalComparison
                     tenderId={tender.id}
                     offers={offers}
@@ -2107,11 +2116,12 @@ export default function TenderDetails() {
                         }}
                       >
                         <Input
-                          type="email"
                           value={inviteEmail}
                           onChange={(e) => setInviteEmail(e.target.value)}
                           placeholder="vendor@email.com"
-                          className="text-xs h-9"
+                          {...emailInputProps}
+                          autoComplete="email"
+                          className="text-base md:text-xs h-9"
                           disabled={inviteByEmail.isPending}
                           data-testid="input-invite-email"
                         />
@@ -2385,7 +2395,7 @@ export default function TenderDetails() {
                           <Calendar className="h-3.5 w-3.5 text-gray-300" /> {t('tenderFlow.submittedOn')}
                         </span>
                         <span className="text-sm font-medium text-foreground">
-                          {new Date(selectedOffer.submittedAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory' : 'en-US', {
+                          {new Date(selectedOffer.submittedAt).toLocaleDateString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
@@ -2395,10 +2405,10 @@ export default function TenderDetails() {
                       {selectedOffer.quotePrice && (
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground flex items-center gap-2">
-                            <DollarSign className="h-3.5 w-3.5 text-gray-300" /> {t('tenderFlow.quotePriceLabel')}
+                            <SarMark className="text-gray-400" /> {t('tenderFlow.quotePriceLabel')}
                           </span>
                           <span className="text-lg font-bold text-foreground">
-                            {t('tenderFlow.sarCurrency')} {selectedOffer.quotePrice.toLocaleString()}
+                            {t('tenderFlow.sarCurrency')} {selectedOffer.quotePrice.toLocaleString('en-US')}
                           </span>
                         </div>
                       )}
@@ -2419,7 +2429,7 @@ export default function TenderDetails() {
                         {selectedOffer.combinedFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.combinedFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-100 dark:border-blue-900/40 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
+                            className="active:opacity-70 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-blue-100 dark:border-blue-900/40 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
                             data-testid="button-modal-combined-file"
                           >
                             <FileText className="h-4 w-4 text-[var(--bid-orange)] flex-shrink-0" />
@@ -2429,7 +2439,7 @@ export default function TenderDetails() {
                         {selectedOffer.technicalFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.technicalFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-purple-100 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
+                            className="active:opacity-70 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-purple-100 bg-[var(--bid-orange)]/5 hover:bg-[var(--bid-orange)]/10 transition-colors text-start"
                             data-testid="button-modal-tech-file"
                           >
                             <FileText className="h-4 w-4 text-[var(--bid-orange)] flex-shrink-0" />
@@ -2439,7 +2449,7 @@ export default function TenderDetails() {
                         {selectedOffer.financialFileUrl && (
                           <button
                             onClick={() => viewAuthenticatedFile(selectedOffer.financialFileUrl!)}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-emerald-100 bg-[var(--state-won)]/5 hover:bg-[var(--state-won)]/10 transition-colors text-start"
+                            className="active:opacity-70 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-emerald-100 bg-[var(--state-won)]/5 hover:bg-[var(--state-won)]/10 transition-colors text-start"
                             data-testid="button-modal-fin-file"
                           >
                             <DollarSign className="h-4 w-4 text-[var(--state-won)] flex-shrink-0" />
@@ -2449,7 +2459,7 @@ export default function TenderDetails() {
                         {selectedOffer.videoUrl && (
                           <button
                             onClick={() => window.open(selectedOffer.videoUrl!, '_blank')}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-colors text-start"
+                            className="active:opacity-70 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-orange-100 bg-orange-50 hover:bg-orange-100 transition-colors text-start"
                           >
                             <Video className="h-4 w-4 text-orange-600 flex-shrink-0" />
                             <span className="text-xs font-medium text-orange-700 dark:text-orange-300">{t('tenderFlow.videoPitchLabel')}</span>
@@ -2683,7 +2693,7 @@ export default function TenderDetails() {
                         {(drawerOffer.quotePrice != null || drawerAnalysis.financial.total != null) && (
                           <div className="flex justify-between text-sm px-3 py-2.5 bg-muted border-b border-border">
                             <span className="text-muted-foreground font-medium">{t('tenderFlow.totalLabel')}</span>
-                            <span className="font-bold text-foreground">{t('tenderFlow.sarCurrency')} {(drawerOffer.quotePrice ?? drawerAnalysis.financial.total)!.toLocaleString()}</span>
+                            <span className="font-bold text-foreground">{t('tenderFlow.sarCurrency')} {(drawerOffer.quotePrice ?? drawerAnalysis.financial.total)!.toLocaleString('en-US')}</span>
                           </div>
                         )}
                         {drawerAnalysis.financial.vat != null && (
@@ -2706,7 +2716,7 @@ export default function TenderDetails() {
                             {drawerAnalysis.financial.breakdown.map((item: any, i: number) => (
                               <div key={i} className="flex justify-between text-sm px-3 py-2 border-b border-border last:border-0">
                                 <span className="text-muted-foreground">{item.item}</span>
-                                <span className="text-foreground font-medium">{t('tenderFlow.sarCurrency')} {item.amount?.toLocaleString()}</span>
+                                <span className="text-foreground font-medium">{t('tenderFlow.sarCurrency')} {item.amount?.toLocaleString('en-US')}</span>
                               </div>
                             ))}
                           </>
@@ -2717,7 +2727,7 @@ export default function TenderDetails() {
 
                   {drawerAnalysis.analyzedAt && (
                     <p className="text-xs text-muted-foreground pt-2 border-t border-border">
-                      {t('tenderFlow.analyzedLabel')} {new Date(drawerAnalysis.analyzedAt).toLocaleString()}
+                      {t('tenderFlow.analyzedLabel')} {new Date(drawerAnalysis.analyzedAt).toLocaleString(language === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-US')}
                     </p>
                   )}
                   <p className="text-[11px] text-muted-foreground text-center pt-2">{t('tenderFlow.aiDisclaimer')}</p>
@@ -2887,7 +2897,7 @@ export default function TenderDetails() {
                 <div className="flex items-center justify-between mb-3">
                   <button
                     onClick={() => setMarketplaceStep('guide')}
-                    className="h-7 w-7 rounded-md hover:bg-muted flex items-center justify-center transition-colors"
+                    className="active:opacity-70 h-7 w-7 rounded-md hover:bg-muted flex items-center justify-center transition-colors"
                   >
                     {isRtl ? <ArrowRight className="h-4 w-4 text-muted-foreground" /> : <ArrowLeft className="h-4 w-4 text-muted-foreground" />}
                   </button>

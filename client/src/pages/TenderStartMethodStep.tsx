@@ -515,7 +515,7 @@ export default function TenderStartMethodStep() {
             }}
             onMouseEnter={() => setHoveredCard("template")}
             onMouseLeave={() => setHoveredCard(null)}
-            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 max-sm:p-5 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
+            className={`active:scale-[0.98] group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 max-sm:p-5 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
               startMethod === "template"
                 ? "border-[#FE3C01] shadow-2xl shadow-[#FE3C01]/20 scale-[1.02]"
                 : "border-border dark:border-border shadow-lg hover:border-[#FE3C01] hover:shadow-2xl hover:shadow-[#FE3C01]/15 hover:scale-[1.03]"
@@ -575,7 +575,7 @@ export default function TenderStartMethodStep() {
             }}
             onMouseEnter={() => setHoveredCard("scratch")}
             onMouseLeave={() => setHoveredCard(null)}
-            className={`group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 max-sm:p-5 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
+            className={`active:scale-[0.98] group flex flex-col items-center w-full sm:min-w-[350px] sm:max-w-[420px] h-auto sm:h-[520px] p-8 max-sm:p-5 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out border-2 bg-white dark:bg-card ${
               startMethod === "scratch"
                 ? "border-[#FE3C01] shadow-2xl shadow-[#FE3C01]/20 scale-[1.02]"
                 : "border-border dark:border-border shadow-lg hover:border-[#FE3C01] hover:shadow-2xl hover:shadow-[#FE3C01]/15 hover:scale-[1.03]"
@@ -658,7 +658,7 @@ export default function TenderStartMethodStep() {
                       role="radio"
                       aria-checked={selectedTemplate === template.id}
                       onClick={() => setSelectedTemplate(template.id)}
-                      className={`w-full flex items-start gap-4 p-5 max-sm:p-4 rounded-xl border-2 transition-all duration-300 ease-in-out text-start ${
+                      className={`active:scale-[0.98] w-full flex items-start gap-4 p-5 max-sm:p-4 rounded-xl border-2 transition-all duration-300 ease-in-out text-start ${
                         selectedTemplate === template.id
                           ? "border-[#FE3C01] bg-[#FE3C01]/5 shadow-md"
                           : "border-gray-200 dark:border-gray-600 hover:border-[#FE3C01]/50 hover:shadow-md"
@@ -729,7 +729,7 @@ export default function TenderStartMethodStep() {
                           role="radio"
                           aria-checked={selectedTemplate === template.id}
                           onClick={() => setSelectedTemplate(template.id)}
-                          className={`w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-start ${
+                          className={`active:scale-[0.98] w-full flex items-start gap-4 p-5 rounded-xl border-2 transition-all duration-300 ease-in-out text-start ${
                             selectedTemplate === template.id
                               ? "border-[#FE3C01] bg-[#FE3C01]/5 shadow-md"
                               : "border-gray-200 dark:border-gray-600 hover:border-[#FE3C01]/50 hover:shadow-md"

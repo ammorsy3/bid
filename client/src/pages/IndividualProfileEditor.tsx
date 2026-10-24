@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { VENDOR_CATEGORIES } from "@shared/schema";
 import { categoryLabel } from "@/lib/category-labels";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { withViewTransition } from "@/lib/view-transition";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -203,8 +205,24 @@ export default function IndividualProfileEditor() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="min-h-screen bg-muted" data-testid="skeleton-profile-editor" role="status">
+        <nav className="sticky top-0 z-20 bg-card/80 backdrop-blur border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-10 w-24 rounded-md" />
+        </nav>
+        <div className="max-w-[620px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+          <div className="bg-card rounded-3xl border border-border overflow-hidden">
+            <Skeleton className="h-40 sm:h-48 w-full rounded-none bg-foreground/10" />
+            <div className="px-5 pb-5">
+              <Skeleton className="-mt-10 w-20 h-20 rounded-full ring-4 ring-card bg-foreground/10" />
+            </div>
+          </div>
+          <div className="bg-card rounded-3xl border border-border p-5 space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -217,7 +235,7 @@ export default function IndividualProfileEditor() {
         ) : (
           <button
             onClick={() => navigate("/dashboard")}
-            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors active:opacity-70"
           >
             <ArrowLeft className="h-4 w-4" />
             {t('profEditor.back')}
@@ -253,7 +271,7 @@ export default function IndividualProfileEditor() {
             )}
             <button
               onClick={() => headerInputRef.current?.click()}
-              className="absolute top-3 right-3 inline-flex items-center gap-1.5 text-xs font-medium bg-card/90 border border-border rounded-full px-3 py-1.5 hover:bg-card transition-colors"
+              className="absolute top-3 right-3 inline-flex items-center gap-1.5 text-xs font-medium bg-card/90 border border-border rounded-full px-3 py-1.5 hover:bg-card transition-colors active:opacity-70"
               data-testid="button-upload-header"
             >
               {uploading === "header" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
@@ -272,7 +290,7 @@ export default function IndividualProfileEditor() {
               </div>
               <button
                 onClick={() => avatarInputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#FE3C01] text-white flex items-center justify-center shadow-sm hover:brightness-95"
+                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#FE3C01] text-white flex items-center justify-center shadow-sm hover:brightness-95 active:opacity-70 active:scale-95"
                 data-testid="button-upload-avatar"
               >
                 {uploading === "avatar" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
@@ -363,7 +381,7 @@ export default function IndividualProfileEditor() {
             <button
               type="button"
               onClick={() => setWhatsappVisibility("requesters")}
-              className={`w-full flex items-start gap-3 rounded-xl border p-3 text-start transition-colors ${whatsappVisibility === "requesters" ? "border-[#FE3C01] bg-[#FE3C01]/[0.04]" : "border-border hover:border-foreground/20"}`}
+              className={`w-full flex items-start gap-3 rounded-xl border p-3 text-start transition-colors ${whatsappVisibility === "requesters" ? "border-[#FE3C01] bg-[#FE3C01]/[0.04]" : "border-border hover:border-foreground/20 active:bg-accent"}`}
               data-testid="whatsapp-vis-requesters"
             >
               <Users className={`h-4 w-4 mt-0.5 ${whatsappVisibility === "requesters" ? "text-[#FE3C01]" : "text-muted-foreground"}`} />
@@ -375,7 +393,7 @@ export default function IndividualProfileEditor() {
             <button
               type="button"
               onClick={() => setWhatsappVisibility("public")}
-              className={`w-full flex items-start gap-3 rounded-xl border p-3 text-start transition-colors ${whatsappVisibility === "public" ? "border-[#FE3C01] bg-[#FE3C01]/[0.04]" : "border-border hover:border-foreground/20"}`}
+              className={`w-full flex items-start gap-3 rounded-xl border p-3 text-start transition-colors ${whatsappVisibility === "public" ? "border-[#FE3C01] bg-[#FE3C01]/[0.04]" : "border-border hover:border-foreground/20 active:bg-accent"}`}
               data-testid="whatsapp-vis-public"
             >
               <Eye className={`h-4 w-4 mt-0.5 ${whatsappVisibility === "public" ? "text-[#FE3C01]" : "text-muted-foreground"}`} />

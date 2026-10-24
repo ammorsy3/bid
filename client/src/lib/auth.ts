@@ -228,7 +228,8 @@ export const useAuthStore = create<AuthState>()(
               sessionConfirmed: true
             });
             syncLanguageFromUser(data.user, token);
-          } else {
+          } else if (response.status === 401 || response.status === 403) {
+            // The server rejected the session itself: sign out.
             localStorage.removeItem('token');
             set({ 
               user: null, 
@@ -238,16 +239,10 @@ export const useAuthStore = create<AuthState>()(
               sessionConfirmed: false
             });
           }
+          // Any other failure (5xx, e.g. the database blinked) says nothing
+          // about the session: keep the token and let the next load retry.
         } catch (error) {
-          if (localStorage.getItem('token') !== token) return;
-          localStorage.removeItem('token');
-          set({ 
-            user: null, 
-            token: null,
-            activeCompany: null,
-            companies: [],
-            sessionConfirmed: false
-          });
+          // A network error is not an invalid session either: keep the token.
         }
       },
 

@@ -11,6 +11,7 @@
 //   overflow            something sticks out past the screen edge
 //   text-clipped        text cut off inside its box
 //   text-spills         text runs outside its box
+//   text-overlap        text or a button sits on top of other text or a button
 //   covered             a control is covered by something else (e.g. an icon)
 //   icon-over-text      an icon inside a field sits on top of the typing area
 //   small-form-text     field text under 16px (iPhone zooms in and stays zoomed)
@@ -21,6 +22,7 @@
 //   ltr-field           email/password/phone/code box not left-to-right on an Arabic page
 //   arabic-spacing      letter-spacing on Arabic text (breaks the joined letters)
 //   arabic-left         Arabic text forced to align left
+//   arabic-digits       Arabic-Indic digits (٠-٩) anywhere: the app uses Western digits 0-9
 //   raw-key             a translation key like "auth.email" is showing
 //   page-health         empty page, error overlay, or console errors
 //   dialog-open         a popup is open that the screen state didn't ask for
@@ -252,6 +254,67 @@
       else if (wide && s.overflowX === "visible" && s.display !== "inline" && s.whiteSpace !== "normal") add("fail", "text-spills", el, `text runs ${el.scrollWidth - el.clientWidth}px outside its box`);
     });
 
+    // --- text or controls sitting on top of each other ------------------------
+    // (e.g. a button squeezed beside a wrapping title that ends up over it)
+    {
+      const fixedish = (el) => {
+        for (let n = el; n && n !== document.body; n = n.parentElement) {
+          const pos = getComputedStyle(n).position;
+          if (pos === "fixed" || pos === "sticky") return true;
+        }
+        return false;
+      };
+      // Text inside a box with overflow hidden only counts where the box actually shows it
+      // (collapsed boxes show nothing; truncated text shows only its visible part).
+      const clipTo = (el, r) => {
+        let L = r.left, T = r.top, R = r.right, B = r.bottom;
+        for (let n = el; n && n !== document.body; n = n.parentElement) {
+          const st = getComputedStyle(n);
+          if (st.overflowX === "visible" && st.overflowY === "visible") continue;
+          const c = n.getBoundingClientRect();
+          if (st.overflowX !== "visible") { L = Math.max(L, c.left); R = Math.min(R, c.right); }
+          if (st.overflowY !== "visible") { T = Math.max(T, c.top); B = Math.min(B, c.bottom); }
+          if (R - L < 2 || B - T < 2) return null;
+        }
+        return { left: L, top: T, right: R, bottom: B, width: R - L, height: B - T };
+      };
+      const items = [];
+      visibleEls.forEach((el) => {
+        if (["svg", "IMG", "CANVAS", "VIDEO", "IFRAME", "INPUT", "TEXTAREA", "SELECT", "OPTION"].includes(el.tagName)) return;
+        const isCtl = el.matches('button, a[href], [role="button"]') && !el.disabled;
+        const text = ownText(el);
+        if (!isCtl && text.length < 2) return;
+        if (fixedish(el)) return;
+        let rects;
+        if (isCtl) rects = [el.getBoundingClientRect()];
+        else {
+          const range = document.createRange();
+          rects = [];
+          Array.from(el.childNodes).filter((n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim()).forEach((n) => {
+            range.selectNodeContents(n);
+            rects.push(...Array.from(range.getClientRects()));
+          });
+        }
+        rects = rects.map((r) => clipTo(el, r)).filter((r) => r && r.width > 2 && r.height > 2);
+        if (rects.length) items.push({ el, rects, ctl: isCtl, text });
+      });
+      const hit = (a, b) => {
+        const w = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        return w > 3 && h > 3 && w * h > 24;
+      };
+      let found = 0;
+      for (let i = 0; i < items.length && found < 8; i++) {
+        for (let j = i + 1; j < items.length && found < 8; j++) {
+          const a = items[i], b = items[j];
+          if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+          if (!a.rects.some((ra) => b.rects.some((rb) => hit(ra, rb)))) continue;
+          add("fail", "text-overlap", a.el, `sits on top of ${selectorOf(b.el)} "${(b.text || shortText(b.el)).slice(0, 30)}" (page y=${round(a.rects[0].top + window.scrollY)})`);
+          found++;
+        }
+      }
+    }
+
     // --- controls ------------------------------------------------------------
     const controls = visibleEls.filter((el) => el.matches(INTERACTIVE) && !el.disabled);
     const inView = (r) => r.top >= 0 && r.left >= 0 && r.bottom <= vh && r.right <= vw;
@@ -259,13 +322,21 @@
       const r = el.getBoundingClientRect();
       if (!inView({ top: r.top + r.height / 2, left: r.left + r.width / 2, bottom: r.top + r.height / 2, right: r.left + r.width / 2 })) return;
       if (dialogs.length && !dialogs.some((d) => d.contains(el))) return;
+      // Scrolled out of view inside its own scrolling box (a long checklist in a card): not covered, just not shown yet.
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+        const ns = getComputedStyle(n);
+        if (!["auto", "scroll", "hidden", "clip"].includes(ns.overflowY)) continue;
+        const nr = n.getBoundingClientRect();
+        if (cy < nr.top || cy > nr.bottom || cx < nr.left || cx > nr.right) return;
+      }
       const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       if (!hit || hit === el || el.contains(hit) || hit.contains(el)) return;
       if (hit.tagName === "LABEL" && (hit.control === el || hit.contains(el))) return;
       // A sticky bar passing over a control is only a defect if the page can't be
       // scrolled far enough to clear it (content at the very end hidden under the bar).
-      const bar = (() => { for (let n = hit; n && n !== document.body; n = n.parentElement) if (getComputedStyle(n).position === "fixed") return n; return null; })();
-      if (bar && !bar.contains(el)) {
+      const bar = (() => { for (let n = hit; n && n !== document.body; n = n.parentElement) { const pos = getComputedStyle(n).position; if (pos === "fixed" || pos === "sticky") return n; } return null; })();
+      if (bar && !bar.contains(el) && (getComputedStyle(bar).position === "fixed" || bar.getBoundingClientRect().top > vh / 2)) {
         const docEnd = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
         const spaceBelow = docEnd - (window.scrollY + r.bottom);
         if (spaceBelow >= bar.getBoundingClientRect().height) return;
@@ -404,6 +475,14 @@
         if (text && /[\u0660-\u0669]/.test(text) && !ARABIC.test(text.replace(/[\u0660-\u0669]/g, ""))) add("warn", "latin-words", el, "Arabic-Indic digits on the English page");
       });
     }
+
+    // Western digits (0-9) are the rule in both languages (Ahmed, 2026-10-12). Text people
+    // typed themselves (data-user-content) is theirs and is left alone.
+    visibleEls.forEach((el) => {
+      if (el.closest("[data-user-content]")) return;
+      const text = ownText(el);
+      if (text && /[\u0660-\u0669\u06F0-\u06F9]/.test(text)) add("fail", "arabic-digits", el, "Arabic-Indic digits: the app shows Western digits (0-9) in both languages");
+    });
 
     // raw translation keys
     visibleEls.forEach((el) => {

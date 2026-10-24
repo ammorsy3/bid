@@ -26,7 +26,7 @@ export function BackPillButton({ onClick, label, className, ...rest }: BackPillB
       className={cn("group relative overflow-hidden h-8", className)}
       data-testid={rest["data-testid"] ?? "button-back"}
     >
-      <span className="translate-x-2 transition-opacity duration-500 group-hover:opacity-0 text-sm px-1">
+      <span className="translate-x-2 rtl:-translate-x-2 transition-opacity duration-500 group-hover:opacity-0 text-sm px-1">
         {text}
       </span>
       <i className="absolute inset-0 z-10 grid w-1/4 place-items-center bg-primary-foreground/15 transition-all duration-500 group-hover:w-full">

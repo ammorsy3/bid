@@ -4,7 +4,8 @@ import {
   ClipboardList, Send, ArrowUpRight, CheckCircle2, Building2, Sparkles,
 } from "lucide-react";
 import { Link } from "wouter";
-import { format, isValid } from "date-fns";
+import { isValid } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useI18n } from "@/lib/i18n";
 import AdminLayout from "@/components/AdminLayout";
 import {
@@ -79,7 +80,7 @@ export default function AdminDashboard() {
 
         {/* Attention hero */}
         {!isLoading && attentionItems.length > 0 && (
-          <div className="mb-8 rounded-3xl border border-[#FE3C01]/15 bg-gradient-to-br from-[#FE3C01]/[0.06] to-[#F19A8F]/[0.08] dark:from-[#FE3C01]/10 dark:to-transparent px-6 py-5">
+          <div className="mb-8 rounded-3xl border border-[#FE3C01]/15 bg-gradient-to-br from-[#FE3C01]/[0.06] to-[#F19A8F]/[0.08] dark:from-[#FE3C01]/10 dark:to-transparent px-4 py-4 sm:px-6 sm:py-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FE3C01] opacity-60" />
@@ -94,11 +95,11 @@ export default function AdminDashboard() {
                 <Link
                   key={item.key}
                   href={item.link}
-                  className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-card border border-[#FE3C01]/15 px-3 py-1.5 text-xs font-medium text-[#1A1613] dark:text-foreground hover:border-[#FE3C01]/40 hover:shadow-sm transition-all"
+                  className="inline-flex items-center gap-2 rounded-full bg-white dark:bg-card border border-[#FE3C01]/15 px-3 py-1.5 min-h-11 sm:min-h-0 text-xs font-medium text-[#1A1613] dark:text-foreground hover:border-[#FE3C01]/40 hover:shadow-sm transition-all"
                 >
                   <span className="tabular-nums font-bold text-[#FE3C01]">{item.value}</span>
                   {item.title}
-                  <ArrowUpRight className="h-3 w-3 text-gray-400" />
+                  <ArrowUpRight className="h-3 w-3 text-gray-400 rtl:-scale-x-100" />
                 </Link>
               ))}
             </div>
@@ -109,30 +110,30 @@ export default function AdminDashboard() {
         {isLoading ? (
           <SkeletonKpis count={4} />
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4 mb-6">
             {statCards.map((card) => {
               const Icon = card.icon;
               const hasItems = card.value > 0;
               return (
                 <Link key={card.key} href={card.link} className="block group">
-                  <div className="relative h-full rounded-3xl border border-[#FE3C01]/10 dark:border-border bg-white dark:bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#FE3C01]/25 hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.25)]">
-                    <div className="flex items-start justify-between mb-6">
+                  <div className="relative h-full rounded-3xl border border-[#FE3C01]/10 dark:border-border bg-white dark:bg-card p-4 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#FE3C01]/25 hover:shadow-[0_24px_48px_-24px_rgba(254,60,1,0.25)]">
+                    <div className="flex items-start justify-between gap-2 mb-4 sm:mb-6">
                       <div className="h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm" style={{ backgroundColor: `${card.accent}14`, color: card.accent }}>
                         <Icon className="h-5 w-5" />
                       </div>
                       {hasItems && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#FE3C01]/10 px-2 py-0.5 text-[10px] font-semibold text-[#FE3C01]">
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#FE3C01] animate-pulse" />
+                        <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-[#FE3C01]/10 px-2 py-0.5 text-[10px] font-semibold text-[#FE3C01]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#FE3C01] md:animate-pulse" />
                           {t("admin.actionNeeded")}
                         </span>
                       )}
                     </div>
-                    <div className="font-display font-bold text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1] tabular-nums">
+                    <div className="font-display font-bold text-4xl sm:text-5xl text-[#1A1613] dark:text-foreground tracking-[-0.04em] leading-[1] tabular-nums">
                       {card.value}
                     </div>
-                    <div className="mt-2 flex items-center justify-between">
+                    <div className="mt-2 flex items-center justify-between gap-2">
                       <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight">{card.title}</p>
-                      <ArrowUpRight className="h-4 w-4 text-gray-300 dark:text-gray-600 group-hover:text-[#FE3C01] transition-colors" />
+                      <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-gray-300 dark:text-gray-600 group-hover:text-[#FE3C01] transition-colors rtl:-scale-x-100" />
                     </div>
                   </div>
                 </Link>
@@ -145,7 +146,7 @@ export default function AdminDashboard() {
         <div className="mb-8 rounded-3xl border border-[#FE3C01]/10 dark:border-border bg-white dark:bg-card overflow-hidden">
           <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-[#FE3C01]/10 dark:divide-border">
             {glance.map((g) => (
-              <div key={g.label} className="p-6">
+              <div key={g.label} className="p-4 sm:p-6">
                 <div className="flex items-center gap-2 mb-3 text-gray-400 dark:text-gray-500">
                   <g.Icon className="h-4 w-4" />
                   <span className="text-[11px] font-semibold uppercase tracking-wider">{g.label}</span>
@@ -179,7 +180,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-sm font-semibold text-[#1A1613] dark:text-foreground flex items-center gap-1">
                   {a.label}
-                  <ArrowUpRight className="h-3.5 w-3.5 text-gray-300 dark:text-gray-600 group-hover:text-[#FE3C01] transition-colors" />
+                  <ArrowUpRight className="h-3.5 w-3.5 text-gray-300 dark:text-gray-600 group-hover:text-[#FE3C01] transition-colors rtl:-scale-x-100" />
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{a.desc}</div>
               </div>
@@ -219,7 +220,7 @@ function RefinedTenders({ tendersOverview, tendersLoading, t }: { tendersOvervie
       </div>
 
       <div className="rounded-3xl border border-[#FE3C01]/10 dark:border-border bg-white dark:bg-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#FE3C01]/10 dark:border-border">
+        <div className="px-4 sm:px-6 py-4 border-b border-[#FE3C01]/10 dark:border-border">
           <h3 className="text-sm font-semibold text-[#1A1613] dark:text-foreground">{t("adminTenders.recentTenders")}</h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t("adminTenders.recentTendersDesc")}</p>
         </div>
@@ -237,10 +238,10 @@ function RefinedTenders({ tendersOverview, tendersLoading, t }: { tendersOvervie
             {tendersOverview.tenders.slice(0, 10).map((tn) => {
               const d = new Date(tn.createdAt ?? "");
               return (
-                <Link key={tn.id} href={`/tenders/${tn.id}`} className="flex items-center gap-4 px-6 py-3.5 hover:bg-[#FE3C01]/[0.03] dark:hover:bg-gray-800/30 transition-colors group">
+                <Link key={tn.id} href={`/tenders/${tn.id}`} className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3.5 hover:bg-[#FE3C01]/[0.03] dark:hover:bg-gray-800/30 transition-colors group">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm text-[#1A1613] dark:text-foreground group-hover:text-[#FE3C01] transition-colors line-clamp-1">{tn.title}</span>
+                      <span className="font-medium text-sm text-[#1A1613] dark:text-foreground group-hover:text-[#FE3C01] transition-colors break-words line-clamp-1">{tn.title}</span>
                       {tn.isMarketplace && <Store className="h-3 w-3 text-[#FE3C01] flex-shrink-0" />}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
@@ -248,12 +249,12 @@ function RefinedTenders({ tendersOverview, tendersLoading, t }: { tendersOvervie
                     </div>
                   </div>
                   <span className={`hidden sm:inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium flex-shrink-0 ${statusStyle(tn.status)}`}>{tn.status}</span>
-                  <div className="text-end flex-shrink-0 w-16">
+                  <div className="text-end flex-shrink-0 w-14 sm:w-16">
                     <div className="font-display font-bold text-lg text-[#1A1613] dark:text-foreground tabular-nums leading-none">{tn.offerCount}</div>
                     <div className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-gray-500 mt-0.5">{t("adminTenders.colOffers")}</div>
                   </div>
                   <div className="hidden md:block text-end text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap w-20 flex-shrink-0">
-                    {isValid(d) ? format(d, "PP") : "—"}
+                    {isValid(d) ? formatLocalDate(d, "PP") : "—"}
                   </div>
                 </Link>
               );

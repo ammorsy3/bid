@@ -647,7 +647,7 @@ function MilestonesInput({
                 <p className="text-sm font-medium text-gray-900 dark:text-foreground">{item.name}</p>
                 {item.dueDate && (
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {t('formBuilder.dueLabel')} {new Date(item.dueDate).toLocaleDateString()}
+                    {t('formBuilder.dueLabel')} {new Date(item.dueDate).toLocaleDateString('en-US')}
                   </p>
                 )}
                 {item.description && (

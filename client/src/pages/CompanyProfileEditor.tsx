@@ -16,6 +16,7 @@ import { Calendar } from "@/components/ui/calendar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { BackPillButton } from "@/components/ui/back-pill-button";
 import { cn } from "@/lib/utils";
+import { withViewTransition } from "@/lib/view-transition";
 import { format } from "date-fns";
 import {
   Building2, MapPin, Globe, Linkedin, Twitter,
@@ -244,7 +245,7 @@ export default function CompanyProfileEditor() {
   const [activeSection, setActiveSection] = useState<SectionId>(initialSection);
 
   const changeSection = (id: SectionId) => {
-    setActiveSection(id);
+    withViewTransition(() => setActiveSection(id));
     const url = new URL(window.location.href);
     url.searchParams.set('section', id);
     window.history.replaceState({}, '', url.toString());
@@ -675,14 +676,14 @@ export default function CompanyProfileEditor() {
     return (
       <div className="min-h-screen bg-muted" data-testid="loader-page">
         {/* Header image area */}
-        <Skeleton className="h-48 w-full rounded-none" />
+        <Skeleton className="h-48 w-full rounded-none bg-foreground/10" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
           {/* Logo + name row */}
           <div className="flex items-end gap-4 -mt-16">
-            <Skeleton className="h-24 w-24 rounded-xl border-4 border-white flex-shrink-0" />
+            <Skeleton className="h-24 w-24 rounded-xl border-4 border-white flex-shrink-0 bg-foreground/10" />
             <div className="space-y-2 pb-2">
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-6 w-48 bg-foreground/10" />
+              <Skeleton className="h-4 w-32 bg-foreground/10" />
             </div>
           </div>
           {/* Form sections */}
@@ -854,10 +855,10 @@ export default function CompanyProfileEditor() {
                   key={s.id}
                   onClick={() => changeSection(s.id)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-start mb-0.5",
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-start mb-0.5 active:opacity-70",
                     active
                       ? "bg-[#FE3C01]/10 text-[#FE3C01]"
-                      : "hover:bg-muted dark:hover:bg-gray-700 text-muted-foreground dark:text-muted-foreground"
+                      : "hover:bg-muted dark:hover:bg-gray-700 active:bg-accent text-muted-foreground dark:text-muted-foreground"
                   )}
                 >
                   <Icon className={cn("h-4 w-4 flex-shrink-0", active ? "text-[#FE3C01]" : "text-gray-400")} />
@@ -885,10 +886,10 @@ export default function CompanyProfileEditor() {
               <div className="min-w-0 flex items-center gap-2">
                 <button
                   onClick={handleBack}
-                  className="flex md:hidden items-center justify-center h-8 w-8 rounded-full hover:bg-muted transition-colors flex-shrink-0"
+                  className="flex md:hidden items-center justify-center h-11 w-11 -ms-2 rounded-full hover:bg-muted transition-colors flex-shrink-0 active:bg-accent active:opacity-70"
                   aria-label={t('companyProfileEditor.backToSettings')}
                 >
-                  <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                  <ArrowLeft className="h-4 w-4 text-muted-foreground rtl:-scale-x-100" />
                 </button>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">
@@ -904,14 +905,15 @@ export default function CompanyProfileEditor() {
               </div>
               <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 <SaveStatus status={saveStatus} savedAgoLabel={savedAgoLabel} t={t} />
-                <Button variant="outline" size="sm" onClick={openPreview} className="h-9">
+                <Button variant="outline" size="sm" onClick={openPreview} className="h-11 min-w-11 md:h-9">
                   <Eye className="h-3.5 w-3.5 sm:me-1.5" />
                   <span className="hidden sm:inline">{t('companyProfileEditor.preview')}</span>
                 </Button>
               </div>
             </div>
-            {/* Mobile section nav */}
-            <nav className="no-scrollbar flex md:hidden overflow-x-auto gap-1 px-3 py-2 border-t border-border">
+          </div>
+            {/* Mobile section nav (scrolls with the page so the wrapped tabs don't eat the screen) */}
+            <nav className="flex md:hidden flex-wrap gap-1 px-3 py-2 border-b border-border bg-white dark:bg-background">
               {SECTIONS.map((s) => {
                 const Icon = s.icon;
                 const active = activeSection === s.id;
@@ -920,10 +922,10 @@ export default function CompanyProfileEditor() {
                     key={s.id}
                     onClick={() => changeSection(s.id)}
                     className={cn(
-                      "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap",
+                      "flex items-center gap-1.5 px-3 min-h-11 rounded-full text-xs font-medium transition-colors active:opacity-70",
                       active
                         ? "bg-[#FE3C01]/10 text-[#FE3C01]"
-                        : "text-muted-foreground hover:bg-muted"
+                        : "text-muted-foreground hover:bg-muted active:bg-accent"
                     )}
                   >
                     <Icon className="h-3.5 w-3.5 flex-shrink-0" />
@@ -932,7 +934,6 @@ export default function CompanyProfileEditor() {
                 );
               })}
             </nav>
-          </div>
 
           {/* Section content */}
           <div className="flex-1">
@@ -1050,7 +1051,7 @@ export default function CompanyProfileEditor() {
                             type="button"
                             onClick={() => setEditState(s => ({ ...s, availabilityStatus: active ? null : opt.value }))}
                             className={cn(
-                              "text-sm font-semibold rounded-lg px-3 py-3 border-2 transition-colors",
+                              "text-sm font-semibold rounded-lg px-3 py-3 border-2 transition-colors active:opacity-70",
                               active ? activeClasses : 'bg-white dark:bg-card border-border dark:border-border text-gray-500 dark:text-gray-400 hover:border-border'
                             )}
                           >
@@ -1146,7 +1147,7 @@ export default function CompanyProfileEditor() {
                           {editState.industriesServed.map((ind, i) => (
                             <Badge key={i} variant="secondary" className="gap-1 ps-2.5">
                               {ind}
-                              <button onClick={() => removeIndustry(i)} aria-label={`Remove ${ind}`} className="ms-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
+                              <button onClick={() => removeIndustry(i)} aria-label={`Remove ${ind}`} className="ms-0.5 hover:text-red-500 active:opacity-60"><X className="h-3 w-3" /></button>
                             </Badge>
                           ))}
                         </div>
@@ -1181,7 +1182,7 @@ export default function CompanyProfileEditor() {
                             <Badge key={i} variant="secondary" className="gap-1 ps-2">
                               <MapPin className="h-3 w-3" />
                               {area}
-                              <button onClick={() => removeServiceArea(i)} aria-label={`Remove ${area}`} className="ms-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
+                              <button onClick={() => removeServiceArea(i)} aria-label={`Remove ${area}`} className="ms-0.5 hover:text-red-500 active:opacity-60"><X className="h-3 w-3" /></button>
                             </Badge>
                           ))}
                         </div>
@@ -1205,7 +1206,7 @@ export default function CompanyProfileEditor() {
                               type="button"
                               onClick={() => toggleLanguage(langItem.value)}
                               className={cn(
-                                "text-sm font-medium rounded-full px-4 py-1.5 border transition-colors",
+                                "text-sm font-medium rounded-full px-4 py-1.5 border transition-colors active:opacity-70",
                                 active
                                   ? 'bg-[#FE3C01] text-white border-[#FE3C01]'
                                   : 'bg-white dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border'
@@ -1253,7 +1254,7 @@ export default function CompanyProfileEditor() {
                           {editState.tags.map((tag, i) => (
                             <Badge key={i} variant="secondary" className="gap-1 ps-2.5">
                               {tag}
-                              <button onClick={() => removeTag(i)} aria-label={`Remove ${tag}`} className="ms-0.5 hover:text-red-500"><X className="h-3 w-3" /></button>
+                              <button onClick={() => removeTag(i)} aria-label={`Remove ${tag}`} className="ms-0.5 hover:text-red-500 active:opacity-60"><X className="h-3 w-3" /></button>
                             </Badge>
                           ))}
                         </div>
@@ -1297,7 +1298,7 @@ export default function CompanyProfileEditor() {
                                       <button
                                         type="button"
                                         onClick={() => removePortfolioImage(pIdx, iIdx)}
-                                        className="absolute top-1 right-1 h-5 w-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="absolute top-1 right-1 h-5 w-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:opacity-70"
                                       >
                                         <X className="h-3 w-3 text-white" />
                                       </button>
@@ -1314,7 +1315,7 @@ export default function CompanyProfileEditor() {
                               </div>
                             )}
 
-                            <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                            <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors active:opacity-70">
                               <input
                                 type="file"
                                 accept="image/*"
@@ -1360,7 +1361,7 @@ export default function CompanyProfileEditor() {
                                     <button
                                       type="button"
                                       onClick={() => setDraftProject(p => p ? { ...p, images: p.images.filter((_, j) => j !== iIdx) } : null)}
-                                      className="absolute top-1 right-1 h-5 w-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                      className="absolute top-1 right-1 h-5 w-5 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:opacity-70"
                                     >
                                       <X className="h-3 w-3 text-white" />
                                     </button>
@@ -1377,7 +1378,7 @@ export default function CompanyProfileEditor() {
                             </div>
                           )}
 
-                          <label className="cursor-pointer block">
+                          <label className="cursor-pointer block active:opacity-80">
                             <input
                               type="file"
                               accept="image/*"
@@ -1416,7 +1417,7 @@ export default function CompanyProfileEditor() {
                             >
                               {t('companyProfileEditor.saveProject')}
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => setDraftProject(null)}>
+                            <Button size="sm" variant="ghost" onClick={() => withViewTransition(() => setDraftProject(null))}>
                               {t('companyProfileEditor.cancel')}
                             </Button>
                           </div>
@@ -1425,7 +1426,7 @@ export default function CompanyProfileEditor() {
                         <Button
                           variant="outline"
                           className="w-full border-dashed gap-2"
-                          onClick={() => setDraftProject({ title: '', description: '', images: [] })}
+                          onClick={() => withViewTransition(() => setDraftProject({ title: '', description: '', images: [] }))}
                         >
                           <Plus className="h-4 w-4" />
                           {t('companyProfileEditor.addProject')}
@@ -1473,7 +1474,7 @@ export default function CompanyProfileEditor() {
                                       <ShieldCheck className="h-3 w-3" /> {t('companyProfileEditor.documentOnFile')}
                                     </a>
                                   ) : (
-                                    <label className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full px-2.5 py-1 cursor-pointer hover:bg-gray-100 transition-colors">
+                                    <label className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full px-2.5 py-1 cursor-pointer hover:bg-gray-100 transition-colors active:opacity-70">
                                       <Paperclip className="h-3 w-3" /> {uploadCredentialDocMutation.isPending ? t('companyProfileEditor.uploadingEllipsis') : t('companyProfileEditor.attachDocument')}
                                       <input
                                         type="file"
@@ -1562,7 +1563,7 @@ export default function CompanyProfileEditor() {
                                     <p className="text-sm font-semibold truncate">{INSURANCE_TYPE_LABELS[pol.type]}</p>
                                     <p className="text-xs text-muted-foreground truncate">
                                       {pol.provider}
-                                      {pol.coverageAmount ? ` · ${pol.coverageAmount.toLocaleString()} ${pol.currency || ''}` : ''}
+                                      {pol.coverageAmount ? ` · ${pol.coverageAmount.toLocaleString('en-US')} ${pol.currency || ''}` : ''}
                                     </p>
                                   </div>
                                   <Button variant="ghost" size="icon" onClick={() => removeInsurancePolicy(i)} aria-label={t('companyProfileEditor.removePolicy')} className="h-7 w-7 text-muted-foreground hover:text-red-500">
@@ -1575,7 +1576,7 @@ export default function CompanyProfileEditor() {
                                       <ShieldCheck className="h-3 w-3" /> {t('companyProfileEditor.documentOnFile')}
                                     </a>
                                   ) : (
-                                    <label className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full px-2.5 py-1 cursor-pointer hover:bg-gray-100 transition-colors">
+                                    <label className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full px-2.5 py-1 cursor-pointer hover:bg-gray-100 transition-colors active:opacity-70">
                                       <Paperclip className="h-3 w-3" /> {uploadCredentialDocMutation.isPending ? t('companyProfileEditor.uploadingEllipsis') : t('companyProfileEditor.attachDocument')}
                                       <input
                                         type="file"
@@ -1720,7 +1721,7 @@ export default function CompanyProfileEditor() {
                           </div>
                         </div>
                       ) : (
-                        <label className="cursor-pointer block">
+                        <label className="cursor-pointer block active:opacity-80">
                           <input
                             type="file"
                             accept="image/*"
@@ -1752,6 +1753,7 @@ export default function CompanyProfileEditor() {
                     </CardHeader>
                     <CardContent>
                       <Input
+                        type="url" inputMode="url" dir="ltr" autoCapitalize="none"
                         value={editState.introVideoUrl}
                         onChange={(e) => setEditState(s => ({ ...s, introVideoUrl: e.target.value }))}
                         placeholder={t('companyProfileEditor.introVideoPlaceholder')}
@@ -1783,7 +1785,7 @@ export default function CompanyProfileEditor() {
                           <a href={currentBrochureUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#FE3C01] hover:underline flex-shrink-0">{t('companyProfileEditor.view')}</a>
                         </div>
                       )}
-                      <label className="cursor-pointer block">
+                      <label className="cursor-pointer block active:opacity-80">
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
@@ -1825,15 +1827,15 @@ export default function CompanyProfileEditor() {
                   <CardContent className="space-y-4">
                     <div>
                       <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Globe className="h-3.5 w-3.5 text-muted-foreground" /> {t('companyProfileEditor.website')}</Label>
-                      <Input value={editState.socialLinks.website} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, website: e.target.value } }))} placeholder={t('companyProfileEditor.websitePlaceholder')} />
+                      <Input type="url" inputMode="url" dir="ltr" autoCapitalize="none" value={editState.socialLinks.website} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, website: e.target.value } }))} placeholder={t('companyProfileEditor.websitePlaceholder')} />
                     </div>
                     <div>
                       <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Linkedin className="h-3.5 w-3.5 text-muted-foreground" /> {t('companyProfileEditor.linkedin')}</Label>
-                      <Input value={editState.socialLinks.linkedin} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, linkedin: e.target.value } }))} placeholder={t('companyProfileEditor.linkedinPlaceholder')} />
+                      <Input type="url" inputMode="url" dir="ltr" autoCapitalize="none" value={editState.socialLinks.linkedin} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, linkedin: e.target.value } }))} placeholder={t('companyProfileEditor.linkedinPlaceholder')} />
                     </div>
                     <div>
                       <Label className="text-sm mb-1.5 flex items-center gap-1.5"><Twitter className="h-3.5 w-3.5 text-muted-foreground" /> {t('companyProfileEditor.xTwitter')}</Label>
-                      <Input value={editState.socialLinks.twitter} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, twitter: e.target.value } }))} placeholder={t('companyProfileEditor.twitterPlaceholder')} />
+                      <Input type="url" inputMode="url" dir="ltr" autoCapitalize="none" value={editState.socialLinks.twitter} onChange={(e) => setEditState(s => ({ ...s, socialLinks: { ...s.socialLinks, twitter: e.target.value } }))} placeholder={t('companyProfileEditor.twitterPlaceholder')} />
                     </div>
                   </CardContent>
                 </Card>
@@ -1871,7 +1873,7 @@ function DatePickerField({ value, onChange, placeholder }: { value: string; onCh
               role="button"
               aria-label={t('companyProfileEditor.clearDate')}
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); onChange(''); }}
-              className="ms-auto text-muted-foreground hover:text-foreground"
+              className="ms-auto text-muted-foreground hover:text-foreground active:opacity-60"
             >
               <X className="h-3.5 w-3.5" />
             </span>

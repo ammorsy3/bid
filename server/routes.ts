@@ -108,6 +108,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // ============================================================================
 
 import type { JWTPayload, AuthContext, AuthRequest } from "./middleware/auth-types";
+import { respondToAuthError, isTokenVerificationError } from "./middleware/auth-errors";
 
 // ============================================================================
 // MIDDLEWARE - AUTHENTICATION & AUTHORIZATION
@@ -179,7 +180,9 @@ const authenticateToken = async (req: AuthRequest, res: Response, next: Function
 
     next();
   } catch (error) {
-    return res.status(403).json({ message: 'Invalid token' });
+    // Bad/expired token -> 403 "Invalid token". A database or other server
+    // failure -> 503, so a short outage never reads as an invalid session.
+    return respondToAuthError(res, error);
   }
 };
 
@@ -404,8 +407,10 @@ const optionalAuth = async (req: AuthRequest, res: Response, next: Function) => 
         isAdmin: user.isAdmin,
       };
     }
-  } catch {
-    // Invalid token — proceed unauthenticated
+  } catch (error) {
+    // Invalid token — proceed unauthenticated. A server-side failure is not an
+    // invalid token: answer 503 rather than silently serving the anonymous view.
+    if (!isTokenVerificationError(error)) return respondToAuthError(res, error);
   }
   next();
 };

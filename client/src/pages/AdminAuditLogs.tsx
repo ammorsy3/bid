@@ -2,15 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FileText, User, Search } from "lucide-react";
-import { format } from "date-fns";
+import { formatLocalDate } from "@/lib/admin-date";
 import { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
+import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
 import { StatusBadge, type BidState } from "@/components/brand/StatusDot";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 
 export default function AdminAuditLogs() {
   const { t } = useI18n();
+  const [visibleCount, setVisibleCount] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const { data: logs, isLoading } = useQuery<any[]>({
     queryKey: ["/api/admin/audit-logs"],
@@ -42,6 +45,9 @@ export default function AdminAuditLogs() {
   };
 
   const formatAction = (action: string) => {
+    const key = `admin.auditAction_${action}`;
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
     return action.split("_").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
   };
 
@@ -58,12 +64,12 @@ export default function AdminAuditLogs() {
         {/* Search */}
         <div className="mb-6">
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder={t('admin.searchAuditLogsPlaceholder')}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 rounded-xl"
+              onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(10); }}
+              className="ps-9 rounded-xl"
             />
           </div>
         </div>
@@ -74,30 +80,30 @@ export default function AdminAuditLogs() {
           <AdminEmpty icon={FileText} title={t('admin.noAuditLogs')} subtitle={t('admin.adminActionsRecorded')} />
         ) : (
           <div className="space-y-3">
-            {filteredLogs.map((log: any) => (
-              <AdminCard key={log.id} className="overflow-hidden" data-testid={`card-log-${log.id}`}>
+            {filteredLogs.map((log: any, index: number) => (
+              <AdminCard key={log.id} className={index >= visibleCount ? "overflow-hidden max-md:hidden" : "overflow-hidden"} data-testid={`card-log-${log.id}`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-x-2 gap-y-1 flex-wrap min-w-0">
                       <StatusBadge
                         state={getActionState(log.action)}
                         label={formatAction(log.action)}
                         data-testid={`badge-action-${log.id}`}
                       />
-                      <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">
-                        {format(new Date(log.createdAt), "PPpp")}
-                      </span>
+                      <bdi dir="ltr" className="text-xs text-gray-400 dark:text-gray-500 font-mono">
+                        {formatLocalDate(new Date(log.createdAt), "PPpp")}
+                      </bdi>
                     </div>
                   </div>
                   <CardDescription className="mt-2 text-xs">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
                         <User className="h-3.5 w-3.5" />
-                        <span>{t('admin.adminLabel')} {log.admin?.name || log.adminId}</span>
+                        <span className="break-words min-w-0">{t('admin.adminLabel')} {log.admin?.name || log.adminId}</span>
                       </div>
-                      <div>{t('admin.target')} {log.targetType} (ID: <span className="font-mono">{log.targetId.substring(0, 8)}</span>...)</div>
+                      <div>{t('admin.target')} {log.targetType} (ID: <bdi dir="ltr" className="font-mono">{log.targetId.substring(0, 8)}</bdi>...)</div>
                       {log.notes && (
-                        <div className="mt-2 p-2.5 bg-gray-50 dark:bg-card rounded-lg text-sm border border-border dark:border-border">
+                        <div className="mt-2 p-2.5 bg-gray-50 dark:bg-card rounded-lg text-sm border border-border dark:border-border break-words">
                           <strong>{t('admin.notesLabel')}</strong> {log.notes}
                         </div>
                       )}
@@ -106,11 +112,11 @@ export default function AdminAuditLogs() {
                 </CardHeader>
                 {(log.beforeState || log.afterState) && (
                   <CardContent className="pt-0">
-                    <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                       {log.beforeState && (
                         <div>
                           <p className="font-medium text-gray-600 dark:text-gray-400 mb-1.5">{t('admin.before')}</p>
-                          <pre className="bg-gray-50 dark:bg-card p-2.5 rounded-lg overflow-auto max-h-32 text-[11px] border border-border dark:border-border">
+                          <pre dir="ltr" className="bg-gray-50 dark:bg-card p-2.5 rounded-lg overflow-auto max-h-32 text-[11px] border border-border dark:border-border text-left">
                             {JSON.stringify(JSON.parse(log.beforeState), null, 2)}
                           </pre>
                         </div>
@@ -118,7 +124,7 @@ export default function AdminAuditLogs() {
                       {log.afterState && (
                         <div>
                           <p className="font-medium text-gray-600 dark:text-gray-400 mb-1.5">{t('admin.after')}</p>
-                          <pre className="bg-gray-50 dark:bg-card p-2.5 rounded-lg overflow-auto max-h-32 text-[11px] border border-border dark:border-border">
+                          <pre dir="ltr" className="bg-gray-50 dark:bg-card p-2.5 rounded-lg overflow-auto max-h-32 text-[11px] border border-border dark:border-border text-left">
                             {JSON.stringify(JSON.parse(log.afterState), null, 2)}
                           </pre>
                         </div>
@@ -128,6 +134,15 @@ export default function AdminAuditLogs() {
                 )}
               </AdminCard>
             ))}
+            {filteredLogs.length > visibleCount && (
+              <Button
+                variant="outline"
+                className="w-full h-11 md:hidden"
+                onClick={() => withViewTransition(() => setVisibleCount((c) => c + 10))}
+              >
+                {t('admin.showMoreLeft', { count: filteredLogs.length - visibleCount })}
+              </Button>
+            )}
           </div>
         )}
       </AdminPage>

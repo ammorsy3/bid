@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { SarMark } from "@/components/SarMark";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy, Languages, Paperclip, Upload, X } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
@@ -19,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import VoiceRecorder from "@/components/voice-recorder";
 import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
 import VendorRequirementsEditor, { type VendorRequirement } from "@/components/VendorRequirementsEditor";
+import { withViewTransition } from "@/lib/view-transition";
 
 const formatLabel = (value: string, labels?: Record<string, string>): string => {
   if (labels && labels[value]) {
@@ -208,11 +210,11 @@ export default function TenderBriefStep() {
   };
 
   const toggleDeliverable = (index: number) => {
-    setExpandedDeliverables(prev => ({ ...prev, [index]: !prev[index] }));
+    withViewTransition(() => setExpandedDeliverables(prev => ({ ...prev, [index]: !prev[index] })));
   };
 
   const toggleCriteria = (key: string) => {
-    setExpandedCriteria(prev => ({ ...prev, [key]: !prev[key] }));
+    withViewTransition(() => setExpandedCriteria(prev => ({ ...prev, [key]: !prev[key] })));
   };
 
   const submitTender = useMutation({
@@ -459,7 +461,7 @@ export default function TenderBriefStep() {
 
             <div className="bg-muted rounded-xl p-4">
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <DollarSign className="h-4 w-4" />
+                <SarMark className="text-[10px]" />
                 <span className="text-xs font-medium uppercase tracking-wider">{t('tenderFlow.budgetColumn')}</span>
               </div>
               <p className="font-semibold text-sm text-foreground" data-testid="brief-budget">
@@ -539,11 +541,11 @@ export default function TenderBriefStep() {
                           <button
                             type="button"
                             onClick={() => hasDetails && toggleDeliverable(index)}
-                            className={`w-full p-4 flex items-center justify-between gap-4 text-start ${hasDetails ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
+                            className={`active:bg-muted w-full p-4 flex items-center justify-between gap-4 text-start ${hasDetails ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
                           >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                               <span className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--state-won)]/10 text-[var(--state-won)] flex items-center justify-center text-xs font-bold">{index + 1}</span>
-                              <p className="font-medium text-foreground">{deliverable.name}</p>
+                              <p className="min-w-0 break-words font-medium text-foreground">{deliverable.name}</p>
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
                               {deliverable.quantity && deliverable.unit && (
@@ -577,17 +579,17 @@ export default function TenderBriefStep() {
               <BriefSectionHeader index={sectionNumber('milestones')} title={t('tenderFlow.milestonesTitle')} />
                                     <div className="space-y-3" data-testid="brief-milestones">
                     {draft.milestones.map((milestone: any, index: number) => (
-                      <div key={milestone.id || index} className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                      <div key={milestone.id || index} className="flex items-center gap-4 max-sm:flex-wrap max-sm:gap-y-2 p-4 bg-muted rounded-lg">
                         <div className="flex-shrink-0 h-8 w-8 rounded-full bg-violet-100 text-violet-700 dark:text-violet-300 flex items-center justify-center text-sm font-bold">
                           {index + 1}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground">{milestone.name}</p>
+                          <p className="break-words font-medium text-foreground">{milestone.name}</p>
                           {milestone.description && (
                             <p className="text-sm text-muted-foreground mt-0.5">{milestone.description}</p>
                           )}
                         </div>
-                        <div className="flex-shrink-0 text-right space-y-0.5">
+                        <div className="flex-shrink-0 text-right space-y-0.5 max-sm:basis-full max-sm:ps-12 max-sm:text-start">
                           {milestone.dueDate && (
                             <p className="text-sm font-medium text-muted-foreground">{formatDate(milestone.dueDate)}</p>
                           )}
@@ -614,7 +616,7 @@ export default function TenderBriefStep() {
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`arr-${index}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
+                                className="active:bg-muted w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
@@ -639,7 +641,7 @@ export default function TenderBriefStep() {
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`arr-${index}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
+                                className="active:bg-muted w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <span className="flex-shrink-0 h-6 w-6 rounded-full bg-amber-100 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
@@ -681,7 +683,7 @@ export default function TenderBriefStep() {
                                 <button
                                   type="button"
                                   onClick={() => hasContent && toggleCriteria(w.categoryId)}
-                                  className={`w-full p-3 flex items-center justify-between gap-3 text-start ${hasContent ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
+                                  className={`active:bg-muted w-full p-3 flex items-center justify-between gap-3 text-start ${hasContent ? 'cursor-pointer hover:bg-muted' : ''} transition-colors`}
                                 >
                                   <span className="text-sm font-medium text-foreground">{cat}</span>
                                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -740,7 +742,7 @@ export default function TenderBriefStep() {
                               <button
                                 type="button"
                                 onClick={() => toggleCriteria(`custom-${c.id}`)}
-                                className="w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
+                                className="active:bg-muted w-full p-3 flex items-center justify-between gap-3 text-start cursor-pointer hover:bg-muted transition-colors"
                               >
                                 <span className="text-sm text-foreground">{c.text}</span>
                                 <div className="flex items-center gap-2 flex-shrink-0">
@@ -890,7 +892,7 @@ export default function TenderBriefStep() {
                           <button
                             type="button"
                             onClick={() => removeAttachment(a.id)}
-                            className="text-gray-400 hover:text-rose-500 transition-colors"
+                            className="active:opacity-70 text-gray-400 hover:text-rose-500 transition-colors"
                             aria-label={t('tenderFlow.removeAttachmentAria') || 'Remove attachment'}
                             data-testid={`button-remove-attachment-${a.id}`}
                           >
@@ -952,7 +954,7 @@ export default function TenderBriefStep() {
                       {draft.budgetType && (
                         <div className="bg-muted rounded-xl p-3 border border-border">
                           <div className="flex items-center gap-1.5 mb-1">
-                            <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+                            <SarMark className="text-emerald-600" />
                             <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{t('tenderFlow.budgetTypeLabel')}</span>
                           </div>
                           <p className="text-xs font-bold text-foreground leading-tight">
@@ -1091,7 +1093,7 @@ export default function TenderBriefStep() {
                       <button
                         type="button"
                         onClick={() => setRfpLanguage('en')}
-                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
+                        className={`active:opacity-70 flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
                           rfpLanguage === 'en'
                             ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
                             : 'border-border text-muted-foreground hover:border-border'
@@ -1102,7 +1104,7 @@ export default function TenderBriefStep() {
                       <button
                         type="button"
                         onClick={() => setRfpLanguage('ar')}
-                        className={`flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
+                        className={`active:opacity-70 flex-1 py-2.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 ${
                           rfpLanguage === 'ar'
                             ? 'border-[#FE3C01] bg-[#FE3C01]/10 text-[#FE3C01]'
                             : 'border-border text-muted-foreground hover:border-border'

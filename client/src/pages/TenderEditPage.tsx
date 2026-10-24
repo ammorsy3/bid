@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
@@ -31,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import VoiceRecorder from "@/components/voice-recorder";
 import VendorRequirementsEditor from "@/components/VendorRequirementsEditor";
 import type { Tender } from "@shared/schema";
+import { withViewTransition } from "@/lib/view-transition";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -173,6 +175,15 @@ export default function TenderEditPage() {
   const { toast } = useToast();
   const { language, t } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
+
+  // The Save bar sticks to the bottom of the screen on desktop: leave room for it,
+  // so tabbing into a field scrolls the field clear of the bar instead of under it.
+  useEffect(() => {
+    const root = document.documentElement;
+    const prev = root.style.scrollPaddingBottom;
+    root.style.scrollPaddingBottom = '7rem';
+    return () => { root.style.scrollPaddingBottom = prev; };
+  }, []);
 
   // Editing a tender is a buyer action. The server already rejects it — it
   // checks tender ownership and individuals/teams own no tenders — but without
@@ -545,8 +556,36 @@ export default function TenderEditPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      // Same shape as the loaded page (back link, title, stacked section cards)
+      // instead of a bare spinner. Blocks sitting directly on the page
+      // background use bg-foreground/10 so they stay visible in both themes;
+      // the ones inside a card use the default Skeleton fill.
+      <div className="min-h-dvh bg-gray-50 dark:bg-background" data-testid="skeleton-tender-edit">
+        <span className="sr-only" role="status">{t('common.loading')}</span>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:pb-28">
+          <Skeleton className="h-10 w-36 mb-6 bg-foreground/10" />
+          <div className="mb-6 space-y-2">
+            <Skeleton className="h-9 w-56 bg-foreground/10" />
+            <Skeleton className="h-4 w-40 bg-foreground/10" />
+          </div>
+          <div className="space-y-6">
+            {[0, 1, 2].map((i) => (
+              <Card key={i} className="overflow-hidden border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                    <Skeleton className="h-5 w-40" />
+                  </div>
+                  <Skeleton className="h-4 w-64 max-w-full" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -564,12 +603,11 @@ export default function TenderEditPage() {
     );
   }
 
-  const editTenderLanguage = (tender as any)?.language || 'en';
-  const isEditRtl = editTenderLanguage === 'ar';
+  const isEditRtl = language === 'ar';
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background" dir={isEditRtl ? "rtl" : "ltr"}>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28">
+    <div className="min-h-dvh bg-gray-50 dark:bg-background" dir={isEditRtl ? "rtl" : "ltr"}>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:pb-28">
         <Button variant="ghost" onClick={() => navigate(`/tenders/${tenderId}`)} className="mb-6 -ms-2">
           <ArrowLeft className="h-4 w-4 me-2" />
           {t('tenderFlow.backToTender')}
@@ -597,7 +635,7 @@ export default function TenderEditPage() {
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('tenderFlow.editTitleLabel')}</FormLabel>
-                  <FormControl><Input placeholder={t('tenderFlow.editTitlePlaceholder')} {...field} /></FormControl>
+                  <FormControl><Input dir="auto" placeholder={t('tenderFlow.editTitlePlaceholder')} {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -607,7 +645,7 @@ export default function TenderEditPage() {
                 return (
                   <FormItem>
                     <FormLabel>{t('tenderFlow.editDescriptionLabel')}</FormLabel>
-                    <FormControl><Textarea rows={5} placeholder={t('tenderFlow.editDescriptionPlaceholder')} {...field} /></FormControl>
+                    <FormControl><Textarea dir="auto" rows={5} placeholder={t('tenderFlow.editDescriptionPlaceholder')} {...field} /></FormControl>
                     <div className="flex justify-end">
                       <span className={`text-xs ${wc < 50 ? "text-amber-600" : "text-green-600"}`}>
                         {wc < 50
@@ -639,7 +677,7 @@ export default function TenderEditPage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <button type="button" className={cn(
-                              "flex-1 flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
+                              "flex-1 flex items-center gap-2 h-11 md:h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
                               !dateVal && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -662,7 +700,7 @@ export default function TenderEditPage() {
                         type="time"
                         value={timeVal}
                         onChange={(e) => field.onChange(dateVal ? `${dateVal}T${e.target.value}` : "")}
-                        className="w-32"
+                        className="w-32 h-11 md:h-10"
                       />
                     </div>
                     <FormMessage />
@@ -681,7 +719,7 @@ export default function TenderEditPage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <button type="button" className={cn(
-                              "w-full flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
+                              "w-full flex items-center gap-2 h-11 md:h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
                               !field.value && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -709,7 +747,7 @@ export default function TenderEditPage() {
                         <PopoverTrigger asChild>
                           <FormControl>
                             <button type="button" className={cn(
-                              "w-full flex items-center gap-2 h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
+                              "w-full flex items-center gap-2 h-11 md:h-10 px-3 rounded-md border border-input bg-background text-sm text-start hover:bg-accent transition-colors",
                               !field.value && "text-muted-foreground"
                             )}>
                               <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
@@ -755,8 +793,8 @@ export default function TenderEditPage() {
                   <button
                     key={type}
                     type="button"
-                    onClick={() => setBudgetType(type as "exact" | "range")}
-                    className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
+                    onClick={() => withViewTransition(() => setBudgetType(type as "exact" | "range"))}
+                    className={`active:opacity-70 flex-1 py-3 md:py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
                       budgetType === type
                         ? "bg-[#FE3C01] text-white border-[#FE3C01]"
                         : "bg-white dark:bg-card text-muted-foreground dark:text-muted-foreground border-border dark:border-border hover:border-border"
@@ -774,7 +812,7 @@ export default function TenderEditPage() {
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">SAR</span>
-                        <Input className="ps-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} {...field} />
+                        <Input dir="ltr" className="ps-12" placeholder={t('tenderFlow.editBudgetAmountPlaceholder')} {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -786,7 +824,7 @@ export default function TenderEditPage() {
                     <FormItem>
                       <FormLabel>{t('tenderFlow.editBudgetMinLabel')}</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder={t('tenderFlow.editBudgetMinPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input type="number" dir="ltr" className="text-start" placeholder={t('tenderFlow.editBudgetMinPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -795,7 +833,7 @@ export default function TenderEditPage() {
                     <FormItem>
                       <FormLabel>{t('tenderFlow.editBudgetMaxLabel')}</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder={t('tenderFlow.editBudgetMaxPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
+                        <Input type="number" dir="ltr" className="text-start" placeholder={t('tenderFlow.editBudgetMaxPlaceholder')} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -859,7 +897,7 @@ export default function TenderEditPage() {
               <FormField control={form.control} name="videoUrl" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('tenderFlow.editVideoUrlLabel')}</FormLabel>
-                  <FormControl><Input placeholder={t('tenderFlow.editVideoUrlPlaceholder')} {...field} /></FormControl>
+                  <FormControl><Input dir="ltr" className="text-start" placeholder={t('tenderFlow.editVideoUrlPlaceholder')} {...field} /></FormControl>
                   <p className="text-xs text-muted-foreground">{t('tenderFlow.editVideoUrlHint')}</p>
                   <FormMessage />
                 </FormItem>
@@ -919,14 +957,14 @@ export default function TenderEditPage() {
                   <FormField control={form.control} name="emailContact" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('tenderFlow.editContactEmailLabel')}</FormLabel>
-                      <FormControl><Input type="email" placeholder={t('tenderFlow.editContactEmailPlaceholder')} {...field} /></FormControl>
+                      <FormControl><Input type="email" dir="ltr" className="text-start" placeholder={t('tenderFlow.editContactEmailPlaceholder')} {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
                   <FormField control={form.control} name="whatsappContact" render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('tenderFlow.editWhatsappLabel')}</FormLabel>
-                      <FormControl><Input placeholder={t('tenderFlow.editWhatsappPlaceholder')} {...field} /></FormControl>
+                      <FormControl><Input type="tel" inputMode="tel" dir="ltr" className="text-start" placeholder={t('tenderFlow.editWhatsappPlaceholder')} {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -986,8 +1024,8 @@ export default function TenderEditPage() {
                   const hasSelections = selectedRequirements.some(r => r.categoryId === category.id);
                   return (
                     <div key={category.id} className={`border rounded-lg overflow-hidden transition-all ${hasSelections ? "border-[#FE3C01]/50 bg-[#FE3C01]/5" : "border-border"}`}>
-                      <button type="button" onClick={() => setExpandedEvalCategories(prev => prev.includes(category.id) ? prev.filter(id => id !== category.id) : [...prev, category.id])}
-                        className="w-full flex items-center justify-between p-3 hover:bg-muted">
+                      <button type="button" onClick={() => withViewTransition(() => setExpandedEvalCategories(prev => prev.includes(category.id) ? prev.filter(id => id !== category.id) : [...prev, category.id]))}
+                        className="active:bg-muted w-full flex items-center justify-between p-3 hover:bg-muted">
                         <div className="flex items-center gap-2">
                           <div className={`p-1.5 rounded ${hasSelections ? "bg-[#FE3C01]/10 text-[#FE3C01]" : "bg-muted text-muted-foreground"}`}>{category.icon}</div>
                           <span className="font-medium text-sm text-foreground">{evalCategoryNames[category.id] ?? category.name}</span>
@@ -1012,7 +1050,7 @@ export default function TenderEditPage() {
                                 <div key={req.id} className="flex items-start gap-2">
                                   {req.type === "checkbox" && (
                                     <button type="button" onClick={() => handleRequirementChange(category.id, req.id, !currentValue)}
-                                      className={`mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}>
+                                      className={`active:opacity-70 mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${currentValue ? "border-[#FE3C01] bg-[#FE3C01]" : "border-border"}`}>
                                       {currentValue && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
                                     </button>
                                   )}
@@ -1049,7 +1087,7 @@ export default function TenderEditPage() {
                         <div className="flex items-center gap-2">
                           <span className="flex-1 text-sm text-foreground">{c.text}</span>
                           <span className="text-xs font-medium text-[#FE3C01]">{c.weight}%</span>
-                          <button type="button" onClick={() => removeCustomCriterion(c.id)} className="text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
+                          <button type="button" onClick={() => removeCustomCriterion(c.id)} className="active:opacity-70 p-3 -m-3 md:p-0 md:m-0 text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
                         </div>
                         <input type="range" min="0" max="50" step="5" value={c.weight}
                           onChange={(e) => updateCustomCriterionWeight(c.id, parseInt(e.target.value))}
@@ -1063,7 +1101,7 @@ export default function TenderEditPage() {
                     <input type="text" value={newCriterionText} onChange={(e) => setNewCriterionText(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCustomCriterion())}
                       placeholder={t('tenderFlow.editCustomCriteriaPlaceholder')}
-                      className="flex-1 px-3 py-2 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE3C01]" />
+                      className="flex-1 px-3 py-2 text-base md:text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FE3C01]" />
                     <Button type="button" onClick={addCustomCriterion} disabled={!newCriterionText.trim()} size="sm" className="bg-[#FE3C01] hover:bg-[#d54d35]"><Plus className="h-4 w-4" /></Button>
                   </div>
                   {newCriterionText.trim() && (
@@ -1112,21 +1150,21 @@ export default function TenderEditPage() {
                           value={m.name}
                           onChange={(e) => updateMilestone(m.id, "name", e.target.value)}
                           placeholder={t('tenderFlow.milestoneName')}
-                          className="w-full bg-transparent border-0 border-b border-transparent focus:border-violet-400 text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 pb-1"
+                          className="w-full bg-transparent border-0 border-b border-transparent focus:border-violet-400 text-base md:text-sm font-medium text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 pb-1"
                         />
                         <input
                           type="text"
                           value={m.description}
                           onChange={(e) => updateMilestone(m.id, "description", e.target.value)}
                           placeholder={t('tenderFlow.editMilestoneDescOptional')}
-                          className="w-full bg-transparent border-0 text-xs text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0"
+                          className="w-full bg-transparent border-0 text-base md:text-xs text-gray-600 dark:text-gray-400 placeholder-gray-400 focus:outline-none focus:ring-0"
                         />
                       </div>
                       <div className="flex-shrink-0">
                         <Popover>
                           <PopoverTrigger asChild>
                             <button type="button" className={cn(
-                              "flex items-center gap-1.5 px-2 py-1 text-xs rounded-md transition-colors",
+                              "flex items-center gap-1.5 px-2 py-2 md:py-1 text-xs rounded-md transition-colors",
                               m.dueDate ? "bg-violet-100 text-violet-700 dark:text-violet-300 hover:bg-violet-200" : "text-gray-400 hover:text-muted-foreground hover:bg-gray-200"
                             )}>
                               <CalendarIcon className="h-3.5 w-3.5" />
@@ -1172,7 +1210,7 @@ export default function TenderEditPage() {
               <button
                 type="button"
                 onClick={addMilestone}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-border dark:border-border text-gray-400 hover:border-violet-400 hover:text-violet-500 transition-all group"
+                className="active:scale-[0.98] w-full flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-border dark:border-border text-gray-400 hover:border-violet-400 hover:text-violet-500 transition-all group"
               >
                 <div className="w-2.5 h-2.5 rounded-full bg-gray-300 group-hover:bg-violet-400 transition-colors" />
                 <Plus className="h-4 w-4" />
@@ -1193,7 +1231,7 @@ export default function TenderEditPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white bg-indigo-500 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{index + 1}</span>
                         <Input placeholder={t('tenderFlow.editDeliverableNamePlaceholder')} value={d.name} onChange={(e) => updateDeliverable(d.id, "name", e.target.value)} className="flex-1" />
-                        <button type="button" onClick={() => removeDeliverable(d.id)} className="text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => removeDeliverable(d.id)} className="active:opacity-70 p-3 -m-3 md:p-0 md:m-0 text-gray-400 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
                       </div>
                       <Input placeholder={t('tenderFlow.editDeliverableDescPlaceholder')} value={d.description} onChange={(e) => updateDeliverable(d.id, "description", e.target.value)} />
                       <div className="grid grid-cols-2 gap-2">
@@ -1243,7 +1281,7 @@ export default function TenderEditPage() {
                       <button
                         type="button"
                         onClick={() => handleRemoveAttachment(a.id)}
-                        className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                        className="active:opacity-70 flex-shrink-0 p-3 -m-2 md:p-1 md:m-0 text-gray-400 hover:text-red-500 transition-colors"
                         aria-label={t('tenderFlow.editRemoveAttachment')}
                       >
                         <X className="h-4 w-4" />
@@ -1331,7 +1369,7 @@ export default function TenderEditPage() {
             )}
 
             {/* Actions — sticky footer so Save/Cancel stay reachable on a long form */}
-            <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 mt-8 flex flex-col gap-3 border-t border-border bg-gray-50/95 dark:bg-background/95 px-4 py-4 backdrop-blur-sm sm:px-6 lg:px-8">
+            <div className="md:sticky md:bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 mt-8 flex flex-col gap-3 border-t border-border bg-gray-50/95 dark:bg-background/95 px-4 py-4 backdrop-blur-sm sm:px-6 lg:px-8">
               {(selectedRequirements.length > 0 || customCriteria.length > 0) && totalWeight !== 100 && (
                 <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:text-red-300">
                   <span className="mt-0.5 flex-shrink-0">⚠</span>

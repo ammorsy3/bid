@@ -32,6 +32,11 @@
   min-height: 40px;
   cursor: pointer;
 }
+/* 44px taps on phones for the logo link and the language switch */
+@media (max-width: 767px) {
+  .upgrade-page .topbar > a { display: inline-flex; align-items: center; min-height: 44px; }
+  .upgrade-page .lang-toggle { min-height: 44px; min-width: 44px; }
+}
 .upgrade-page .upgrade-back:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
 .upgrade-page .upgrade-back svg { width: 16px; height: 16px; }
 

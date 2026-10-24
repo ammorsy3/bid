@@ -8,6 +8,7 @@ import { Bell } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest, ApiError } from "@/lib/queryClient";
@@ -113,7 +114,7 @@ export function SettingsNotifications() {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em]">
+          <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em] rtl:tracking-normal">
             <Bell className="h-6 w-6" />
             {t("notifications.pageTitle")}
           </h1>
@@ -126,7 +127,7 @@ export function SettingsNotifications() {
   return (
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       <div>
-        <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em]">
+        <h1 className="font-display font-black text-3xl flex items-center gap-2 tracking-[-0.04em] rtl:tracking-normal">
           <Bell className="h-6 w-6" />
           {t("notifications.pageTitle")}
         </h1>
@@ -137,7 +138,21 @@ export function SettingsNotifications() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">{t("notifications.loading")}</p>
+        <div className="space-y-3" data-testid="skeleton-notifications" role="status" aria-label={t("notifications.loading")}>
+          {CATEGORIES.map((cat) => (
+            <Card key={cat.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Skeleton className="h-5 w-40" />
+                    <Skeleton className="h-4 w-full max-w-sm" />
+                  </div>
+                  <Skeleton className="h-6 w-20 shrink-0" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       ) : (
         <div className="space-y-3">
           {CATEGORIES.map((cat) => (
@@ -145,21 +160,22 @@ export function SettingsNotifications() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-display font-black text-base tracking-[-0.02em]">{t(`notifications.cat${cat.tKey}`)}</h3>
+                    <h3 className="font-display font-black text-base rtl:tracking-normal tracking-[-0.02em]">{t(`notifications.cat${cat.tKey}`)}</h3>
                     <p className="text-sm text-muted-foreground mt-1">{t(`notifications.cat${cat.tKey}Desc`)}</p>
                   </div>
                   {CHANNELS.map((ch) => {
                     const enabled = isEnabled(cat.id, ch.id);
                     return (
-                      <div key={ch.id} className="flex items-center gap-2 shrink-0 mt-1">
+                      <label key={ch.id} htmlFor={`notif-switch-${cat.id}-${ch.id}`} className="flex items-center gap-2 shrink-0 min-h-11 -my-2 cursor-pointer active:opacity-70">
                         <span className="text-sm font-medium text-muted-foreground">{t(`notifications.${ch.tKey}`)}</span>
                         <Switch
+                          id={`notif-switch-${cat.id}-${ch.id}`}
                           checked={enabled}
-                          disabled={!ch.available || mutation.isPending}
+                          disabled={!ch.available || (mutation.isPending && mutation.variables?.category === cat.id && mutation.variables?.channel === ch.id)}
                           onCheckedChange={(v) => handleToggle(cat.id, ch.id, v)}
                           data-testid={`notif-toggle-${cat.id}-${ch.id}`}
                         />
-                      </div>
+                      </label>
                     );
                   })}
                 </div>

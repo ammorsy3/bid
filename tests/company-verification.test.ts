@@ -279,7 +279,13 @@ describe("details", () => {
   });
 
   it("rejects an invalid CR number", async () => {
-    expect((await save({ ...complete, crNumber: "12" })).status).toBe(400);
+    const res = await save({ ...complete, crNumber: "12" });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe("crNumber: CR number must be exactly 10 digits");
+    expect(res.body.errors).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: ["crNumber"], message: "CR number must be exactly 10 digits" }),
+    ]));
+    expect(company().crNumber).toBeNull();
   });
 
   it("A-R2: is locked while under review, and a save racing a submit cannot slip in after it", async () => {

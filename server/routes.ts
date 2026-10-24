@@ -1900,7 +1900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       if (error?.name === 'ZodError') {
-        return res.status(400).json({ message: error.errors?.[0]?.message || 'Invalid request' });
+        return res.status(400).json({ message: error.issues?.[0]?.message || 'Invalid request' });
       }
       console.error('Create membership request error:', error);
       res.status(500).json({ message: "Server error" });
@@ -1991,7 +1991,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (error: any) {
         if (error?.name === 'ZodError') {
-          return res.status(400).json({ message: error.errors?.[0]?.message || 'Invalid decision' });
+          return res.status(400).json({ message: error.issues?.[0]?.message || 'Invalid decision' });
         }
         console.error('Decide membership request error:', error);
         res.status(500).json({ message: "Server error" });
@@ -2237,11 +2237,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Create company error:', error);
       if (error?.name === 'ZodError') {
-        const firstIssue = error.errors?.[0];
+        const firstIssue = error.issues?.[0];
         const message = firstIssue
           ? `${firstIssue.path.join('.')}: ${firstIssue.message}`
           : "Invalid company data";
-        return res.status(400).json({ message, errors: error.errors });
+        return res.status(400).json({ message, errors: error.issues });
       }
       if (error?.code === '23505') {
         const constraint = error?.constraint || '';
@@ -3542,7 +3542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (error: any) {
         if (error?.name === 'ZodError') {
-          return res.status(400).json({ message: error.errors?.[0]?.message || 'Invalid request' });
+          return res.status(400).json({ message: error.issues?.[0]?.message || 'Invalid request' });
         }
         console.error('Invite by email error:', error);
         res.status(500).json({ message: "Server error" });
@@ -6902,7 +6902,7 @@ Respond with ONLY a JSON object. Example:
       res.status(201).json(template);
     } catch (error: any) {
       if (error.name === 'ZodError') {
-        return res.status(400).json({ message: 'Invalid template data', errors: error.errors });
+        return res.status(400).json({ message: 'Invalid template data', errors: error.issues });
       }
       console.error('Create template error:', error);
       res.status(500).json({ message: "Server error" });

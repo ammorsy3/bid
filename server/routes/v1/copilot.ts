@@ -289,7 +289,7 @@ export function registerCopilotV1Routes(app: Express): void {
         if (err && typeof err === "object" && (err as any).name === "ZodError") {
           return res.status(409).json({
             message: "Tender draft is not ready to launch",
-            validationErrors: (err as any).errors ?? [],
+            validationErrors: (err as any).issues ?? [],
           });
         }
         console.error("[v1/copilot] launch error:", err);

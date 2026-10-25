@@ -231,7 +231,7 @@ async function toolLaunchTender(args: any, auth: AuthRequest["auth"]) {
       throw new McpError(ERR.INVALID_PARAMS, err.message);
     }
     if (err && typeof err === "object" && (err as any).name === "ZodError") {
-      throw new McpError(ERR.INVALID_PARAMS, "Tender draft is not ready to launch", (err as any).errors);
+      throw new McpError(ERR.INVALID_PARAMS, "Tender draft is not ready to launch", (err as any).issues);
     }
     throw err;
   }

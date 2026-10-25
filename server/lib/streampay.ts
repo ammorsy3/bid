@@ -134,7 +134,7 @@ export interface StreamPayProduct {
   name: string;
   type: "RECURRING" | "ONE_OFF" | "METERED";
   recurring_interval?: "WEEK" | "MONTH" | "SEMESTER" | "YEAR" | null;
-  /** What the customer pays, VAT included (90.85 for a 79 + VAT product). */
+  /** What the customer pays, VAT included (458.85 for a 399 + VAT product). */
   price?: string | null;
   price_excluding_vat?: string | null;
   vat_amount?: string | null;
@@ -236,6 +236,8 @@ export function createPaymentLink(input: {
   success_redirect_url: string;
   failure_redirect_url: string;
   custom_metadata: Record<string, string>;
+  /** Free days before the first charge, for recurring products (1-365). */
+  trial_period_days?: number;
 }) {
   return streamPayRequest<StreamPayPaymentLink>("POST", "/api/v2/payment_links", input);
 }

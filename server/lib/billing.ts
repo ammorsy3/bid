@@ -232,11 +232,38 @@ export type ReturnPage = keyof typeof RETURN_PAGES;
  * Turns a checkout into a StreamPay payment link and returns its URL.
  * `returnBase` is the origin the payer comes back to (bidapp.sa in production).
  */
+// Promo codes. "Tested" gives the first month free. It is applied as a 30-day
+// trial on the payment link, not as a StreamPay coupon: StreamPay coupons have
+// no duration, so on a subscription a 100% coupon could discount every renewal.
+// A trial can only ever cover the first period.
+const PROMO_CODES: Record<string, { trialDays: number }> = {
+  tested: { trialDays: 30 },
+};
+
+export function normalizePromoCode(raw: string | undefined | null): string | null {
+  const code = (raw ?? "").trim().toLowerCase();
+  return code ? code : null;
+}
+
+/** Throws a BillingError unless this company may use the code (once, new customers only). */
+export async function assertPromoUsable(companyId: string, code: string): Promise<{ trialDays: number }> {
+  const promo = PROMO_CODES[code];
+  if (!promo) throw new BillingError("That code isn't valid.", 422, "PROMO_INVALID");
+  const [used] = await db
+    .select({ id: billingCheckouts.id })
+    .from(billingCheckouts)
+    .where(and(eq(billingCheckouts.companyId, companyId), eq(billingCheckouts.status, "paid")))
+    .limit(1);
+  if (used) throw new BillingError("This code can only be used once, on a first plan.", 422, "PROMO_USED");
+  return promo;
+}
+
 export async function startPayment(
   checkout: BillingCheckout,
   userId: string,
   returnBase: string,
   returnTo: ReturnPage = "settings",
+  promoCode: string | null = null,
 ): Promise<{ url: string }> {
   const current = await getCompanySubscription(checkout.companyId);
   if (isLiveSubscription(current)) {
@@ -249,6 +276,8 @@ export async function startPayment(
   if (missing.length > 0) {
     throw new BillingError("Some billing details are missing.", 422, "DETAILS_MISSING", { missing });
   }
+
+  const promo = promoCode ? await assertPromoUsable(checkout.companyId, promoCode) : null;
 
   const plan = checkout.plan as PaidPlan;
   const term = checkout.term as BillingTerm;
@@ -272,12 +301,13 @@ export async function startPayment(
     contact_information_type: "EMAIL",
     success_redirect_url: back,
     failure_redirect_url: back,
-    custom_metadata: { companyId: company.id, checkoutId: checkout.id, plan, term },
+    custom_metadata: { companyId: company.id, checkoutId: checkout.id, plan, term, ...(promoCode ? { promo: promoCode } : {}) },
+    ...(promo ? { trial_period_days: promo.trialDays } : {}),
   });
 
   await db
     .update(billingCheckouts)
-    .set({ status: "redirected", paymentLinkId: link.id, lastActivityAt: new Date(), failureReason: null })
+    .set({ status: "redirected", paymentLinkId: link.id, lastActivityAt: new Date(), failureReason: null, promoCode })
     .where(eq(billingCheckouts.id, checkout.id));
 
   // StreamPay picks the checkout language from a query param on the link.

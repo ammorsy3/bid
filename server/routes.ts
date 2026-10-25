@@ -33,6 +33,7 @@ import { registerWebhookAdapter } from "./routes/integrations/webhook";
 import { registerMcpAdapter } from "./routes/integrations/mcp";
 import { registerIntegrationsAdminRoutes } from "./routes/settings/integrations";
 import { registerMarketingRoutes } from "./routes/marketing";
+import { registerContactSalesRoutes } from "./routes/contact-sales";
 import { registerBillingRoutes } from "./routes/billing";
 import { registerCompanyVerificationRoutes, sendVerificationError } from "./routes/company-verification";
 import { verificationStore, type VerificationDetailsPatch } from "./lib/company-verification-store";
@@ -7010,6 +7011,7 @@ Respond with ONLY a JSON object. Example:
   registerIntegrationsAdminRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole, requireAccountType });
   registerMarketingRoutes(app, { authenticateToken, requireAdmin });
   registerBillingRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole, requireAdmin });
+  registerContactSalesRoutes(app, { authenticateToken, requireAdmin });
   registerCompanyVerificationRoutes(app, { authenticateToken, requireCompanyContext });
 
   // ============================================================================

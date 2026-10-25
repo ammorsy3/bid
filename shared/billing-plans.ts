@@ -19,7 +19,7 @@ export const VAT_RATE = 0.15;
 export const BILLING_CURRENCY = "SAR";
 
 /** Monthly list price, before VAT. Yearly is 20% off, rounded to whole riyals per month. */
-export const MONTHLY_PRICE: Record<PaidPlan, number> = { pro: 79, business: 179 };
+export const MONTHLY_PRICE: Record<PaidPlan, number> = { pro: 399, business: 179 };
 export const YEARLY_DISCOUNT = 0.2;
 
 /** The effective monthly rate shown on the card, whole riyals. */

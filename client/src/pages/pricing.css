@@ -602,3 +602,9 @@
   .billing-toggle::before { transition: none; }
   .pricing-faq details[open] p { animation: none; }
 }
+
+/* `.landing-page a { color: inherit }` (landing.css) outranks a bare .btn-*,
+   so a button rendered as a link (Enterprise → /contact-sales) lost its
+   text colour and showed black on black. */
+.landing-page a.btn-primary { color: var(--cream); }
+.landing-page a.btn-orange { color: var(--white); }

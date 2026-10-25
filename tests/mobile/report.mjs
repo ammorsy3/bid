@@ -43,6 +43,7 @@ const PROJECTS = Object.keys(PROJECT_LABELS);
 // class names, and pixel/hex numbers.
 const PAGE_LABELS = {
   login: "Sign in",
+  "contact-sales": "Get a personalized Bid Tour",
   signup: "Create account",
   "reset-password": "Reset your password",
   "verify-email": "Enter the email code",

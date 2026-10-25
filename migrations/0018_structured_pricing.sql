@@ -123,6 +123,15 @@ CREATE TABLE IF NOT EXISTS offer_item_alternatives (
   reason      varchar(2000) NOT NULL CHECK (length(btrim(reason)) > 0)
 );
 
+-- Like every public table (0012): RLS on, no policies. Supabase's default
+-- privileges grant anon/authenticated full access to new public tables, so
+-- without this they would be readable and writable through the PostgREST API.
+-- The server connects as the owner and is unaffected.
+ALTER TABLE tender_items            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE offer_pricing_drafts    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE offer_item_responses    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE offer_item_alternatives ENABLE ROW LEVEL SECURITY;
+
 COMMIT;
 
 -- ── Runbook ──────────────────────────────────────────────────────────────────

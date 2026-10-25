@@ -13,6 +13,7 @@ import {
   Flag,
   Video,
   ShieldCheck,
+  Sheet,
   LucideIcon,
 } from "lucide-react";
 
@@ -32,6 +33,8 @@ export type CardType =
   | "milestones"
   | "video-url"
   | "vendor-requirements"
+  // Itemized pricing (RFQ brief §6): the bill of quantities, when structured pricing is on
+  | "bill-of-quantities"
   // Custom
   | "custom-text"
   | "custom-textarea"
@@ -207,6 +210,12 @@ export const CARD_LIBRARY: {
       label: "Video URL",
       description: "Optional video introducing the project (YouTube, Vimeo, or direct link).",
       icon: Video,
+    },
+    {
+      type: "bill-of-quantities",
+      label: "Itemized Pricing",
+      description: "Require vendors to respond to every item.",
+      icon: Sheet,
     },
     {
       type: "vendor-requirements",
@@ -424,6 +433,12 @@ export const FIELD_INSIGHTS: Record<CardType, FieldInsight> = {
       "A 2–5 minute video lets vendors see the people and environment behind the RFP, building trust and improving response quality.",
     bestPractice:
       "Keep videos under 5 minutes. Make sure the link is publicly accessible (no sign-in required). YouTube unlisted or Vimeo work well.",
+  },
+  "bill-of-quantities": {
+    title: "Itemized Pricing",
+    description: "A bill of quantities vendors price item by item; their totals are calculated, not typed.",
+    vendorTip: "Item-by-item prices make offers directly comparable and show where vendors differ.",
+    bestPractice: "Keep units and quantities exact (up to 4 decimals). Reference prices stay hidden from vendors unless you show them.",
   },
   "vendor-requirements": {
     title: "Vendor Requirements",

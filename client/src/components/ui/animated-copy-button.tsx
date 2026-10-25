@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "./button";
 import { Copy, Check } from "lucide-react";
+import { useCopyWithFallback } from "@/lib/clipboard";
 
 interface AnimatedCopyButtonProps {
   text: string;
@@ -12,6 +13,7 @@ interface AnimatedCopyButtonProps {
   variant?: "outline" | "default" | "ghost";
   size?: "sm" | "lg" | "default";
   isRtl?: boolean;
+  "data-testid"?: string;
 }
 
 export const AnimatedCopyButton: React.FC<AnimatedCopyButtonProps> = ({
@@ -21,25 +23,30 @@ export const AnimatedCopyButton: React.FC<AnimatedCopyButtonProps> = ({
   variant = "outline",
   size = "sm",
   isRtl = false,
+  "data-testid": dataTestId,
 }) => {
   const [isCopied, setIsCopied] = useState(false);
+  const { copy, dialog } = useCopyWithFallback();
 
+  // "Copied" only once the text is really on the clipboard; if the browser
+  // refuses, the text opens in a dialog to copy by hand.
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
+    if (await copy(text)) {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
     }
   };
 
   return (
+    <>
+    {dialog}
     <Button
       variant={variant}
       size={size}
       onClick={handleCopy}
       className={className}
+      aria-live="polite"
+      data-testid={dataTestId}
     >
       <AnimatePresence mode="wait">
         {isCopied ? (
@@ -69,5 +76,6 @@ export const AnimatedCopyButton: React.FC<AnimatedCopyButtonProps> = ({
         )}
       </AnimatePresence>
     </Button>
+    </>
   );
 };

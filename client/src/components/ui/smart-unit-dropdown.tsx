@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useId } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, Star, Search, X } from "lucide-react";
+import { ChevronDown, Star, Plus } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 interface SmartUnitDropdownProps {
@@ -214,6 +214,21 @@ interface DropdownPosition {
   width: number;
 }
 
+type Option = { kind: "create"; value: string } | { kind: "unit"; value: string; suggested: boolean };
+
+const countWords = (text: string): number => text.trim().split(/\s+/).filter(Boolean).length;
+const collapse = (text: string) => text.trim().replace(/\s+/g, " ");
+
+/**
+ * Unit of measurement as a combobox (BID-UX-BUGFIX item 2):
+ * - opening shows the options (context suggestions first), typing filters them
+ *   by English or Arabic label;
+ * - Enter picks the highlighted option, or — when nothing matches — adds the
+ *   typed unit and selects it at once (no separate "add custom" step);
+ * - a typed name equal to an existing unit (any case, English or Arabic)
+ *   selects that unit instead of creating a duplicate; empty input adds nothing;
+ * - Enter never submits the form or advances the wizard.
+ */
 export function SmartUnitDropdown({
   value,
   onChange,
@@ -232,300 +247,217 @@ export function SmartUnitDropdown({
     "Digital/Social": t('tenderFlow.unitGroupDigital'),
     "Time-Based": t('tenderFlow.unitGroupTime'),
   };
+  const groupOf = (unit: string) => Object.entries(UNIT_GROUPS).find(([, units]) => units.includes(unit))?.[0] ?? "";
 
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isOtherMode, setIsOtherMode] = useState(false);
-  const [otherValue, setOtherValue] = useState("");
+  const [query, setQuery] = useState("");
+  const [active, setActive] = useState(0);
   const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition>({ top: 0, left: 0, width: 0 });
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
 
-  // Get prioritized units based on context
-  const prioritizedUnits = useMemo(() => {
-    return getPrioritizedUnits(deliverableName, deliverableDescription, projectTitle);
-  }, [deliverableName, deliverableDescription, projectTitle]);
+  const prioritizedUnits = useMemo(
+    () => getPrioritizedUnits(deliverableName, deliverableDescription, projectTitle),
+    [deliverableName, deliverableDescription, projectTitle],
+  );
 
-  // Check if the current value is a custom "Other" value
-  useEffect(() => {
-    if (value && !ALL_UNITS.includes(value)) {
-      setIsOtherMode(true);
-      setOtherValue(value);
-    } else if (!value) {
-      setIsOtherMode(false);
-      setOtherValue("");
-    }
-  }, [value]);
+  const typed = collapse(query);
+  const needle = typed.toLowerCase();
+  /** An existing unit whose English key or Arabic label equals the typed text. */
+  const existing = useMemo(
+    () => (needle ? ALL_UNITS.find((u) => u.toLowerCase() === needle || (UNIT_LABELS_AR[u] ?? "") === typed) : undefined),
+    [needle, typed],
+  );
+  const tooLong = countWords(typed) > 5;
 
-  // Calculate dropdown position when opening
-  useEffect(() => {
-    if (isOpen && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + 4,
-        left: rect.left,
-        width: rect.width,
-      });
-    }
-  }, [isOpen]);
+  const options: Option[] = useMemo(() => {
+    const matches = (u: string) => !needle || u.toLowerCase().includes(needle) || (UNIT_LABELS_AR[u] ?? "").includes(typed);
+    const suggested = prioritizedUnits.filter(matches).map((u) => ({ kind: "unit" as const, value: u, suggested: true }));
+    const rest = ALL_UNITS.filter((u) => !prioritizedUnits.includes(u) && matches(u)).map((u) => ({ kind: "unit" as const, value: u, suggested: false }));
+    const list: Option[] = [...suggested, ...rest];
+    // A custom unit that is not already the selected value or an existing unit.
+    if (typed && !existing && !tooLong && typed !== value) list.unshift({ kind: "create", value: typed });
+    return list;
+  }, [needle, typed, prioritizedUnits, existing, tooLong, value]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node;
-      if (
-        triggerRef.current && !triggerRef.current.contains(target) &&
-        dropdownRef.current && !dropdownRef.current.contains(target)
-      ) {
-        setIsOpen(false);
-        setSearchTerm("");
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  useEffect(() => { setActive(0); }, [query, isOpen]);
 
-  // Focus input when dropdown opens
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      // Small delay to ensure portal is mounted
-      setTimeout(() => inputRef.current?.focus(), 10);
-    }
-  }, [isOpen]);
+  const place = () => {
+    const rect = inputRef.current?.getBoundingClientRect();
+    if (rect) setDropdownPosition({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+  };
 
-  // Update position on scroll/resize
   useEffect(() => {
     if (!isOpen) return;
-
-    function updatePosition() {
-      if (triggerRef.current) {
-        const rect = triggerRef.current.getBoundingClientRect();
-        setDropdownPosition({
-          top: rect.bottom + 4,
-          left: rect.left,
-          width: rect.width,
-        });
-      }
-    }
-
-    window.addEventListener("scroll", updatePosition, true);
-    window.addEventListener("resize", updatePosition);
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
     return () => {
-      window.removeEventListener("scroll", updatePosition, true);
-      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
     };
   }, [isOpen]);
 
-  // Filter units based on search term
-  const filteredUnits = useMemo(() => {
-    if (!searchTerm) return ALL_UNITS;
-    return ALL_UNITS.filter(unit =>
-      unit.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
+  // Close when tapping or clicking outside the field and its list.
+  useEffect(() => {
+    if (!isOpen) return;
+    function handlePointer(event: PointerEvent) {
+      const target = event.target as Node;
+      if (inputRef.current?.contains(target) || dropdownRef.current?.contains(target)) return;
+      close();
+    }
+    document.addEventListener("pointerdown", handlePointer);
+    return () => document.removeEventListener("pointerdown", handlePointer);
+  }, [isOpen]);
 
-  // Get non-prioritized units (excluding already prioritized ones)
-  const nonPrioritizedUnits = useMemo(() => {
-    return filteredUnits.filter(unit => !prioritizedUnits.includes(unit));
-  }, [filteredUnits, prioritizedUnits]);
+  // Keep the highlighted option visible while moving with the keyboard.
+  useEffect(() => {
+    if (!isOpen) return;
+    document.getElementById(`${listId}-opt-${active}`)?.scrollIntoView({ block: "nearest" });
+  }, [active, isOpen, listId]);
 
-  // Filter prioritized units by search term
-  const filteredPrioritizedUnits = useMemo(() => {
-    if (!searchTerm) return prioritizedUnits;
-    return prioritizedUnits.filter(unit =>
-      unit.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [prioritizedUnits, searchTerm]);
-
-  const handleSelect = (unit: string) => {
-    onChange(unit);
+  function close() {
     setIsOpen(false);
-    setSearchTerm("");
-    setIsOtherMode(false);
-  };
-
-  const handleOtherSelect = () => {
-    setIsOtherMode(true);
-    setIsOpen(false);
-    setSearchTerm("");
-    setOtherValue("");
-    onChange("");
-  };
-
-  const handleOtherChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setOtherValue(newValue);
-    onChange(newValue);
-  };
-
-  const handleClearOther = () => {
-    setIsOtherMode(false);
-    setOtherValue("");
-    onChange("");
-  };
-
-  // Count words helper
-  const countWords = (text: string): number => {
-    return text.trim().split(/\s+/).filter(Boolean).length;
-  };
-
-  const wordCount = countWords(otherValue);
-  const isOverLimit = wordCount > 5;
-
-  if (isOtherMode) {
-    return (
-      <div className="space-y-1">
-        <div className="relative">
-          <input
-            type="text"
-            value={otherValue}
-            onChange={handleOtherChange}
-            placeholder={t('tenderFlow.enterCustomUnit')}
-            className={`w-full px-3 py-2 pe-8 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
-              error || isOverLimit ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-            }`}
-            data-testid={dataTestId}
-          />
-          <button
-            type="button"
-            onClick={handleClearOther}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-muted-foreground dark:hover:text-gray-300"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className={`text-xs ${isOverLimit ? 'text-red-500' : 'text-gray-400'}`}>
-            {wordCount} / 5 words
-          </span>
-          <button
-            type="button"
-            onClick={handleClearOther}
-            className="text-xs text-[#FE3C01] hover:underline"
-          >
-            {t('tenderFlow.backToSuggestions')}
-          </button>
-        </div>
-      </div>
-    );
+    setQuery("");
   }
 
+  function choose(unit: string) {
+    onChange(unit);
+    close();
+  }
+
+  function commitTyped() {
+    if (!typed) return;               // nothing typed: nothing to add
+    if (existing) return choose(existing);
+    if (tooLong) return;              // the inline hint explains why
+    choose(typed);
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      // Never submit the form or advance the wizard from this field.
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isOpen) { setIsOpen(true); return; }
+      // The highlighted option: "Add …" comes first when nothing matches exactly,
+      // an exact existing unit is never offered as a new one.
+      const option = options[active];
+      return option ? choose(option.value) : commitTyped();
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!isOpen) setIsOpen(true);
+      else setActive((i) => Math.min(i + 1, Math.max(options.length - 1, 0)));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Escape") {
+      if (isOpen) { e.preventDefault(); e.stopPropagation(); close(); }
+    } else if (e.key === "Tab") {
+      close();
+    }
+  }
+
+  const display = value ? labelFor(value) : "";
+  const activeId = isOpen && options[active] ? `${listId}-opt-${active}` : undefined;
+
+  let lastGroup = "";
   const dropdownMenu = isOpen && createPortal(
     <div
       ref={dropdownRef}
-      className="fixed z-[9999] bg-white dark:bg-background border border-border dark:border-border rounded-lg shadow-lg max-h-72 overflow-hidden"
-      style={{
-        top: dropdownPosition.top,
-        left: dropdownPosition.left,
-        width: dropdownPosition.width,
-      }}
+      id={listId}
+      role="listbox"
+      aria-label={t('tenderFlow.unitOfMeasurement')}
+      dir={isRtl ? "rtl" : "ltr"}
+      className="fixed z-[9999] bg-white dark:bg-background border border-border dark:border-border rounded-lg shadow-lg max-h-72 overflow-y-auto overscroll-contain"
+      style={{ top: dropdownPosition.top, left: dropdownPosition.left, width: Math.max(dropdownPosition.width, 220) }}
     >
-      {/* Add custom item - pinned at top */}
-      <div className="p-2 border-b border-border dark:border-border">
-        <button
-          type="button"
-          onClick={handleOtherSelect}
-          className="w-full px-3 py-2 text-sm text-start hover:bg-[#FE3C01]/10 rounded-md flex items-center gap-2 text-[#FE3C01] font-medium"
-        >
-          <span className="text-lg leading-none">+</span>
-          {t('tenderFlow.addCustomUnit')}
-        </button>
-      </div>
-
-      {/* Search input */}
-      <div className="p-2 border-b border-border dark:border-border">
-        <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={t('tenderFlow.searchUnits')}
-            className="w-full ps-8 pe-3 py-1.5 text-sm border border-border dark:border-border rounded-md bg-gray-50 dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#FE3C01]"
-          />
-        </div>
-      </div>
-
-      {/* Options list */}
-      <div className="overflow-y-auto max-h-52">
-        {/* Show ONLY suggested units if there are keyword matches */}
-        {filteredPrioritizedUnits.length > 0 ? (
-          <div>
-            <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-card flex items-center gap-1">
-              <Star className="h-3 w-3 text-[#FE3C01]" />
-              {t('tenderFlow.suggestedUnits')}
+      {options.length === 0 && tooLong && (
+        <p className="px-3 py-3 text-xs text-red-500">{t('tenderFlow.unitTooLong')}</p>
+      )}
+      {options.map((option, i) => {
+        const isActive = i === active;
+        const base = `w-full min-h-[44px] px-3 py-2 text-sm text-start flex items-center gap-2 cursor-pointer select-none ${
+          isActive ? 'bg-[#FE3C01]/10' : ''
+        }`;
+        if (option.kind === "create") {
+          return (
+            <div
+              key="create"
+              id={`${listId}-opt-${i}`}
+              role="option"
+              aria-selected={isActive}
+              onPointerDown={(e) => e.preventDefault()}
+              onClick={() => choose(option.value)}
+              onMouseEnter={() => setActive(i)}
+              className={`${base} text-[#FE3C01] font-medium border-b border-border`}
+              data-testid="unit-option-create"
+            >
+              <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="truncate">{t('tenderFlow.createUnit', { unit: option.value })}</span>
             </div>
-            {filteredPrioritizedUnits.map((unit) => (
-              <button
-                key={`suggested-${unit}`}
-                type="button"
-                onClick={() => handleSelect(unit)}
-                className={`w-full px-3 py-2 text-sm text-start hover:bg-[#FE3C01]/10 flex items-center gap-2 ${
-                  value === unit ? 'bg-[#FE3C01]/5 text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'
-                }`}
-              >
-                <Star className="h-3 w-3 text-[#FE3C01]" />
-                {labelFor(unit)}
-              </button>
-            ))}
-          </div>
-        ) : (
-          /* Show all options grouped only when NO keyword matches */
-          Object.entries(UNIT_GROUPS).map(([groupName, units]) => {
-            const groupUnits = units.filter(unit =>
-              !searchTerm ||
-              unit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              labelFor(unit).includes(searchTerm)
-            );
-
-            if (groupUnits.length === 0) return null;
-
-            return (
-              <div key={groupName}>
-                <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-card">
-                  {GROUP_NAME_KEYS[groupName] ?? groupName}
-                </div>
-                {groupUnits.map((unit) => (
-                  <button
-                    key={unit}
-                    type="button"
-                    onClick={() => handleSelect(unit)}
-                    className={`w-full px-3 py-2 text-sm text-start hover:bg-[#FE3C01]/10 ${
-                      value === unit ? 'bg-[#FE3C01]/5 text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'
-                    }`}
-                  >
-                    {labelFor(unit)}
-                  </button>
-                ))}
+          );
+        }
+        const heading = option.suggested ? "suggested" : groupOf(option.value);
+        const showHeading = !needle && heading !== lastGroup;
+        lastGroup = heading;
+        return (
+          <div key={`${heading}-${option.value}`}>
+            {showHeading && (
+              <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-card flex items-center gap-1" role="presentation">
+                {option.suggested && <Star className="h-3 w-3 text-[#FE3C01]" aria-hidden="true" />}
+                {option.suggested ? t('tenderFlow.suggestedUnits') : (GROUP_NAME_KEYS[heading] ?? heading)}
               </div>
-            );
-          })
-        )}
-      </div>
+            )}
+            <div
+              id={`${listId}-opt-${i}`}
+              role="option"
+              aria-selected={value === option.value}
+              onPointerDown={(e) => e.preventDefault()}
+              onClick={() => choose(option.value)}
+              onMouseEnter={() => setActive(i)}
+              className={`${base} ${value === option.value ? 'text-[#FE3C01]' : 'text-gray-900 dark:text-foreground'}`}
+              data-testid={`unit-option-${option.value}`}
+            >
+              {option.suggested && <Star className="h-3 w-3 text-[#FE3C01] shrink-0" aria-hidden="true" />}
+              {labelFor(option.value)}
+            </div>
+          </div>
+        );
+      })}
     </div>,
     document.body
   );
 
   return (
     <div className="relative">
-      {/* Dropdown trigger */}
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-start flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
+      <input
+        ref={inputRef}
+        type="text"
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-activedescendant={activeId}
+        aria-invalid={!!error || undefined}
+        enterKeyHint="done"
+        autoComplete="off"
+        value={isOpen ? query : display}
+        placeholder={isOpen && display ? display : t('tenderFlow.selectUnit')}
+        onFocus={() => setIsOpen(true)}
+        onClick={() => setIsOpen(true)}
+        onChange={(e) => { setQuery(e.target.value); if (!isOpen) setIsOpen(true); }}
+        onKeyDown={onKeyDown}
+        className={`w-full px-3 py-2 pe-8 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
           error ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
         }`}
         data-testid={dataTestId}
-      >
-        <span className={value ? "text-gray-900 dark:text-foreground" : "text-gray-400"}>
-          {value ? labelFor(value) : t('tenderFlow.selectUnit')}
-        </span>
-        <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-
+      />
+      <ChevronDown
+        aria-hidden="true"
+        className={`pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+      />
       {dropdownMenu}
     </div>
   );

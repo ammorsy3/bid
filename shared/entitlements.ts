@@ -89,6 +89,8 @@ export interface PlanRequiredBody {
 /** What GET /api/entitlements returns. */
 export interface EntitlementsSummary {
   tier: PlanTier;
+  /** Where the tier comes from: a paid subscription or an administrative grant. */
+  planSource?: "free" | "subscription" | "grant";
   /** False for team and individual workspaces: nothing is gated for them. */
   gated: boolean;
   tendersUsed: number;

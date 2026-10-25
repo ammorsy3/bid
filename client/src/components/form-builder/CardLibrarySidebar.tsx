@@ -1,3 +1,4 @@
+import { useStructuredPricing } from "@/lib/structured-pricing";
 import { useDraggable } from "@dnd-kit/core";
 import { CARD_LIBRARY, FIELD_INSIGHTS, CardDefinition, CardType } from "@/lib/form-builder-types";
 import { Star, GripVertical, CheckCircle2 } from "lucide-react";
@@ -126,7 +127,9 @@ const DEFAULT_COLORS = {
 export function CardLibrarySidebar({ usedCardTypes, width = 288, fullWidth, onAddCard, onShowInsight, onHideInsight }: CardLibrarySidebarProps) {
   const { t } = useI18n();
 
+  const structuredOn = useStructuredPricing();
   const translatedCardInfo: Record<string, { label: string; description: string }> = {
+    'bill-of-quantities': { label: t('pricing.title'), description: t('pricing.description') },
     'project-title': { label: t('formBuilder.cardProjectTitleLabel'), description: t('formBuilder.cardProjectTitleDesc') },
     'supplier-response': { label: t('formBuilder.cardVendorResponseLabel'), description: t('formBuilder.cardVendorResponseDesc') },
     'project-dates': { label: t('formBuilder.cardTimelineLabel'), description: t('formBuilder.cardTimelineDesc') },
@@ -186,7 +189,7 @@ export function CardLibrarySidebar({ usedCardTypes, width = 288, fullWidth, onAd
             {t('formBuilder.sectionStandard')}
           </h4>
           <div className="grid grid-cols-2 gap-3">
-            {CARD_LIBRARY.standard.map((card) => (
+            {CARD_LIBRARY.standard.filter((card) => card.type !== "bill-of-quantities" || structuredOn).map((card) => (
               <DraggableLibraryCard
                 key={card.type}
                 card={{ ...card, label: translatedCardInfo[card.type]?.label ?? card.label, description: translatedCardInfo[card.type]?.description ?? card.description }}

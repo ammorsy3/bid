@@ -5590,7 +5590,7 @@
           "wait": 2000
         },
         {
-          "click": "[data-testid=button-template]"
+          "waitFor": "[data-testid=gallery-saved]"
         },
         {
           "wait": 800
@@ -15209,7 +15209,7 @@
           "wait": 2000
         },
         {
-          "click": "[data-testid=button-template]"
+          "waitFor": "[data-testid=gallery-saved]"
         },
         {
           "wait": 800

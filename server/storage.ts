@@ -1,4 +1,8 @@
+import { updateTenderGuarded } from "./lib/tender-update";
 import {
+  tenderItems,
+  offerItemAlternatives,
+  offerItemResponses,
   users,
   companies,
   companyProfiles,
@@ -221,6 +225,7 @@ export interface IStorage {
   getTenderByVoiceNoteUrl(voiceNoteUrl: string): Promise<Tender | null>;
   getTendersByAttachmentUrl(attachmentUrl: string): Promise<Tender[]>;
   getTendersByMediaUrl(mediaUrl: string): Promise<Tender[]>;
+  getTendersByItemImageUrl(imageUrl: string): Promise<Tender[]>;
   getCompaniesByBrandAssetUrl(fileUrl: string): Promise<{ companyId: string; ownerUserId: string | null }[]>;
   getTenderWithProposalCount(id: string): Promise<(Tender & { proposalCount: number }) | undefined>;
   getTendersByCompany(companyId: string): Promise<Tender[]>;
@@ -243,6 +248,7 @@ export interface IStorage {
   hasAppliedToRequester(applicantCompanyId: string, requesterCompanyId: string): Promise<boolean>;
   getOfferByTenderAndCompany(tenderId: string, companyId: string): Promise<Offer | null>;
   getOffersByFileUrl(fileUrl: string): Promise<Offer[]>;
+  getOffersByAlternativeImageUrl(imageUrl: string): Promise<Offer[]>;
   getCompanyDocumentsByFileUrl(fileUrl: string): Promise<CompanyDocument[]>;
   getIncomingOffersByCompany(companyId: string): Promise<(Offer & { tender: Tender; company: SafeCompany; profile?: CompanyProfile })[]>;
   getIncomingOffersByCompanyWithViews(companyId: string, viewerId: string): Promise<(Offer & { tender: Tender; company: SafeCompany; profile?: CompanyProfile; isViewed: boolean })[]>;
@@ -1188,6 +1194,23 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
+  /** Itemized offers whose alternative uses this image (sealed-offer read rule). */
+  async getOffersByAlternativeImageUrl(imageUrl: string): Promise<Offer[]> {
+    const rows = await db.select({ offer: offers }).from(offerItemAlternatives)
+      .innerJoin(offerItemResponses, eq(offerItemResponses.id, offerItemAlternatives.responseId))
+      .innerJoin(offers, eq(offers.id, offerItemResponses.offerId))
+      .where(eq(offerItemAlternatives.imageUrl, imageUrl));
+    return rows.map((r) => r.offer);
+  }
+
+  /** Requests whose RFQ items use this image (GET /objects/* read rule). */
+  async getTendersByItemImageUrl(imageUrl: string): Promise<Tender[]> {
+    const rows = await db.select({ tender: tenders }).from(tenderItems)
+      .innerJoin(tenders, eq(tenders.id, tenderItems.tenderId))
+      .where(eq(tenderItems.imageUrl, imageUrl));
+    return rows.map((r) => r.tender);
+  }
+
   async getTendersByAttachmentUrl(attachmentUrl: string): Promise<Tender[]> {
     const allTenders = await db
       .select()
@@ -1293,12 +1316,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateTender(id: string, updates: Partial<InsertTender>): Promise<Tender> {
-    const [tender] = await db
-      .update(tenders)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(tenders.id, id))
-      .returning();
-    return tender;
+    // Every caller goes through the guarded update: structure and item locks and
+    // the P8 specification lock, decided under the request's row lock.
+    return updateTenderGuarded(db, id, updates);
   }
 
   async deleteTender(id: string): Promise<void> {

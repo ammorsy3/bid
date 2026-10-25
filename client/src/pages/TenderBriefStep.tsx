@@ -1,9 +1,13 @@
 import { Button } from "@/components/ui/button";
+import { BoqItemsView } from "@/components/boq/BoqItemsView";
+import { readBoq, toStructuredPayload } from "@/lib/boq-draft";
+import { normalizeItem, vendorItemView } from "@shared/boq-items";
 import { SarMark } from "@/components/SarMark";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Loader2, Calendar, DollarSign, Clock, Users, FileText, Video, MessageSquare, Mail, Phone, Eye, EyeOff, Mic, Flag, BarChart, Target, Layers, Package, ClipboardCheck, Send, ChevronRight, ChevronDown, Shield, Copy, Languages, Paperclip, Upload, X } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
+import { useWizardNav } from "@/lib/wizard-nav";
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -14,6 +18,9 @@ import { format } from "date-fns";
 import { parseDateOnly, toDateString } from "@/lib/date";
 import { formatCurrency } from "@/lib/format-currency";
 import { useI18n, type Language } from "@/lib/i18n";
+import { copyText } from "@/lib/clipboard";
+import { formatSaudiMobile } from "@shared/whatsapp";
+import { tenderErrorMessage } from "@/lib/tender-errors";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,6 +70,7 @@ export default function TenderBriefStep() {
     return () => { root.style.scrollPaddingBottom = previous; };
   }, []);
   const [, navigate] = useLocation();
+  const { goNext, goBack } = useWizardNav();
   const { toast } = useToast();
   const { activeCompany } = useAuthStore();
   const { t, language, isRtl } = useI18n();
@@ -126,6 +134,7 @@ export default function TenderBriefStep() {
 
   const SUBMISSION_TYPE_LABELS: Record<string, string> = {
     quote_only: t('tenderFlow.submissionQuoteOnly'),
+    itemized_only: t('pricing.itemizedOnly'),
     tech_fin_proposal: t('tenderFlow.submissionTechFin'),
     video_only: t('tenderFlow.submissionVideoOnly'),
     tech_fin_with_video: t('tenderFlow.submissionTechFinVideo'),
@@ -180,6 +189,13 @@ export default function TenderBriefStep() {
     }
   });
 
+  // Publishing clears the draft. Reaching this page again through browser
+  // history must never offer to publish an empty or already-published request:
+  // start a new one instead.
+  useEffect(() => {
+    if (!draft?.title) navigate("/tenders/new", { replace: true });
+  }, []);
+
   // Mirror writes back to localStorage so going Back to earlier steps and
   // returning to the brief does not drop voice/video edits made here.
   const updateDraft = (patch: Record<string, any>) => {
@@ -231,18 +247,19 @@ export default function TenderBriefStep() {
         title: t('tenderFlow.rfpPublished'),
         description: t('tenderFlow.rfpPublishedDesc'),
         action: (
-          <ToastAction altText={t('tenderFlow.copyInviteLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopied') }); }}>
+          <ToastAction altText={t('tenderFlow.copyInviteLink')} onClick={async () => { toast(await copyText(inviteLink) ? { title: t('tenderFlow.linkCopied') } : { title: t('tenderFlow.copyManualTitle'), description: <span className="select-all break-all" dir="ltr">{inviteLink}</span>, duration: 30000 }); }}>
             <Copy className="h-3 w-3 me-1" /> {t('common.copyLink')}
           </ToastAction>
         ),
         duration: 10000,
       });
-      navigate("/dashboard?tab=tenders");
+      // Replace the brief in history so Back cannot return to a publish screen.
+      navigate("/dashboard?tab=tenders", { replace: true });
     },
     onError: (error: Error) => {
       toast({
         title: t('tenderFlow.failedPublishRfp'),
-        description: error.message,
+        description: tenderErrorMessage(error, t, error.message),
         variant: "destructive",
       });
     },
@@ -284,7 +301,8 @@ export default function TenderBriefStep() {
           : (draft.evaluationCriteria.requirements?.length > 0 || draft.evaluationCriteria.customCriteria?.length > 0)
       ) ? draft.evaluationCriteria : undefined,
       objective: draft.projectObjective || undefined,
-      deliverables: draft.keyDeliverables && draft.keyDeliverables.length > 0 ? draft.keyDeliverables : undefined,
+      // Itemized requests send their items instead; the server derives deliverables from them.
+      deliverables: !itemized && draft.keyDeliverables && draft.keyDeliverables.length > 0 ? draft.keyDeliverables : undefined,
       voiceNoteUrl: draft.voiceNoteUrl || undefined,
       videoUrl: draft.videoUrl?.trim() || undefined,
       startDate: draft.startDate || undefined,
@@ -312,12 +330,15 @@ export default function TenderBriefStep() {
     if (attachments.length > 0) {
       tenderData.attachments = attachments;
     }
+    if (itemized) {
+      tenderData.structured = toStructuredPayload(boq, draft.requestType === "rfq" ? "rfq" : "rfp");
+    }
 
     submitTender.mutate(tenderData);
   };
 
   const handleBack = () => {
-    navigate("/tenders/new/evaluation-criteria");
+    goBack("/tenders/new/evaluation-criteria");
   };
 
   const formatDate = (dateStr: string) => {
@@ -357,7 +378,14 @@ export default function TenderBriefStep() {
   };
 
   const hasSkills = draft.skills && draft.skills.length > 0;
-  const hasDeliverables = draft.keyDeliverables && draft.keyDeliverables.length > 0;
+  const itemized = draft.itemizedPricing === true;
+  const boq = readBoq(draft);
+  const hasDeliverables = !itemized && draft.keyDeliverables && draft.keyDeliverables.length > 0;
+  const hasItems = itemized && boq.items.length > 0;
+  // The requester's view of the items: everything they entered, reference prices included.
+  const itemsModel = hasItems
+    ? vendorItemView(boq.items.map((it, position) => ({ id: it.key, position, ...normalizeItem(it, boq.columns) })), boq.columns, true)
+    : null;
   const hasMilestones = draft.milestones && draft.milestones.length > 0;
   const hasEvalCriteria = draft.evaluationCriteria && (
     Array.isArray(draft.evaluationCriteria)
@@ -377,6 +405,7 @@ export default function TenderBriefStep() {
     { id: 'description',  show: hasDescription },
     { id: 'objective',    show: hasObjective },
     { id: 'deliverables', show: hasDeliverables },
+    { id: 'items',        show: hasItems },
     { id: 'milestones',   show: hasMilestones },
     { id: 'evaluation',   show: hasEvalCriteria },
     { id: 'requirements', show: true },
@@ -519,6 +548,14 @@ export default function TenderBriefStep() {
                     {draft.projectObjective}
                   </p>
                 </div>
+            )}
+
+            {hasItems && itemsModel && (
+              <div className="border-t border-border p-6 sm:p-8" data-testid="brief-items">
+                <BriefSectionHeader index={sectionNumber('items')} title={t('boq.title')} />
+                <p className="text-xs text-muted-foreground mb-3">{boq.showReferencePrices ? t('boq.previewWithPrices') : t('boq.referencePriceHint')}</p>
+                <BoqItemsView view={itemsModel} caption={t('boq.title')} />
+              </div>
             )}
 
             {hasDeliverables && (
@@ -1073,7 +1110,7 @@ export default function TenderBriefStep() {
                       {draft.whatsappContact && (
                         <div className="flex items-center gap-2 text-sm" data-testid="brief-whatsapp">
                           <Phone className="h-3.5 w-3.5 text-green-600" />
-                          <span className="text-muted-foreground">{draft.whatsappContact}</span>
+                          <span className="text-muted-foreground" dir="ltr">{formatSaudiMobile(draft.whatsappContact)}</span>
                         </div>
                       )}
                     </div>

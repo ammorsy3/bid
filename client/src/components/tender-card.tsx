@@ -27,6 +27,7 @@ export default function TenderCard({ tender }: TenderCardProps) {
   const getSubmissionTypeLabel = (type: string) => {
     switch (type) {
       case 'quote_only': return t('tenderCard.priceQuoteOnly');
+      case 'itemized_only': return t('pricing.itemizedOnly');
       case 'tech_fin_proposal': return t('tenderCard.techFinProposal');
       case 'video_only': return t('tenderCard.videoOnly');
       case 'tech_fin_with_video': return t('tenderCard.techFinWithVideo');

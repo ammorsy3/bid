@@ -27,7 +27,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { usePlan } from "@/lib/usePlan";
 import { clearReturnPath, takeReturnPath } from "@/lib/upgrade-return";
 import { FEATURE_MIN_PLAN, isFeature, planAllows, type Feature } from "@shared/entitlements";
-import { MONTHLY_PRICE, PAID_PLANS, monthlyRate, periodPrice, type BillingTerm, type PaidPlan } from "@shared/billing-plans";
+import { MONTHLY_PRICE, PAID_PLANS, monthlyRate, periodPrice, priceWithVat, type BillingTerm, type PaidPlan } from "@shared/billing-plans";
 
 type Reason = Feature | "tenders";
 type Step = "pick" | "opening" | "details";
@@ -226,6 +226,12 @@ export default function Upgrade() {
                         {term === "yearly"
                           ? <>{sar(periodPrice(p, term))} {t("billing.billedYearly")}</>
                           : t("upgrade.billedMonthly")}
+                      </div>
+                      {/* What is actually charged per period, VAT included (same math as checkout). */}
+                      <div className="plan-usd" data-testid={`upgrade-total-${p}`}>
+                        {t("upgrade.totalWithVat")}{" "}
+                        <span dir="ltr" className="tabular-nums">SAR {priceWithVat(p, term).total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>{" "}
+                        {term === "yearly" ? t("billing.billedYearly") : t("upgrade.billedMonthly")}
                       </div>
                       {term === "yearly" && (
                         <div className="plan-save">{t("upgrade.youSave")} {sar(saved)} {t("upgrade.perYear")}</div>

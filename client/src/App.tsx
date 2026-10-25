@@ -32,6 +32,7 @@ import TeamInviteOnboarding from "@/pages/onboarding/team-invite";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
 import TenderDetails from "@/pages/tender-details";
+import RfqPricingPage from "@/pages/RfqPricingPage";
 import TenderEditPage from "@/pages/TenderEditPage";
 import TenderCreateChoice from "@/pages/TenderCreateChoice";
 import TenderTitleStep from "@/pages/TenderTitleStep";
@@ -201,6 +202,7 @@ export default function App() {
               <Route path="/invite/:id" component={TenderInviteLink} />
               <Route path="/team-invite/:token" component={TeamInvite} />
               <Route path="/tenders/:id/edit" component={TenderEditPage} />
+              <Route path="/tenders/:id/pricing" component={RfqPricingPage} />
               <Route path="/tenders/:id" component={TenderDetails} />
               <Route path="/company/edit" component={ProfileEditorRouter} />
               <Route path="/company/:slug" component={CompanyProfilePage} />

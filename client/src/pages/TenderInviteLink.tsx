@@ -1,3 +1,4 @@
+import { BoqItemsView, type ItemsViewModel } from "@/components/boq/BoqItemsView";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { BidLogo } from "@/components/brand/BidLogo";
 import SubmitOfferModal from "@/components/submit-offer-modal";
 import { formatSAREnglish } from "@/lib/format-currency";
 import { useI18n } from "@/lib/i18n";
+import { whatsappLink, formatSaudiMobile } from "@shared/whatsapp";
 import { authUrlWithReturn } from "@/lib/return-to";
 import { isolateLtr, withLtrUrls } from "@/lib/bidi";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -61,7 +63,9 @@ interface TenderInvite {
   milestones?: Milestone[];
   voiceNoteUrl?: string;
   videoUrl?: string;
-  submissionType?: 'quote_only' | 'tech_fin_proposal' | 'video_only' | 'tech_fin_with_video';
+  submissionType?: 'quote_only' | 'tech_fin_proposal' | 'video_only' | 'tech_fin_with_video' | 'itemized_only';
+  requestType?: 'rfp' | 'rfq';
+  itemizedPricing?: boolean;
   videoRequired?: boolean;
   inquiryType?: 'inside_bid' | 'email_whatsapp';
   whatsappContact?: string;
@@ -257,6 +261,7 @@ function MobileAtAGlance({
   const { t } = useI18n();
   const localSubmissionTypeLabels: Record<string, string> = {
     quote_only: t('tenderFlow.inviteSubmissionQuoteOnly'),
+    itemized_only: t('pricing.itemizedOnly'),
     tech_fin_proposal: t('tenderFlow.inviteSubmissionTechFin'),
     video_only: t('tenderFlow.inviteSubmissionVideoOnly'),
     tech_fin_with_video: t('tenderFlow.inviteSubmissionTechFinVideo'),
@@ -370,6 +375,7 @@ export default function TenderInviteLink() {
 
   const translatedSubmissionTypeLabels: Record<string, string> = {
     quote_only: t('tenderFlow.inviteSubmissionQuoteOnly'),
+    itemized_only: t('pricing.itemizedOnly'),
     tech_fin_proposal: t('tenderFlow.inviteSubmissionTechFin'),
     video_only: t('tenderFlow.inviteSubmissionVideoOnly'),
     tech_fin_with_video: t('tenderFlow.inviteSubmissionTechFinVideo'),
@@ -379,6 +385,7 @@ export default function TenderInviteLink() {
 
   const translatedSubmissionTypeDesc: Record<string, string> = {
     quote_only: t('tenderFlow.inviteSubmissionQuoteDesc'),
+    itemized_only: t('pricing.itemizedOnlyDescription'),
     video_only: t('tenderFlow.inviteSubmissionVideoDesc'),
     tech_fin_proposal: t('tenderFlow.inviteSubmissionTechFinDesc'),
     tech_fin_with_video: t('tenderFlow.inviteSubmissionTechFinVideoDesc'),
@@ -477,6 +484,17 @@ export default function TenderInviteLink() {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to fetch tender');
       }
+      return res.json();
+    },
+  });
+
+  // Itemized requests: the items in the vendor view (public, published only).
+  const { data: inviteItems } = useQuery<ItemsViewModel & { itemized: boolean }>({
+    queryKey: ['/api/tenders', tenderId, 'invite', 'items'],
+    enabled: !!tenderId && !!tender?.itemizedPricing,
+    queryFn: async () => {
+      const res = await fetch(`/api/tenders/${tenderId}/invite/items`);
+      if (!res.ok) throw new Error('Failed to fetch items');
       return res.json();
     },
   });
@@ -724,6 +742,12 @@ export default function TenderInviteLink() {
       openAuthPage("/login");
       return;
     }
+    // Itemized requests are priced item by item on their own page (Amendment A1);
+    // the invitation token travels with it so the link still counts as an invitation.
+    if (tender.itemizedPricing) {
+      navigate(`/tenders/${tender.id}/pricing?invite=${encodeURIComponent(tenderId ?? "")}`);
+      return;
+    }
     setShowOfferModal(true);
   };
 
@@ -832,7 +856,7 @@ export default function TenderInviteLink() {
   };
 
   // ── Section visibility ───────────────────────────────────────────────────────
-  const hasDeliverables = !!(tender.deliverables && tender.deliverables.length > 0);
+  const hasDeliverables = !tender.itemizedPricing && !!(tender.deliverables && tender.deliverables.length > 0);
   const hasMilestones = !!(tender.milestones && tender.milestones.length > 0);
   const hasEvalCriteria = tender.evaluationCriteria && (
     Array.isArray(tender.evaluationCriteria)
@@ -1202,6 +1226,16 @@ export default function TenderInviteLink() {
                         <div className="p-5 bg-[var(--bid-orange)]/5 border border-blue-100 rounded-xl">
                           <p dir="auto" className="text-muted-foreground whitespace-pre-wrap leading-relaxed [overflow-wrap:anywhere]">{withLtrUrls(tx('objective', tender.objective))}</p>
                         </div>
+                      </div>
+                    )}
+
+                    {/* Items (itemized requests) */}
+                    {tender.itemizedPricing && inviteItems?.itemized && (
+                      <div className="mb-8" data-testid="invite-items">
+                        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <ListChecks className="h-4 w-4" /> {t('boq.title')}
+                        </h3>
+                        <BoqItemsView view={inviteItems} invitationToken={tenderId} caption={t('boq.title')} />
                       </div>
                     )}
 
@@ -1727,8 +1761,8 @@ export default function TenderInviteLink() {
                                 </a>
                               )}
                               {tender.whatsappContact && (
-                                <a href={`https://wa.me/${tender.whatsappContact.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 min-h-11 px-2 rounded-lg text-sm text-emerald-700 hover:underline transition-[opacity,transform] duration-100 active:opacity-70 active:scale-[0.99]">
-                                  <Phone className="h-4 w-4 flex-shrink-0" /> <bdi dir="ltr" className="min-w-0 [overflow-wrap:anywhere]">{tender.whatsappContact}</bdi>
+                                <a href={whatsappLink(tender.whatsappContact) ?? undefined} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 min-h-11 px-2 rounded-lg text-sm text-emerald-700 hover:underline transition-[opacity,transform] duration-100 active:opacity-70 active:scale-[0.99]">
+                                  <Phone className="h-4 w-4 flex-shrink-0" /> <bdi dir="ltr" className="min-w-0 [overflow-wrap:anywhere]">{formatSaudiMobile(tender.whatsappContact)}</bdi>
                                 </a>
                               )}
                             </div>
@@ -2084,7 +2118,7 @@ export default function TenderInviteLink() {
         </div>
       )}
 
-      {showOfferModal && (
+      {showOfferModal && !tender.itemizedPricing && tender.submissionType !== 'itemized_only' && (
         <SubmitOfferModal
           invitationToken={tenderId}
           tender={{

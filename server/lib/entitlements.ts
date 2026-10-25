@@ -23,6 +23,9 @@ import {
 } from "@shared/entitlements";
 import { storage } from "../storage";
 import { getCompanySubscription, isLiveSubscription } from "./billing";
+import { planGrants } from "./plan-grants";
+import { effectiveTier, planSource, type PlanSource } from "@shared/plan-grants";
+import type { CompanyPlanGrant } from "@shared/schema";
 import type { AuthRequest } from "../middleware/auth-types";
 
 export class PlanRequiredError extends Error {
@@ -62,22 +65,41 @@ export function sendPlanRequired(res: Response, err: unknown): boolean {
 
 interface CompanyPlanFacts {
   tier: PlanTier;
+  source: PlanSource;
   gated: boolean;
   grandfathered: Set<string>;
+}
+
+// An administrative grant (migration 0019) raises the plan; it never lowers a
+// paid one. If the grants table cannot be read (e.g. this code runs before the
+// migration is applied) the company simply gets its paid plan — never more.
+async function loadActiveGrant(companyId: string): Promise<CompanyPlanGrant | null> {
+  try {
+    return await planGrants.active(companyId);
+  } catch (err) {
+    console.error("[Entitlements] plan grant lookup failed; using the paid plan only:", (err as Error)?.message);
+    return null;
+  }
 }
 
 async function loadPlanFacts(companyId: string): Promise<CompanyPlanFacts> {
   const company = await storage.getCompany(companyId);
   // Unknown company: fail closed (free and gated), never open.
-  if (!company) return { tier: "free", gated: true, grandfathered: new Set() };
+  if (!company) return { tier: "free", source: "free", gated: true, grandfathered: new Set() };
 
   // Only company workspaces are gated. Teams and individuals are vendors.
   const gated = company.accountType === "company";
   const sub = await getCompanySubscription(companyId);
   // A cancelled plan stays live until its paid period ends (status stays
   // 'active' with cancelAtPeriodEnd), so "live" is exactly "still paid for".
-  const tier: PlanTier = isLiveSubscription(sub) && sub ? (sub.plan as PlanTier) : "free";
-  return { tier, gated, grandfathered: new Set(company.grandfatheredFeatures ?? []) };
+  const paidTier: PlanTier = isLiveSubscription(sub) && sub ? (sub.plan as PlanTier) : "free";
+  const grant = gated ? await loadActiveGrant(companyId) : null;
+  return {
+    tier: effectiveTier(paidTier, grant),
+    source: planSource(paidTier, grant),
+    gated,
+    grandfathered: new Set(company.grandfatheredFeatures ?? []),
+  };
 }
 
 function featureAllowed(facts: CompanyPlanFacts, feature: Feature): boolean {
@@ -119,6 +141,7 @@ export async function getEntitlements(companyId: string, role?: string | null): 
 
   return {
     tier: facts.tier,
+    planSource: facts.source,
     gated: facts.gated,
     tendersUsed,
     tenderLimit,

@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ArrowLeft, ArrowRight, X, Plus, Mic, ChevronDown, CalendarIcon, Video, Sparkles, Loader2 } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
+import { useWizardNav } from "@/lib/wizard-nav";
 import { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react";
 import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
@@ -22,6 +23,12 @@ import { usePlan } from "@/lib/usePlan";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { openUpgrade } from "@/lib/upgrade-store";
 import { withViewTransition } from "@/lib/view-transition";
+import { QuantityInput } from "@/components/ui/quantity-input";
+import { parseQuantity, quantityErrorMessage } from "@shared/quantity";
+import { BoqEditor } from "@/components/boq/BoqEditor";
+import { flushSync } from "react-dom";
+import { readBoq, type BoqDraft } from "@/lib/boq-draft";
+import { validateItems } from "@shared/boq-items";
 
 type InputMode = "text" | "voice";
 
@@ -30,7 +37,8 @@ export interface Deliverable {
   name: string;
   description: string;
   unit: string;
-  quantity: number;
+  /** A number once validated; the raw text while it is being edited. */
+  quantity: number | string;
 }
 
 export interface Milestone {
@@ -65,6 +73,7 @@ function AutoGrowTextarea({ value, singleLine, ...props }: React.TextareaHTMLAtt
 
 export default function TenderProjectScopeStep() {
   const [, navigate] = useLocation();
+  const { goNext, goBack } = useWizardNav();
   const { t, language, isRtl } = useI18n();
   const { toast } = useToast();
   const { can: planCan } = usePlan();
@@ -85,6 +94,17 @@ export default function TenderProjectScopeStep() {
 
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [milestoneErrors, setMilestoneErrors] = useState<Record<string, Record<string, string>>>({});
+
+  // Itemized requests (RFQ, or an RFP with itemized pricing) list their items in
+  // the bill-of-quantities editor instead of deliverables (RFQ brief §4).
+  const itemized = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem("tenderDraft") || "{}").itemizedPricing === true; } catch { return false; }
+  }, []);
+  const [boq, setBoq] = useState<BoqDraft>(() => {
+    try { return readBoq(JSON.parse(localStorage.getItem("tenderDraft") || "{}")); } catch { return readBoq(null); }
+  });
+  const [boqShowErrors, setBoqShowErrors] = useState(false);
+  const boqValid = useMemo(() => validateItems(boq.items, boq.columns).ok, [boq]);
 
   const draft = useMemo(() => {
     try {
@@ -157,6 +177,7 @@ export default function TenderProjectScopeStep() {
           startDate: startDate?.toISOString(),
           endDate: endDate?.toISOString(),
           keyDeliverables,
+          ...(itemized ? { boq } : {}),
           milestones: serializedMilestones,
           projectDescription: inputMode === "text" ? projectDescription : "",
           voiceNoteUrl: inputMode === "voice" ? voiceNoteUrl : "",
@@ -166,7 +187,7 @@ export default function TenderProjectScopeStep() {
     } catch {
       // localStorage may be full / disabled — UI state still updates.
     }
-  }, [startDate, endDate, keyDeliverables, milestones, projectDescription, voiceNoteUrl, videoUrl, inputMode]);
+  }, [startDate, endDate, keyDeliverables, boq, milestones, projectDescription, voiceNoteUrl, videoUrl, inputMode]);
 
   useEffect(() => {
     const generalDeliverable = getSuggestions("deliverable", language);
@@ -180,20 +201,59 @@ export default function TenderProjectScopeStep() {
     );
   }, [draft.title, language]);
 
+  const nameInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const addButtonRef = useRef<HTMLButtonElement>(null);
+  // Focus to move after the list re-renders: a deliverable's name field, or the add button.
+  const pendingFocus = useRef<string | "add" | null>(null);
+  useEffect(() => {
+    const target = pendingFocus.current;
+    if (!target) return;
+    pendingFocus.current = null;
+    const el = target === "add" ? addButtonRef.current : nameInputRefs.current[target];
+    if (!el) return;
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    el.focus({ preventScroll: true });
+    el.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+  }, [keyDeliverables, expandedDeliverableId]);
+
+  // "Add another" (BID-UX-BUGFIX item 3): the deliverable being edited must be
+  // complete first — if it is not, its errors are shown in place (it stays
+  // open) and focus moves to the first problem. Otherwise it collapses into its
+  // summary card and a new deliverable opens below it with focus in its name.
   const handleAddDeliverable = () => {
+    const current = keyDeliverables.find((d) => d.id === expandedDeliverableId) ?? keyDeliverables[keyDeliverables.length - 1];
+    if (current) {
+      const errors = validateDeliverable(current);
+      if (Object.keys(errors).length > 0) {
+        setDeliverableErrors((prev) => ({ ...prev, [current.id]: errors }));
+        setExpandedDeliverableId(current.id);
+        const firstField = (["name", "unit", "quantity", "description"] as const).find((f) => errors[f]);
+        requestAnimationFrame(() => {
+          const id = firstField === "name" ? `deliverable-name-${current.id}`
+            : firstField === "quantity" ? `deliverable-quantity-${current.id}`
+            : firstField === "description" ? `deliverable-description-${current.id}` : null;
+          const el = id ? document.getElementById(id) : document.querySelector<HTMLElement>(`#deliverable-panel-${current.id} [role="combobox"]`);
+          el?.focus();
+        });
+        return;
+      }
+    }
     const newDeliverableItem: Deliverable = {
-      id: `deliverable-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `deliverable-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
       name: '',
       description: '',
       unit: '',
       quantity: 1,
     };
-    setKeyDeliverables([...keyDeliverables, newDeliverableItem]);
-    setExpandedDeliverableId(newDeliverableItem.id);
+    pendingFocus.current = newDeliverableItem.id;
+    withViewTransition(() => {
+      setKeyDeliverables((prev) => [...prev, newDeliverableItem]);
+      setExpandedDeliverableId(newDeliverableItem.id);
+    });
   };
 
   const handleRemoveDeliverable = (id: string) => {
-    setKeyDeliverables(keyDeliverables.filter((d) => d.id !== id));
+    setKeyDeliverables((prev) => prev.filter((d) => d.id !== id));
     setDeliverableErrors((prev) => {
       const updated = { ...prev };
       delete updated[id];
@@ -202,6 +262,7 @@ export default function TenderProjectScopeStep() {
     if (expandedDeliverableId === id) {
       setExpandedDeliverableId(null);
     }
+    pendingFocus.current = "add";
   };
 
   const handleUpdateDeliverable = (id: string, field: keyof Deliverable, value: string | number) => {
@@ -240,13 +301,24 @@ export default function TenderProjectScopeStep() {
       errors.unit = t('tenderFlow.unitTooLong');
     }
 
-    if (!deliverable.quantity || deliverable.quantity < 1) {
-      errors.quantity = t('tenderFlow.quantityMin');
-    } else if (!Number.isInteger(deliverable.quantity)) {
-      errors.quantity = t('tenderFlow.quantityWhole');
+    const quantity = parseQuantity(deliverable.quantity);
+    if (!quantity.ok) {
+      const message = quantityErrorMessage(quantity.error);
+      errors.quantity = t(message.key, message.vars);
     }
 
     return errors;
+  };
+
+  // A typed quantity that cannot be used is explained as soon as the field is
+  // left (Next stays disabled until it is fixed); an empty field is only
+  // flagged when the user tries to move on.
+  const handleQuantityBlur = (deliverable: Deliverable) => {
+    if (String(deliverable.quantity ?? "").trim() === "") return;
+    const quantity = parseQuantity(deliverable.quantity);
+    if (quantity.ok) return;
+    const message = quantityErrorMessage(quantity.error);
+    setDeliverableErrors((prev) => ({ ...prev, [deliverable.id]: { ...(prev[deliverable.id] ?? {}), quantity: t(message.key, message.vars) } }));
   };
 
   const validateAllDeliverables = (): boolean => {
@@ -342,7 +414,13 @@ export default function TenderProjectScopeStep() {
   };
 
   const handleNext = () => {
-    const deliverablesValid = validateAllDeliverables();
+    if (itemized && !boqValid) {
+      // Render the errors now, then take the user to the first one.
+      flushSync(() => setBoqShowErrors(true));
+      document.querySelector<HTMLElement>('[data-testid="boq-editor"] [aria-invalid="true"], [data-testid="boq-add-item"]')?.focus();
+      return;
+    }
+    const deliverablesValid = itemized || validateAllDeliverables();
 
     let milestonesValid = true;
     if (milestones.length > 0) {
@@ -374,40 +452,45 @@ export default function TenderProjectScopeStep() {
         dueDate: m.dueDate?.toISOString(),
       }));
 
+      // Validated above: store each quantity as its exact number.
+      const normalizedDeliverables = keyDeliverables.map((d) => {
+        const quantity = parseQuantity(d.quantity);
+        return quantity.ok ? { ...d, quantity: quantity.value } : d;
+      });
       const updated = {
         ...draft,
         startDate: startDate?.toISOString(),
         endDate: endDate?.toISOString(),
-        keyDeliverables,
+        keyDeliverables: itemized ? [] : normalizedDeliverables,
+        ...(itemized ? { boq } : {}),
         milestones: serializedMilestones,
         projectDescription: inputMode === "text" ? projectDescription.trim() : "",
         voiceNoteUrl: inputMode === "voice" ? voiceNoteUrl : "",
         videoUrl: videoUrl.trim() || "",
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/new/ai-budget");
+      goNext("/tenders/new/ai-budget");
     }
   };
 
   const handleBack = () => {
-    navigate("/tenders/new/title");
+    goBack("/tenders/new/title");
   };
 
-  const areDeliverablesComplete = keyDeliverables.length > 0 && keyDeliverables.every(
-    (d) => d.name.trim() && d.unit.trim() && d.quantity >= 1
-  );
+  const isDeliverableComplete = (d: Deliverable) => !!d.name.trim() && !!d.unit.trim() && parseQuantity(d.quantity).ok;
 
-  const hasAtLeastOneCompleteDeliverable = keyDeliverables.some(
-    (d) => d.name.trim() && d.unit.trim() && d.quantity >= 1
-  );
+  const areDeliverablesComplete = keyDeliverables.length > 0 && keyDeliverables.every(isDeliverableComplete);
+
+  const hasAtLeastOneCompleteDeliverable = keyDeliverables.some(isDeliverableComplete);
 
   const isTimelineComplete = startDate !== undefined && endDate !== undefined;
 
   const descriptionWordCount = countWords(projectDescription);
-  const isFormValid =
-    isTimelineComplete &&
-    areDeliverablesComplete &&
-    (inputMode === "text" ? descriptionWordCount >= 10 : voiceNoteUrl.length > 0);
+  const restOfStepValid = isTimelineComplete && (inputMode === "text" ? descriptionWordCount >= 10 : voiceNoteUrl.length > 0);
+  const isFormValid = restOfStepValid && (itemized ? boqValid : areDeliverablesComplete);
+  // Itemized: Next stays available once the rest is complete, so pressing it can
+  // show (and focus) what is wrong with the items instead of a silent disabled button.
+  const nextEnabled = itemized ? restOfStepValid : isFormValid;
 
   const maxDescriptionChars = 5000;
   const descriptionCharCount = projectDescription.length;
@@ -422,7 +505,10 @@ export default function TenderProjectScopeStep() {
     try {
       const res = await apiRequest("POST", "/api/tenders/suggest-description", {
         title: draft.title,
-        deliverables: namedDeliverables.map((d) => ({ name: d.name, description: d.description, unit: d.unit, quantity: d.quantity })),
+        deliverables: namedDeliverables.map((d) => {
+          const quantity = parseQuantity(d.quantity);
+          return { name: d.name, description: d.description, unit: d.unit, quantity: quantity.ok ? quantity.value : undefined };
+        }),
         startDate: startDate?.toISOString(),
         endDate: endDate?.toISOString(),
         milestones: milestones
@@ -463,7 +549,7 @@ export default function TenderProjectScopeStep() {
     setPreAiDescription(null);
   };
 
-  const showTimeline = hasAtLeastOneCompleteDeliverable;
+  const showTimeline = itemized ? boq.items.length > 0 : hasAtLeastOneCompleteDeliverable;
   const showMilestones = isTimelineComplete;
   const showDescription = isTimelineComplete;
 
@@ -474,7 +560,7 @@ export default function TenderProjectScopeStep() {
           <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:!text-[40px]" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
-            className="group relative overflow-hidden max-sm:hidden"
+            className="group relative overflow-hidden"
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
@@ -511,197 +597,218 @@ export default function TenderProjectScopeStep() {
               <div className="h-1 bg-gradient-to-r from-[#FE3C01] to-[#FF8A6B]" />
 
               <div className="p-8 max-sm:p-5 space-y-6">
+                {itemized ? (
+                  <BoqEditor value={boq} onChange={setBoq} showAllErrors={boqShowErrors} />
+                ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-900 dark:text-foreground">
+                  <div>
+                    <h2 id="deliverables-heading" className="block text-sm font-medium text-gray-900 dark:text-foreground">
                       {t('tenderFlow.keyDeliverables')}
-                    </label>
-                    <Button
-                      onClick={handleAddDeliverable}
-                      size="sm"
-                      className="h-11 md:h-9 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
-                      data-testid="button-add-deliverable"
-                    >
-                      <Plus className="h-4 w-4 me-1" />
-                      {t('tenderFlow.addDeliverable')}
-                    </Button>
+                    </h2>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {t('tenderFlow.defineDeliverables')}
+                    </p>
                   </div>
 
-                  {keyDeliverables.length > 0 ? (
-                    <div className="space-y-3">
+                  {keyDeliverables.length > 0 && (
+                    <ol className="space-y-3" aria-labelledby="deliverables-heading">
                       {keyDeliverables.map((deliverable, index) => {
                         const isExpanded = expandedDeliverableId === deliverable.id;
                         const errors = deliverableErrors[deliverable.id] || {};
                         const hasErrors = Object.keys(errors).length > 0;
+                        const quantity = parseQuantity(deliverable.quantity);
+                        const unitLabel = isRtl ? (UNIT_LABELS_AR[deliverable.unit] ?? deliverable.unit) : deliverable.unit;
+                        const panelId = `deliverable-panel-${deliverable.id}`;
 
                         return (
-                          <div
+                          <li
                             key={deliverable.id}
-                            className={`border rounded-lg overflow-hidden transition-all duration-300 ${
+                            className={`border rounded-lg overflow-hidden transition-colors duration-200 motion-reduce:transition-none ${
                               hasErrors
                                 ? 'border-red-300 dark:border-red-700 bg-red-50/50 dark:bg-red-900/10'
-                                : 'border-border dark:border-border bg-gray-50 dark:bg-card'
+                                : isExpanded
+                                  ? 'border-[#FE3C01]/40 bg-white dark:bg-card'
+                                  : 'border-border dark:border-border bg-gray-50 dark:bg-card'
                             }`}
                             data-testid={`deliverable-card-${index}`}
                           >
-                            <div
-                              className="active:opacity-70 flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-muted dark:hover:bg-gray-700/50 transition-colors duration-200"
-                              onClick={() => withViewTransition(() => setExpandedDeliverableId(isExpanded ? null : deliverable.id))}
-                            >
-                              <div className="flex items-center gap-3 flex-1 min-w-0">
-                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            <div className="flex items-stretch">
+                              <button
+                                type="button"
+                                aria-expanded={isExpanded}
+                                aria-controls={panelId}
+                                onClick={() => withViewTransition(() => setExpandedDeliverableId(isExpanded ? null : deliverable.id))}
+                                className="active:opacity-70 flex-1 min-w-0 min-h-[44px] flex items-start gap-3 px-4 py-3 text-start hover:bg-muted dark:hover:bg-gray-700/50 transition-colors duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FE3C01]"
+                                data-testid={`button-toggle-deliverable-${index}`}
+                              >
+                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 shrink-0" dir="ltr">
                                   #{index + 1}
                                 </span>
-                                <span className="text-sm text-gray-900 dark:text-foreground line-clamp-2 break-words md:truncate">
-                                  {deliverable.name || t('tenderFlow.newDeliverable')}
+                                <span className="flex-1 min-w-0">
+                                  <span className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-sm text-gray-900 dark:text-foreground line-clamp-2 break-words">
+                                      {deliverable.name || t('tenderFlow.newDeliverable')}
+                                    </span>
+                                    {quantity.ok && deliverable.unit && (
+                                      <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded whitespace-nowrap shrink-0">
+                                        <bdi>{quantity.text}</bdi> × {unitLabel}
+                                      </span>
+                                    )}
+                                    {hasErrors && (
+                                      <span className="text-xs text-red-500 font-medium">
+                                        {t('tenderFlow.incomplete')}
+                                      </span>
+                                    )}
+                                  </span>
+                                  {!isExpanded && deliverable.description.trim() && (
+                                    <span className="block text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                                      {deliverable.description}
+                                    </span>
+                                  )}
                                 </span>
-                                {deliverable.quantity > 0 && deliverable.unit && (
-                                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded whitespace-nowrap shrink-0">
-                                    {deliverable.quantity} × {isRtl ? (UNIT_LABELS_AR[deliverable.unit] ?? deliverable.unit) : deliverable.unit}
-                                  </span>
-                                )}
-                                {hasErrors && (
-                                  <span className="text-xs text-red-500 font-medium">
-                                    {t('tenderFlow.incomplete')}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveDeliverable(deliverable.id);
-                                  }}
-                                  className="active:opacity-70 text-gray-400 hover:text-red-500 transition-colors duration-200 p-3 -m-2 md:p-1 md:m-0"
-                                  data-testid={`button-remove-deliverable-${index}`}
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                                <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-                              </div>
+                                <ChevronDown aria-hidden="true" className={`h-4 w-4 mt-0.5 shrink-0 text-gray-400 transition-transform duration-300 motion-reduce:transition-none ${isExpanded ? 'rotate-180' : ''}`} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveDeliverable(deliverable.id)}
+                                aria-label={t('tenderFlow.removeDeliverable', { number: index + 1 })}
+                                className="active:opacity-70 min-w-[44px] flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FE3C01]"
+                                data-testid={`button-remove-deliverable-${index}`}
+                              >
+                                <X className="h-4 w-4" aria-hidden="true" />
+                              </button>
                             </div>
 
                             <div
-                              className={`grid transition-all duration-300 ease-in-out ${
-                                isExpanded
-                                  ? 'grid-rows-[1fr] opacity-100'
-                                  : 'grid-rows-[0fr] opacity-0'
-                              }`}
+                              id={panelId}
+                              hidden={!isExpanded}
+                              className="px-4 pb-4 space-y-4 border-t border-border dark:border-border pt-4"
                             >
-                              <div className="overflow-hidden">
-                                <div className="px-4 pb-4 space-y-4 border-t border-border dark:border-border pt-4">
+                              <div className="space-y-1">
+                                <label htmlFor={`deliverable-name-${deliverable.id}`} className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
+                                  {t('tenderFlow.deliverableName')} <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                  id={`deliverable-name-${deliverable.id}`}
+                                  ref={(el) => { nameInputRefs.current[deliverable.id] = el; }}
+                                  type="text"
+                                  value={deliverable.name}
+                                  onChange={(e) => handleUpdateDeliverable(deliverable.id, 'name', e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
+                                  placeholder={t('tenderFlow.deliverableNamePlaceholder')}
+                                  aria-invalid={!!errors.name || undefined}
+                                  className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
+                                    errors.name ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
+                                  }`}
+                                  data-testid={`input-deliverable-name-${index}`}
+                                />
+                                <div className="flex justify-between items-center">
+                                  {errors.name ? (
+                                    <span className="text-xs text-red-500">{errors.name}</span>
+                                  ) : (
+                                    <span className="text-xs text-gray-400">{t('tenderFlow.max10Words')}</span>
+                                  )}
+                                  <span className={`text-xs ${countWords(deliverable.name) > 10 ? 'text-red-500' : 'text-gray-400'}`}>
+                                    {countWords(deliverable.name)} / 10 {t('tenderFlow.words')}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="space-y-1">
+                                <label htmlFor={`deliverable-description-${deliverable.id}`} className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
+                                  {t('tenderFlow.description')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
+                                </label>
+                                <textarea
+                                  id={`deliverable-description-${deliverable.id}`}
+                                  value={deliverable.description}
+                                  onChange={(e) => handleUpdateDeliverable(deliverable.id, 'description', e.target.value)}
+                                  placeholder={t('tenderFlow.describeDeliverable')}
+                                  rows={2}
+                                  className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none ${
+                                    errors.description ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
+                                  }`}
+                                  data-testid={`input-deliverable-description-${index}`}
+                                />
+                                <div className="flex justify-between items-center">
+                                  {errors.description ? (
+                                    <span className="text-xs text-red-500">{errors.description}</span>
+                                  ) : (
+                                    <span className="text-xs text-gray-400">{t('tenderFlow.max50Words')}</span>
+                                  )}
+                                  <span className={`text-xs ${countWords(deliverable.description) > 50 ? 'text-red-500' : 'text-gray-400'}`}>
+                                    {countWords(deliverable.description)} / 50 {t('tenderFlow.words')}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                   <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
-                                    {t('tenderFlow.deliverableName')} <span className="text-red-500">*</span>
+                                    {t('tenderFlow.unitOfMeasurement')} <span className="text-red-500">*</span>
                                   </label>
-                                  <input
-                                    type="text"
-                                    value={deliverable.name}
-                                    onChange={(e) => handleUpdateDeliverable(deliverable.id, 'name', e.target.value)}
-                                    placeholder={t('tenderFlow.deliverableNamePlaceholder')}
+                                  <SmartUnitDropdown
+                                    value={deliverable.unit}
+                                    onChange={(value) => handleUpdateDeliverable(deliverable.id, 'unit', value)}
+                                    deliverableName={deliverable.name}
+                                    deliverableDescription={deliverable.description}
+                                    projectTitle={draft.title || ''}
+                                    error={errors.unit}
+                                    data-testid={`input-deliverable-unit-${index}`}
+                                  />
+                                  {errors.unit && (
+                                    <span className="text-xs text-red-500">{errors.unit}</span>
+                                  )}
+                                </div>
+
+                                <div className="space-y-1">
+                                  <label htmlFor={`deliverable-quantity-${deliverable.id}`} className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
+                                    {t('tenderFlow.quantity')} <span className="text-red-500">*</span>
+                                  </label>
+                                  <QuantityInput
+                                    id={`deliverable-quantity-${deliverable.id}`}
+                                    value={deliverable.quantity}
+                                    onValueChange={(raw) => handleUpdateDeliverable(deliverable.id, 'quantity', raw)}
+                                    onBlur={() => handleQuantityBlur(deliverable)}
+                                    invalid={!!errors.quantity}
+                                    placeholder={t('tenderFlow.quantityPlaceholder')}
                                     className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
-                                      errors.name ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
+                                      errors.quantity ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
                                     }`}
-                                    data-testid={`input-deliverable-name-${index}`}
+                                    data-testid={`input-deliverable-quantity-${index}`}
                                   />
-                                  <div className="flex justify-between items-center">
-                                    {errors.name ? (
-                                      <span className="text-xs text-red-500">{errors.name}</span>
-                                    ) : (
-                                      <span className="text-xs text-gray-400">{t('tenderFlow.max10Words')}</span>
-                                    )}
-                                    <span className={`text-xs ${countWords(deliverable.name) > 10 ? 'text-red-500' : 'text-gray-400'}`}>
-                                      {countWords(deliverable.name)} / 10 {t('tenderFlow.words')}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="space-y-1">
-                                  <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
-                                    {t('tenderFlow.description')} <span className="text-gray-400 font-normal">{t('tenderFlow.optional')}</span>
-                                  </label>
-                                  <textarea
-                                    value={deliverable.description}
-                                    onChange={(e) => handleUpdateDeliverable(deliverable.id, 'description', e.target.value)}
-                                    placeholder={t('tenderFlow.describeDeliverable')}
-                                    rows={2}
-                                    className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent resize-none ${
-                                      errors.description ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-                                    }`}
-                                    data-testid={`input-deliverable-description-${index}`}
-                                  />
-                                  <div className="flex justify-between items-center">
-                                    {errors.description ? (
-                                      <span className="text-xs text-red-500">{errors.description}</span>
-                                    ) : (
-                                      <span className="text-xs text-gray-400">{t('tenderFlow.max50Words')}</span>
-                                    )}
-                                    <span className={`text-xs ${countWords(deliverable.description) > 50 ? 'text-red-500' : 'text-gray-400'}`}>
-                                      {countWords(deliverable.description)} / 50 {t('tenderFlow.words')}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="space-y-1">
-                                    <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
-                                      {t('tenderFlow.unitOfMeasurement')} <span className="text-red-500">*</span>
-                                    </label>
-                                    <SmartUnitDropdown
-                                      value={deliverable.unit}
-                                      onChange={(value) => handleUpdateDeliverable(deliverable.id, 'unit', value)}
-                                      deliverableName={deliverable.name}
-                                      deliverableDescription={deliverable.description}
-                                      projectTitle={draft.title || ''}
-                                      error={errors.unit}
-                                      data-testid={`input-deliverable-unit-${index}`}
-                                    />
-                                    {errors.unit && (
-                                      <span className="text-xs text-red-500">{errors.unit}</span>
-                                    )}
-                                  </div>
-
-                                  <div className="space-y-1">
-                                    <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
-                                      {t('tenderFlow.quantity')} <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                      type="number"
-                                      min="1"
-                                      step="1"
-                                      value={deliverable.quantity}
-                                      onChange={(e) => handleUpdateDeliverable(deliverable.id, 'quantity', parseInt(e.target.value) || 0)}
-                                      placeholder={t('tenderFlow.quantityPlaceholder')}
-                                      className={`w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-background text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
-                                        errors.quantity ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
-                                      }`}
-                                      data-testid={`input-deliverable-quantity-${index}`}
-                                    />
-                                    {errors.quantity && (
-                                      <span className="text-xs text-red-500">{errors.quantity}</span>
-                                    )}
-                                  </div>
+                                  {errors.quantity && (
+                                    <span className="text-xs text-red-500">{errors.quantity}</span>
+                                  )}
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </div>
+                          </li>
                         );
-
                       })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 bg-gray-50 dark:bg-card rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+                    </ol>
+                  )}
+
+                  {keyDeliverables.length === 0 && (
+                    <div className="text-center py-6 bg-gray-50 dark:bg-card rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {t('tenderFlow.noDeliverablesYet')}
                       </p>
                     </div>
                   )}
 
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {t('tenderFlow.defineDeliverables')}
-                  </p>
+                  <Button
+                    ref={addButtonRef}
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddDeliverable}
+                    className="w-full h-11 border-dashed border-[#FE3C01]/50 text-[#FE3C01] hover:bg-[#FE3C01]/5 hover:text-[#FE3C01]"
+                    data-testid="button-add-deliverable"
+                  >
+                    <Plus className="h-4 w-4 me-1" aria-hidden="true" />
+                    {keyDeliverables.length === 0 ? t('tenderFlow.addDeliverable') : t('tenderFlow.addAnotherDeliverable')}
+                  </Button>
                 </div>
+                )}
 
                 <div
                   className={`space-y-3 border-t border-border dark:border-border pt-6 transition-all duration-300 ease-out ${
@@ -1063,7 +1170,10 @@ export default function TenderProjectScopeStep() {
                   </Button>
                   <Button
                     onClick={handleNext}
-                    disabled={!isFormValid}
+                    // Keep focus where it is on press: blurring a field first would show its
+                    // error, shift the layout and make the click miss this button.
+                    onMouseDown={(e) => e.preventDefault()}
+                    disabled={!nextEnabled}
                     className="flex-1 bg-[#FE3C01] hover:bg-[#d54d35] disabled:opacity-100 disabled:bg-[#E9E4DC] disabled:text-[var(--bid-stone)] disabled:shadow-none"
                     data-testid="button-next"
                   >

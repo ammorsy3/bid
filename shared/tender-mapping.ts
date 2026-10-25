@@ -7,6 +7,9 @@
 // This mapping must never widen silently: anything the LLM invents outside
 // the allow-list of fields is dropped.
 
+import { parseQuantity } from "./quantity";
+import { normalizeSaudiMobile, isValidContactEmail } from "./whatsapp";
+
 const generateId = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -124,13 +127,14 @@ export function draftToTenderPayload(
             : null;
         }
         if (d && typeof d === "object" && typeof d.name === "string" && d.name.trim()) {
-          const quantity = Number(d.quantity);
+          // Never round (P6): keep a valid quantity exactly; anything else falls back to 1.
+          const quantity = parseQuantity(d.quantity);
           return {
             id: d.id || `d-${generateId()}-${i}`,
             name: d.name.trim(),
             description: typeof d.description === "string" ? d.description.trim() : "",
             unit: typeof d.unit === "string" && d.unit.trim() ? d.unit.trim() : "item",
-            quantity: Number.isFinite(quantity) && quantity > 0 ? Math.round(quantity) : 1,
+            quantity: quantity.ok ? quantity.value : 1,
           };
         }
         return null;
@@ -203,11 +207,11 @@ export function draftToTenderPayload(
     if (allowed.includes(draft.inquiryType)) out.inquiryType = draft.inquiryType;
   }
 
-  if (typeof draft.whatsappContact === "string" && draft.whatsappContact.trim()) {
-    out.whatsappContact = draft.whatsappContact.trim();
-  }
+  // An unusable number or address from the draft is dropped, not guessed.
+  const mobile = normalizeSaudiMobile(draft.whatsappContact);
+  if (mobile) out.whatsappContact = mobile;
 
-  if (typeof draft.emailContact === "string" && draft.emailContact.trim()) {
+  if (isValidContactEmail(draft.emailContact)) {
     out.emailContact = draft.emailContact.trim();
   } else if (out.inquiryType === "email_whatsapp" && extras?.emailFallback) {
     out.emailContact = extras.emailFallback;

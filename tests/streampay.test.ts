@@ -226,16 +226,16 @@ describe("buildConsumerPayload", () => {
 });
 
 describe("plan prices", () => {
-  it("match the pricing page: 79/179 monthly, 756/1716 yearly, before VAT", () => {
-    expect(periodPrice("pro", "monthly")).toBe(79);
+  it("match the pricing page: 399/179 monthly, 3828/1716 yearly, before VAT", () => {
+    expect(periodPrice("pro", "monthly")).toBe(399);
     expect(periodPrice("business", "monthly")).toBe(179);
-    expect(monthlyRate("pro", "yearly")).toBe(63);
-    expect(periodPrice("pro", "yearly")).toBe(756);
+    expect(monthlyRate("pro", "yearly")).toBe(319);
+    expect(periodPrice("pro", "yearly")).toBe(3828);
     expect(periodPrice("business", "yearly")).toBe(1716);
   });
 
   it("adds 15% VAT the same way StreamPay does", () => {
-    expect(priceWithVat("pro", "monthly")).toEqual({ subtotal: 79, vat: 11.85, total: 90.85 });
+    expect(priceWithVat("pro", "monthly")).toEqual({ subtotal: 399, vat: 59.85, total: 458.85 });
     expect(priceWithVat("business", "yearly")).toEqual({ subtotal: 1716, vat: 257.4, total: 1973.4 });
   });
 });

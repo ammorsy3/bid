@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, Eye, Building2, FileText, Download, ExternalLink, User, AlertTriangle, RotateCcw, Mail, Search } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Building2, BadgeCheck, FileText, Download, ExternalLink, User, AlertTriangle, RotateCcw, Mail, Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -13,6 +13,7 @@ import { formatLocalDate } from "@/lib/admin-date";
 import { useI18n } from "@/lib/i18n";
 import { withViewTransition } from "@/lib/view-transition";
 import AdminLayout from "@/components/AdminLayout";
+import { AdminPlanDialog } from "@/components/admin/AdminPlanDialog";
 import { AdminPage, AdminHeader, AdminCard, AdminEmpty, SkeletonList } from "@/components/admin/AdminUI";
 import { viewAuthenticatedFile, downloadAuthenticatedFile } from "@/lib/downloadFile";
 
@@ -83,6 +84,7 @@ export default function AdminVendors() {
   const { toast } = useToast();
   const { t } = useI18n();
   const [selectedCompany, setSelectedCompany] = useState<PendingCompany | null>(null);
+  const [planCompanyId, setPlanCompanyId] = useState<string | null>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | "view" | null>(null);
   const [notes, setNotes] = useState("");
   const [showApproveWarning, setShowApproveWarning] = useState(false);
@@ -354,6 +356,16 @@ export default function AdminVendors() {
                         <Eye className="h-4 w-4 me-2" />
                         {t('admin.viewDetails')}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="max-md:min-h-11"
+                        onClick={() => setPlanCompanyId(company.id)}
+                        data-testid={`button-plan-${company.id}`}
+                      >
+                        <BadgeCheck className="h-4 w-4 me-2" />
+                        {t('adminPlans.manage')}
+                      </Button>
                       {company.verificationStatus === 'under_review' && (
                         <>
                           <Button
@@ -615,6 +627,8 @@ export default function AdminVendors() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AdminPlanDialog companyId={planCompanyId} onClose={() => setPlanCompanyId(null)} />
     </AdminLayout>
   );
 }

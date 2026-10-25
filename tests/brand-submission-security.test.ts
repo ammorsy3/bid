@@ -133,6 +133,8 @@ vi.mock("../server/storage", () => {
     getTender: async (id: string) => m.tenders.find((t) => t.id === id),
     getTendersByAttachmentUrl: async (u: string) => m.tenders.filter((t) => (t.attachments ?? []).some((a: Row) => a.url === u)),
     getTendersByMediaUrl: async (u: string) => m.tenders.filter((t) => t.voiceNoteUrl === u || t.videoUrl === u),
+    getTendersByItemImageUrl: async () => [], // no RFQ item images in these fixtures
+    getOffersByAlternativeImageUrl: async () => [],
     getOffersByFileUrl: async (u: string) => m.offers.filter((o) => [o.technicalFileUrl, o.financialFileUrl, o.combinedFileUrl].includes(u)),
     getCompanyDocumentsByFileUrl: async () => [],
     getInvitationsByTender: async (tid: string) => (m.invitedCompanies[tid] ?? []).map((companyId) => ({ companyId })),

@@ -16,7 +16,7 @@ requester / vendor / both split.
 
 ## 1. The one-sentence version
 
-**Bid is SAR 79 or SAR 179 per user per month, and everything AI runs on credits.**
+**Bid is SAR 399 or SAR 179 per user per month, and everything AI runs on credits.**
 
 That sentence is the whole point. Every decision below exists to keep it sayable.
 
@@ -67,7 +67,7 @@ underneath the three boxes, with its own "Start free" CTA. The closing CTA reads
 
 |  | **Pro** | **Business** ← highlighted | **Enterprise** |
 |---|---|---|---|
-| **Base price** | SAR 79 /user/mo | SAR 179 /user/mo | Custom |
+| **Base price** | SAR 399 /user/mo | SAR 179 /user/mo | Custom |
 | | ~$21 | ~$48 | |
 | **Credits/mo** | 200 | 500 | Pooled |
 | Unlimited tenders | ✅ | ✅ | ✅ |
@@ -82,7 +82,7 @@ underneath the three boxes, with its own "Start free" CTA. The closing CTA reads
 | Side-by-side comparison | — | ✅ | ✅ |
 | Tender analytics | — | ⏳ | ✅ |
 | API & integrations | — | ✅ | ✅ |
-| SSO, SLA, dedicated support | — | — | ✅ |
+| Company-wide login (SSO), audit log, SLA, account manager, hands-on onboarding | — | — | ⏳ (sold through /contact-sales; SSO and audit log are not built yet) |
 
 ⏳ = not built yet. Everything else on this table exists today — see §8.
 
@@ -113,8 +113,8 @@ monthly rate** so the three plans stay comparable, with the billed total underne
 
 | Term | Discount | Pro | Business |
 |---|---|---|---|
-| Monthly | — | SAR 79/mo | SAR 179/mo |
-| Yearly | 20% | SAR 63/mo → SAR 756 per year | SAR 143/mo → SAR 1,716 per year |
+| Monthly | — | SAR 399/mo | SAR 179/mo |
+| Yearly | 20% | SAR 319/mo → SAR 3,828 per year | SAR 143/mo → SAR 1,716 per year |
 
 Saving vs. paying monthly: Pro SAR 192/year; Business SAR 432/year. The yearly toggle
 carries a *Save 20%* note so the trade is legible before anyone does arithmetic. Quarterly

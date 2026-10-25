@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  AlertCircle, Check, CheckCircle2, Loader2, Pencil, ShieldCheck, XCircle,
+  AlertCircle, Check, CheckCircle2, Loader2, Pencil, ShieldCheck, Tag, XCircle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ import {
   REQUIRED_BILLING_FIELDS, billingDetailsPatchSchema, type BillingDetailField,
 } from "@shared/billing-details";
 import { sar, type BillingDetails as Details, type BillingSummary } from "./shared";
+
+const FULL_WIDTH_FIELDS: BillingDetailField[] = ["billingName", "address", "billingEmail"];
 
 type ReturnState =
   | { kind: "checking" }
@@ -85,6 +87,10 @@ export function CheckoutFlow({
   const [opening, setOpening] = useState(false);
   const [paying, setPaying] = useState(false);
   const [returnState, setReturnState] = useState<ReturnState | null>(null);
+  // Promo code ("first month free"): checked against the server before paying.
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ state: "idle" | "checking" | "ok" | "error"; code?: string; message?: string }>({ state: "idle" });
 
   const planName = (p: PaidPlan) => t(p === "pro" ? "billing.planPro" : "billing.planBusiness");
   const termName = (x: BillingTerm) => t(x === "yearly" ? "billing.termYearly" : "billing.termMonthly");
@@ -95,6 +101,8 @@ export function CheckoutFlow({
       code === "NOT_CONFIGURED" || code === "PRODUCTS_MISSING" ? t("billing.notConfigured")
       : code === "ALREADY_SUBSCRIBED" ? t("billing.alreadySubscribed")
       : code === "DETAILS_MISSING" ? t("billing.detailsMissing")
+      : code === "PROMO_INVALID" ? t("billing.promoInvalid")
+      : code === "PROMO_USED" ? t("billing.promoUsed")
       : t("billing.genericError");
     toast({ title: t("billing.errorTitle"), description, variant: "destructive" });
     if (code === "ALREADY_SUBSCRIBED") void onSummaryChanged();
@@ -211,7 +219,9 @@ export function CheckoutFlow({
 
   useEffect(() => {
     if (!checkout || !details) return;
-    setInputFields(details.missing);
+    // Anything still empty (required or not) shows as a real input; only fields we
+    // already know show as a compact row with Edit.
+    setInputFields(details.applicable.filter((f) => details.missing.includes(f) || !(details.values[f] ?? "").trim()));
     setValues(Object.fromEntries(details.applicable.map((f) => [f, details.values[f] ?? ""])));
     setTouched({});
     setStatus({});
@@ -266,6 +276,19 @@ export function CheckoutFlow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [details, inputFields, values]);
 
+  const applyPromo = async () => {
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromo({ state: "checking" });
+    try {
+      await apiRequest("POST", "/api/billing/promo/check", { code });
+      setPromo({ state: "ok", code });
+    } catch (err) {
+      const c = err instanceof ApiError ? err.code : undefined;
+      setPromo({ state: "error", message: t(c === "PROMO_USED" ? "billing.promoUsed" : "billing.promoInvalid") });
+    }
+  };
+
   const pay = async () => {
     if (!checkout) return;
     setPaying(true);
@@ -279,7 +302,10 @@ export function CheckoutFlow({
         }
       }
       await Promise.allSettled([...inflight.current]);
-      const res = await apiRequest("POST", `/api/billing/checkouts/${encodeURIComponent(checkout.id)}/pay`, { returnTo });
+      const res = await apiRequest("POST", `/api/billing/checkouts/${encodeURIComponent(checkout.id)}/pay`, {
+        returnTo,
+        ...(promo.state === "ok" ? { promoCode: promo.code } : {}),
+      });
       const { url } = await res.json() as { url: string };
       window.location.href = url;
     } catch (err) {
@@ -289,6 +315,18 @@ export function CheckoutFlow({
   };
 
   const live = !!summary.subscription?.live;
+
+  // Two columns only when the container itself is wide enough (Settings has a
+  // sidebar, so the viewport width says nothing about the room available).
+  const stepRef = useRef<HTMLDivElement>(null);
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const el = stepRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setWide(entry.contentRect.width >= 860));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [!!checkout, !!details, live]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-6" data-testid="checkout-flow">
@@ -366,23 +404,23 @@ export function CheckoutFlow({
         </Card>
       )}
 
-      {/* Step 2 — billing details (auto-saved), then pay */}
+      {/* Step 2 — billing details (auto-saved) on the left, order summary and pay on the right */}
       {!live && summary.canManage && checkout && details && (
-        <Card data-testid="billing-details-step">
-          <CardContent className="p-5 space-y-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <h2 className="font-display font-black text-lg tracking-[-0.02em]">{t("billing.detailsTitle")}</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">
+        <div
+          ref={stepRef}
+          className={`grid gap-6 ${wide ? "grid-cols-[minmax(0,1fr)_380px] items-start" : "grid-cols-1"}`}
+          data-testid="billing-details-step"
+        >
+          <Card>
+            <CardContent className="p-5 sm:p-7 space-y-6">
+              <div className="min-w-0">
+                <h2 className="font-display font-black text-xl tracking-[-0.02em]">{t("billing.detailsTitle")}</h2>
+                <p className="text-sm text-muted-foreground mt-1">
                   {inputFields.length === 0 ? t("billing.detailsAllSet") : t("billing.detailsDesc")}
                 </p>
               </div>
-              <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={() => setCheckout(null)} data-testid="billing-change-plan">
-                {t("billing.changePlan")}
-              </Button>
-            </div>
 
-            <div className="rounded-xl border divide-y">
+            <div className="grid gap-4 sm:grid-cols-2">
               {details.applicable.map((f) => {
                 const isInput = inputFields.includes(f);
                 const label = t(`billing.field_${f}${f === "billingName" && details.applicable.includes("crNumber") ? "Company" : ""}`);
@@ -391,15 +429,15 @@ export function CheckoutFlow({
                 if (!isInput) {
                   const src = details.sources[f];
                   return (
-                    <div key={f} className="flex items-center justify-between gap-3 px-4 py-3" data-testid={`billing-summary-${f}`}>
-                      <div className="min-w-0">
+                    <div key={f} className={`flex items-center justify-between gap-3 rounded-xl border bg-muted/30 px-4 py-3 sm:col-span-2`} data-testid={`billing-summary-${f}`}>
+                      <div className="min-w-0 flex-1">
                         <p className="text-xs text-muted-foreground">{label}</p>
-                        <p className="text-sm font-medium truncate" dir={f === "billingName" || f === "address" || f === "city" ? undefined : "ltr"} style={{ textAlign: "start" }}>
-                          {details.values[f]}
+                        <p className={`text-sm font-medium ${f === "billingEmail" ? "[overflow-wrap:anywhere]" : "break-words"}`}>
+                          {f === "billingName" || f === "address" || f === "city" ? details.values[f] : <bdi dir="ltr">{details.values[f]}</bdi>}
                         </p>
+                        {src && <p className="text-[11px] text-muted-foreground mt-0.5">{t(`billing.from_${src}`)}</p>}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        {src && <span className="hidden sm:inline text-[11px] text-muted-foreground">{t(`billing.from_${src}`)}</span>}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -421,9 +459,9 @@ export function CheckoutFlow({
                 const st = status[f];
                 const isTextField = f === "billingName" || f === "address" || f === "city";
                 return (
-                  <div key={f} className="px-4 py-3 space-y-1.5">
+                  <div key={f} className={`space-y-1.5 ${FULL_WIDTH_FIELDS.includes(f) ? "sm:col-span-2" : ""}`}>
                     <div className="flex items-center justify-between gap-2">
-                      <Label htmlFor={`billing-${f}`} className="text-sm">
+                      <Label htmlFor={`billing-${f}`} className="text-[13px] font-semibold">
                         {label}
                         {optional && <span className="text-muted-foreground font-normal"> · {t("billing.optional")}</span>}
                       </Label>
@@ -446,7 +484,7 @@ export function CheckoutFlow({
                       spellCheck={f === "billingEmail" ? false : undefined}
                       autoComplete={f === "billingEmail" ? "email" : f === "billingPhone" ? "tel" : f === "billingName" ? "organization" : f === "address" ? "street-address" : f === "city" ? "address-level2" : "off"}
                       dir={isTextField ? undefined : "ltr"}
-                      className={`${isTextField ? "" : "text-start"} ${showErr ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                      className={`h-12 rounded-xl bg-background text-[15px] focus-visible:ring-[#FE3C01]/40 focus-visible:border-[#FE3C01] ${isTextField ? "" : "text-start"} ${showErr ? "border-destructive focus-visible:ring-destructive" : ""}`}
                       aria-invalid={!!showErr}
                       aria-describedby={showErr ? `billing-${f}-err` : undefined}
                       data-testid={`billing-input-${f}`}
@@ -463,6 +501,7 @@ export function CheckoutFlow({
               })}
             </div>
 
+
             {/* A company that leaves the address or city empty is invoiced as an
                 individual (no VAT / CR on the invoice), so say so before it pays. */}
             {details.applicable.includes("crNumber") && (!(values.address ?? "").trim() || !(values.city ?? "").trim()) && (
@@ -472,24 +511,84 @@ export function CheckoutFlow({
               </div>
             )}
 
-            <PriceBreakdown plan={checkout.plan} term={checkout.term} t={t} planName={planName} termName={termName} />
+            </CardContent>
+          </Card>
 
-            <div className="space-y-3">
-              <Button
-                className="w-full bg-[#FE3C01] hover:bg-[#FE3C01]/90 text-white h-11"
-                onClick={pay}
-                disabled={paying || blocking}
-                data-testid="billing-pay"
-              >
-                {paying ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t("billing.redirecting")}</> : t("billing.continueToPayment")}
-              </Button>
-              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                {t("billing.securedBy")}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+          <aside className={wide ? "sticky top-6" : ""}>
+            <Card className="overflow-hidden">
+              <CardContent className="p-5 sm:p-6 space-y-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("billing.orderSummary")}</p>
+                    <p className="font-display font-black text-xl tracking-[-0.02em] mt-1">{planName(checkout.plan)}</p>
+                    <p className="text-sm text-muted-foreground">{termName(checkout.term)}</p>
+                  </div>
+                  <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0 -me-2" onClick={() => setCheckout(null)} data-testid="billing-change-plan">
+                    {t("billing.changePlan")}
+                  </Button>
+                </div>
+
+                {/* Promo code: right where the price is, not under the pay button */}
+                <div className="border-y py-3" data-testid="billing-promo">
+                  {promo.state === "ok" ? (
+                    <div className="flex items-center justify-between gap-2 rounded-xl border border-green-300 bg-green-50 px-3 py-2.5 text-sm text-green-900 dark:border-green-800 dark:bg-green-950/30 dark:text-green-100">
+                      <span className="flex items-center gap-2 min-w-0"><Check className="h-4 w-4 shrink-0" /><span className="font-medium">{t("billing.promoFirstMonth")}</span></span>
+                      <button type="button" className="underline underline-offset-2 min-h-11 sm:min-h-0 px-1 shrink-0" onClick={() => { setPromo({ state: "idle" }); setPromoInput(""); }}>
+                        {t("billing.promoRemove")}
+                      </button>
+                    </div>
+                  ) : promoOpen ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          autoFocus
+                          value={promoInput}
+                          onChange={(e) => { setPromoInput(e.target.value); if (promo.state === "error") setPromo({ state: "idle" }); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void applyPromo(); } }}
+                          placeholder={t("billing.promoPlaceholder")}
+                          dir="ltr"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          aria-label={t("billing.promoPlaceholder")}
+                          className="h-11 rounded-xl"
+                          data-testid="billing-promo-input"
+                        />
+                        <Button type="button" variant="outline" className="h-11 rounded-xl" onClick={applyPromo} disabled={promo.state === "checking" || !promoInput.trim()} data-testid="billing-promo-apply">
+                          {promo.state === "checking" ? <Loader2 className="h-4 w-4 animate-spin" /> : t("billing.promoApply")}
+                        </Button>
+                      </div>
+                      {promo.state === "error" && (
+                        <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{promo.message}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <button type="button" className="flex w-full items-center gap-2 min-h-11 text-sm font-medium text-foreground hover:text-[#FE3C01] transition-colors" onClick={() => setPromoOpen(true)} data-testid="billing-promo-toggle">
+                      <Tag className="h-4 w-4" aria-hidden="true" />{t("billing.promoToggle")}
+                    </button>
+                  )}
+                </div>
+
+                <PriceBreakdown plan={checkout.plan} term={checkout.term} t={t} trial={promo.state === "ok"} />
+
+                <div className="space-y-3">
+                  <Button
+                    className="w-full bg-[#FE3C01] hover:bg-[#FE3C01]/90 text-white h-12 text-base font-semibold rounded-xl"
+                    onClick={pay}
+                    disabled={paying || blocking}
+                    data-testid="billing-pay"
+                  >
+                    {paying ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t("billing.redirecting")}</> : t("billing.continueToPayment")}
+                  </Button>
+                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    {t("billing.securedBy")}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </aside>
+        </div>
       )}
     </div>
   );
@@ -517,17 +616,19 @@ function TermToggle({ term, onChange, t }: { term: BillingTerm; onChange: (x: Bi
 }
 
 function PriceBreakdown({
-  plan, term, t, planName, termName,
+  plan, term, t, planName, termName, trial = false,
 }: {
   plan: PaidPlan;
   term: BillingTerm;
   t: (k: string, v?: Record<string, string | number>) => string;
   planName?: (p: PaidPlan) => string;
   termName?: (x: BillingTerm) => string;
+  /** Promo applied: the first period is free, so nothing is due today. */
+  trial?: boolean;
 }) {
   const { subtotal, vat, total } = priceWithVat(plan, term);
   return (
-    <div className="rounded-xl bg-muted/50 p-4 text-sm space-y-2" data-testid="billing-breakdown">
+    <div className="space-y-2.5 text-sm" data-testid="billing-breakdown">
       {planName && termName && (
         <div className="flex justify-between gap-3 font-medium">
           <span>{planName(plan)} · {termName(term)}</span>
@@ -544,11 +645,23 @@ function PriceBreakdown({
         <span>{t("billing.vat")}</span>
         <span>{sar(vat)}</span>
       </div>
-      <div className="flex justify-between gap-3 border-t pt-2 font-semibold">
+      {trial && (
+        <div className="flex justify-between gap-3 text-green-700 dark:text-green-400 font-medium">
+          <span>{t("billing.promoFirstMonth")}</span>
+          <span>−{sar(total)}</span>
+        </div>
+      )}
+      <div className="flex justify-between gap-3 border-t pt-3 text-base font-bold">
         <span>{t("billing.totalToday")}</span>
-        <span>{sar(total)}</span>
+        <span>{sar(trial ? 0 : total)}</span>
       </div>
-      <p className="text-xs text-muted-foreground">{t(term === "yearly" ? "billing.renewsYearly" : "billing.renewsMonthly")}</p>
+      {trial ? (
+        <p className="text-xs text-muted-foreground">
+          {t("billing.afterTrial", { amount: total.toLocaleString("en-US") })}
+        </p>
+      ) : (
+        <p className="text-xs text-muted-foreground">{t(term === "yearly" ? "billing.renewsYearly" : "billing.renewsMonthly")}</p>
+      )}
     </div>
   );
 }

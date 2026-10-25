@@ -23,6 +23,9 @@ import { ToastAction } from "@/components/ui/toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Tender } from "@shared/schema";
 import SubmitOfferModal from "@/components/submit-offer-modal";
+import { groupDecimal } from "@shared/offer-price";
+import { ItemizedOfferReview, AlternativesBadge, snapshotAlternativesCount } from "@/components/boq/ItemizedOfferReview";
+import { BoqItemsView, type ItemsViewModel } from "@/components/boq/BoqItemsView";
 import ProposalComparison from "@/components/ProposalComparison";
 import { StatusBadge, type BidState } from "@/components/brand/StatusDot";
 import { tenderStatusToState } from "@/components/brand/statusMap";
@@ -30,6 +33,9 @@ import MarketplaceGuide from "@/components/MarketplaceGuide";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { viewAuthenticatedFile } from "@/lib/downloadFile";
 import { useI18n } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
+import { PlanBadge } from "@/components/billing/PlanBadge";
+import { useCopyWithFallback } from "@/lib/clipboard";
 import { emailInputProps } from "@/lib/form-validation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageTour, TourBanner } from "@/lib/tour";
@@ -38,6 +44,7 @@ import { withViewTransition } from "@/lib/view-transition";
 
 const SUBMISSION_TYPE_LABELS: Record<string, Record<string, string>> = {
   quote_only: { en: "Price Quote Only", ar: "عرض سعر فقط" },
+  itemized_only: { en: "Itemized Pricing Only", ar: "تسعير البنود فقط" },
   tech_fin_proposal: { en: "Full Proposal (Technical + Financial)", ar: "عرض كامل (فني + مالي)" },
   video_only: { en: "Video Pitch Only", ar: "عرض فيديو فقط" },
   tech_fin_with_video: { en: "Full Proposal + Video Pitch", ar: "عرض كامل + فيديو" },
@@ -304,6 +311,9 @@ interface Offer {
   combinedFileUrl: string | null;
   notes: string | null;
   quotePrice: number | null;
+  /** Itemized offers (RFQ): stored total incl. VAT and the submission snapshot. */
+  pricingTotal?: string | null;
+  pricingSnapshot?: unknown;
   videoUrl: string | null;
   submittedAt: string;
   status: 'pending' | 'accepted' | 'rejected';
@@ -341,6 +351,8 @@ export default function TenderDetails() {
   const { toast } = useToast();
   const { t, language } = useI18n();
   const [copiedLink, setCopiedLink] = useState(false);
+  const { copy: copyWithFallback, dialog: manualCopyDialog } = useCopyWithFallback();
+  const { can: planCan, gate: planGate } = usePlan();
   const [isSubmitOfferModalOpen, setIsSubmitOfferModalOpen] = useState(false);
   // Phone action bar slides in once the reader has scrolled past the top, so it never sits on the first screen's content
   const [showMobileBar, setShowMobileBar] = useState(false);
@@ -360,6 +372,7 @@ export default function TenderDetails() {
   const [marketplaceDocFee, setMarketplaceDocFee] = useState<string>('');
   const [marketplaceInquiryDeadline, setMarketplaceInquiryDeadline] = useState<string>('');
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
+  const [reviewOfferId, setReviewOfferId] = useState<string | null>(null);
 
   const [answerText, setAnswerText] = useState<Record<string, string>>({});
   const [expandedEvalCategories, setExpandedEvalCategories] = useState<Record<string, boolean>>({});
@@ -425,6 +438,13 @@ export default function TenderDetails() {
     retry: false,
   });
 
+  // Itemized requests (RFQ): the bill of quantities. Owners get every column;
+  // vendors get the server's vendor view (hidden reference prices left out).
+  const { data: itemsData } = useQuery<ItemsViewModel & { itemized: boolean; owner: boolean; showReferencePrices?: boolean; columns: any[] }>({
+    queryKey: ['/api/tenders', id, 'items'],
+    enabled: !!tender?.itemizedPricing,
+  });
+
   const { data: offers = [], isLoading: loadingOffers } = useQuery<Offer[]>({
     queryKey: ['/api/tenders', id, 'offers'],
     queryFn: async () => {
@@ -450,6 +470,11 @@ export default function TenderDetails() {
   });
 
   const isOwner = tender?.companyId === activeCompany?.id;
+  // Itemized requests are priced item by item on their own page (Amendment A1).
+  const openSubmit = () => {
+    if (tender?.itemizedPricing) setLocation(`/tenders/${tender.id}/pricing`);
+    else setIsSubmitOfferModalOpen(true);
+  };
 
   // Invite a vendor by email — including one who has no Bid account yet, which
   // is the case the vendor picker can't cover.
@@ -543,7 +568,7 @@ export default function TenderDetails() {
           title: t('tenderFlow.publishedToast'),
           description: t('tenderFlow.publishedToastDesc'),
           action: (
-            <ToastAction altText={t('tenderFlow.copyLinkAlt')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopiedToast') }); }}>
+            <ToastAction altText={t('tenderFlow.copyLinkAlt')} onClick={async () => { if (await copyWithFallback(inviteLink)) toast({ title: t('tenderFlow.linkCopiedToast') }); }}>
               <Copy className="h-3 w-3 me-1" /> {t('tenderFlow.copyLink')}
             </ToastAction>
           ),
@@ -698,14 +723,16 @@ export default function TenderDetails() {
   const copyInvitationLink = async () => {
     if (!tender) return;
     // The token, not the tender id: only the token authorizes link visitors (server/lib/tender-access.ts).
+    // Only a published request's link opens for vendors (drafts and closed or
+    // cancelled requests answer "not found"), so nothing else is offered.
+    if (tender.status !== 'published') return;
     const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
-    try {
-      await navigator.clipboard.writeText(invitationLink);
+    // Success only once the link is really on the clipboard; if the browser
+    // refuses, the link opens in a dialog to copy by hand.
+    if (await copyWithFallback(invitationLink)) {
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
       toast({ title: t('tenderFlow.copiedToast'), description: t('tenderFlow.copiedToastDesc') });
-    } catch (error) {
-      toast({ title: t('tenderFlow.failedCopyToast'), description: t('tenderFlow.failedCopyDesc'), variant: "destructive" });
     }
   };
 
@@ -857,7 +884,7 @@ export default function TenderDetails() {
   const invitationLink = `${window.location.origin}/invite/${tender.invitationToken}`;
 
   const hasSkills = tender.skills && tender.skills.length > 0;
-  const hasDeliverables = tender.deliverables && (tender.deliverables as any[]).length > 0;
+  const hasDeliverables = !tender.itemizedPricing && tender.deliverables && (tender.deliverables as any[]).length > 0;
   const hasMilestones = tender.milestones && Array.isArray(tender.milestones) && (tender.milestones as any[]).length > 0;
   const evalCriteria = tender.evaluationCriteria as any;
   const hasEvalCriteria = evalCriteria && (
@@ -894,6 +921,7 @@ export default function TenderDetails() {
 
   return (
     <>
+    {manualCopyDialog}
     <div className={`min-h-dvh bg-muted ${!isOwner && activeCompany ? "pb-28 lg:pb-0" : ""}`} dir={isRtl ? "rtl" : "ltr"}>
       {/* Hero Header */}
       <div className="bg-card border-b border-border" style={{ backgroundImage: 'radial-gradient(circle, rgba(156,163,175,0.35) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
@@ -945,6 +973,14 @@ export default function TenderDetails() {
                       <Edit className={`h-4 w-4 me-1.5`} /> {t('tenderFlow.editBtn')}
                     </Button>
                   )}
+                  {/* On phones the sidebar with the invitation link is hidden: offer the copy here. */}
+                  {tender.status === 'published' && (
+                    <Button variant="outline" className="bg-card/80 flex-1 sm:flex-none min-h-11 lg:hidden" onClick={copyInvitationLink} data-testid="button-copy-link-mobile">
+                      <span aria-live="polite" className="inline-flex items-center">
+                        {copiedLink ? <><Check className="h-4 w-4 me-1.5" aria-hidden="true" /> {t('tenderFlow.copied')}</> : <><Copy className="h-4 w-4 me-1.5" aria-hidden="true" /> {t('tenderFlow.copyLink')}</>}
+                      </span>
+                    </Button>
+                  )}
                   {tender.status === 'published' && (
                     <Button variant="outline" className="bg-card/80 flex-1 sm:flex-none" onClick={() => updateStatus.mutate('closed')}
                       disabled={updateStatus.isPending} data-testid="button-close">
@@ -953,10 +989,11 @@ export default function TenderDetails() {
                   )}
                   {tender.status === 'published' && !tender.isMarketplace && (
                     <Button variant="outline" className="bg-card/80 border-[#FE3C01]/30 text-[#FE3C01] hover:bg-[#FE3C01]/10 flex-1 sm:flex-none"
-                      onClick={() => setShowMarketplaceDialog(true)}
+                      onClick={() => planGate('marketplace', () => setShowMarketplaceDialog(true))}
                       disabled={marketplaceSubmit.isPending} data-testid="button-marketplace">
                       {marketplaceSubmit.isPending ? <Loader2 className={`h-4 w-4 animate-spin me-1.5`} /> : <Store className={`h-4 w-4 me-1.5`} />}
                       {t('marketplace.publishToMarketplace') || 'Publish to Marketplace'}
+                      {!planCan('marketplace') && <PlanBadge feature="marketplace" className="ms-2" />}
                     </Button>
                   )}
                   {tender.isMarketplace && tender.marketplaceStatus === 'pending' && (
@@ -1132,6 +1169,22 @@ export default function TenderDetails() {
                       <div className="ps-4 border-s-2 border-[#FE3C01]/30 py-0.5">
                         <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-[15px]">{String(tender.objective)}</p>
                       </div>
+                    </div>
+                  )}
+
+                  {tender.itemizedPricing && itemsData?.itemized && (
+                    <div className="mb-8" data-testid="tender-items">
+                      <div className="flex items-center gap-2 mb-1">
+                        <ListChecks className="h-3.5 w-3.5 text-[#FE3C01]" />
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{t('boq.title')}</p>
+                      </div>
+                      {itemsData.owner && <p className="text-xs text-muted-foreground mb-3">{t('items.publishedLock')}</p>}
+                      <BoqItemsView
+                        caption={t('boq.title')}
+                        view={itemsData.owner
+                          ? { columns: itemsData.columns, optional: { description: true, image: itemsData.items.some((i) => i.imageUrl), referenceUnitPrice: itemsData.items.some((i) => i.referenceUnitPrice) }, items: itemsData.items.map((i) => ({ ...i, customValues: i.customValues ?? {} })) }
+                          : itemsData}
+                      />
                     </div>
                   )}
 
@@ -1341,6 +1394,7 @@ export default function TenderDetails() {
                             <p className="text-xs text-muted-foreground mt-0.5">
                               {({
                                 quote_only: t('tenderFlow.submDescQuoteOnly'),
+                                itemized_only: t('pricing.itemizedOnlyDescription'),
                                 tech_fin_proposal: t('tenderFlow.submDescTechFin'),
                                 video_only: t('tenderFlow.submDescVideoOnly'),
                                 tech_fin_with_video: t('tenderFlow.submDescTechFinVideo'),
@@ -1820,6 +1874,13 @@ export default function TenderDetails() {
                                         {t('tenderFlow.submittedOn')} {formatDate(offer.submittedAt)}
                                       </p>
                                     </div>
+                                    {offer.pricingTotal && (
+                                      <div className="sm:flex-shrink-0 sm:text-end space-y-1" data-testid={`offer-itemized-${offer.id}`}>
+                                        <p className="text-xl font-bold text-foreground tabular-nums"><bdi dir="ltr">SAR {groupDecimal(offer.pricingTotal)}</bdi></p>
+                                        <p className="text-xs text-muted-foreground">{t('pricing.totalIncludingVat')}</p>
+                                        <AlternativesBadge count={snapshotAlternativesCount(offer.pricingSnapshot)} />
+                                      </div>
+                                    )}
                                     {offer.quotePrice && (
                                       <div className="sm:flex-shrink-0 sm:text-end">
                                         <p className="text-xl font-bold text-foreground">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString('en-US')}</p>
@@ -1827,6 +1888,21 @@ export default function TenderDetails() {
                                       </div>
                                     )}
                                   </div>
+
+                                  {offer.pricingTotal && (
+                                    <div className="mt-3">
+                                      <Button type="button" variant="outline" size="sm" className="min-h-11" aria-expanded={reviewOfferId === offer.id}
+                                        aria-controls={`offer-review-${offer.id}`} onClick={() => setReviewOfferId((cur) => (cur === offer.id ? null : offer.id))}
+                                        data-testid={`button-review-items-${offer.id}`}>
+                                        {t('pricingPage.reviewItems')}
+                                      </Button>
+                                      {reviewOfferId === offer.id && (
+                                        <div id={`offer-review-${offer.id}`} className="mt-3">
+                                          <ItemizedOfferReview offerId={offer.id} />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
 
                                   {/* Submission type chips */}
                                   <div className="flex flex-wrap gap-1.5 mt-3">
@@ -2083,17 +2159,27 @@ export default function TenderDetails() {
                       <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('tenderFlow.invitationLink')}</p>
                     </div>
                     <div className="p-4">
-                      <div className="bg-muted rounded-lg p-2.5 mb-3 border border-border">
-                        <code className="text-xs break-all text-muted-foreground" data-testid="text-invitation-link">{invitationLink}</code>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button onClick={copyInvitationLink} size="sm" className="flex-1 text-xs bg-[#FE3C01] hover:bg-[#d54d35] text-white" data-testid="button-copy-link">
-                          {copiedLink ? <><Check className={`h-3.5 w-3.5 me-1`} /> {t('tenderFlow.copied')}</> : <><Copy className={`h-3.5 w-3.5 me-1`} /> {t('tenderFlow.copyLink')}</>}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => window.open(invitationLink, '_blank')} data-testid="button-open-link">
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+                      {tender.status === 'published' ? (
+                        <>
+                          <div className="bg-muted rounded-lg p-2.5 mb-3 border border-border">
+                            <code className="text-xs break-all text-muted-foreground" dir="ltr" data-testid="text-invitation-link">{invitationLink}</code>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button onClick={copyInvitationLink} size="sm" className="flex-1 min-h-11 md:min-h-9 text-xs bg-[#FE3C01] hover:bg-[#d54d35] text-white" data-testid="button-copy-link">
+                              <span aria-live="polite" className="inline-flex items-center">
+                                {copiedLink ? <><Check className={`h-3.5 w-3.5 me-1`} aria-hidden="true" /> {t('tenderFlow.copied')}</> : <><Copy className={`h-3.5 w-3.5 me-1`} aria-hidden="true" /> {t('tenderFlow.copyLink')}</>}
+                              </span>
+                            </Button>
+                            <Button variant="outline" size="sm" className="min-h-11 min-w-11 md:min-h-9" onClick={() => window.open(invitationLink, '_blank', 'noopener')} aria-label={t('tenderFlow.openLink')} data-testid="button-open-link">
+                              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-xs text-muted-foreground" data-testid="text-link-unavailable">
+                          {tender.status === 'draft' ? t('tenderFlow.linkUnavailableDraft') : t('tenderFlow.linkUnavailableClosed')}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -2206,7 +2292,7 @@ export default function TenderDetails() {
                           </p>
                           <Button
                             className="w-full bg-[#FE3C01] hover:bg-[#d54d35] text-white font-semibold rounded-xl h-11"
-                            onClick={() => setIsSubmitOfferModalOpen(true)}
+                            onClick={openSubmit}
                             data-testid="button-submit-offer"
                           >
                             <Send className={`h-4 w-4 me-2`} /> {t('tenderFlow.submitProposal')}
@@ -2308,7 +2394,7 @@ export default function TenderDetails() {
               </p>
             <Button
               className="w-full bg-[#FE3C01] hover:bg-[#d54d35] text-white font-semibold rounded-xl min-h-12 active:scale-[0.98] transition-transform"
-              onClick={() => setIsSubmitOfferModalOpen(true)}
+              onClick={openSubmit}
               data-testid="button-submit-offer-mobile"
             >
               <Send className="h-4 w-4 me-2 rtl:-scale-x-100" /> {t('tenderFlow.submitProposal')}
@@ -2318,8 +2404,8 @@ export default function TenderDetails() {
         </div>
       )}
 
-      {/* Submit Offer Modal */}
-      {tender && !isOwner && (
+      {/* Submit Offer Modal — never for itemized requests (Amendment A1) */}
+      {tender && !isOwner && !tender.itemizedPricing && (
         <SubmitOfferModal
           isOpen={isSubmitOfferModalOpen}
           onClose={() => {

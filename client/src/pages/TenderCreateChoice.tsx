@@ -59,7 +59,7 @@ export default function TenderCreateChoice() {
   if (verificationStatus && verificationStatus !== 'verified' && activeCompanyId) {
     const canManage = ['owner', 'admin'].includes(activeCompany?.role || '');
     return (
-      <div className="relative min-h-screen bg-card flex flex-col overflow-hidden">
+      <div className="relative min-h-dvh bg-card flex flex-col overflow-hidden">
         <div className="absolute inset-0 z-0">
           <FlickeringGrid
             className="size-full"
@@ -70,7 +70,7 @@ export default function TenderCreateChoice() {
             flickerChance={0.1}
           />
         </div>
-        <div className="relative z-10 flex flex-col items-center min-h-screen px-4 sm:px-6 pt-10 pb-16">
+        <div className="relative z-10 flex flex-col items-center min-h-dvh px-4 sm:px-6 pt-10 pb-16">
           <header className="w-full pb-6">
             <button onClick={() => setLocation('/dashboard')} className="w-full flex justify-center cursor-pointer" aria-label={t('onboardingPanel.backToDashboard')}>
               <BidLogo variant="orange" size={48} className="hover:opacity-80 transition-opacity" />

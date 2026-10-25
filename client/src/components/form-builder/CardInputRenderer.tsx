@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarIcon, Plus, X, FileText, Video, FileCheck, FileVideo, ChevronDown, Check, Scale, Briefcase, Clock, Mic, Type, Sparkles, ExternalLink, MessageSquare, Mail, Upload, Paperclip, Loader2, Trash2, FileSpreadsheet, FileImage } from "lucide-react";
 import { format } from "date-fns";
+import { normalizeSaudiMobile, isValidContactEmail } from "@shared/whatsapp";
 import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useCallback } from "react";
@@ -19,6 +20,8 @@ import { usePlan } from "@/lib/usePlan";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { openUpgrade } from "@/lib/upgrade-store";
 import { useToast } from "@/hooks/use-toast";
+import { BoqEditor } from "@/components/boq/BoqEditor";
+import { readBoq, type BoqDraft } from "@/lib/boq-draft";
 
 interface CardInputRendererProps {
   card: FormCard;
@@ -53,7 +56,11 @@ export function CardInputRenderer({ card, onUpdate, readOnly = false, allCards }
       );
 
     case "supplier-response":
-      return <SupplierResponseInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
+      return <SupplierResponseInput value={card.value} onChange={updateValue} readOnly={readOnly}
+        itemized={!!allCards?.some((c) => c.type === "bill-of-quantities" && (c.value as BoqDraft | null)?.items?.length)} />;
+
+    case "bill-of-quantities":
+      return <BoqEditor value={readBoq({ boq: card.value })} onChange={updateValue} />;
 
     case "project-dates":
       return <ProjectDatesInput value={card.value} onChange={updateValue} readOnly={readOnly} />;
@@ -158,15 +165,24 @@ function SupplierResponseInput({
   value,
   onChange,
   readOnly = false,
+  itemized = false,
 }: {
   value: any;
   onChange: (value: any) => void;
   readOnly?: boolean;
+  /** The request has a bill of quantities: prices come from the items (Amendment A1). */
+  itemized?: boolean;
 }) {
   const { t } = useI18n();
 
   const submissionOptions = [
-    {
+    itemized ? {
+      id: "itemized_only",
+      label: t('pricing.itemizedOnly'),
+      description: t('pricing.itemizedOnlyDescription'),
+      icon: FileSpreadsheet,
+      color: "from-emerald-500 to-emerald-600",
+    } : {
       id: "quote_only",
       label: t('tenderFlow.priceOnly'),
       description: t('tenderFlow.priceOnlyDesc'),
@@ -219,6 +235,10 @@ function SupplierResponseInput({
     : value || { submissionType: null, inquiryType: null, whatsappContact: "", emailContact: "" };
 
   const update = (patch: any) => onChange({ ...val, ...patch });
+  const { can: planCan } = usePlan();
+  // Same rules as the server (shared/whatsapp.ts); shown once something is typed.
+  const whatsappInvalid = !!val.whatsappContact?.trim() && !normalizeSaudiMobile(val.whatsappContact);
+  const emailInvalid = !!val.emailContact?.trim() && !isValidContactEmail(val.emailContact);
 
   const renderOptions = (
     options: typeof submissionOptions,
@@ -266,7 +286,8 @@ function SupplierResponseInput({
     <div className="space-y-6">
       {/* Submission type */}
       <div className="grid gap-3">
-        {renderOptions(submissionOptions, val.submissionType, (id) => update({ submissionType: id }))}
+        {/* With items, a stored "Price Quote Only" is shown — and published — as "Itemized Pricing Only". */}
+        {renderOptions(submissionOptions, itemized && val.submissionType === "quote_only" ? "itemized_only" : val.submissionType, (id) => update({ submissionType: id }))}
       </div>
 
       {/* How vendors ask questions */}
@@ -278,8 +299,28 @@ function SupplierResponseInput({
           {renderOptions(inquiryOptions, val.inquiryType, (id) => update({ inquiryType: id }))}
         </div>
 
+        {/* In-app Q&A is a Pro feature: say so at selection time (C-AC1). */}
+        {val.inquiryType === "inside_bid" && !readOnly && !planCan('qa') && (
+          <div role="status" className="space-y-3 p-3 rounded-lg border border-[#FE3C01]/30 bg-[#FE3C01]/5" data-testid="qa-plan-required">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-900 dark:text-foreground flex items-center gap-2 flex-wrap">
+                {t('upgrade.title_qa')} <PlanBadge feature="qa" />
+              </p>
+              <p className="text-xs text-muted-foreground">{t('upgrade.desc_qa')}</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button type="button" size="sm" className="min-h-11 sm:min-h-9 bg-[#FE3C01] hover:bg-[#d54d35]" onClick={() => openUpgrade('qa')}>
+                {t('upgrade.seePlans')}
+              </Button>
+              <Button type="button" size="sm" variant="outline" className="min-h-11 sm:min-h-9" onClick={() => update({ inquiryType: "email_whatsapp" })}>
+                {t('tenderFlow.qaUseExternalInstead')}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Inside Bid info note */}
-        {val.inquiryType === "inside_bid" && (
+        {val.inquiryType === "inside_bid" && (readOnly || planCan('qa')) && (
           <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <MessageSquare className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
             <p className="text-xs text-blue-700 dark:text-blue-300">
@@ -296,13 +337,17 @@ function SupplierResponseInput({
                 {t('tenderFlow.whatsappNumber')}
               </label>
               <input
-                type="text"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
                 dir="ltr"
-                placeholder="+966 50 123 4567"
+                placeholder={t('tenderFlow.whatsappMobilePlaceholder')}
                 value={val.whatsappContact}
                 onChange={(e) => update({ whatsappContact: e.target.value })}
+                aria-invalid={whatsappInvalid || undefined}
                 className="text-base md:text-sm max-sm:min-h-11 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
               />
+              {whatsappInvalid && <p className="text-xs text-red-500 mt-1">{t('tenderFlow.whatsappInvalid')}</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-1.5">
@@ -310,11 +355,15 @@ function SupplierResponseInput({
               </label>
               <input
                 type="email"
+                inputMode="email"
+                dir="ltr"
                 placeholder="contact@company.com"
                 value={val.emailContact}
                 onChange={(e) => update({ emailContact: e.target.value })}
+                aria-invalid={emailInvalid || undefined}
                 className="text-base md:text-sm max-sm:min-h-11 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
               />
+              {emailInvalid && <p className="text-xs text-red-500 mt-1">{t('tenderFlow.contactEmailInvalid')}</p>}
             </div>
           </div>
         )}

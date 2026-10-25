@@ -344,7 +344,7 @@ export function CompanyVerificationFlow({ companyId, canManage }: { companyId: s
             <div className="text-sm">
               <p className="font-semibold text-foreground">{justSubmitted ? t("verification.submittedTitle") : t("verification.underReviewTitle")}</p>
               <p className="text-muted-foreground mt-1">{justSubmitted ? t("verification.submittedDesc") : t("verification.underReviewDesc")}</p>
-              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("verification.nextStep")}</p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide rtl:normal-case rtl:tracking-normal text-muted-foreground">{t("verification.nextStep")}</p>
               <p className="text-muted-foreground">{t("verification.nextStepUnderReview")}</p>
             </div>
           </div>
@@ -481,24 +481,24 @@ export function CompanyVerificationFlow({ companyId, canManage }: { companyId: s
                         <p className="text-xs text-muted-foreground mt-0.5">{t(`onboardingPanel.${slot.descKey}`)}</p>
                         <div className="text-xs mt-2 space-y-1" aria-live="polite" data-testid={`doc-status-${slot.type}`}>
                           {/* The file the request will use — always stated, so a failed replacement is never ambiguous. */}
-                          <p className="flex items-center gap-1.5 min-w-0">
+                          <p className="flex items-start gap-1.5 min-w-0">
                             {doc ? (
-                              <><CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" aria-hidden />
+                              <><CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0 mt-0.5" aria-hidden />
                                 {failed && <span className="text-muted-foreground shrink-0">{t("verification.docCurrent")}:</span>}
                                 <button type="button" onClick={() => viewAuthenticatedFile(doc.fileUrl).catch(() => undefined)}
-                                  className="text-green-700 dark:text-green-400 underline-offset-2 hover:underline truncate text-start rounded min-h-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  className="text-green-700 dark:text-green-400 underline-offset-2 hover:underline min-w-0 break-words [overflow-wrap:anywhere] text-start rounded min-h-11 md:min-h-[24px] py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                   title={t("verification.docView")}>
-                                  {doc.originalName || t("verification.docAttached")}
+                                  {doc.originalName ? <bdi>{doc.originalName}</bdi> : t("verification.docAttached")}
                                 </button></>
                             ) : (
-                              <><FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden /><span className="text-muted-foreground">{t("verification.docNotUploaded")}</span></>
+                              <><FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" aria-hidden /><span className="text-muted-foreground">{t("verification.docNotUploaded")}</span></>
                             )}
                           </p>
                           {phase?.kind === "uploading" && (
                             <p className="flex items-center gap-1.5 text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" aria-hidden />{t("verification.docUploading")}</p>
                           )}
                           {phase?.kind === "attaching" && (
-                            <p className="flex items-center gap-1.5 text-muted-foreground min-w-0"><Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" aria-hidden /><span className="truncate">{t("verification.docAttaching")} {phase.name}</span></p>
+                            <p className="flex items-start gap-1.5 text-muted-foreground min-w-0"><Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 mt-0.5" aria-hidden /><span className="min-w-0 [overflow-wrap:anywhere]">{t("verification.docAttaching")} <bdi>{phase.name}</bdi></span></p>
                           )}
                           {failed && (
                             <div className="flex items-start gap-1.5 text-red-700 dark:text-red-400" role="alert">
@@ -565,7 +565,7 @@ export function CompanyVerificationFlow({ companyId, canManage }: { companyId: s
                     {listed.map((b) => (
                       <li key={b.kind === "missing" ? b.item : `slot-${b.kind === "slot" ? b.slot : ""}`}>
                         <button type="button" onClick={() => focusBlocker(b)}
-                          className={cn("text-sm text-start hover:text-foreground underline-offset-2 hover:underline inline-flex items-center gap-2 min-h-[32px] rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          className={cn("text-sm text-start hover:text-foreground underline-offset-2 hover:underline inline-flex items-center gap-2 min-h-11 md:min-h-[32px] rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                             b.kind === "slot" && b.phase === "failed" ? "text-red-700 dark:text-red-400" : "text-muted-foreground")}>
                           <span className={cn("h-1.5 w-1.5 rounded-full", b.kind === "slot" && b.phase === "failed" ? "bg-red-600" : "bg-[var(--bid-orange)]")} aria-hidden />
                           {blockerText(b)}

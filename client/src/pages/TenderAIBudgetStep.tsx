@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Sparkles, Edit3, Loader2, AlertCircle, Eye, EyeOff, Info } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
+import { useWizardNav } from "@/lib/wizard-nav";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
@@ -31,6 +32,7 @@ const getProjectSize = (budget: number): ProjectSize => {
 
 export default function TenderAIBudgetStep() {
   const [, navigate] = useLocation();
+  const { goNext, goBack } = useWizardNav();
   const { t, isRtl, language } = useI18n();
   const { can: planCan } = usePlan();
   const [budgetMode, setBudgetMode] = useState<BudgetMode>(null);
@@ -155,12 +157,12 @@ export default function TenderAIBudgetStep() {
         aiEstimate: aiEstimate || undefined,
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/new/submission-process");
+      goNext("/tenders/new/submission-process");
     }
   };
 
   const handleBack = () => {
-    navigate("/tenders/new/project-scope");
+    goBack("/tenders/new/project-scope");
   };
 
   const isFormValid = budgetMode !== null && (
@@ -180,7 +182,7 @@ export default function TenderAIBudgetStep() {
           <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:!text-[40px]" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
-            className="group relative overflow-hidden max-sm:hidden"
+            className="group relative overflow-hidden"
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">

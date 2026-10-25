@@ -2,9 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, ArrowRight, FileText, Video, FileCheck, FileVideo, MessageSquare, Mail, MessageCircle, CalendarIcon, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, Video, FileCheck, FileVideo, MessageSquare, Mail, MessageCircle, CalendarIcon, AlertCircle, Sheet, Lock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { useStructuredPricing } from "@/lib/structured-pricing";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
+import { useWizardNav } from "@/lib/wizard-nav";
+import { normalizeSaudiMobile, formatSaudiMobile, isValidContactEmail } from "@shared/whatsapp";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useAuthStore } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,15 +21,25 @@ import { useI18n } from "@/lib/i18n";
 import { TourBanner } from "@/lib/tour";
 import { TOUR_BANNERS } from "@/lib/tour-steps";
 import { withViewTransition } from "@/lib/view-transition";
+import { usePlan } from "@/lib/usePlan";
+import { PlanBadge } from "@/components/billing/PlanBadge";
+import { openUpgrade } from "@/lib/upgrade-store";
 
-type SubmissionType = "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video";
+type SubmissionType = "quote_only" | "tech_fin_proposal" | "video_only" | "tech_fin_with_video" | "itemized_only";
 type InquiryType = "inside_bid" | "email_whatsapp";
+/** Within "email_whatsapp" the requester picks one channel (decision D3). */
+type ContactMethod = "whatsapp" | "email";
 
 export default function TenderSubmissionProcessStep() {
   const [, navigate] = useLocation();
+  const { goNext, goBack } = useWizardNav();
   const { t, language, isRtl } = useI18n();
   const dateLocale = language === 'ar' ? arLocale : undefined;
   const { user, checkAuth } = useAuthStore();
+  // In-app Q&A ("inside_bid") is a Pro feature (C-AC1): shown at selection time,
+  // not discovered at publication. The server still checks it when publishing.
+  const { can: planCan } = usePlan();
+  const qaAllowed = planCan('qa');
   const { toast } = useToast();
   const [submissionDeadline, setSubmissionDeadline] = useState<Date | undefined>(undefined);
   const [submissionType, setSubmissionType] = useState<SubmissionType | null>(null);
@@ -33,11 +47,20 @@ export default function TenderSubmissionProcessStep() {
   const [inquiryType, setInquiryType] = useState<InquiryType | null>(null);
   const [inquiryDeadline, setInquiryDeadline] = useState<Date | undefined>(undefined);
   const [whatsappContact, setWhatsappContact] = useState("");
+  const [contactMethod, setContactMethod] = useState<ContactMethod>("whatsapp");
+  const [whatsappTouched, setWhatsappTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
   const [useAccountEmail, setUseAccountEmail] = useState(true);
   const [customEmail, setCustomEmail] = useState("");
   const [saveCustomEmail, setSaveCustomEmail] = useState(false);
   const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [targetAudienceTypes, setTargetAudienceTypes] = useState<('company' | 'individual' | 'team')[]>(['company', 'individual', 'team']);
+  // Itemized pricing (RFQ brief §6): mandatory for RFQs, an independent option
+  // for other requests; it coexists with the document requirements below.
+  const structuredOn = useStructuredPricing();
+  const [itemizedPricing, setItemizedPricing] = useState<boolean>(() => {
+    try { return JSON.parse(localStorage.getItem("tenderDraft") || "{}").itemizedPricing === true; } catch { return false; }
+  });
 
   const draft = useMemo(() => {
     try {
@@ -46,6 +69,16 @@ export default function TenderSubmissionProcessStep() {
       return {};
     }
   }, []);
+  const isRfq = draft.requestType === "rfq";
+  const itemCount = Array.isArray(draft.boq?.items) ? draft.boq.items.length : 0;
+  const needsItems = itemizedPricing && itemCount === 0;
+  const toggleItemized = (on: boolean) => {
+    if (isRfq) return;
+    setItemizedPricing(on);
+    // quote_only would duplicate the item total; itemized_only needs items.
+    if (on && submissionType === "quote_only") setSubmissionType("itemized_only");
+    if (!on && submissionType === "itemized_only") setSubmissionType(null);
+  };
 
   useEffect(() => {
     if (draft.submissionDeadline) {
@@ -65,6 +98,11 @@ export default function TenderSubmissionProcessStep() {
     }
     if (draft.whatsappContact) {
       setWhatsappContact(draft.whatsappContact);
+    }
+    if (draft.contactMethod === "whatsapp" || draft.contactMethod === "email") {
+      setContactMethod(draft.contactMethod);
+    } else if (draft.emailContact && !draft.whatsappContact) {
+      setContactMethod("email");
     }
     if (draft.useAccountEmail !== undefined) {
       setUseAccountEmail(draft.useAccountEmail);
@@ -104,13 +142,15 @@ export default function TenderSubmissionProcessStep() {
           deadline: deadlineISO,
           targetAudienceTypes,
           submissionType: submissionType || undefined,
+          itemizedPricing,
           videoRequired: submissionType === "tech_fin_with_video" ? videoRequired : undefined,
           inquiryType: inquiryType || undefined,
           inquiryDeadline: inquiryType === "inside_bid" && inquiryDeadline
             ? toDateString(inquiryDeadline)
             : undefined,
-          whatsappContact: inquiryType === "email_whatsapp" ? whatsappContact : undefined,
-          emailContact: inquiryType === "email_whatsapp" ? emailToUse : undefined,
+          contactMethod,
+          whatsappContact: inquiryType === "email_whatsapp" && contactMethod === "whatsapp" ? whatsappContact : undefined,
+          emailContact: inquiryType === "email_whatsapp" && contactMethod === "email" ? emailToUse : undefined,
           useAccountEmail,
           customEmail: !useAccountEmail ? customEmail : undefined,
         })
@@ -118,7 +158,7 @@ export default function TenderSubmissionProcessStep() {
     } catch {
       // localStorage may be full / disabled — UI state still updates.
     }
-  }, [submissionDeadline, submissionType, videoRequired, inquiryType, inquiryDeadline, whatsappContact, useAccountEmail, customEmail, targetAudienceTypes, user?.email]);
+  }, [submissionDeadline, submissionType, itemizedPricing, videoRequired, inquiryType, inquiryDeadline, whatsappContact, contactMethod, useAccountEmail, customEmail, targetAudienceTypes, user?.email]);
 
   const handleSaveEmail = async (email: string) => {
     setIsSavingEmail(true);
@@ -160,6 +200,11 @@ export default function TenderSubmissionProcessStep() {
   };
 
   const handleNext = () => {
+    if (inquiryType === "email_whatsapp" && !contactValid) {
+      setWhatsappTouched(true);
+      setEmailTouched(true);
+      return;
+    }
     if (submissionDeadline && submissionType && inquiryType) {
       const emailToUse = useAccountEmail ? user?.email : customEmail;
       const deadlineISO = toDateString(submissionDeadline);
@@ -170,27 +215,38 @@ export default function TenderSubmissionProcessStep() {
         deadline: deadlineISO,
         targetAudienceTypes,
         submissionType,
+        itemizedPricing,
         videoRequired: submissionType === "tech_fin_with_video" ? videoRequired : undefined,
         inquiryType,
         inquiryDeadline: inquiryType === "inside_bid" && inquiryDeadline
           ? toDateString(inquiryDeadline)
           : undefined,
-        whatsappContact: inquiryType === "email_whatsapp" ? whatsappContact : undefined,
-        emailContact: inquiryType === "email_whatsapp" ? emailToUse : undefined,
+        contactMethod,
+        // Only the chosen channel is kept; the WhatsApp number is stored normalised.
+        whatsappContact: inquiryType === "email_whatsapp" && contactMethod === "whatsapp" ? normalizedMobile ?? undefined : undefined,
+        emailContact: inquiryType === "email_whatsapp" && contactMethod === "email" ? emailToUse?.trim() : undefined,
         useAccountEmail,
         customEmail: !useAccountEmail ? customEmail : undefined,
       };
       localStorage.setItem("tenderDraft", JSON.stringify(updated));
-      navigate("/tenders/new/evaluation-criteria");
+      goNext("/tenders/new/evaluation-criteria");
     }
   };
 
   const handleBack = () => {
-    navigate("/tenders/new/ai-budget");
+    goBack("/tenders/new/ai-budget");
   };
 
   const submissionOptions = [
-    {
+    // Amendment A1: with itemized pricing the single quoted price is replaced by
+    // "Itemized Pricing Only"; documents and video stay available on top of it.
+    itemizedPricing ? {
+      type: "itemized_only" as SubmissionType,
+      icon: Sheet,
+      title: t('pricing.itemizedOnly'),
+      description: t('pricing.itemizedOnlyDescription'),
+      color: "from-emerald-500 to-emerald-600",
+    } : {
       type: "quote_only" as SubmissionType,
       icon: FileText,
       title: t('tenderFlow.priceOnly'),
@@ -238,16 +294,19 @@ export default function TenderSubmissionProcessStep() {
   ];
 
   const emailToUse = useAccountEmail ? user?.email : customEmail;
+  const normalizedMobile = normalizeSaudiMobile(whatsappContact);
+  const emailOk = isValidContactEmail(emailToUse);
+  const contactValid = contactMethod === "whatsapp" ? !!normalizedMobile : emailOk;
+  const whatsappError = whatsappTouched && contactMethod === "whatsapp" && !normalizedMobile;
+  const emailError = emailTouched && contactMethod === "email" && !emailOk;
 
   const isFormValid =
     submissionDeadline &&
     submissionType &&
+    !needsItems &&
     inquiryType &&
     targetAudienceTypes.length > 0 &&
-    (inquiryType === "inside_bid" ||
-     (inquiryType === "email_whatsapp" &&
-      whatsappContact.trim() &&
-      emailToUse?.trim()));
+    ((inquiryType === "inside_bid" && qaAllowed) || (inquiryType === "email_whatsapp" && contactValid));
 
   return (
     <div className="py-8 px-4">
@@ -256,7 +315,7 @@ export default function TenderSubmissionProcessStep() {
           <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:!text-[40px]" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
-            className="group relative overflow-hidden max-sm:hidden"
+            className="group relative overflow-hidden"
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">
@@ -387,6 +446,31 @@ export default function TenderSubmissionProcessStep() {
 
                 {submissionDeadline && targetAudienceTypes.length > 0 && (
                 <div className="space-y-4 border-t border-gray-200 dark:border-gray-700 pt-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                  {(structuredOn || itemizedPricing) && (
+                    <div className="rounded-xl border-2 border-border p-4 space-y-2" data-testid="itemized-pricing-option">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="flex flex-wrap items-center gap-2 font-medium text-gray-900 dark:text-foreground">
+                            <Sheet className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+                            <span id="itemized-pricing-label">{t('pricing.title')}</span>
+                            {isRfq && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-muted px-2 py-0.5 text-xs font-semibold text-gray-700 dark:text-muted-foreground" data-testid="itemized-required-badge">
+                                <Lock className="h-3 w-3" aria-hidden="true" />{t('pricing.rfqRequired')}
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{t('pricing.description')}</p>
+                        </div>
+                        <Switch checked={itemizedPricing} disabled={isRfq} onCheckedChange={toggleItemized} aria-labelledby="itemized-pricing-label" data-testid="switch-itemized-pricing" />
+                      </div>
+                      {needsItems && (
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-900 dark:text-amber-200" role="alert" data-testid="itemized-needs-items">
+                          <span>{t('pricing.addItemsFirst')}</span>
+                          <Button type="button" variant="outline" className="min-h-11" onClick={() => goBack("/tenders/new/project-scope")}>{t('pricing.addItemsAction')}</Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <label className="block text-sm font-medium text-gray-900 dark:text-white">
                     {t('tenderFlow.whatShouldSubmit')}
                   </label>
@@ -508,8 +592,9 @@ export default function TenderSubmissionProcessStep() {
                               <Icon className="h-5 w-5 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm text-gray-900 dark:text-foreground">
+                              <p className="font-medium text-sm text-gray-900 dark:text-foreground flex items-center gap-2 flex-wrap">
                                 {option.title}
+                                {option.type === "inside_bid" && !qaAllowed && <PlanBadge feature="qa" />}
                               </p>
                               <p className="text-xs text-gray-500 dark:text-gray-400">
                                 {option.description}
@@ -530,88 +615,147 @@ export default function TenderSubmissionProcessStep() {
                     </div>
 
                     {inquiryType === "email_whatsapp" && (
-                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div className="space-y-3">
-                          <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
-                            {t('tenderFlow.emailAddress')}
-                          </label>
-
-                          <div className="space-y-2">
-                            <label className="flex items-center gap-2 cursor-pointer max-sm:min-h-11">
-                              <input
-                                type="radio"
-                                checked={useAccountEmail}
-                                onChange={() => setUseAccountEmail(true)}
-                                className="h-5 w-5 md:h-4 md:w-4 flex-shrink-0 text-[#FE3C01] cursor-pointer"
-                                data-testid="radio-use-account-address"
-                              />
-                              <span className="text-sm text-muted-foreground dark:text-muted-foreground min-w-0 break-words">
-                                {t('tenderFlow.useAccountEmail')} <span className="font-medium break-all" dir="ltr">{user?.email}</span>
-                              </span>
-                            </label>
-
-                            <label className="flex items-center gap-2 cursor-pointer max-sm:min-h-11">
-                              <input
-                                type="radio"
-                                checked={!useAccountEmail}
-                                onChange={() => setUseAccountEmail(false)}
-                                className="h-5 w-5 md:h-4 md:w-4 flex-shrink-0 text-[#FE3C01] cursor-pointer"
-                                data-testid="radio-use-other-address"
-                              />
-                              <span className="text-sm text-muted-foreground dark:text-muted-foreground">
-                                {t('tenderFlow.useDifferentEmail')}
-                              </span>
-                            </label>
+                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300 motion-reduce:animate-none">
+                        <fieldset className="space-y-2">
+                          <legend className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground mb-2">
+                            {t('tenderFlow.contactMethod')}
+                          </legend>
+                          <div className="grid grid-cols-2 gap-2" role="radiogroup">
+                            {(["whatsapp", "email"] as const).map((method) => (
+                              <label
+                                key={method}
+                                className={`flex items-center justify-center gap-2 min-h-11 px-3 rounded-lg border cursor-pointer text-sm transition-colors motion-reduce:transition-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-[#FE3C01] ${
+                                  contactMethod === method ? 'border-[#FE3C01] bg-[#FE3C01]/5 text-[#FE3C01] font-medium' : 'border-gray-300 dark:border-gray-600 text-muted-foreground'
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="contact-method"
+                                  value={method}
+                                  checked={contactMethod === method}
+                                  onChange={() => {
+                                    // Switching channel clears the other one so a stale value never applies.
+                                    setContactMethod(method);
+                                    if (method === "email") { setWhatsappContact(""); setWhatsappTouched(false); }
+                                    else { setEmailTouched(false); }
+                                  }}
+                                  className="sr-only"
+                                  data-testid={`radio-contact-${method}`}
+                                />
+                                {method === "whatsapp" ? t('tenderFlow.contactViaWhatsapp') : t('tenderFlow.contactViaEmail')}
+                              </label>
+                            ))}
                           </div>
+                        </fieldset>
 
-                          {!useAccountEmail && (
-                            <div className="space-y-2 ms-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                              <input
-                                type="email"
-                                dir="ltr"
-                                autoCapitalize="none"
-                                autoComplete="email"
-                                spellCheck={false}
-                                placeholder="custom@email.com"
-                                value={customEmail}
-                                onChange={(e) => setCustomEmail(e.target.value)}
-                                className="w-full px-3 py-2 max-sm:min-h-11 text-base md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
-                                data-testid="input-custom-email"
-                              />
+                        {contactMethod === "email" && (
+                          <>
+                          <div className="space-y-3">
+                            <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
+                              {t('tenderFlow.emailAddress')}
+                            </label>
+
+                            <div className="space-y-2">
+                              <label className="flex items-center gap-2 cursor-pointer max-sm:min-h-11">
+                                <input
+                                  type="radio"
+                                  checked={useAccountEmail}
+                                  onChange={() => setUseAccountEmail(true)}
+                                  className="h-5 w-5 md:h-4 md:w-4 flex-shrink-0 text-[#FE3C01] cursor-pointer"
+                                  data-testid="radio-use-account-address"
+                                />
+                                <span className="text-sm text-muted-foreground dark:text-muted-foreground min-w-0 break-words">
+                                  {t('tenderFlow.useAccountEmail')} <span className="font-medium break-all" dir="ltr">{user?.email}</span>
+                                </span>
+                              </label>
 
                               <label className="flex items-center gap-2 cursor-pointer max-sm:min-h-11">
                                 <input
-                                  type="checkbox"
-                                  checked={saveCustomEmail}
-                                  onChange={(e) => handleSaveEmailCheckbox(e.target.checked)}
-                                  disabled={isSavingEmail}
-                                  className="h-5 w-5 md:h-4 md:w-4 flex-shrink-0 text-[#FE3C01] rounded cursor-pointer disabled:opacity-50"
-                                  data-testid="checkbox-save-address"
+                                  type="radio"
+                                  checked={!useAccountEmail}
+                                  onChange={() => setUseAccountEmail(false)}
+                                  className="h-5 w-5 md:h-4 md:w-4 flex-shrink-0 text-[#FE3C01] cursor-pointer"
+                                  data-testid="radio-use-other-address"
                                 />
-                                <span className="text-xs text-gray-600 dark:text-gray-400">
-                                  {isSavingEmail ? t('tenderFlow.savingEmail') : t('tenderFlow.saveEmailForFuture')}
+                                <span className="text-sm text-muted-foreground dark:text-muted-foreground">
+                                  {t('tenderFlow.useDifferentEmail')}
                                 </span>
                               </label>
                             </div>
-                          )}
-                        </div>
 
-                        <div className="space-y-2">
-                          <label className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
-                            {t('tenderFlow.whatsappNumber')}
-                          </label>
-                          <input
-                            type="tel"
-                            dir="ltr"
-                            inputMode="tel"
-                            autoComplete="tel"
-                            placeholder={t('tenderFlow.whatsappPlaceholder')}
-                            value={whatsappContact}
-                            onChange={(e) => setWhatsappContact(e.target.value)}
-                            className="w-full px-3 py-2 max-sm:min-h-11 text-base md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
-                            data-testid="input-whatsapp-contact"
-                          />
-                        </div>
+                            {!useAccountEmail && (
+                              <div className="space-y-2 ms-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <input
+                                  type="email"
+                                  dir="ltr"
+                                  autoCapitalize="none"
+                                  autoComplete="email"
+                                  spellCheck={false}
+                                  placeholder="custom@email.com"
+                                  value={customEmail}
+                                  onChange={(e) => setCustomEmail(e.target.value)}
+                                  onBlur={() => setEmailTouched(true)}
+                                  inputMode="email"
+                                  aria-invalid={emailError || undefined}
+                                  aria-describedby={emailError ? "contact-email-error" : undefined}
+                                  className="w-full px-3 py-2 max-sm:min-h-11 text-base md:text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent"
+                                  data-testid="input-custom-email"
+                                />
+
+                                <label className="flex items-center gap-2 cursor-pointer max-sm:min-h-11">
+                                  <input
+                                    type="checkbox"
+                                    checked={saveCustomEmail}
+                                    onChange={(e) => handleSaveEmailCheckbox(e.target.checked)}
+                                    disabled={isSavingEmail}
+                                    className="h-5 w-5 md:h-4 md:w-4 flex-shrink-0 text-[#FE3C01] rounded cursor-pointer disabled:opacity-50"
+                                    data-testid="checkbox-save-address"
+                                  />
+                                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                                    {isSavingEmail ? t('tenderFlow.savingEmail') : t('tenderFlow.saveEmailForFuture')}
+                                  </span>
+                                </label>
+                              </div>
+                            )}
+                          </div>
+                          {emailError && (
+                            <p id="contact-email-error" className="text-xs text-red-500">{t('tenderFlow.contactEmailInvalid')}</p>
+                          )}
+                          </>
+                        )}
+
+                        {contactMethod === "whatsapp" && (
+                          <div className="space-y-2">
+                            <label htmlFor="contact-whatsapp" className="block text-xs font-medium text-muted-foreground dark:text-muted-foreground">
+                              {t('tenderFlow.whatsappMobileLabel')}
+                            </label>
+                            <input
+                              id="contact-whatsapp"
+                              type="tel"
+                              dir="ltr"
+                              inputMode="tel"
+                              autoComplete="tel"
+                              placeholder={t('tenderFlow.whatsappMobilePlaceholder')}
+                              value={whatsappContact}
+                              onChange={(e) => setWhatsappContact(e.target.value)}
+                              onBlur={() => setWhatsappTouched(true)}
+                              aria-invalid={whatsappError || undefined}
+                              aria-describedby={whatsappError ? "contact-whatsapp-error" : normalizedMobile ? "contact-whatsapp-preview" : undefined}
+                              className={`w-full px-3 py-2 max-sm:min-h-11 text-base md:text-sm border rounded-lg bg-white dark:bg-card text-gray-900 dark:text-foreground placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FE3C01] focus:border-transparent ${
+                                whatsappError ? 'border-red-300 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'
+                              }`}
+                              data-testid="input-whatsapp-contact"
+                            />
+                            {whatsappError && (
+                              <p id="contact-whatsapp-error" className="text-xs text-red-500">{t('tenderFlow.whatsappInvalid')}</p>
+                            )}
+                            {!whatsappError && normalizedMobile && (
+                              <p id="contact-whatsapp-preview" className="text-xs text-emerald-700 dark:text-emerald-400" data-testid="whatsapp-preview">
+                                {t('tenderFlow.whatsappLinkPreview', { number: '\u2066' + formatSaudiMobile(normalizedMobile) + '\u2069' })}
+                              </p>
+                            )}
+                          </div>
+                        )}
 
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {t('tenderFlow.contactInfoDisplayed')}
@@ -619,7 +763,42 @@ export default function TenderSubmissionProcessStep() {
                       </div>
                     )}
 
-                    {inquiryType === "inside_bid" && (
+                    {inquiryType === "inside_bid" && !qaAllowed && (
+                      <div
+                        role="status"
+                        className="space-y-3 p-4 rounded-lg border border-[#FE3C01]/30 bg-[#FE3C01]/5 animate-in fade-in slide-in-from-top-2 duration-300 motion-reduce:animate-none"
+                        data-testid="qa-plan-required"
+                      >
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-[#FE3C01] mt-0.5 flex-shrink-0" aria-hidden="true" />
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-foreground">{t('upgrade.title_qa')}</p>
+                            <p className="text-xs text-muted-foreground">{t('upgrade.desc_qa')}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Button
+                            type="button"
+                            className="min-h-11 bg-[#FE3C01] hover:bg-[#d54d35]"
+                            onClick={() => openUpgrade('qa')}
+                            data-testid="button-qa-upgrade"
+                          >
+                            {t('upgrade.seePlans')}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="min-h-11"
+                            onClick={() => setInquiryType("email_whatsapp")}
+                            data-testid="button-qa-use-external"
+                          >
+                            {t('tenderFlow.qaUseExternalInstead')}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {inquiryType === "inside_bid" && qaAllowed && (
                       <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="flex items-start gap-2 p-3 bg-[var(--bid-orange)]/5 dark:bg-blue-900/20 border border-[var(--bid-orange)]/20 dark:border-blue-800 rounded-lg">
                           <MessageSquare className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />

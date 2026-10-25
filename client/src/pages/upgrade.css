@@ -86,13 +86,13 @@
 }
 
 /* ============ PLAN BOXES ============
-   Two paid plans, centred, instead of the pricing page's three. */
+   Pro, Business and Enterprise, centred. */
 .upgrade-page .plan-grid.upgrade-grid {
-  grid-template-columns: repeat(2, 1fr);
-  max-width: 860px;
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 1120px;
   margin-inline: auto;
 }
-.upgrade-page .free-strip { max-width: 860px; margin-inline: auto; }
+.upgrade-page .free-strip { max-width: 1120px; margin-inline: auto; }
 
 .upgrade-page .plan .btn { min-height: 46px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .upgrade-page .plan .btn:disabled { opacity: 0.6; cursor: default; }
@@ -159,7 +159,7 @@
 
 /* ============ CHECKOUT + AFTER UPGRADING ============ */
 .upgrade-page .upgrade-checkout {
-  max-width: 672px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 0 16px;
   font-family: "Inter", "IBM Plex Sans Arabic", sans-serif;
@@ -167,10 +167,16 @@
 .upgrade-page .upgrade-checkout > [data-testid="checkout-flow"]:not(:empty) { padding: 28px 0 8px; }
 .upgrade-page .upgrade-checkout [data-testid="billing-only-admins"] { text-align: center; }
 .upgrade-page .upgrade-bottom { padding-bottom: 88px; }
-.upgrade-page .upgrade-checkout [data-testid="billing-details-step"] {
+.upgrade-page .upgrade-checkout [data-testid="billing-details-step"] > *,
+.upgrade-page .upgrade-checkout [data-testid="billing-details-step"] aside > * {
   border-radius: 20px;
   border-color: var(--line);
   box-shadow: 0 18px 44px -28px rgba(11, 9, 7, 0.3);
+}
+/* Anything else in the checkout column (return banner, pay-state) stays a readable width. */
+.upgrade-page .upgrade-checkout > [data-testid="checkout-flow"] > :not([data-testid="billing-details-step"]) {
+  max-width: 672px;
+  margin-inline: auto;
 }
 .upgrade-page .upgrade-checkout [data-testid="billing-pay"] { border-radius: 100px; min-height: 50px; font-weight: 600; }
 .upgrade-page .upgrade-checkout [data-testid="billing-pay"]:hover:not(:disabled) { background: var(--ink); }

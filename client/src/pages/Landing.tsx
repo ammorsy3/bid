@@ -50,11 +50,11 @@ const copy = {
     ariaMenu: "Menu", ariaLang: "Switch language",
   },
   ar: {
-    navAbout: "عن Bid", navMarketplace: "سوق Bid", navTraction: "روابط الانضمام", navVendors: "للموردين", navPricing: "الأسعار",
+    navAbout: "عن بِـد", navMarketplace: "سوق بـِد", navTraction: "لأصحاب الطلبات", navVendors: "للموردين", navPricing: "الأسعار",
     btnSignIn: "دخول", btnCreateAccount: "سجّل حساب\u00a0←", btnDashboard: "لوحة التحكم",
     heroBadge: "الإطلاق التجريبي", heroLine1: "أنشئ الـ(RFP)", heroLine2: "اطرح مشروعك",
     heroSub: "اكتب البريف، وادعُ الموردين، واستقبل العروض، ثم رسِّ المشروع.",
-    heroCta: "جرّب Bid\u00a0←", heroSignIn: "دخول",
+    heroCta: "جرّب بـِد\u00a0←", heroSignIn: "دخول",
     awarded: "تمت الترسية", aiDrafted: "مسودة بالذكاء الاصطناعي",
     modalHeadline: "اكتشف أفضل الموردين. واكسب أفضل العملاء.", modalLogin: "دخول", modalSignUp: "سجّل حساب",
     forRequesters: "لأصحاب الطلبات",
@@ -78,7 +78,7 @@ const copy = {
     mc1Title: "توثيق الموردين", mc1l1: "السجل التجاري والتسجيل الضريبي للشركات", mc1l2: "أعمال سابقة موثّقة", mc1l3: "توثيق مسبق داخل المنصة، بدون طلب معلومات متكرر.",
     mc2Title: "الذكاء الاصطناعي في كل خطوة", mc2l1: "يبني معك طلب العروض", mc2l2: "يلخّص لك العروض المقدمة.", mc2l3: "يرشّح لك الموردين الأنسب لمشروعك.",
     mc3Title: "تخصيص كامل", mc3l1: "خصّص ملف شركتك", mc3l2: "خصّص روابط الانضمام", mc3l3: "خصّص طلبات العروض",
-    ctaTitle: "جرّب Bid",
+    ctaTitle: "جرّب بـِد",
     ctaBody: "بدون عرض توضيحي أو مكالمات مبيعات. أنشئ طلب العروض، واستقبل العروض.",
     ctaBtn: "ابدأ الحين ←",
     ftBrand: "Bid يرتّب لك رحلة التوريد: أنشئ طلب العروض، وادعُ الموردين المناسبين، واستقبل عروضهم بصيغة موحّدة.",
@@ -598,8 +598,9 @@ const Landing = () => {
             <div>
               <h5>{c.ftSupport}</h5>
               {/* Landing tracks its own AR/EN toggle, so pass it explicitly
-                  rather than letting the component read the app language. */}
-              <SupportContactLinks lang={lang} className="footer-support" />
+                  rather than letting the component read the app language.
+                  No LinkedIn on the homepage; the other public footers keep it. */}
+              <SupportContactLinks lang={lang} className="footer-support" showLinkedIn={false} />
             </div>
           </div>
           <div className="footer-bot">

@@ -1545,6 +1545,48 @@ export async function sendMembershipDecisionNotification(params: {
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+// A new /contact-sales submission, sent to the sales inbox and the founders.
+// Everything in it was typed by an anonymous visitor, so every value is escaped.
+const CONTACT_SALES_RECIPIENTS = ["info@bidapp.sa", "ahmorsy07@gmail.com", "akams901@gmail.com"];
+
+export async function sendContactSalesNotification(params: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  teamSize?: string | null;
+  message?: string | null;
+  appBaseUrl?: string;
+}): Promise<boolean> {
+  const fromEnv = (process.env.CONTACT_SALES_NOTIFY_EMAILS ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const recipients = fromEnv.length > 0 ? fromEnv : CONTACT_SALES_RECIPIENTS;
+  const name = escapeHtml(`${params.firstName} ${params.lastName}`.trim());
+  const email = escapeHtml(params.email);
+
+  const details: DetailRow[] = [
+    { iconEmoji: "&#128100;", iconBg: "#EFF6FF", label: "Name", value: name },
+    { iconEmoji: "&#9993;", iconBg: "#FFF7ED", label: "Email", value: `<a href="mailto:${email}" style="color:#18181b;">${email}</a>` },
+  ];
+  if (params.teamSize) {
+    details.push({ iconEmoji: "&#128101;", iconBg: "#F0FDF4", label: "Team size", value: escapeHtml(params.teamSize) });
+  }
+
+  const html = buildEmailHtml({
+    language: "en",
+    iconEmoji: "&#128075;",
+    iconBg: "#FFF1EE",
+    headline: "New Bid Tour request",
+    subheadline: `${name} would like a personalized Bid Tour.`,
+    details,
+    ...(params.message
+      ? { messageBlock: { label: "Message", text: escapeHtml(params.message).replace(/\n/g, "<br>"), borderColor: BRAND_COLOR } }
+      : {}),
+    ctaLabel: "Open in Admin Panel",
+    ctaUrl: `${getBaseUrl(params.appBaseUrl)}/admin/contact-sales`,
+    reasonText: "You are receiving this because you are on the Bid sales notification list.",
+  });
+  return sendEmail(recipients, `New Bid Tour request: ${params.firstName} ${params.lastName}`.slice(0, 200), html);
+}
+
 export async function sendCheckoutFollowupEmail(params: {
   email: string;
   name?: string | null;

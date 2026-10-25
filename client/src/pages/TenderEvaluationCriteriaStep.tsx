@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Check, Scale, ChevronDown, Briefcase, Clock, Plus, X, Shield } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
+import { useWizardNav } from "@/lib/wizard-nav";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { ENTERPRISE_CRITERIA_CATEGORIES, CRITERIA_TRANSLATIONS_AR } from "@/lib/evaluation-criteria-data";
 import { useI18n } from "@/lib/i18n";
@@ -74,6 +75,7 @@ const PRESET_KEY_MAP: Record<string, string> = {
 
 export default function TenderEvaluationCriteriaStep() {
   const [, navigate] = useLocation();
+  const { goNext, goBack } = useWizardNav();
   const { t, language } = useI18n();
   const { user } = useAuthStore();
   const isAr = language === 'ar';
@@ -277,10 +279,10 @@ export default function TenderEvaluationCriteriaStep() {
       vendorRequirements: vendorRequirements.length > 0 ? vendorRequirements : undefined,
     };
     localStorage.setItem("tenderDraft", JSON.stringify(updatedDraft));
-    navigate("/tenders/new/brief");
+    goNext("/tenders/new/brief");
   };
 
-  const handleBack = () => navigate("/tenders/new/submission-process");
+  const handleBack = () => goBack("/tenders/new/submission-process");
 
   return (
     <div className="py-8 px-4">
@@ -291,7 +293,7 @@ export default function TenderEvaluationCriteriaStep() {
           <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:!text-[40px]" onClick={() => navigate("/dashboard")} />
           <Button
             onClick={handleBack}
-            className="group relative overflow-hidden max-sm:hidden"
+            className="group relative overflow-hidden"
             data-testid="button-back"
           >
             <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">

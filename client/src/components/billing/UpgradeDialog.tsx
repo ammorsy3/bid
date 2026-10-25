@@ -13,7 +13,7 @@ import { usePlan } from "@/lib/usePlan";
 import { useUpgradeStore } from "@/lib/upgrade-store";
 import { rememberReturnPath } from "@/lib/upgrade-return";
 import { FEATURE_MIN_PLAN } from "@shared/entitlements";
-import { monthlyRate } from "@shared/billing-plans";
+import { PlanPriceSummary } from "@/components/billing/PlanPriceSummary";
 
 export function UpgradeDialog() {
   const { t } = useI18n();
@@ -23,7 +23,6 @@ export function UpgradeDialog() {
 
   const plan = feature === "tenders" || feature === null ? "pro" : FEATURE_MIN_PLAN[feature];
   const planLabel = t(plan === "business" ? "billing.planBusiness" : "billing.planPro");
-  const price = monthlyRate(plan, "monthly");
   // Until entitlements load, assume they can: a wrong "ask your owner" is worse than a wrong button.
   const canUpgrade = entitlements ? canManageBilling : true;
 
@@ -55,12 +54,9 @@ export function UpgradeDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-xl bg-muted/60 p-3 text-center text-sm" data-testid="upgrade-dialog-plan">
-          {t("upgrade.includedIn", { plan: planLabel })}
-          <span className="font-semibold">
-            {" · "}
-            <span dir="ltr" className="tabular-nums">SAR {price}</span> {t("upgrade.perMonthPlusVat")}
-          </span>
+        <div className="space-y-2" data-testid="upgrade-dialog-plan">
+          <p className="text-center text-sm text-muted-foreground">{t("upgrade.includedIn", { plan: planLabel })}</p>
+          <PlanPriceSummary plan={plan} />
         </div>
 
         {!canUpgrade && (

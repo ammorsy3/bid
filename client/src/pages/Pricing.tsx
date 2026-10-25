@@ -14,6 +14,7 @@ import {
   LayoutTemplate,
   MessageCircleQuestion,
   Link2,
+  ClipboardList,
   Layers,
   GitCompare,
   BarChart3,
@@ -87,6 +88,7 @@ const FEATURES: Record<PlanId, Feat[]> = {
   enterprise: [
     { key: "fEverythingBiz", Icon: Layers },
     { key: "fSso", Icon: ShieldCheck },
+    { key: "fAudit", Icon: ClipboardList },
     { key: "fSla", Icon: LifeBuoy },
     { key: "fOnboarding", Icon: GraduationCap },
   ],
@@ -150,9 +152,10 @@ const copy = {
     fApi: "API access and integrations",
     fMarketplace: "Access to the marketplace",
     fEverythingBiz: "Everything in Business",
-    fSso: "Single sign-on (SSO) and detailed access controls",
-    fSla: "A dedicated contact with guaranteed response times",
-    fOnboarding: "We set your team up and train them",
+    fSso: "One company login for your whole team, with control over who can see and do what",
+    fAudit: "A full record of who did what on every tender, ready for your auditors",
+    fSla: "A dedicated account manager who replies within guaranteed times",
+    fOnboarding: "We set up your workspace, move in your vendor list and train your team",
 
     freeName: "Free",
     freeSub: "No card, no time limit. Use it for as long as you need.",
@@ -187,7 +190,7 @@ const copy = {
     ctaBtn: "Create an account →",
   },
   ar: {
-    navAbout: "عن Bid",
+    navAbout: "عن بِـد",
     navMarketplace: "السوق",
     navPricing: "الأسعار",
     btnSignIn: "تسجيل الدخول",
@@ -242,9 +245,10 @@ const copy = {
     fApi: "الوصول إلى الواجهة البرمجية والتكاملات",
     fMarketplace: "الوصول إلى السوق",
     fEverythingBiz: "كل ما في بزنس",
-    fSso: "تسجيل دخول موحّد (SSO) وضبط دقيق للصلاحيات",
-    fSla: "مسؤول تواصل مخصّص بأوقات استجابة مضمونة",
-    fOnboarding: "نُجهّز فريقك وندرّبه",
+    fSso: "تسجيل دخول واحد لكل فريق شركتك، مع تحكّم في من يرى ماذا ومن يفعل ماذا",
+    fAudit: "سجلّ كامل بمن فعل ماذا في كل مناقصة، جاهز لمدقّقيك",
+    fSla: "مدير حساب مخصّص يردّ خلال أوقات مضمونة",
+    fOnboarding: "نجهّز مساحة عملك وننقل قائمة موردينك وندرّب فريقك",
 
     freeName: "مجاني",
     freeSub: "بدون بطاقة، وبدون حدّ زمني. استخدمها ما دمت تحتاجها.",
@@ -501,19 +505,14 @@ const Pricing = () => {
                 )}
 
                 {isEnterprise ? (
-                  <a
-                    href={SUPPORT_WHATSAPP_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-ghost"
-                    data-testid="link-enterprise-sales"
-                  >
+                  <Link href="/contact-sales" className="btn btn-primary" data-testid="link-enterprise-sales">
                     {pc.cta}
-                  </a>
+                  </Link>
                 ) : (
-                  // Signed in → straight to checkout in Settings → Plans & Billing,
-                  // with this plan and term already picked. Signed out → sign up first.
-                  <Link href={user ? `/settings?tab=billing&plan=${plan.id}&term=${billing}` : "/signup"}>
+                  // Signed in → the focused upgrade page (/upgrade), which opens
+                  // checkout with this plan and term already picked. Signed out →
+                  // sign up first.
+                  <Link href={user ? `/upgrade?plan=${plan.id}&term=${billing}` : "/signup"}>
                     <button
                       className={`btn ${plan.featured ? "btn-orange" : "btn-primary"}`}
                       data-testid={`button-plan-${plan.id}`}

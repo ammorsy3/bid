@@ -16,7 +16,7 @@ import { PlanPriceSummary } from "@/components/billing/PlanPriceSummary";
 const cell = (html: string, id: string) => new RegExp(`data-testid="${id}"[^>]*>([^<]*)<`).exec(html)?.[1];
 
 describe("PlanPriceSummary", () => {
-  it.each([["pro", "SAR 79.00", "SAR 11.85", "SAR 90.85"], ["business", "SAR 179.00", "SAR 26.85", "SAR 205.85"]] as const)(
+  it.each([["pro", "SAR 399.00", "SAR 59.85", "SAR 458.85"], ["business", "SAR 179.00", "SAR 26.85", "SAR 205.85"]] as const)(
     "%s: base, VAT and total match checkout",
     (plan, subtotal, vat, total) => {
       const html = renderToStaticMarkup(createElement(PlanPriceSummary, { plan }));

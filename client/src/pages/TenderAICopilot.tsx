@@ -50,6 +50,7 @@ import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { cn } from "@/lib/utils";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useI18n } from "@/lib/i18n";
+import { copyText } from "@/lib/clipboard";
 import { MarketplacePublishOption, type MarketplaceOptions } from "@/components/MarketplacePublishOption";
 import { TenderBriefCards } from "@/components/TenderBriefCards";
 import { draftToTenderPayload } from "@shared/tender-mapping";
@@ -1023,7 +1024,7 @@ export default function TenderAICopilot() {
           title: t('copilot.publishedTitle'),
           description: t('copilot.publishedDesc'),
           action: (
-            <ToastAction altText={t('copilot.copyInvitationLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('copilot.linkCopied') }); }}>
+            <ToastAction altText={t('copilot.copyInvitationLink')} onClick={async () => { toast(await copyText(inviteLink) ? { title: t('copilot.linkCopied') } : { title: t('tenderFlow.copyManualTitle'), description: <span className="select-all break-all" dir="ltr">{inviteLink}</span>, duration: 30000 }); }}>
               <Copy className="h-3 w-3 me-1" /> {t('copilot.copyLink')}
             </ToastAction>
           ),

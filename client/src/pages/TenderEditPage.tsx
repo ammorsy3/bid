@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import {
   ArrowLeft, Loader2, Save, Send, RotateCcw, Plus, X, Check, Copy,
   FileText, Calendar, CalendarIcon, DollarSign, ClipboardList, MessageSquare,
   ListChecks, Flag, Eye, EyeOff, Scale, Briefcase, Clock as ClockIcon, Shield, ChevronDown,
-  Upload, Paperclip
+  Upload, Paperclip, Lock
 } from "lucide-react";
 import { Calendar as ShadcnCalendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -25,6 +25,10 @@ import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { copyText } from "@/lib/clipboard";
+import { tenderErrorMessage } from "@/lib/tender-errors";
+import { SPEC_LOCKED_FIELDS } from "@shared/tender-spec-lock";
+import { BoqItemsView, type ViewItem } from "@/components/boq/BoqItemsView";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -33,6 +37,7 @@ import VoiceRecorder from "@/components/voice-recorder";
 import VendorRequirementsEditor from "@/components/VendorRequirementsEditor";
 import type { Tender } from "@shared/schema";
 import { withViewTransition } from "@/lib/view-transition";
+import { parseQuantity, quantityErrorMessage } from "@shared/quantity";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -87,9 +92,11 @@ const ENTERPRISE_CRITERIA_CATEGORIES: CriteriaCategory[] = [
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
-const makeEditTenderSchema = (t: (k: string) => string) => z.object({
+// A locked description (P8) is not re-validated: it cannot be changed, so an
+// older request with a short description must still save its other fields.
+const makeEditTenderSchema = (t: (k: string) => string, specLocked = false) => z.object({
   title: z.string().min(3, t('validation.titleMin')),
-  description: z.string().refine(val => val.trim().split(/\s+/).filter(Boolean).length >= 50, t('validation.descriptionMinWords')),
+  description: specLocked ? z.string() : z.string().refine(val => val.trim().split(/\s+/).filter(Boolean).length >= 50, t('validation.descriptionMinWords')),
   deadline: z.string().min(1, t('validation.deadlineRequired')),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
@@ -114,7 +121,8 @@ interface Deliverable {
   name: string;
   description: string;
   unit: string;
-  quantity: number;
+  /** A number once validated; the raw text while it is being edited. */
+  quantity: number | string;
 }
 
 interface Milestone {
@@ -137,6 +145,22 @@ function computeDurationFromDates(start: string, end: string): string | null {
   return "6plus";
 }
 
+// ─── Locked specification (P8) ────────────────────────────────────────────────
+
+// Fields vendors have already priced against: read-only once offers exist.
+function LockedFields({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
+  return (
+    <fieldset disabled className="space-y-4 min-w-0" data-testid="spec-locked-fields">
+      <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        {t('tenderFlow.specLockedField')}
+      </p>
+      <div className="space-y-4 opacity-70">{children}</div>
+    </fieldset>
+  );
+}
+
 // ─── Section Card ─────────────────────────────────────────────────────────────
 
 function SectionCard({
@@ -144,11 +168,13 @@ function SectionCard({
   title,
   description,
   children,
+  locked = false,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   children: React.ReactNode;
+  locked?: boolean;
 }) {
   return (
     <Card className="overflow-hidden border-border">
@@ -161,7 +187,9 @@ function SectionCard({
         </CardTitle>
         <p className="text-sm text-muted-foreground">{description}</p>
       </CardHeader>
-      <CardContent className="space-y-4">{children}</CardContent>
+      <CardContent className="space-y-4">
+        {locked ? <LockedFields>{children}</LockedFields> : children}
+      </CardContent>
     </Card>
   );
 }
@@ -255,6 +283,13 @@ export default function TenderEditPage() {
 
   const [budgetType, setBudgetType] = useState<"exact" | "range">("exact");
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
+  const [showQuantityErrors, setShowQuantityErrors] = useState(false);
+  const quantityError = (d: Deliverable): string | null => {
+    const q = parseQuantity(d.quantity);
+    if (q.ok) return null;
+    const m = quantityErrorMessage(q.error);
+    return t(m.key, m.vars);
+  };
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [formCards, setFormCards] = useState<Array<{ id: string; type: string; label: string; isRequired: boolean; options?: string[]; value?: any }>>([]);
   const [attachments, setAttachments] = useState<Array<{ id: string; name: string; url: string; size: number; type: string }>>([]);
@@ -278,9 +313,24 @@ export default function TenderEditPage() {
     queryKey: ["/api/tenders", tenderId],
     enabled: !!tenderId,
   } as any);
+  // P8: once offers exist, the specification and quantities are fixed.
+  const { data: offers } = useQuery<unknown[]>({
+    queryKey: ["/api/tenders", tenderId, "offers"],
+    queryFn: async () => (await apiRequest("GET", `/api/tenders/${tenderId}/offers`)).json(),
+    enabled: !!tenderId,
+  });
+  const specLocked = (offers?.length ?? 0) > 0;
+  // Itemized requests: items and the submission method are fixed from publication.
+  const itemizedTender = !!(tender as { itemizedPricing?: boolean } | undefined)?.itemizedPricing;
+  const { data: itemsData } = useQuery<{ itemized: boolean; columns: any[]; items: ViewItem[] }>({
+    queryKey: ["/api/tenders", tenderId, "items"],
+    enabled: itemizedTender,
+  });
+  const specLockedRef = useRef(specLocked);
+  specLockedRef.current = specLocked;
 
   const form = useForm<EditTenderForm>({
-    resolver: zodResolver(makeEditTenderSchema(t)),
+    resolver: (values, context, options) => zodResolver(makeEditTenderSchema(t, specLockedRef.current))(values, context, options),
     mode: "onChange",
     defaultValues: {
       title: "",
@@ -386,13 +436,23 @@ export default function TenderEditPage() {
       const evaluationCriteriaPayload = hasAnyCriteria
         ? { requirements: selectedRequirements, weights: categoryWeights, customCriteria }
         : null;
+      // Quantities follow the shared rule (> 0, ≤ 4 decimals, never rounded).
+      const firstInvalid = specLocked || itemizedTender ? undefined : deliverables.find((d) => quantityError(d));
+      if (firstInvalid) {
+        setShowQuantityErrors(true);
+        throw new Error(quantityError(firstInvalid)!);
+      }
+      const deliverablesPayload = deliverables.map((d) => ({ ...d, quantity: (parseQuantity(d.quantity) as { value: number }).value }));
       const payload: Record<string, any> = {
-        ...data, deliverables, milestones: milestonesPayload,
+        ...data, deliverables: deliverablesPayload, milestones: milestonesPayload,
         evaluationCriteria: evaluationCriteriaPayload,
         vendorRequirements: vendorRequirements.length > 0 ? vendorRequirements : null,
         formCards: formCards.length > 0 ? formCards : null,
         attachments: attachments.length > 0 ? attachments : null,
       };
+
+      if (specLocked) for (const key of SPEC_LOCKED_FIELDS) delete payload[key];
+      if (itemizedTender) { delete payload.deliverables; delete payload.submissionType; delete payload.videoRequired; }
 
       if (budgetType === "exact") {
         delete payload.budgetMin;
@@ -415,7 +475,7 @@ export default function TenderEditPage() {
       navigate(`/tenders/${tenderId}`);
     },
     onError: (error: any) => {
-      toast({ title: t('common.error'), description: error?.message || t('tenderFlow.editFailed'), variant: "destructive" });
+      toast({ title: t('common.error'), description: tenderErrorMessage(error, t, t('tenderFlow.editFailed')), variant: "destructive" });
     },
   });
 
@@ -435,7 +495,7 @@ export default function TenderEditPage() {
           title: t('tenderFlow.publishedToast'),
           description: t('tenderFlow.publishedToastDesc'),
           action: (
-            <ToastAction altText={t('tenderFlow.copyLinkAlt')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopiedToast') }); }}>
+            <ToastAction altText={t('tenderFlow.copyLinkAlt')} onClick={async () => { toast(await copyText(inviteLink) ? { title: t('tenderFlow.linkCopiedToast') } : { title: t('tenderFlow.copyManualTitle'), description: <span className="select-all break-all" dir="ltr">{inviteLink}</span>, duration: 30000 }); }}>
               <Copy className="h-3 w-3 me-1" /> {t('tenderFlow.editCopyLink')}
             </ToastAction>
           ),
@@ -620,6 +680,13 @@ export default function TenderEditPage() {
           </p>
         </div>
 
+        {specLocked && (
+          <div role="note" className="mb-6 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200" data-testid="spec-locked-notice">
+            <Lock className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
+            <p>{t('tenderFlow.specLockedNotice')}</p>
+          </div>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit((data) => {
             if ((selectedRequirements.length > 0 || customCriteria.length > 0) && totalWeight !== 100) return;
@@ -645,14 +712,15 @@ export default function TenderEditPage() {
                 return (
                   <FormItem>
                     <FormLabel>{t('tenderFlow.editDescriptionLabel')}</FormLabel>
-                    <FormControl><Textarea dir="auto" rows={5} placeholder={t('tenderFlow.editDescriptionPlaceholder')} {...field} /></FormControl>
-                    <div className="flex justify-end">
+                    <FormControl><Textarea dir="auto" rows={5} placeholder={t('tenderFlow.editDescriptionPlaceholder')} {...field} disabled={specLocked} /></FormControl>
+                    {specLocked && <p className="text-xs text-muted-foreground">{t('tenderFlow.specLockedField')}</p>}
+                    {!specLocked && <div className="flex justify-end">
                       <span className={`text-xs ${wc < 50 ? "text-amber-600" : "text-green-600"}`}>
                         {wc < 50
                           ? <>{t('tenderFlow.editWordsMoreNeeded', { n: 50 - wc })} {t('tenderFlow.editWordsMinCount', { wc })}</>
                           : <>✓ {t('tenderFlow.editWordsCountSatisfied', { wc })}</>}
                       </span>
-                    </div>
+                    </div>}
                     <FormMessage />
                   </FormItem>
                 );
@@ -708,8 +776,9 @@ export default function TenderEditPage() {
                 );
               }} />
 
-              <div className="border-t border-border pt-4">
+              <fieldset disabled={specLocked} className="border-t border-border pt-4 min-w-0" data-testid={specLocked ? "spec-locked-duration" : undefined}>
                 <p className="text-sm font-medium text-muted-foreground mb-1">{t('tenderFlow.editProjectDurationTitle')}</p>
+                {specLocked && <p className="text-xs text-muted-foreground mb-3">{t('tenderFlow.specLockedField')}</p>}
                 <p className="text-xs text-muted-foreground mb-3">{t('tenderFlow.editProjectDurationDesc')}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField control={form.control} name="startDate" render={({ field }) => (
@@ -779,7 +848,7 @@ export default function TenderEditPage() {
                     </div>
                   ) : null;
                 })()}
-              </div>
+              </fieldset>
             </SectionCard>
 
             {/* 3. Budget */}
@@ -863,6 +932,8 @@ export default function TenderEditPage() {
               title={t('tenderFlow.editSubmissionsTitle')}
               description={t('tenderFlow.editSectionSubmHowDesc')}
             >
+              <fieldset disabled={specLocked || itemizedTender} className="space-y-4 min-w-0">
+              {specLocked && <p className="text-xs text-muted-foreground">{t('tenderFlow.specLockedField')}</p>}
               <FormField control={form.control} name="submissionType" render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('tenderFlow.editSubmTypeLabel')}</FormLabel>
@@ -893,6 +964,7 @@ export default function TenderEditPage() {
                   </FormItem>
                 )} />
               )}
+              </fieldset>
 
               <FormField control={form.control} name="videoUrl" render={({ field }) => (
                 <FormItem>
@@ -1122,6 +1194,7 @@ export default function TenderEditPage() {
               icon={<Shield className="h-4 w-4 text-[var(--bid-orange)]" />}
               title={t('tenderFlow.editSubmissionsTitle')}
               description={t('tenderFlow.editSectionEligDesc')}
+              locked={specLocked}
             >
               <VendorRequirementsEditor
                 value={vendorRequirements}
@@ -1136,6 +1209,7 @@ export default function TenderEditPage() {
               icon={<Flag className="h-4 w-4 text-violet-600" />}
               title={t('tenderFlow.milestones')}
               description={t('tenderFlow.editSectionMilestonesDesc')}
+              locked={specLocked}
             >
               {milestones.length > 0 && (
                 <div className="space-y-2">
@@ -1218,11 +1292,30 @@ export default function TenderEditPage() {
               </button>
             </SectionCard>
 
-            {/* 9. Deliverables */}
+            {/* 9. Deliverables — or, for an itemized request, its locked items */}
+            {itemizedTender ? (
+              <SectionCard
+                icon={<ListChecks className="h-4 w-4 text-indigo-600" />}
+                title={t('boq.title')}
+                description={t('items.publishedLock')}
+              >
+                <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground" data-testid="items-published-lock">
+                  <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />{t('items.publishedLock')}
+                </p>
+                {itemsData?.itemized && (
+                  <BoqItemsView caption={t('boq.title')} view={{
+                    columns: itemsData.columns ?? [],
+                    optional: { description: true, image: itemsData.items.some((i) => i.imageUrl), referenceUnitPrice: itemsData.items.some((i) => i.referenceUnitPrice) },
+                    items: itemsData.items.map((i) => ({ ...i, customValues: i.customValues ?? {} })),
+                  }} />
+                )}
+              </SectionCard>
+            ) : (
             <SectionCard
               icon={<ListChecks className="h-4 w-4 text-indigo-600" />}
               title={t('tenderFlow.editSectionDeliverablesTitle')}
               description={t('tenderFlow.editSectionDeliverablesDesc')}
+              locked={specLocked}
             >
               {deliverables.length > 0 && (
                 <div className="space-y-3">
@@ -1237,7 +1330,19 @@ export default function TenderEditPage() {
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <Label className="text-xs text-muted-foreground">{t('tenderFlow.quantity')}</Label>
-                          <Input type="number" min={1} value={d.quantity} onChange={(e) => updateDeliverable(d.id, "quantity", Number(e.target.value))} />
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            dir="ltr"
+                            autoComplete="off"
+                            value={d.quantity == null ? "" : String(d.quantity)}
+                            onChange={(e) => updateDeliverable(d.id, "quantity", e.target.value)}
+                            aria-invalid={(showQuantityErrors && !!quantityError(d)) || undefined}
+                            className={showQuantityErrors && quantityError(d) ? "border-red-300" : undefined}
+                          />
+                          {showQuantityErrors && quantityError(d) && (
+                            <p className="text-xs text-red-500 mt-1">{quantityError(d)}</p>
+                          )}
                         </div>
                         <div>
                           <Label className="text-xs text-muted-foreground">{t('tenderFlow.editUnitLabel')}</Label>
@@ -1252,6 +1357,7 @@ export default function TenderEditPage() {
                 <Plus className="h-4 w-4 me-2" />{t('tenderFlow.addDeliverable')}
               </Button>
             </SectionCard>
+            )}
 
             {/* Attachments — supporting documents the requester uploaded */}
             <SectionCard
@@ -1322,6 +1428,7 @@ export default function TenderEditPage() {
                 icon={<ClipboardList className="h-4 w-4 text-violet-600" />}
                 title={t('tenderFlow.editSectionCustomFieldsTitle')}
                 description={t('tenderFlow.editSectionCustomFieldsDesc')}
+                locked={specLocked}
               >
                 {formCards.map((card) => (
                   <div key={card.id} className="space-y-1">

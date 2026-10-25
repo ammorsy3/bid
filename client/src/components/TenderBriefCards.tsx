@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { formatSaudiMobile } from "@shared/whatsapp";
 
 type AnyRecord = Record<string, any>;
 type TFn = (key: string, vars?: Record<string, string | number>) => string;
@@ -96,6 +97,7 @@ function formatBudget(tender: AnyRecord, t: TFn): string | null {
 function formatSubmissionType(submissionType: string | undefined, t: TFn): string {
   switch (submissionType) {
     case "quote_only": return t("copilot.briefSubTypeQuoteOnly");
+    case "itemized_only": return t("pricing.itemizedOnly");
     case "tech_fin_proposal": return t("copilot.briefSubTypeTechFin");
     case "video_only": return t("copilot.briefSubTypeVideoOnly");
     case "tech_fin_with_video": return t("copilot.briefSubTypeTechFinVideo");
@@ -391,7 +393,7 @@ export function TenderBriefCards({ tender, companyName, companyCity }: Props) {
             <div className="space-y-1.5 text-sm text-muted-foreground dark:text-muted-foreground">
               <p>{t("copilot.briefDirectContact")}</p>
               {tender.emailContact && <p>• {t("copilot.briefEmail")}: {tender.emailContact}</p>}
-              {tender.whatsappContact && <p>• {t("copilot.briefWhatsapp")}: {tender.whatsappContact}</p>}
+              {tender.whatsappContact && <p>• {t("copilot.briefWhatsapp")}: <bdi dir="ltr">{formatSaudiMobile(tender.whatsappContact)}</bdi></p>}
             </div>
           )}
         </Card>

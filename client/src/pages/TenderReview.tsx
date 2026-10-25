@@ -1,3 +1,5 @@
+import { readBoq, toStructuredPayload } from "@/lib/boq-draft";
+import { validateItems } from "@shared/boq-items";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +26,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Switch } from "@/components/ui/switch";
 import { StepIndicator } from "@/components/form-builder/StepIndicator";
 import { useI18n, type Language } from "@/lib/i18n";
+import { copyText } from "@/lib/clipboard";
+import { tenderErrorMessage } from "@/lib/tender-errors";
 import { useAuthStore } from "@/lib/auth";
 import { TourBanner } from "@/lib/tour";
 import { TOUR_BANNERS } from "@/lib/tour-steps";
@@ -197,6 +201,13 @@ export default function TenderReview() {
       }
     }
 
+    // A bill of quantities, when used, must be valid before publishing.
+    const boqCard = cardsToValidate.find((c) => c.type === "bill-of-quantities");
+    if (boqCard) {
+      const boq = readBoq({ boq: boqCard.value });
+      if (boq.items.length > 0 && !validateItems(boq.items, boq.columns).ok) errors.push(t("pricing.title"));
+    }
+
     setValidationErrors(errors);
     return errors.length === 0;
   };
@@ -213,6 +224,13 @@ export default function TenderReview() {
         case "project-title":
           data.title = card.value || undefined;
           break;
+
+        case "bill-of-quantities": {
+          // Itemized pricing: the items go as `structured`; deliverables are then derived on the server.
+          const boq = readBoq({ boq: card.value });
+          if (boq.items.length > 0) data.structured = toStructuredPayload(boq, "rfp");
+          break;
+        }
 
         case "supplier-response":
           if (card.value && typeof card.value === "object") {
@@ -330,6 +348,13 @@ export default function TenderReview() {
 
     // Include target audience
     data.targetAudienceTypes = targetAudienceTypes;
+
+    // An itemized request takes its deliverables from the items (never both), and
+    // its price comes from the items, so a single quoted price is not asked for.
+    if (data.structured) {
+      delete data.deliverables;
+      if (!data.submissionType || data.submissionType === "quote_only") data.submissionType = "itemized_only";
+    }
 
     return data;
   };
@@ -452,7 +477,7 @@ export default function TenderReview() {
         title: t('tenderFlow.rfpLaunchedTitle'),
         description: t('tenderFlow.rfpCreatedSuccess'),
         action: (
-          <ToastAction altText={t('tenderFlow.copyInviteLink')} onClick={() => { navigator.clipboard.writeText(inviteLink); toast({ title: t('tenderFlow.linkCopied') }); }}>
+          <ToastAction altText={t('tenderFlow.copyInviteLink')} onClick={async () => { toast(await copyText(inviteLink) ? { title: t('tenderFlow.linkCopied') } : { title: t('tenderFlow.copyManualTitle'), description: <span className="select-all break-all" dir="ltr">{inviteLink}</span>, duration: 30000 }); }}>
             <Copy className="h-3 w-3 me-1" /> {t('tenderFlow.copyLink')}
           </ToastAction>
         ),
@@ -465,7 +490,7 @@ export default function TenderReview() {
       console.error("Error launching tender:", error);
       toast({
         title: t('tenderFlow.errorLaunchingRfp'),
-        description: error?.message || t('tenderFlow.tryAgainLater'),
+        description: tenderErrorMessage(error, t, t('tenderFlow.tryAgainLater')),
         variant: "destructive",
       });
     } finally {
@@ -475,6 +500,7 @@ export default function TenderReview() {
 
   const SUPPLIER_RESPONSE_LABELS: Record<string, string> = {
     "quote_only": t('tenderFlow.priceOnly'),
+    "itemized_only": t('pricing.itemizedOnly'),
     "tech_fin_proposal": t('tenderFlow.fullProposal'),
     "video_only": t('tenderFlow.videoPitch'),
     "tech_fin_with_video": t('tenderFlow.proposalVideo'),
@@ -1057,6 +1083,7 @@ export default function TenderReview() {
               <motion.div key="buttons" className="flex flex-col gap-3">
                 <Button
                   onClick={handleLaunchTender}
+                  data-testid="button-launch-tender"
                   disabled={isSubmitting || validationErrors.length > 0 || targetAudienceTypes.length === 0 || (marketplaceOptions.enabled && !marketplaceOptions.confirmed)}
                   className="w-full sm:min-w-[160px] sm:w-auto h-12 text-base bg-[#FE3C01] hover:bg-[#D44D3A] disabled:opacity-50 disabled:cursor-not-allowed text-white"
                   title={

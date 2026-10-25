@@ -57,6 +57,7 @@ vi.mock("../server/storage", () => {
     getUserRoleInCompany: async () => "owner",
     getCompany: async (id: string) => ({ id, name: id, accountType: "company", verificationStatus: "verified", isActive: true }),
     getTender: async () => (m.tender ? { ...m.tender } : undefined),
+    getOffersByTender: async () => [], // no offers yet, so the P8 specification lock does not apply
     createTender: async (t: Record<string, unknown>) => { m.created.push(t); return { id: "t-new", ...t }; },
     updateTender: async (_id: string, u: Record<string, unknown>) => { m.updates.push(u); return { ...m.tender, ...u }; },
     approveMarketplaceTender: async (id: string, adminId: string) => { m.approvals.push({ id, adminId }); },

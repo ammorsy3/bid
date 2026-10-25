@@ -27,6 +27,12 @@ import { generateJoinCode, marketplaceAudienceFor, gateWhatsappVisibility } from
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { getObjectAclPolicy, getObjectProvenance, publishCompanyObject } from "./objectAcl";
 import { referenceIsTrusted, attachProblem } from "./lib/object-provenance";
+import { contactProblem } from "@shared/whatsapp";
+import { lockedSpecChanges } from "@shared/tender-spec-lock";
+import { StructuredRequestError } from "./lib/structured-request";
+import { notifyRequesterOfProposal } from "./lib/proposal-notifications";
+import { offerPrice, offerPriceContext } from "@shared/offer-price";
+import { ItemsLockedError, SpecLockedError } from "./lib/items-lock";
 import { registerCopilotRoutes } from "./ai/copilot";
 import { registerCopilotV1Routes } from "./routes/v1/copilot";
 import { registerWebhookAdapter } from "./routes/integrations/webhook";
@@ -36,6 +42,10 @@ import { registerMarketingRoutes } from "./routes/marketing";
 import { registerContactSalesRoutes } from "./routes/contact-sales";
 import { registerBillingRoutes } from "./routes/billing";
 import { registerCompanyVerificationRoutes, sendVerificationError } from "./routes/company-verification";
+import { registerAdminPlanRoutes } from "./routes/admin-plans";
+import { registerTenderItemRoutes } from "./routes/tender-items";
+import { registerRfqPricingRoutes } from "./routes/rfq-pricing";
+import { isStructuredPricingEnabled } from "./lib/structured-pricing-flag";
 import { verificationStore, type VerificationDetailsPatch } from "./lib/company-verification-store";
 import { CR_NUMBER_PATTERN, isUploadObjectPath, isVerificationDocumentType } from "@shared/company-verification";
 import { sendPlanRequired, assertFeature, assertSeatAvailable, requireFeature, PlanRequiredError } from "./lib/entitlements";
@@ -51,7 +61,6 @@ import { assertTenderFilesAllowed, TenderFileError } from "./lib/tender-files";
 import { db } from "./db";
 import { rateLimiter } from "./middleware/rate-limit";
 import {
-  sendNewOfferNotification,
   sendOfferDecisionNotification,
   sendAwardNotification,
   sendNegotiationActionNotification,
@@ -82,6 +91,7 @@ import {
   launchTenderFromPayload,
   CompanyNotVerifiedError,
   MarketplaceValidationError,
+  TenderContactError,
 } from "./lib/launch-tender";
 
 // Configure multer for file uploads (memory storage)
@@ -318,6 +328,22 @@ const suggestDescriptionRateLimit = (req: AuthRequest, res: Response, next: Func
 // invitations were silently dropped: the server marked them 'invalid' and the
 // onboarding page reported them as sent.
 const ASSIGNABLE_ROLES = ['admin', 'business_developer', 'member', 'viewer'];
+
+// A requester's tender payload failed validation (createTenderSchema). A bad
+// quantity is named, with the reason the client translates (shared/quantity.ts:
+// empty | invalid | precision | nonPositive | range); every other case keeps the
+// documented generic body.
+function sendTenderValidationError(res: Response, error: any) {
+  const issue = error?.issues?.find((i: any) => /^(quantity|contact):\w+$/.test(i?.message ?? ''));
+  if (!issue) return res.status(400).json({ message: "Invalid tender data" });
+  const [kind, reason] = issue.message.split(':');
+  return res.status(400).json({
+    message: kind === 'quantity' ? "Invalid quantity" : "Invalid contact",
+    code: kind === 'quantity' ? 'INVALID_QUANTITY' : 'INVALID_CONTACT',
+    reason,
+    field: issue.path.join('.'),
+  });
+}
 
 // Middleware: Require minimum company role
 const requireCompanyRole = (minRole: 'owner' | 'admin' | 'member' | 'viewer') => {
@@ -3297,6 +3323,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (error instanceof MarketplaceValidationError) {
           return res.status(400).json({ message: error.message });
         }
+        if (error instanceof TenderContactError) {
+          return res.status(400).json({ message: error.message, code: error.code, reason: error.reason, field: 'emailContact' });
+        }
+        if (error instanceof StructuredRequestError) return res.status(error.status).json(error.toBody());
+        if ((error as any)?.name === 'ZodError') return sendTenderValidationError(res, error);
         console.error('Create tender error:', error);
         res.status(400).json({ message: "Invalid tender data" });
       }
@@ -3631,7 +3662,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Tender not found" });
         }
 
-        const userCompanyId = req.auth!.activeCompanyId;
+        // Live membership only (PB-1): a stale token's active company grants nothing.
+        const claimedCompanyId = req.auth!.activeCompanyId;
+        const userCompanyId = claimedCompanyId && (await storage.getUserRoleInCompany(req.auth!.userId, claimedCompanyId)) ? claimedCompanyId : null;
 
         // Owner company always has access
         if (tender.companyId === userCompanyId) {
@@ -3728,6 +3761,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endDate: tender.endDate,
         // Submission process fields
         submissionType: tender.submissionType,
+        requestType: tender.requestType,
+        itemizedPricing: tender.itemizedPricing,
         videoRequired: tender.videoRequired,
         // Inquiry/contact fields
         inquiryType: tender.inquiryType,
@@ -4052,7 +4087,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: evalWeightError });
         }
 
-        const updates = createTenderSchema.partial().parse(req.body);
+        // A contact the request already has is not re-validated when it comes back
+        // unchanged, so requests saved before the WhatsApp rule stay editable.
+        const body = { ...req.body };
+        if (typeof body.whatsappContact === 'string' && body.whatsappContact === tender.whatsappContact) delete body.whatsappContact;
+        const updates = createTenderSchema.partial().parse(body);
+        // Itemized requests: items, their mirror and the submission method are fixed
+        // from publication (proposal §7); storage.updateTender enforces it too.
+        if (tender.itemizedPricing) {
+          const itemFields = (["deliverables", "submissionType"] as const).filter((k) => k in updates && !(k === "submissionType" && updates.submissionType === tender.submissionType));
+          if (itemFields.length) return res.status(409).json({ message: new ItemsLockedError(itemFields).message, code: 'ITEMS_LOCKED', fields: itemFields });
+        }
+        // P8: once vendors have offered, what they priced against stays fixed.
+        const specChanges = lockedSpecChanges(tender as Record<string, unknown>, updates as Record<string, unknown>);
+        if (specChanges.length > 0 && (await storage.getOffersByTender(tender.id)).length > 0) {
+          return res.status(409).json({ message: "This request already has offers, so its specification and quantities can no longer be changed.", code: 'SPEC_LOCKED', fields: specChanges });
+        }
+        if (contactProblem({ ...tender, ...updates })) {
+          return res.status(400).json({ message: "Add a WhatsApp number or an email address for vendor questions.", code: 'INVALID_CONTACT', reason: 'missing', field: 'emailContact' });
+        }
         // Newly added request files must be issued for this company (r8); files
         // already on the request are existing references and stay as they are.
         await assertTenderFilesAllowed(updates, tender, tender.companyId!, getObjectProvenance);
@@ -4075,6 +4128,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (error instanceof TenderFileError) {
           return res.status(400).json({ message: error.message, code: error.code, field: error.field });
         }
+        if (error instanceof ItemsLockedError) return res.status(409).json({ message: error.message, code: error.code, fields: error.fields });
+        if (error instanceof SpecLockedError) return res.status(409).json({ message: error.message, code: error.code, fields: error.fields });
+        if ((error as any)?.name === 'ZodError') return sendTenderValidationError(res, error);
         console.error('Update tender error:', error);
         res.status(400).json({ message: "Invalid tender data" });
       }
@@ -4403,6 +4459,12 @@ Response must be valid JSON with this exact structure:
             offer: offerData ? {
               id: offerData.id,
               quotePrice: offerData.quotePrice,
+              pricingTotal: offerData.pricingTotal,
+              pricingSubtotal: offerData.pricingSubtotal,
+              pricingVat: offerData.pricingVat,
+              vatApplied: offerData.vatApplied,
+              vatRateBp: offerData.vatRateBp,
+              alternativesCount: offerPrice(offerData)?.kind === "itemized" ? (offerPrice(offerData) as { alternatives: number }).alternatives : 0,
               notes: offerData.notes,
               technicalFileUrl: offerData.technicalFileUrl,
               financialFileUrl: offerData.financialFileUrl,
@@ -4590,7 +4652,7 @@ Rules:
     config: { url: string; key: string },
     companyName: string,
     proposalText: string,
-    quotePrice?: number | null,
+    priceContext?: string | null,
     notes?: string | null,
     language: 'en' | 'ar' = 'en',
   ): Promise<{
@@ -4601,7 +4663,7 @@ Rules:
   }> {
     const offerContext = [
       `Vendor: ${companyName}`,
-      quotePrice ? `Quoted Price: ${quotePrice} SAR` : null,
+      priceContext ?? null,
       notes ? `Vendor Notes: ${notes}` : null,
       proposalText || "Note: No proposal document provided",
     ].filter(Boolean).join("\n\n");
@@ -4761,7 +4823,7 @@ Respond with ONLY a JSON object. Example:
 
     // Check if video-only with no other data
     const isVideoOnly = tender.submissionType === 'video_only' &&
-      !offerData.quotePrice && !offerData.notes && !offerData.technicalFileUrl && !offerData.financialFileUrl;
+      !offerData.quotePrice && !offerData.pricingTotal && !offerData.notes && !offerData.technicalFileUrl && !offerData.financialFileUrl;
 
     if (isVideoOnly) {
       return await storage.createProposalAnalysis({
@@ -4819,9 +4881,23 @@ Respond with ONLY a JSON object. Example:
       // Agent 3 always checks against ENGLISH requirements for consistency,
       // then we remap keys to display language (Arabic) if needed.
       const [facts, enCriteriaMapping] = await Promise.all([
-        extractProposalFacts(config, companyName, proposalText, offerData.quotePrice, offerData.notes, language),
+        extractProposalFacts(config, companyName, proposalText, offerPriceContext(offerPrice(offerData)), offerData.notes, language),
         checkRequirementsCoverage(config, enRequirements, proposalText, 'en'),
       ]);
+      // PB-4: for an itemized offer the stored totals are authoritative; the model's
+      // reading of the documents never replaces them.
+      const authoritative = offerPrice(offerData);
+      if (authoritative?.kind === "itemized") {
+        const lines = ((offerData.pricingSnapshot as any)?.totals?.lines ?? []) as { itemId: string; countedLine: string }[];
+        const names = new Map((((offerData.pricingSnapshot as any)?.items ?? []) as { id: string; name: string }[]).map((i) => [i.id, i.name]));
+        facts.financial = {
+          ...(facts.financial ?? {}),
+          total: Number(authoritative.total),
+          // The comparison view reads financial.vat as a percentage.
+          vat: authoritative.vatApplied ? authoritative.vatRateBp / 100 : 0,
+          breakdown: lines.map((l) => ({ item: names.get(l.itemId) ?? l.itemId, amount: Number(l.countedLine) })),
+        };
+      }
 
       let criteriaMapping = enCriteriaMapping;
       if (language === 'ar' && requirements.length === enRequirements.length) {
@@ -4976,6 +5052,12 @@ Respond with ONLY a JSON object. Example:
             offer: offerData ? {
               id: offerData.id,
               quotePrice: offerData.quotePrice,
+              pricingTotal: offerData.pricingTotal,
+              pricingSubtotal: offerData.pricingSubtotal,
+              pricingVat: offerData.pricingVat,
+              vatApplied: offerData.vatApplied,
+              vatRateBp: offerData.vatRateBp,
+              alternativesCount: offerPrice(offerData)?.kind === "itemized" ? (offerPrice(offerData) as { alternatives: number }).alternatives : 0,
               notes: offerData.notes,
               technicalFileUrl: offerData.technicalFileUrl,
               financialFileUrl: offerData.financialFileUrl,
@@ -5025,6 +5107,11 @@ Respond with ONLY a JSON object. Example:
         const tender = await storage.getTender(req.params.id);
         if (!tender) {
           return res.status(404).json({ message: "Tender not found" });
+        }
+        // Itemized requests take offers only through the pricing path, which
+        // checks every item response (Amendment A1); this route never accepts one.
+        if (tender.itemizedPricing) {
+          return res.status(409).json({ message: "This request needs item-by-item pricing.", code: "ITEMIZED_SUBMISSION_REQUIRED" });
         }
 
         // Enforce target audience restriction.
@@ -5190,42 +5277,11 @@ Respond with ONLY a JSON object. Example:
 
         res.json(offer);
 
-        // Fire-and-forget: email notification to tender owner at proposal milestones (1st, 5th, 10th, 15th, ...)
-        (async () => {
-          try {
-            const allOffers = await storage.getOffersByTender(tender.id);
-            const proposalCount = allOffers.length;
-
-            // Only notify on the 1st proposal, then every 5th (5, 10, 15, 20, ...)
-            if (proposalCount !== 1 && proposalCount % 5 !== 0) return;
-            if (!tender.companyId) return;
-
-            const members = await storage.getCompanyMembers(tender.companyId);
-            const adminMembers = members.filter(
-              m => m.roleInCompany === 'owner' || m.roleInCompany === 'admin'
-            );
-            const recipientsAll = adminMembers
-              .filter(m => m.user.email)
-              .map(m => ({ userId: m.user.id, email: m.user.email, name: m.user.name || undefined, language: (m.user.language || 'en') as 'en' | 'ar' }));
-            const recipients = await storage.filterRecipientsByPreference(
-              recipientsAll, tender.companyId!, 'new_proposal', 'email',
-            );
-
-            const vendorProfile = await storage.getCompanyProfile(req.auth!.activeCompanyId!);
-            const vendorDisplayName = vendorProfile?.displayName || company.name;
-
-            await sendNewOfferNotification({
-              tenderTitle: tender.title || 'Untitled Tender',
-              tenderId: tender.id,
-              vendorCompanyName: vendorDisplayName,
-              submittedAt: offer.submittedAt ? new Date(offer.submittedAt) : new Date(),
-              proposalCount,
-              recipients,
-            });
-          } catch (emailErr) {
-            console.error('[Email] New offer notification failed:', emailErr);
-          }
-        })();
+        // After the offer is stored: the requester's "new proposal" email (shared policy, never throws).
+        void notifyRequesterOfProposal({
+          tender, vendorCompanyId: req.auth!.activeCompanyId!, vendorCompanyName: company.name,
+          submittedAt: offer.submittedAt ? new Date(offer.submittedAt) : new Date(),
+        });
       } catch (error) {
         console.error('Submit offer error:', error);
         res.status(400).json({ message: "Invalid offer data" });
@@ -6515,7 +6571,7 @@ Respond with ONLY a JSON object. Example:
       // owns the request, nobody else. Request visibility (marketplace, invitation,
       // link) never opens an offer file.
       if (!canAccess && companyId) {
-        for (const offer of await storage.getOffersByFileUrl(filePath)) {
+        for (const offer of [...(await storage.getOffersByFileUrl(filePath)), ...((await storage.getOffersByAlternativeImageUrl(filePath)) ?? [])]) {
           if (!belongsTo(offer.companyId, offer.createdBy)) continue;
           if (offer.companyId === companyId) { canAccess = true; break; }
           const tender = await storage.getTender(offer.tenderId);
@@ -6531,6 +6587,8 @@ Respond with ONLY a JSON object. Example:
         const requestTenders = [
           ...(await storage.getTendersByMediaUrl(filePath)),
           ...(await storage.getTendersByAttachmentUrl(filePath)),
+          // Item images (RFQ, Amendment A6): the same policy as the request's files.
+          ...((await storage.getTendersByItemImageUrl(filePath)) ?? []),
         ];
         const viewer = { userId, companyId, invitationToken: req.get("x-invitation-token") ?? null };
         for (const tender of requestTenders) {
@@ -7013,6 +7071,14 @@ Respond with ONLY a JSON object. Example:
   registerBillingRoutes(app, { authenticateToken, requireCompanyContext, requireCompanyRole, requireAdmin });
   registerContactSalesRoutes(app, { authenticateToken, requireAdmin });
   registerCompanyVerificationRoutes(app, { authenticateToken, requireCompanyContext });
+  registerAdminPlanRoutes(app, { authenticateToken });
+  registerTenderItemRoutes(app, { authenticateToken });
+  registerRfqPricingRoutes(app, { authenticateToken, requireCompanyContext });
+
+  // Deployment switches the client needs before sign-in (no secrets).
+  app.get("/api/features", (_req, res) => {
+    res.json({ structuredPricing: isStructuredPricingEnabled() });
+  });
 
   // ============================================================================
   // AI CHAT HISTORY

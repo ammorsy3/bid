@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SarMark } from "@/components/SarMark";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
-import { Store, Globe, Clock, AlertCircle, Calendar, FileCheck, FileText, Upload, Loader2, X } from "lucide-react";
+import { Store, Globe, Clock, AlertCircle, Calendar, FileCheck, FileText, Upload, Loader2, X, Check } from "lucide-react";
 import { format } from "date-fns";
 import { ar as arLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,8 @@ import { useI18n } from "@/lib/i18n";
 import { usePlan } from "@/lib/usePlan";
 import { openUpgrade } from "@/lib/upgrade-store";
 import { PlanBadge } from "@/components/billing/PlanBadge";
+import { PlanPriceSummary } from "@/components/billing/PlanPriceSummary";
+import { FEATURE_MIN_PLAN } from "@shared/entitlements";
 
 export interface MarketplacePoFile {
   fileUrl: string;
@@ -144,6 +146,28 @@ export function MarketplacePublishOption({
         />
       </div>
 
+      {/* What publishing gives, and what it costs (BID-UX-BUGFIX item 8): the
+          marketplace is part of the plan — Bid charges no separate publication fee. */}
+      {locked ? (
+        <div className="px-4 pb-4 space-y-3 border-t border-border pt-3" data-testid="marketplace-plan-offer">
+          <ul className="space-y-1.5 text-xs text-muted-foreground">
+            {(['marketplace.benefitListed', 'marketplace.benefitReview', 'marketplace.benefitProposals'] as const).map((key) => (
+              <li key={key} className="flex items-start gap-2">
+                <Check className="h-3.5 w-3.5 text-[#FE3C01] mt-0.5 shrink-0" aria-hidden="true" />
+                <span>{tr(key)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs font-medium text-foreground">{tr('marketplace.noPublicationFee')}</p>
+          <PlanPriceSummary plan={FEATURE_MIN_PLAN.marketplace} />
+          <Button type="button" className="w-full min-h-11 bg-[#FE3C01] hover:bg-[#d54d35]" onClick={() => openUpgrade('marketplace')} data-testid="button-marketplace-see-plans">
+            {tr('upgrade.seePlans')}
+          </Button>
+        </div>
+      ) : !value.enabled && (
+        <p className="px-4 pb-3 -mt-1 text-[11px] text-muted-foreground" data-testid="marketplace-included">{tr('marketplace.includedInPlan')}</p>
+      )}
+
       {/* Expanded fields when enabled */}
       <AnimatePresence initial={false}>
       {value.enabled && (
@@ -195,6 +219,7 @@ export function MarketplacePublishOption({
               <SarMark className="text-amber-700" />
               {t('marketplace.documentFee') || 'Document Fee'} <span className="text-xs font-normal text-gray-400">({t('marketplace.sar') || 'SAR'})</span>
             </label>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{tr('marketplace.documentFeeHelp')}</p>
             <Input
               type="number"
               min="0"

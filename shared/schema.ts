@@ -1,8 +1,10 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, jsonb, integer, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, jsonb, integer, numeric, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { parseQuantity } from "./quantity";
+import { normalizeSaudiMobile, isValidContactEmail } from "./whatsapp";
 
 // ============================================================================
 // CORE TABLES - Company-Centric Model
@@ -358,6 +360,14 @@ export const tenders = pgTable("tenders", {
   // Form Builder Cards (preserves custom fields for display)
   formCards: jsonb("form_cards"),
 
+  // Structured RFQ pricing (migration 0018). request_type is business behaviour:
+  // 'rfq' means the item list is the commercial basis (always itemized).
+  requestType: varchar("request_type", { length: 8 }).notNull().default("rfp"),
+  itemizedPricing: boolean("itemized_pricing").notNull().default(false),
+  showReferencePrices: boolean("show_reference_prices").notNull().default(false),
+  itemColumns: jsonb("item_columns").$type<{ id: string; label: string; type: "text" | "number" | "date"; position: number }[] | null>(),
+  itemsRevision: integer("items_revision").notNull().default(1),
+
   // RFP Language — the language the RFP was created in ('en' or 'ar')
   language: text("language").default("en"),
   // Whether vendors can translate the published RFP to the other language
@@ -425,12 +435,82 @@ export const offers = pgTable("offers", {
   decidedAt: timestamp("decided_at"),
   
   submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+
+  // Itemized offers (migration 0018). quote_price stays NULL for them; the
+  // stored totals and snapshot are what the requester sees.
+  itemsRevision: integer("items_revision"),
+  vatApplied: boolean("vat_applied"),
+  vatRateBp: integer("vat_rate_bp"),
+  taxPolicy: varchar("tax_policy", { length: 32 }),
+  pricingSubtotal: numeric("pricing_subtotal", { precision: 15, scale: 2 }),
+  pricingVat: numeric("pricing_vat", { precision: 15, scale: 2 }),
+  pricingTotal: numeric("pricing_total", { precision: 15, scale: 2 }),
+  pricingSnapshot: jsonb("pricing_snapshot"),
+  pricingSnapshotSha256: varchar("pricing_snapshot_sha256", { length: 64 }),
+  submissionKey: varchar("submission_key", { length: 64 }),
+  submissionRequestSha256: varchar("submission_request_sha256", { length: 64 }),
 }, (table) => ({
   // One non-superseded offer per user per tender, regardless of which workspace they used
   offersTenderUserUniq: uniqueIndex("offers_tender_user_uniq")
     .on(table.tenderId, table.createdBy)
     .where(sql`status != 'superseded'`),
 }));
+
+// Bill of quantities (migration 0018). Authoritative for itemized requests;
+// tenders.deliverables is only a derived mirror. Immutable once published.
+export const tenderItems = pgTable("tender_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenderId: varchar("tender_id").notNull().references(() => tenders.id, { onDelete: "cascade" }),
+  revision: integer("revision").notNull().default(1),
+  position: integer("position").notNull(),
+  name: varchar("name", { length: 300 }).notNull(),
+  description: varchar("description", { length: 2000 }),
+  unit: varchar("unit", { length: 40 }).notNull(),
+  quantity: numeric("quantity", { precision: 14, scale: 4 }).notNull(),
+  referenceUnitPrice: numeric("reference_unit_price", { precision: 12, scale: 2 }),
+  imageUrl: text("image_url"),
+  customValues: jsonb("custom_values").$type<Record<string, string> | null>(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type TenderItem = typeof tenderItems.$inferSelect;
+
+// One shared pricing draft per (tender, vendor company); optimistic `version`.
+export const offerPricingDrafts = pgTable("offer_pricing_drafts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenderId: varchar("tender_id").notNull().references(() => tenders.id, { onDelete: "cascade" }),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  itemsRevision: integer("items_revision").notNull(),
+  payload: jsonb("payload").notNull(),
+  version: integer("version").notNull().default(1),
+  updatedBy: varchar("updated_by").notNull().references(() => users.id),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  tenderCompany: uniqueIndex("offer_pricing_drafts_tender_id_company_id_key").on(t.tenderId, t.companyId),
+}));
+export type OfferPricingDraft = typeof offerPricingDrafts.$inferSelect;
+
+export const offerItemResponses = pgTable("offer_item_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  offerId: varchar("offer_id").notNull().references(() => offers.id, { onDelete: "cascade" }),
+  tenderItemId: varchar("tender_item_id").notNull().references(() => tenderItems.id),
+  state: varchar("state", { length: 16 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 2 }),
+  lineTotal: numeric("line_total", { precision: 15, scale: 2 }),
+});
+
+export const offerItemAlternatives = pgTable("offer_item_alternatives", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  responseId: varchar("response_id").notNull().references(() => offerItemResponses.id, { onDelete: "cascade" }).unique(),
+  role: varchar("role", { length: 16 }).notNull(),
+  name: varchar("name", { length: 300 }).notNull(),
+  description: varchar("description", { length: 2000 }),
+  unit: varchar("unit", { length: 40 }).notNull(),
+  quantity: numeric("quantity", { precision: 14, scale: 4 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 12, scale: 2 }).notNull(),
+  lineTotal: numeric("line_total", { precision: 15, scale: 2 }).notNull(),
+  imageUrl: text("image_url"),
+  reason: varchar("reason", { length: 2000 }).notNull(),
+});
 
 // Offer Views - Track which users have viewed each notification/offer
 export const offerViews = pgTable("offer_views", {
@@ -693,6 +773,10 @@ export const tenderTemplates = pgTable("tender_templates", {
     options?: string[];
     value?: any; // Pre-filled value from when template was saved
   }[]>().notNull(),
+
+  // A saved template can carry RFQ behaviour (migration 0018).
+  requestType: varchar("request_type", { length: 8 }).notNull().default("rfp"),
+  itemizedPricing: boolean("itemized_pricing").notNull().default(false),
 
   // Visibility
   isPublic: boolean("is_public").default(false).notNull(),
@@ -1238,6 +1322,24 @@ export const companySubscriptions = pgTable("company_subscriptions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Administrative plan grants (migration 0019). A platform admin gives a company
+// a paid plan without a payment; never a subscription, never an invoice. At most
+// one active (revoked_at IS NULL) grant per company. See server/lib/plan-grants.ts.
+export const companyPlanGrants = pgTable("company_plan_grants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
+  plan: varchar("plan", { length: 16 }).notNull(),
+  reason: text("reason").notNull(),
+  startsAt: timestamp("starts_at").defaultNow().notNull(),
+  endsAt: timestamp("ends_at"),
+  grantedBy: varchar("granted_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  revokedAt: timestamp("revoked_at"),
+  revokedBy: varchar("revoked_by").references(() => users.id),
+  revokeReason: text("revoke_reason"),
+});
+export type CompanyPlanGrant = typeof companyPlanGrants.$inferSelect;
+
 // Every verified StreamPay webhook. The unique index drops re-deliveries.
 export const billingEvents = pgTable("billing_events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1555,10 +1657,19 @@ export const insertUserCompanySchema = createInsertSchema(userCompanies).omit({
 });
 
 // Tender schemas
+export const itemColumnSchema = z.object({
+  id: z.string().min(1).max(64),
+  label: z.string().trim().min(1).max(60),
+  type: z.enum(["text", "number", "date"]),
+  position: z.number().int().min(0).max(9),
+}).strict();
+
 export const insertTenderSchema = createInsertSchema(tenders).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  itemColumns: z.array(itemColumnSchema).max(10).nullish(),
 });
 
 // What a requester may write when creating (launchTenderFromPayload) or editing
@@ -1570,6 +1681,24 @@ export const insertTenderSchema = createInsertSchema(tenders).omit({
 // inquiryDeadline — through the marketplace submission and admin review paths),
 // and server-generated caches (translatedContent, rfpRequirements,
 // rfpRequirementsAr). Unknown keys are stripped.
+// A deliverable as a requester sends it. The quantity follows the shared rule
+// (shared/quantity.ts): > 0, ≤ 1,000,000,000, ≤ 4 decimal places, never rounded.
+// A rejected quantity carries the message "quantity:<error>" for the client.
+export const deliverableInputSchema = z.object({
+  id: z.string().min(1).max(200),
+  name: z.string().max(500),
+  description: z.string().max(5000).optional().default(""),
+  unit: z.string().max(200),
+  quantity: z.union([z.number(), z.string()]).transform((v, ctx) => {
+    const r = parseQuantity(v);
+    if (!r.ok) {
+      ctx.addIssue({ code: "custom", message: `quantity:${r.error}` });
+      return z.NEVER;
+    }
+    return r.value;
+  }),
+});
+
 export const createTenderSchema = insertTenderSchema.pick({
   title: true,
   description: true,
@@ -1606,6 +1735,29 @@ export const createTenderSchema = insertTenderSchema.pick({
   language: true,
   allowTranslation: true,
   targetAudienceTypes: true,
+}).extend({
+  deliverables: z.array(deliverableInputSchema).max(2000).nullish(),
+  // A Saudi mobile in any usual spelling, stored as "9665XXXXXXXX" (shared/whatsapp.ts).
+  // An empty string clears it. A rejected value carries "contact:whatsapp".
+  whatsappContact: z.string().max(200).nullish().transform((v, ctx) => {
+    if (v == null) return v;
+    if (v.trim() === "") return null;
+    const mobile = normalizeSaudiMobile(v);
+    if (!mobile) {
+      ctx.addIssue({ code: "custom", message: "contact:whatsapp" });
+      return z.NEVER;
+    }
+    return mobile;
+  }),
+  emailContact: z.string().max(254).nullish().transform((v, ctx) => {
+    if (v == null) return v;
+    if (v.trim() === "") return null;
+    if (!isValidContactEmail(v)) {
+      ctx.addIssue({ code: "custom", message: "contact:email" });
+      return z.NEVER;
+    }
+    return v.trim();
+  }),
 });
 
 // Offer schemas

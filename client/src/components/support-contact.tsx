@@ -78,6 +78,11 @@ type SupportContactLinksProps = {
    * dashboard's Support card doesn't, since they aren't a way to reach support.
    */
   showSocial?: boolean;
+  /**
+   * Within the social links, include LinkedIn. The homepage leaves it out
+   * (BID-UX-BUGFIX item 11); other public footers keep it.
+   */
+  showLinkedIn?: boolean;
 };
 
 /**
@@ -92,6 +97,7 @@ export function SupportContactLinks({
   iconClassName,
   showLabels = false,
   showSocial = true,
+  showLinkedIn = true,
 }: SupportContactLinksProps) {
   const ctx = useI18n();
   const activeLang = lang ?? ctx.language;
@@ -133,17 +139,19 @@ export function SupportContactLinks({
             <InstagramIcon className={cn(iconClassName)} />
             <span>{s("instagram")}</span>
           </a>
-          <a
-            href={SUPPORT_LINKEDIN_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={linkClassName}
-            aria-label={s("linkedinAria")}
-            data-testid="link-support-linkedin"
-          >
-            <LinkedInIcon className={cn(iconClassName)} />
-            <span>{s("linkedin")}</span>
-          </a>
+          {showLinkedIn && (
+            <a
+              href={SUPPORT_LINKEDIN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={linkClassName}
+              aria-label={s("linkedinAria")}
+              data-testid="link-support-linkedin"
+            >
+              <LinkedInIcon className={cn(iconClassName)} />
+              <span>{s("linkedin")}</span>
+            </a>
+          )}
         </>
       )}
     </div>

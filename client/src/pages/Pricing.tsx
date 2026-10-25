@@ -190,7 +190,7 @@ const copy = {
     ctaBtn: "Create an account →",
   },
   ar: {
-    navAbout: "عن Bid",
+    navAbout: "عن بِـد",
     navMarketplace: "السوق",
     navPricing: "الأسعار",
     btnSignIn: "تسجيل الدخول",

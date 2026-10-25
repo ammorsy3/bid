@@ -11,12 +11,15 @@
 
 import { storage } from "../storage";
 import { createTenderSchema, type CreateTender } from "@shared/schema";
+import { contactProblem } from "@shared/whatsapp";
 import { getObjectProvenance } from "../objectAcl";
 import { assertTenderFilesAllowed } from "./tender-files";
 import { draftToTenderPayload, type DraftToTenderPayloadExtras } from "@shared/tender-mapping";
 import { suggestTenderCategory, buildTenderTranslation } from "./tender-ai";
 import { sendTenderCreatedNotification, getBaseUrl } from "../email";
 import { assertCanCreateTender } from "./entitlements";
+import { parseStructuredRequest } from "./structured-request";
+import { tenderItemsStore } from "./tender-items-store";
 
 export type TenderCreationSource = "web" | "api_key" | "webhook" | "mcp";
 
@@ -60,6 +63,16 @@ export class CompanyNotVerifiedError extends Error {
   }
 }
 
+/** inquiryType "email_whatsapp" without a WhatsApp number or an email (decision D3). */
+export class TenderContactError extends Error {
+  readonly code = "INVALID_CONTACT";
+  readonly reason = "missing";
+  constructor() {
+    super("Add a WhatsApp number or an email address for vendor questions.");
+    this.name = "TenderContactError";
+  }
+}
+
 export class MarketplaceValidationError extends Error {
   readonly code = "MARKETPLACE_INVALID";
   constructor(message: string) {
@@ -89,6 +102,9 @@ export async function launchTenderFromPayload(
   }
 
   const tenderData = createTenderSchema.parse(payload);
+  if (contactProblem(tenderData)) throw new TenderContactError();
+  // Itemized / RFQ requests (proposal §2). Null for a legacy request.
+  const structured = await parseStructuredRequest((payload ?? {}) as Record<string, unknown>, ctx.company.id, getObjectProvenance);
 
   // Request files must be issued for this company (company provenance, r8).
   await assertTenderFilesAllowed(tenderData, null, ctx.company.id, getObjectProvenance);
@@ -104,14 +120,17 @@ export async function launchTenderFromPayload(
   const invitationToken =
     Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
 
-  let tender: Record<string, any> = await storage.createTender({
+  const values = {
     ...tenderData,
     companyId: ctx.company.id,
     createdBy: ctx.user.id,
     invitationToken,
     allowConditionalSubmission: false,
     status: "published",
-  });
+  };
+  let tender: Record<string, any> = structured
+    ? await tenderItemsStore.createItemizedTender(values, structured)
+    : await storage.createTender(values);
 
   await storage.logMemberActivity({
     companyId: ctx.company.id,

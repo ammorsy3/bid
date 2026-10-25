@@ -4,6 +4,7 @@ import { FloatingPathsBackground } from "@/components/ui/floating-paths-bg";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useLocation } from "wouter";
+import { useWizardNav } from "@/lib/wizard-nav";
 import { useState, useEffect } from "react";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { getSuggestions } from "@/lib/tender-suggestions";
@@ -17,6 +18,7 @@ const countWords = (text: string): number => {
 
 export default function TenderTitleStep() {
   const [, navigate] = useLocation();
+  const { goNext, goBack } = useWizardNav();
   const { t, language } = useI18n();
 
   const draft = (() => {
@@ -50,12 +52,12 @@ export default function TenderTitleStep() {
         title: title.trim(),
       };
       localStorage.setItem("tenderDraft", JSON.stringify(draftData));
-      navigate("/tenders/new/project-scope");
+      goNext("/tenders/new/project-scope");
     }
   };
 
   const handleBack = () => {
-    navigate("/tenders/new/manual");
+    goBack("/tenders/new/manual");
   };
 
   const isFormValid = title.trim().length > 0 && !isOverLimit;
@@ -68,7 +70,7 @@ export default function TenderTitleStep() {
             <BidLogo variant="orange" size={64} className="cursor-pointer hover:opacity-80 transition-opacity max-sm:!text-[40px]" onClick={() => navigate("/dashboard")} />
             <Button
               onClick={handleBack}
-              className="group relative overflow-hidden max-sm:hidden"
+              className="group relative overflow-hidden"
               data-testid="button-back"
             >
               <span className="w-20 translate-x-2 transition-opacity duration-500 group-hover:opacity-0">

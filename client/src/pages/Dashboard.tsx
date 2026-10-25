@@ -1,3 +1,4 @@
+import { offerPrice, groupDecimal, formatOfferAmount, type OfferPrice } from "@shared/offer-price";
 import { useAuthStore } from "@/lib/auth";
 import { displayRoleName } from "@/lib/roles";
 import { useLogout } from "@/hooks/use-logout";
@@ -27,6 +28,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
+import { copyText, useCopyWithFallback } from "@/lib/clipboard";
 import { SidebarPlanCard, MobileUpgradeChip, PlanUsageBanner } from "@/components/billing/DashboardPlanCard";
 import { usePlan } from "@/lib/usePlan";
 import { PlanBadge } from "@/components/billing/PlanBadge";
@@ -71,6 +73,14 @@ import { SkeletonList } from "@/components/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 
+
+/** "SAR 10,511.00 · Total Including VAT · Proposed Alternatives: 1" — what an offer's price means (PB-4). */
+function priceLabel(p: OfferPrice, t: (k: string, v?: Record<string, string | number>) => string): string {
+  if (p.kind === 'quote') return t('dashboard.sarAmount', { amount: p.amount.toLocaleString('en-US') });
+  const vat = p.vatApplied ? t('pricing.totalIncludingVat') : t('tax.notApplied');
+  return [t('dashboard.sarAmount', { amount: groupDecimal(p.total) }), vat, p.alternatives ? t('alternative.badge', { count: p.alternatives }) : null].filter(Boolean).join(' · ');
+}
+
 interface VendorProfile {
   id: string;
   companyId: string;
@@ -114,6 +124,7 @@ interface JoinRequest {
 // and the caller resolves them. The translations already existed.
 const SUBMISSION_TYPE_LABEL_KEYS: Record<string, string> = {
   quote_only: "tenderFlow.editSubmTypeQuoteOnly",
+  itemized_only: "pricing.itemizedOnly",
   tech_fin_proposal: "tenderFlow.editSubmTypeTechFin",
   video_only: "tenderFlow.editSubmTypeVideoOnly",
   tech_fin_with_video: "tenderFlow.editSubmTypeTechFinVideo",
@@ -178,6 +189,13 @@ interface MyOffer {
   financialFileUrl: string | null;
   combinedFileUrl: string | null;
   quotePrice: number | null;
+  /** Itemized offers (PB-4): stored totals and snapshot. */
+  pricingTotal?: string | null;
+  pricingSubtotal?: string | null;
+  pricingVat?: string | null;
+  vatApplied?: boolean | null;
+  vatRateBp?: number | null;
+  pricingSnapshot?: unknown;
   videoUrl: string | null;
   notes: string | null;
   submittedAt: string;
@@ -201,6 +219,12 @@ interface IncomingOffer {
   financialFileUrl: string | null;
   combinedFileUrl: string | null;
   quotePrice: number | null;
+  pricingTotal?: string | null;
+  pricingSubtotal?: string | null;
+  pricingVat?: string | null;
+  vatApplied?: boolean | null;
+  vatRateBp?: number | null;
+  pricingSnapshot?: unknown;
   videoUrl: string | null;
   notes: string | null;
   submittedAt: string;
@@ -446,12 +470,11 @@ function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, date
   const { t, isRtl } = useI18n();
   const { toast } = useToast();
 
+  const { copy: copyWithFallback, dialog: manualCopyDialog } = useCopyWithFallback();
+  // Only a published request's link opens for vendors; success only after a real copy.
   const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(`${window.location.origin}/invite/${tender.invitationToken}`);
+    if (await copyWithFallback(`${window.location.origin}/invite/${tender.invitationToken}`)) {
       toast({ title: t('dashboard.rfpLinkCopied') });
-    } catch {
-      toast({ title: t('dashboard.rfpCopyFailed'), variant: "destructive" });
     }
   };
 
@@ -465,6 +488,8 @@ function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, date
   const audience = tender.targetAudienceTypes ?? [];
 
   return (
+    <>
+    {manualCopyDialog}
     <SpotlightCard {...brandSpotlightProps()} spotlightColor={tender.status === 'cancelled' ? 'red' : 'orange'}>
       <div className="relative px-4 pb-4 pt-3" data-testid={`card-tender-${tender.id}`}>
         <div className="flex items-start gap-2">
@@ -497,10 +522,12 @@ function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, date
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" collisionPadding={12} className="w-56 p-1.5" data-testid={`menu-tender-${tender.id}`}>
-              <DropdownMenuItem className="min-h-12 gap-3 px-3 text-base active:bg-accent" onSelect={copyLink} data-testid={`button-copy-link-${tender.id}`}>
-                <Copy />
-                {t('dashboard.copyLink')}
-              </DropdownMenuItem>
+              {tender.status === 'published' && (
+                <DropdownMenuItem className="min-h-12 gap-3 px-3 text-base active:bg-accent" onSelect={copyLink} data-testid={`button-copy-link-${tender.id}`}>
+                  <Copy />
+                  {t('dashboard.copyLink')}
+                </DropdownMenuItem>
+              )}
               {['draft', 'published'].includes(tender.status) && (
                 <DropdownMenuItem className="min-h-12 gap-3 px-3 text-base active:bg-accent" onSelect={onEdit} data-testid={`button-edit-${tender.id}`}>
                   <Edit />
@@ -566,6 +593,7 @@ function RfpRowMobile({ tender, statusBadge, showNegotiate, isDeadlineSoon, date
         </div>
       </div>
     </SpotlightCard>
+    </>
   );
 }
 
@@ -644,7 +672,9 @@ function ProposalRowMobile({ kind, offer, dateText, tenderBadge, onOpenTender, o
   const deadlineClass = isExpired
     ? 'font-semibold text-red-600'
     : daysRemaining <= 3 ? 'font-semibold text-orange-600' : '';
-  const amount = offer.quotePrice ? t('dashboard.sarAmount', { amount: offer.quotePrice.toLocaleString('en-US') }) : null;
+  // PB-4: itemized offers show their stored total incl. VAT (0.00 included); legacy offers their quote.
+  const price = offerPrice(offer);
+  const amount = price ? priceLabel(price, t) : null;
   const vendorName = incoming ? (incoming.profile?.displayName || incoming.company.name) : '';
 
   // Secondary actions, only the ones this proposal has. The last one takes the full row
@@ -769,27 +799,8 @@ function ProposalRowMobile({ kind, offer, dateText, tenderBadge, onOpenTender, o
 }
 
 // ── Vendors Base tab on phones ───────────────────────────────────────────────
-// Copy to the clipboard. The async clipboard API can refuse (Safari drops the tap gesture
-// after an await, some in-app browsers have none), so fall back to the old copy command.
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {}
-  try {
-    const box = document.createElement('textarea');
-    box.value = text;
-    box.setAttribute('readonly', '');
-    box.style.cssText = 'position:fixed;top:0;opacity:0;font-size:16px';
-    document.body.appendChild(box);
-    box.select();
-    const ok = document.execCommand('copy');
-    document.body.removeChild(box);
-    return ok;
-  } catch {
-    return false;
-  }
-}
+// copyText (client/src/lib/clipboard.tsx) falls back to the old copy command when the
+// async clipboard API refuses.
 
 // "Copy link" that answers back: the label turns into a green "Copied" for two seconds,
 // and a copy that fails says so instead of doing nothing.
@@ -3456,13 +3467,15 @@ function DashboardInner({ user, activeCompany }: {
                                   <Eye className={`h-4 w-4 me-2`} />
                                   {t('dashboard.view')}
                                 </Button>
-                                <AnimatedCopyButton
-                                  text={`${window.location.origin}/invite/${tender.invitationToken}`}
-                                  isRtl={isRtl}
-                                  data-testid={`button-copy-link-${tender.id}`}
-                                >
-                                  {t('dashboard.copyLink')}
-                                </AnimatedCopyButton>
+                                {tender.status === 'published' && (
+                                  <AnimatedCopyButton
+                                    text={`${window.location.origin}/invite/${tender.invitationToken}`}
+                                    isRtl={isRtl}
+                                    data-testid={`button-copy-link-${tender.id}`}
+                                  >
+                                    {t('dashboard.copyLink')}
+                                  </AnimatedCopyButton>
+                                )}
                                 {['draft', 'published'].includes(tender.status) && (
                                   <Button 
                                     variant="outline" 
@@ -3865,10 +3878,10 @@ function DashboardInner({ user, activeCompany }: {
                                   <span>{categoryLabel(offer.company.category, isRtl)}</span>
                                 </div>
                               )}
-                              {offer.quotePrice && (
+                              {offerPrice(offer) && (
                                 <div className={`flex items-center gap-2 font-medium`}>
                                   <DollarSign className="h-4 w-4 text-[var(--state-won)]" />
-                                  <span className="text-[var(--state-won)]">{t('dashboard.sarAmount', { amount: offer.quotePrice.toLocaleString('en-US') })}</span>
+                                  <span className="text-[var(--state-won)]" data-testid={`dashboard-offer-price-${offer.id}`}>{priceLabel(offerPrice(offer)!, t)}</span>
                                 </div>
                               )}
                             </div>
@@ -4863,10 +4876,13 @@ function DashboardInner({ user, activeCompany }: {
               <div className="border-t pt-4">
                 <h4 className="font-medium text-sm text-muted-foreground mb-3">{t('dashboard.submittedMaterials')}</h4>
                 
-                {selectedProposal.quotePrice && (
-                  <div className="flex items-center justify-between p-3 bg-[var(--state-won)]/5 rounded-lg mb-2">
-                    <span className="text-sm text-muted-foreground">{t('dashboard.priceQuoteLabel')}</span>
-                    <span className="text-lg font-bold text-[var(--state-won)]">SAR {selectedProposal.quotePrice.toLocaleString('en-US')}</span>
+                {offerPrice(selectedProposal) && (
+                  <div className="flex items-center justify-between gap-3 p-3 bg-[var(--state-won)]/5 rounded-lg mb-2" data-testid="dashboard-proposal-price">
+                    <span className="text-sm text-muted-foreground">{offerPrice(selectedProposal)!.kind === 'itemized' ? t('pricing.submittedTotal') : t('dashboard.priceQuoteLabel')}</span>
+                    <span className="text-end">
+                      <span className="block text-lg font-bold text-[var(--state-won)]"><bdi dir="ltr">{formatOfferAmount(offerPrice(selectedProposal)!)}</bdi></span>
+                      {offerPrice(selectedProposal)!.kind === 'itemized' && <span className="block text-xs text-muted-foreground">{priceLabel(offerPrice(selectedProposal)!, t)}</span>}
+                    </span>
                   </div>
                 )}
 
@@ -4921,7 +4937,7 @@ function DashboardInner({ user, activeCompany }: {
                   )}
                 </div>
 
-                {!selectedProposal.combinedFileUrl && !selectedProposal.technicalFileUrl && !selectedProposal.financialFileUrl && !selectedProposal.videoUrl && !selectedProposal.quotePrice && (
+                {!selectedProposal.combinedFileUrl && !selectedProposal.technicalFileUrl && !selectedProposal.financialFileUrl && !selectedProposal.videoUrl && !offerPrice(selectedProposal) && (
                   <p className="text-sm text-muted-foreground italic">{t('dashboard.noFilesSubmitted')}</p>
                 )}
               </div>

@@ -1,3 +1,4 @@
+import { offerPrice, offerPriceValue, formatOfferAmount, type OfferPriceSource } from "@shared/offer-price";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -63,7 +64,7 @@ interface OfferAnalysis {
   analyzedAt: string | null;
 }
 
-interface Offer {
+interface Offer extends OfferPriceSource {
   id: string;
   companyId: string;
   technicalFileUrl: string | null;
@@ -218,7 +219,10 @@ export default function ProposalComparison({
   const completedAnalyses = analyses.filter(a => a.status === "completed");
   const hasAnalyses = completedAnalyses.length > 0;
   const isVideoOnlyFormat = submissionType === 'video_only';
-  const isQuoteOnly = submissionType === 'quote_only';
+  // Price-only requests (a single quote, or item prices only) have nothing for the AI to read;
+  // itemized offers carry a stored total, so prices are comparable with or without analysis (PB-4).
+  const isQuoteOnly = submissionType === 'quote_only' || submissionType === 'itemized_only';
+  const hasDirectPrices = isQuoteOnly || offers.some(o => offerPrice(o)?.kind === 'itemized');
   const allSkipped = analyses.length > 0 && analyses.every(a => a.status === 'skipped');
   const cannotAnalyze = isVideoOnlyFormat || allSkipped || isQuoteOnly;
   const visibleOffers = offers.filter(o => !hiddenOffers.has(o.id));
@@ -235,11 +239,31 @@ export default function ProposalComparison({
   });
 
   const getFinancial = (offerId: string) => completedAnalyses.find(a => a.offerId === offerId)?.financial || null;
+  const priceOf = (offerId: string) => offerPrice(offers.find(o => o.id === offerId));
+  // Stored prices first (itemized total incl. VAT, or the quote); the AI's reading only as a fallback.
   const getTotal = (offerId: string): number | null => {
-    const quote = offers.find(o => o.id === offerId)?.quotePrice;
-    if (quote != null) return quote;
+    const stored = offerPriceValue(priceOf(offerId));
+    if (stored != null) return stored;
     const fin = getFinancial(offerId);
     return fin?.total ?? null;
+  };
+  // Itemized: the vendor-declared treatment stored with the offer; otherwise the AI's reading.
+  const vatText = (offerId: string, aiVat: number | null | undefined): string | null => {
+    const p = priceOf(offerId);
+    if (p?.kind === 'itemized') return p.vatApplied ? `${p.vatRateBp / 100}%` : t('tax.notApplied');
+    return aiVat != null ? `${aiVat}%` : null;
+  };
+  // Exact stored text for itemized totals (never re-rounded), with what the number means.
+  const displayTotal = (offerId: string, total: number): JSX.Element => {
+    const p = priceOf(offerId);
+    if (p?.kind !== 'itemized') return <>{t('tenderFlow.sarCurrency')} {total.toLocaleString('en-US')}</>;
+    return (
+      <span data-testid={`comparison-itemized-${offerId}`}>
+        <bdi dir="ltr">{formatOfferAmount(p)}</bdi>
+        <span className="block text-[10px] font-normal text-muted-foreground">{t('pricing.totalIncludingVat')}</span>
+        {p.alternatives > 0 && <span className="block text-[10px] font-semibold text-red-600">{t('alternative.badge', { count: p.alternatives })}</span>}
+      </span>
+    );
   };
 
   const totals = visibleOffers.map(o => ({ id: o.id, total: getTotal(o.id) })).filter(t => t.total != null) as { id: string; total: number }[];
@@ -259,7 +283,7 @@ export default function ProposalComparison({
 
   // ─── No-analysis state (simplified table with direct award) ─────────────────
   // quote_only bypasses this: it always renders the full table using offer.quotePrice
-  if (!hasAnalyses && !isQuoteOnly) {
+  if (!hasAnalyses && !hasDirectPrices) {
     const directAwardOffer = directAwardOfferId ? visibleOffers.find(o => o.id === directAwardOfferId) : null;
     return (
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -360,8 +384,8 @@ export default function ProposalComparison({
                       <FileText className="h-3 w-3" /> {t('tenderFlow.viewProposal')}
                     </button>
                   )}
-                  {offer.quotePrice != null && (
-                    <span className="text-xs font-bold text-foreground">{t('tenderFlow.sarCurrency')} {offer.quotePrice.toLocaleString('en-US')}</span>
+                  {offerPrice(offer) && (
+                    <span className="text-xs font-bold text-foreground"><bdi dir="ltr">{formatOfferAmount(offerPrice(offer)!)}</bdi></span>
                   )}
                 </div>
 
@@ -525,7 +549,7 @@ export default function ProposalComparison({
                         <div className="flex items-center justify-between flex-wrap gap-1 mb-1.5">
                           {total != null ? (
                             <span className={`text-xs font-bold ${isCheapest ? 'text-[var(--state-won)]' : 'text-foreground'}`}>
-                              {t('tenderFlow.sarCurrency')} {total.toLocaleString('en-US')}
+                              {displayTotal(offer.id, total)}
                             </span>
                           ) : (
                             <span className="text-[10px] text-gray-400">{t('tenderFlow.noPrice')}</span>
@@ -679,13 +703,13 @@ export default function ProposalComparison({
                 <span className="text-xs font-semibold text-muted-foreground">{t('tenderFlow.totalPrice')}</span>
                 {total != null ? (
                   <span className={`text-sm font-bold ${cheapestId === offer.id ? 'text-[var(--state-won)]' : isMostExp ? 'text-red-500' : 'text-foreground'}`}>
-                    {t('tenderFlow.sarCurrency')} {total.toLocaleString('en-US')}
+                    {displayTotal(offer.id, total)}
                   </span>
                 ) : <span className="text-gray-300 text-xs">—</span>}
               </div>
               <div className={rowCls}>
                 <span className="text-xs font-medium text-muted-foreground">{t('tenderFlow.vatLabel')}</span>
-                {fin?.vat != null ? <span className="text-sm font-medium text-foreground">{fin.vat}%</span> : <span className="text-gray-300">—</span>}
+                {vatText(offer.id, fin?.vat) != null ? <span className="text-sm font-medium text-foreground">{vatText(offer.id, fin?.vat)}</span> : <span className="text-gray-300">—</span>}
               </div>
               <div className={rowCls}>
                 <span className="text-xs font-medium text-muted-foreground shrink-0">{t('tenderFlow.paymentTerms')}</span>
@@ -798,7 +822,7 @@ export default function ProposalComparison({
                   <td key={offer.id} className={`${COL_W} px-4 py-3 text-center border-r border-border last:border-r-0 ${selectedVendor === offer.id ? 'bg-[var(--bid-orange)]/5/30' : ''}`}>
                     {total != null ? (
                       <span className={`text-sm font-bold ${isCheapest ? 'text-[var(--state-won)]' : isMostExp ? 'text-red-500' : 'text-foreground'}`}>
-                        {t('tenderFlow.sarCurrency')} {total.toLocaleString('en-US')}
+                        {displayTotal(offer.id, total)}
                       </span>
                     ) : <span className="text-gray-300 text-xs">—</span>}
                   </td>
@@ -813,7 +837,7 @@ export default function ProposalComparison({
                 const fin = getFinancial(offer.id);
                 return (
                   <td key={offer.id} className={`${COL_W} px-4 py-3 text-center text-sm border-r border-border last:border-r-0 ${selectedVendor === offer.id ? 'bg-[var(--bid-orange)]/5/30' : ''}`}>
-                    {fin?.vat != null ? <span className="font-medium text-foreground">{fin.vat}%</span> : <span className="text-gray-300">—</span>}
+                    {vatText(offer.id, fin?.vat) != null ? <span className="font-medium text-foreground">{vatText(offer.id, fin?.vat)}</span> : <span className="text-gray-300">—</span>}
                   </td>
                 );
               })}

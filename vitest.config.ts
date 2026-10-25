@@ -2,6 +2,9 @@ import { defineConfig } from "vitest/config";
 import path from "path";
 
 export default defineConfig({
+  // tsconfig keeps JSX for Vite's React plugin ("preserve"); tests that render a
+  // component need vitest's transformer (oxc) to compile it.
+  oxc: { jsx: { runtime: "automatic" } },
   test: {
     environment: "node",
     globals: true,

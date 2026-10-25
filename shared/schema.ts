@@ -1282,10 +1282,29 @@ export const billingCheckouts = pgTable("billing_checkouts", {
   lastActivityAt: timestamp("last_activity_at").defaultNow().notNull(),
   followupSentAt: timestamp("followup_sent_at"),
   completedAt: timestamp("completed_at"),
+  promoCode: varchar("promo_code", { length: 32 }), // e.g. "tested" — first month free, once per company
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => ({
   companyIdx: index("billing_checkouts_company_idx").on(t.companyId, t.createdAt),
 }));
+
+// Leads from the public /contact-sales form ("Get a personalized Bid Tour").
+// Admins work them in Admin → Growth → Contact sales.
+export const CONTACT_SALES_TEAM_SIZES = ["1-10", "11-50", "51-200", "200+"] as const;
+export const CONTACT_SALES_STATUSES = ["new", "contacted", "closed"] as const;
+
+export const contactSalesLeads = pgTable("contact_sales_leads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  teamSize: varchar("team_size", { length: 16 }),
+  message: text("message"),
+  language: varchar("language", { length: 4 }).notNull().default("en"),
+  status: varchar("status", { length: 16 }).notNull().default("new"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type ContactSalesLead = typeof contactSalesLeads.$inferSelect;
 
 // The company's plan as last read from StreamPay. Only syncCompanySubscription
 // writes here; StreamPay is the source of truth.

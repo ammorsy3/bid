@@ -15373,6 +15373,904 @@
           "wait": 900
         }
       ]
+    },
+    {
+      "id": "b12-set-empty",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: empty company",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "",
+            "crNumber": "",
+            "vatNumber": "",
+            "city": "",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": []
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-keyboard",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: first field tapped, keyboard open",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": true,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "",
+            "crNumber": "",
+            "vatNumber": "",
+            "city": "",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": []
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-typing",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: typing legal name, CR number and VAT",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "",
+            "crNumber": "",
+            "vatNumber": "",
+            "city": "",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": []
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        },
+        {
+          "fill": [
+            "#verify-legal-name",
+            "Horizon Contracting Co."
+          ]
+        },
+        {
+          "fill": [
+            "#verify-cr",
+            "10101"
+          ]
+        },
+        {
+          "click": "#verify-city"
+        },
+        {
+          "fill": [
+            "#verify-vat",
+            "3001234567"
+          ]
+        },
+        {
+          "wait": 500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-filled",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: details saved, CR certificate uploaded (ready to submit)",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "السجل التجاري.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-all-docs",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: all four documents uploaded, long file names",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "شهادة السجل التجاري للشركة النسخة المحدثة 2026 نهائي مع التعديلات الأخيرة.pdf"
+            },
+            {
+              "id": "d1",
+              "documentType": "vat_certificate",
+              "fileUrl": "/objects/x1",
+              "originalName": "Commercial_Registration_Certificate_Updated_Final_Version_With_Latest_Amendments_2026.pdf"
+            },
+            {
+              "id": "d2",
+              "documentType": "gosi_certificate",
+              "fileUrl": "/objects/x2",
+              "originalName": "gosi.png"
+            },
+            {
+              "id": "d3",
+              "documentType": "national_address_certificate",
+              "fileUrl": "/objects/x3",
+              "originalName": "Commercial_Registration_Certificate_Updated_Final_Version_With_Latest_Amendments_2026.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-long-ar",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: very long Arabic company name",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق الحديثة للمقاولات العامة والتوريدات الصناعية والخدمات اللوجستية المحدودة ذات المسؤولية",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "المدينة المنورة والمناطق المجاورة لها",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "شهادة السجل التجاري للشركة النسخة المحدثة 2026 نهائي مع التعديلات الأخيرة.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-long-en",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: very long English company name",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "International Consolidated Engineering, Procurement and Construction Contracting Company Limited",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "Jeddah",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "Commercial_Registration_Certificate_Updated_Final_Version_With_Latest_Amendments_2026.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-review",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: under review (fields locked)",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "under_review",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "شهادة السجل التجاري للشركة النسخة المحدثة 2026 نهائي مع التعديلات الأخيرة.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-rejected",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: rejected, with a long reason",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "rejected",
+            "rejectionReason": "رقم السجل التجاري في الشهادة المرفوعة لا يطابق الرقم المدخل، وتاريخ انتهاء الشهادة قد مضى. يرجى رفع نسخة سارية ومقروءة من الشهادة ثم إعادة الإرسال. Reference: CR-MISMATCH-2026-0042-LONG-TOKEN-WITHOUT-SPACES"
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "Commercial_Registration_Certificate_Updated_Final_Version_With_Latest_Amendments_2026.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-verified",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: verified",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "شهادة السجل التجاري للشركة النسخة المحدثة 2026 نهائي مع التعديلات الأخيرة.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-verified-edit",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: verified, legal name edited (badge-removal warning)",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "شهادة السجل التجاري للشركة النسخة المحدثة 2026 نهائي مع التعديلات الأخيرة.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        },
+        {
+          "fill": [
+            "#verify-legal-name",
+            "اسم جديد للشركة"
+          ]
+        },
+        {
+          "wait": 500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-load-error",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: could not load",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "status": 500,
+          "json": {
+            "message": "boom"
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": []
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-loading",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: loading",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "hang": true
+        },
+        "GET /api/companies/:id/documents": {
+          "json": []
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-set-upload-popup",
+      "batch": "batch-12",
+      "page": "verification-settings",
+      "title": "Settings verification: upload popup opened",
+      "route": "/settings?tab=company&highlight=verification",
+      "keyboard": false,
+      "workspace": "seet",
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": []
+        }
+      },
+      "expectDialog": true,
+      "actions": [
+        {
+          "wait": 2500
+        },
+        {
+          "click": "[data-testid=doc-slot-cr_certificate] button >> nth=-1"
+        },
+        {
+          "wait": 1200
+        }
+      ]
+    },
+    {
+      "id": "b12-gate-empty",
+      "batch": "batch-12",
+      "page": "verification-gate",
+      "title": "Verify-to-continue: empty company (real default workspace)",
+      "route": "/tenders/new",
+      "keyboard": false,
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-gate-keyboard",
+      "batch": "batch-12",
+      "page": "verification-gate",
+      "title": "Verify-to-continue: first field tapped, keyboard open",
+      "route": "/tenders/new",
+      "keyboard": true,
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-gate-filled",
+      "batch": "batch-12",
+      "page": "verification-gate",
+      "title": "Verify-to-continue: details + CR certificate ready",
+      "route": "/tenders/new",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "شهادة السجل التجاري للشركة النسخة المحدثة 2026 نهائي مع التعديلات الأخيرة.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-gate-all-docs",
+      "batch": "batch-12",
+      "page": "verification-gate",
+      "title": "Verify-to-continue: all documents, long file names",
+      "route": "/tenders/new",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق الحديثة للمقاولات العامة والتوريدات الصناعية والخدمات اللوجستية المحدودة ذات المسؤولية",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "شهادة السجل التجاري للشركة النسخة المحدثة 2026 نهائي مع التعديلات الأخيرة.pdf"
+            },
+            {
+              "id": "d1",
+              "documentType": "vat_certificate",
+              "fileUrl": "/objects/x1",
+              "originalName": "Commercial_Registration_Certificate_Updated_Final_Version_With_Latest_Amendments_2026.pdf"
+            },
+            {
+              "id": "d2",
+              "documentType": "gosi_certificate",
+              "fileUrl": "/objects/x2",
+              "originalName": "gosi.png"
+            },
+            {
+              "id": "d3",
+              "documentType": "national_address_certificate",
+              "fileUrl": "/objects/x3",
+              "originalName": "Commercial_Registration_Certificate_Updated_Final_Version_With_Latest_Amendments_2026.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-gate-review",
+      "batch": "batch-12",
+      "page": "verification-gate",
+      "title": "Verify-to-continue: under review",
+      "route": "/tenders/new",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "under_review",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "شهادة السجل التجاري للشركة النسخة المحدثة 2026 نهائي مع التعديلات الأخيرة.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-gate-rejected",
+      "batch": "batch-12",
+      "page": "verification-gate",
+      "title": "Verify-to-continue: rejected",
+      "route": "/tenders/new",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "شركة الأفق للمقاولات",
+            "crNumber": "1010123456",
+            "vatNumber": "300123456700003",
+            "city": "الرياض",
+            "verificationStatus": "rejected",
+            "rejectionReason": "الشهادة المرفوعة غير مقروءة. يرجى رفع نسخة أوضح."
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "Commercial_Registration_Certificate_Updated_Final_Version_With_Latest_Amendments_2026.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "b12-gate-long-en",
+      "batch": "batch-12",
+      "page": "verification-gate",
+      "title": "Verify-to-continue: very long English name",
+      "route": "/tenders/new",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/companies/:id/verify-info": {
+          "json": {
+            "legalName": "International Consolidated Engineering, Procurement and Construction Contracting Company Limited",
+            "crNumber": "1010123456",
+            "vatNumber": "",
+            "city": "Jeddah",
+            "verificationStatus": "not_verified",
+            "rejectionReason": null
+          }
+        },
+        "GET /api/companies/:id/documents": {
+          "json": [
+            {
+              "id": "d0",
+              "documentType": "cr_certificate",
+              "fileUrl": "/objects/x0",
+              "originalName": "Commercial_Registration_Certificate_Updated_Final_Version_With_Latest_Amendments_2026.pdf"
+            }
+          ]
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        }
+      ]
+    },
+    {
+      "id": "contact-sales-default",
+      "batch": "batch-13",
+      "page": "contact-sales",
+      "title": "Contact sales — first look",
+      "route": "/contact-sales",
+      "keyboard": false
+    },
+    {
+      "id": "contact-sales-errors",
+      "batch": "batch-13",
+      "page": "contact-sales",
+      "title": "Contact sales — empty submit",
+      "route": "/contact-sales",
+      "actions": [
+        {
+          "click": "[data-testid=\"button-submit\"]"
+        }
+      ]
+    },
+    {
+      "id": "contact-sales-success",
+      "batch": "batch-13",
+      "page": "contact-sales",
+      "title": "Contact sales — thank you",
+      "route": "/contact-sales",
+      "actions": [
+        {
+          "fill": [
+            "[data-testid=\"input-first-name\"]",
+            "Sara"
+          ]
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-last-name\"]",
+            "Alharbi"
+          ]
+        },
+        {
+          "fill": [
+            "[data-testid=\"input-email\"]",
+            "sara@example.com"
+          ]
+        },
+        {
+          "click": "[data-testid=\"button-submit\"]"
+        },
+        {
+          "waitFor": "[data-testid=\"contact-sales-success\"]"
+        }
+      ],
+      "overrides": {
+        "POST /api/contact-sales": {
+          "status": 201,
+          "json": {
+            "ok": true
+          }
+        }
+      }
+    },
+    {
+      "id": "b13-checkout-details",
+      "batch": "batch-13",
+      "page": "upgrade",
+      "title": "Upgrade: checkout details + order summary",
+      "route": "/upgrade",
+      "keyboard": false,
+      "overrides": {
+        "GET /api/entitlements": {
+          "json": {
+            "tier": "free",
+            "gated": true,
+            "tendersUsed": 3,
+            "tenderLimit": 3,
+            "canCreateTender": false,
+            "seatsUsed": 1,
+            "seatLimit": 1,
+            "features": {
+              "marketplace": false,
+              "aiBuilder": false,
+              "ownTemplates": false,
+              "qa": false,
+              "traction": false,
+              "seats": false,
+              "aiAnalysis": false,
+              "comparison": false,
+              "api": false
+            },
+            "canManageBilling": true
+          }
+        },
+        "GET /api/billing": {
+          "json": {
+            "subscription": null,
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            },
+            "openCheckout": null,
+            "canManage": true
+          }
+        },
+        "POST /api/billing/checkouts": {
+          "json": {
+            "checkoutId": "c-demo",
+            "plan": "pro",
+            "term": "monthly",
+            "details": {
+              "values": {
+                "billingName": null,
+                "billingEmail": null,
+                "billingPhone": null,
+                "vatNumber": null,
+                "crNumber": null,
+                "address": null,
+                "city": null
+              },
+              "sources": {},
+              "missing": [
+                "billingName",
+                "billingEmail"
+              ],
+              "applicable": [
+                "billingName",
+                "billingEmail",
+                "billingPhone",
+                "vatNumber",
+                "crNumber",
+                "address",
+                "city"
+              ]
+            }
+          }
+        }
+      },
+      "actions": [
+        {
+          "wait": 2500
+        },
+        {
+          "click": "[data-testid=billing-plan-pro]"
+        },
+        {
+          "wait": 2500
+        }
+      ],
+      "persona": "company-owner"
     }
   ]
 }

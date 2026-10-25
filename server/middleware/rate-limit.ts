@@ -112,7 +112,7 @@ export const TIERS: Tier[] = [
   {
     name: "public-write",
     methods: ["POST"],
-    test: startsWithAny("/api/errors", "/api/track/visit"),
+    test: startsWithAny("/api/errors", "/api/track/visit", "/api/contact-sales"),
     by: "ip",
     capacity: 30,
     refillPerMinute: 30,

@@ -31,6 +31,8 @@ import {
   runCheckoutFollowups,
   saveBillingDetails,
   startPayment,
+  normalizePromoCode,
+  assertPromoUsable,
   syncCompanySubscription,
   type StreamPayWebhook,
 } from "../lib/billing";
@@ -63,7 +65,10 @@ const checkoutBodySchema = z.object({
 
 const payBodySchema = z.object({
   returnTo: z.enum(["settings", "upgrade"]).default("settings"),
+  promoCode: z.string().trim().max(32).optional(),
 });
+
+const promoBodySchema = z.object({ code: z.string().trim().min(1).max(32) });
 
 const confirmBodySchema = z.object({
   status: z.string().max(40).optional(),
@@ -133,6 +138,17 @@ export function registerBillingRoutes(app: Express, deps: MiddlewareDeps): void 
     }
   });
 
+  // Lets the checkout screen say "first month free" before the payer is sent off.
+  app.post("/api/billing/promo/check", ...manager, async (req: AuthRequest, res) => {
+    try {
+      const { code } = promoBodySchema.parse(req.body ?? {});
+      const promo = await assertPromoUsable(req.auth!.activeCompanyId!, normalizePromoCode(code)!);
+      res.json({ valid: true, trialDays: promo.trialDays });
+    } catch (err) {
+      sendError(res, err, "POST /api/billing/promo/check");
+    }
+  });
+
   app.post("/api/billing/checkouts/:id/pay", ...manager, async (req: AuthRequest, res) => {
     try {
       const { userId, activeCompanyId } = req.auth!;
@@ -141,8 +157,8 @@ export function registerBillingRoutes(app: Express, deps: MiddlewareDeps): void 
       if (checkout.status === "paid") {
         throw new BillingError("This checkout is already paid.", 409, "ALREADY_PAID");
       }
-      const { returnTo } = payBodySchema.parse(req.body ?? {});
-      const { url } = await startPayment(checkout, userId, publicOrigin(req), returnTo);
+      const { returnTo, promoCode } = payBodySchema.parse(req.body ?? {});
+      const { url } = await startPayment(checkout, userId, publicOrigin(req), returnTo, normalizePromoCode(promoCode));
       res.json({ url });
     } catch (err) {
       sendError(res, err, "POST /api/billing/checkouts/:id/pay");

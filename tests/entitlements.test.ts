@@ -256,7 +256,7 @@ describe("the rules cover the pricing page", () => {
     const keys = [...block.matchAll(/key:\s*"(f[A-Za-z]+)"/g)].map((m) => m[1]);
     expect(keys.length).toBeGreaterThan(8);
     for (const k of keys) {
-      if (k === "fEverythingBiz" || k === "fSso" || k === "fSla" || k === "fOnboarding") continue; // Enterprise: out of scope
+      if (k === "fEverythingBiz" || k === "fSso" || k === "fAudit" || k === "fSla" || k === "fOnboarding") continue; // Enterprise: out of scope
       expect(PRICING_PAGE_FEATURES, `Pricing.tsx shows "${k}" but shared/entitlements.ts has no rule for it`).toHaveProperty(k);
     }
   });

@@ -53,6 +53,7 @@ import TractionLink from "@/pages/TractionLink";
 import TractionLinkEditor from "@/pages/TractionLinkEditor";
 import Landing from "@/pages/Landing";
 import Pricing from "@/pages/Pricing";
+import ContactSales from "@/pages/ContactSales";
 import Settings from "@/pages/Settings";
 import SettingsIntegrations from "@/pages/SettingsIntegrations";
 import DocsPage from "@/pages/docs/DocsPage";
@@ -71,6 +72,7 @@ import AdminNotifications from "@/pages/AdminNotifications";
 import AdminJoinRequests from "@/pages/AdminJoinRequests";
 import AdminCampaigns from "@/pages/AdminCampaigns";
 import AdminCheckouts from "@/pages/AdminCheckouts";
+import AdminContactSales from "@/pages/AdminContactSales";
 import Upgrade from "@/pages/Upgrade";
 import { UpgradeDialog } from "@/components/billing/UpgradeDialog";
 import { RequirePlan } from "@/components/billing/RequirePlan";
@@ -158,6 +160,7 @@ export default function App() {
             <Switch>
               <Route path="/" component={Landing} />
               <Route path="/pricing" component={Pricing} />
+              <Route path="/contact-sales" component={ContactSales} />
               <Route path="/login" component={Login} />
               <Route path="/signup" component={Register} />
               <Route path="/join/:code" component={JoinByCode} />
@@ -216,6 +219,7 @@ export default function App() {
               <Route path="/admin/join-requests" component={AdminJoinRequests} />
               <Route path="/admin/campaigns" component={AdminCampaigns} />
               <Route path="/admin/checkouts" component={AdminCheckouts} />
+              <Route path="/admin/contact-sales" component={AdminContactSales} />
               <Route path="/admin/audit-logs" component={AdminAuditLogs} />
               <Route path="/admin/errors" component={AdminErrors} />
               <Route path="/upgrade" component={Upgrade} />

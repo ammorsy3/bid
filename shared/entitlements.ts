@@ -1,3 +1,7 @@
+// Pro is the only plan on sale and includes every feature below. "business" survives
+// only as a legacy tier for subscriptions and admin grants made before it was retired;
+// it is treated as equal to Pro.
+//
 // What each plan includes — the one place the pricing page's promises become rules.
 //
 // Read by the server (every gate in server/lib/entitlements.ts), by the client
@@ -16,7 +20,7 @@ export const TIER_RANK: Record<PlanTier, number> = { free: 0, pro: 1, business: 
 
 /** Free plan: this many tenders in total (every status counts, so nothing frees a slot). */
 export const FREE_TENDER_LIMIT = 3;
-/** Free plan: a company workspace is for one person. Pro and Business include the whole team. */
+/** Free plan: a company workspace is for one person. Pro includes the whole team. */
 export const FREE_SEAT_LIMIT = 1;
 
 /** Everything that needs a paid plan, and the lowest plan that includes it. */
@@ -27,9 +31,9 @@ export const FEATURE_MIN_PLAN = {
   qa: "pro",            // in-app structured Q&A rounds (free: email / WhatsApp contact)
   traction: "pro",      // create a Traction Link
   seats: "pro",         // a second person in the workspace
-  aiAnalysis: "business", // AI scoring and ranking of proposals
-  comparison: "business", // side-by-side proposal comparison
-  api: "business",      // API keys and integrations
+  aiAnalysis: "pro",    // AI scoring and ranking of proposals
+  comparison: "pro",    // side-by-side proposal comparison
+  api: "pro",           // API keys and integrations
 } as const satisfies Record<string, Exclude<PlanTier, "free">>;
 
 export type Feature = keyof typeof FEATURE_MIN_PLAN;

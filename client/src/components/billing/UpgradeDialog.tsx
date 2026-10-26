@@ -22,7 +22,7 @@ export function UpgradeDialog() {
   const { entitlements, canManageBilling } = usePlan();
 
   const plan = feature === "tenders" || feature === null ? "pro" : FEATURE_MIN_PLAN[feature];
-  const planLabel = t(plan === "business" ? "billing.planBusiness" : "billing.planPro");
+  const planLabel = t("billing.planPro");
   // Until entitlements load, assume they can: a wrong "ask your owner" is worse than a wrong button.
   const canUpgrade = entitlements ? canManageBilling : true;
 

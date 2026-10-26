@@ -27,7 +27,7 @@ import { useI18n } from "@/lib/i18n";
 import { apiRequest, ApiError } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
-  PAID_PLANS, isBillingTerm, isPaidPlan, monthlyRate, periodPrice, priceWithVat,
+  SELLABLE_PLANS, isBillingTerm, isSellablePlan, monthlyRate, periodPrice, priceWithVat,
   type BillingTerm, type PaidPlan,
 } from "@shared/billing-plans";
 import {
@@ -74,7 +74,7 @@ interface Props {
 }
 
 export function CheckoutFlow({
-  returnTo, summary, onSummaryChanged, keepParams = {}, defaultPlan = "business", hidePicker = false, request, onStepChange,
+  returnTo, summary, onSummaryChanged, keepParams = {}, defaultPlan = "pro", hidePicker = false, request, onStepChange,
 }: Props) {
   const { t } = useI18n();
   const { toast } = useToast();
@@ -194,7 +194,7 @@ export function CheckoutFlow({
       void openCheckout(summary.openCheckout.plan, summary.openCheckout.term);
       return;
     }
-    if (isPaidPlan(wantPlan)) {
+    if (isSellablePlan(wantPlan)) {
       stripParams(keep);
       const x = isBillingTerm(wantTerm) ? wantTerm : "monthly";
       setPlan(wantPlan);
@@ -355,7 +355,7 @@ export function CheckoutFlow({
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label={t("billing.choosePlan")}>
-              {PAID_PLANS.map((p) => {
+              {SELLABLE_PLANS.map((p) => {
                 const selected = plan === p;
                 return (
                   <button

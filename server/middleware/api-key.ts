@@ -79,8 +79,8 @@ export async function authenticateApiKey(
     return;
   }
 
-  // API access is a Business feature, checked on EVERY request: a company that
-  // drops below Business stops its keys working, not just creating new ones.
+  // API access is a Pro feature, checked on EVERY request: a company that
+  // drops below Pro stops its keys working, not just creating new ones.
   // (A company that already had an active key when limits launched keeps it.)
   try {
     await assertFeature(company.id, "api");

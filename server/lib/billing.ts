@@ -36,15 +36,18 @@ import {
 import {
   StreamPayError,
   createConsumer,
+  createCoupon,
   createPaymentLink,
   getInvoice,
   getPaymentLink,
   getSubscription,
   listConsumerInvoices,
   listConsumerSubscriptions,
+  listCoupons,
   planForSubscription,
   resolvePlanProducts,
   searchConsumers,
+  setSubscriptionCoupons,
   updateConsumer,
   type StreamPaySubscription,
 } from "./streampay";
@@ -240,6 +243,54 @@ const PROMO_CODES: Record<string, { trialDays: number }> = {
   tested: { trialDays: 30 },
 };
 
+// The trial's 30 days are enforced by trial_period_days. The 100% coupon below
+// exists only so StreamPay's hosted page shows 0 as the amount due instead of the
+// full price. It must NEVER stay on a subscription: StreamPay coupons have no
+// duration, so left in place it would discount every renewal. It is therefore
+// removed the moment the subscription exists (syncCompanySubscription), and
+// swept again by the daily cron.
+export const TRIAL_COUPON_NAME = "Bid trial: first period free";
+let trialCouponId: Promise<string> | null = null;
+
+export function ensureTrialCoupon(): Promise<string> {
+  trialCouponId ??= (async () => {
+    const { data } = await listCoupons(TRIAL_COUPON_NAME);
+    const existing = (data ?? []).find(
+      (c) => c.name === TRIAL_COUPON_NAME && c.is_percentage && Number(c.discount_value) === 100 && c.is_active,
+    );
+    if (existing) return existing.id;
+    return (await createCoupon({ name: TRIAL_COUPON_NAME, discount_value: 100, is_percentage: true, is_active: true })).id;
+  })().catch((err) => {
+    trialCouponId = null; // retry next time
+    throw err;
+  });
+  return trialCouponId;
+}
+
+/**
+ * Takes the trial coupon off a subscription. StreamPay applies the change at the
+ * end of the current period, which for a trial is exactly when the first real
+ * charge happens. Verified from StreamPay's own answer: throws unless the
+ * pending change really leaves the trial coupon out.
+ */
+export async function stripTrialCoupon(s: StreamPaySubscription): Promise<boolean> {
+  const applied = s.coupon_calculation_metadata?.coupons ?? [];
+  const trial = applied.find((c) => c.name === TRIAL_COUPON_NAME);
+  if (!trial) return false;
+  const target = s.pending_change?.target_subscription_coupon_ids;
+  if (target && !target.includes(trial.coupon_id)) return false; // removal already scheduled
+
+  const items = (s.items ?? []).map((i) => ({ product_id: i.product_id, quantity: i.quantity ?? 1 }));
+  const keep = applied.filter((c) => c.coupon_id !== trial.coupon_id).map((c) => c.coupon_id);
+  const updated = await setSubscriptionCoupons(s.id, items, keep);
+  const after = updated.pending_change?.target_subscription_coupon_ids;
+  if (!after || after.includes(trial.coupon_id)) {
+    throw new Error(`trial coupon removal on subscription ${s.id} was not scheduled (pending_change=${JSON.stringify(updated.pending_change ?? null)})`);
+  }
+  console.log(`[Billing] removed trial coupon from subscription ${s.id}; effective ${updated.pending_change?.effective_at}`);
+  return true;
+}
+
 export function normalizePromoCode(raw: string | undefined | null): string | null {
   const code = (raw ?? "").trim().toLowerCase();
   return code ? code : null;
@@ -290,6 +341,15 @@ export async function startPayment(
   const page = RETURN_PAGES[returnTo];
   const back = `${returnBase}${page}${page.includes("?") ? "&" : "?"}checkout=${encodeURIComponent(checkout.id)}`;
   const planName = plan === "pro" ? "Pro" : "Business";
+  let trialCoupons: string[] | undefined;
+  if (promo) {
+    try {
+      trialCoupons = [await ensureTrialCoupon()];
+    } catch (err) {
+      // The trial itself still works; only StreamPay's page will show the full price.
+      console.error("[Billing] trial coupon unavailable, continuing without it", err);
+    }
+  }
   const link = await createPaymentLink({
     name: `Bid ${planName} (${term === "yearly" ? "yearly" : "monthly"})`,
     description: company.name,
@@ -303,6 +363,7 @@ export async function startPayment(
     failure_redirect_url: back,
     custom_metadata: { companyId: company.id, checkoutId: checkout.id, plan, term, ...(promoCode ? { promo: promoCode } : {}) },
     ...(promo ? { trial_period_days: promo.trialDays } : {}),
+    ...(trialCoupons ? { coupons: trialCoupons } : {}),
   });
 
   await db
@@ -406,6 +467,15 @@ export async function syncCompanySubscription(companyId: string): Promise<Compan
   ]);
   // Only subscriptions to Bid plan products count; the merchant account sells other things too.
   let ours = (subs ?? []).filter((s) => planForSubscription(s, products));
+  // Safety: the trial coupon must never outlive the signup. A failure is loud
+  // but not fatal here; the next webhook, return visit or the daily sweep retries.
+  for (const s of ours) {
+    try {
+      await stripTrialCoupon(s);
+    } catch (err) {
+      console.error(`[Billing][ALERT] could not remove trial coupon from subscription ${s.id}; retrying on next sync`, err);
+    }
+  }
   // One StreamPay customer can serve several workspaces (same payer email/phone);
   // then each workspace only counts the subscriptions that are its own.
   if (await consumerIsShared(company)) ours = await subscriptionsOwnedBy(company, ours);
@@ -650,6 +720,32 @@ export interface FollowupCandidate {
  * Each row is claimed with a conditional UPDATE before sending, so two runs
  * overlapping can never both email the same person.
  */
+/**
+ * Daily safety net for the trial coupon: re-checks every trialing workspace and
+ * removes the coupon if an earlier attempt failed. `failed` > 0 means money is at
+ * risk (a renewal could be discounted) and the cron reports an error.
+ */
+export async function sweepTrialCoupons(): Promise<{ checked: number; removed: number; failed: number }> {
+  const rows = await db
+    .select({ companyId: companySubscriptions.companyId })
+    .from(companySubscriptions)
+    .where(inArray(companySubscriptions.status, ["trialing", "trial_pending"]));
+  let removed = 0;
+  let failed = 0;
+  for (const { companyId } of rows) {
+    const company = await storage.getCompany(companyId);
+    if (!company?.streampayConsumerId) continue;
+    try {
+      const { data } = await listConsumerSubscriptions(company.streampayConsumerId);
+      for (const s of data ?? []) if (await stripTrialCoupon(s)) removed++;
+    } catch (err) {
+      failed++;
+      console.error(`[Billing][ALERT] trial coupon sweep failed for company ${companyId}`, err);
+    }
+  }
+  return { checked: rows.length, removed, failed };
+}
+
 export async function runCheckoutFollowups(
   send: (c: FollowupCandidate) => Promise<boolean>,
   now = new Date(),

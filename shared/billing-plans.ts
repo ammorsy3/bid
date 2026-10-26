@@ -9,8 +9,15 @@
 // Prices are whole SAR, charged per company (not per seat), and EXCLUDE VAT —
 // StreamPay adds 15% on top at checkout. See docs/pricing-and-packaging.md.
 
+/** Every plan a subscription can carry, including the retired "business" (kept so existing subscribers still resolve). */
 export const PAID_PLANS = ["pro", "business"] as const;
 export type PaidPlan = typeof PAID_PLANS[number];
+
+/** The plans on sale. Business was folded into Pro; only Pro can be bought now. */
+export const SELLABLE_PLANS = ["pro"] as const;
+export function isSellablePlan(v: unknown): v is PaidPlan {
+  return typeof v === "string" && (SELLABLE_PLANS as readonly string[]).includes(v);
+}
 
 export const BILLING_TERMS = ["monthly", "yearly"] as const;
 export type BillingTerm = typeof BILLING_TERMS[number];
@@ -19,7 +26,7 @@ export const VAT_RATE = 0.15;
 export const BILLING_CURRENCY = "SAR";
 
 /** Monthly list price, before VAT. Yearly is 20% off, rounded to whole riyals per month. */
-export const MONTHLY_PRICE: Record<PaidPlan, number> = { pro: 399, business: 179 };
+export const MONTHLY_PRICE: Record<PaidPlan, number> = { pro: 399, business: 179 }; // business: retired, no longer sold or shown
 export const YEARLY_DISCOUNT = 0.2;
 
 /** The effective monthly rate shown on the card, whole riyals. */

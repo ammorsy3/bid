@@ -18,7 +18,7 @@ config();
 import {
   BILLING_CURRENCY,
   BILLING_TERMS,
-  PAID_PLANS,
+  SELLABLE_PLANS,
   periodPrice,
   productExternalId,
 } from "../shared/billing-plans";
@@ -30,7 +30,7 @@ async function main() {
   const existing = await listAllProducts();
   let problems = 0;
 
-  for (const plan of PAID_PLANS) {
+  for (const plan of SELLABLE_PLANS) {
     for (const term of BILLING_TERMS) {
       const externalId = productExternalId(plan, term);
       const price = periodPrice(plan, term);

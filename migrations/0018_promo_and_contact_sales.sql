@@ -12,3 +12,8 @@ CREATE TABLE IF NOT EXISTS contact_sales_leads (
   created_at timestamp NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS contact_sales_leads_created_idx ON contact_sales_leads (created_at DESC);
+
+-- Like every public table (0012): RLS on, no policies. Without it Supabase's default
+-- privileges would expose the leads (names, emails, messages) through the PostgREST API.
+-- The server connects as the owner and is unaffected.
+ALTER TABLE contact_sales_leads ENABLE ROW LEVEL SECURITY;

@@ -70,7 +70,6 @@ const offerStore = {
 
 let server: TestServer;
 beforeAll(async () => {
-  process.env.STRUCTURED_PRICING_ENABLED = "true";
   const app = express();
   app.use(express.json());
   const authenticateToken = (req: any, _res: any, next: any) => {
@@ -80,9 +79,8 @@ beforeAll(async () => {
   registerRfqPricingRoutes(app, { authenticateToken, requireCompanyContext: (_q, _s, n) => n(), itemsStore, offerStore });
   server = await startTestServer(app);
 });
-afterAll(() => { delete process.env.STRUCTURED_PRICING_ENABLED; return stopTestServer(server); });
+afterAll(() => stopTestServer(server));
 beforeEach(() => {
-  process.env.STRUCTURED_PRICING_ENABLED = "true";
   m.tender = { id: "t1", companyId: "buyer", title: "Steel", status: "published", deadline: "2099-12-31", itemizedPricing: true, requestType: "rfq",
     submissionType: "itemized_only", videoRequired: false, itemsRevision: 1, showReferencePrices: false, itemColumns: [], invitationToken: "tok" };
   m.items = [
@@ -124,7 +122,6 @@ describe("who may open the pricing page", () => {
     ["viewer", () => undefined, "VIEWER"],
     ["cancelled request, offer holder", () => { m.tender.status = "cancelled"; m.invited = []; m.offers.vendor = { id: "o1", companyId: "vendor", status: "pending" }; }, "REQUEST_CANCELLED"],
     ["deadline passed", () => { m.tender.deadline = "2000-01-01"; }, "DEADLINE_PASSED"],
-    ["flag off", () => { process.env.STRUCTURED_PRICING_ENABLED = "false"; }, "STRUCTURED_PRICING_DISABLED"],
     ["unverified company", () => { m.companies.vendor = { id: "vendor", accountType: "company", verificationStatus: "under_review" }; }, "VERIFICATION_REQUIRED"],
     ["already submitted", () => { m.offers.vendor = { id: "o1", companyId: "vendor", status: "pending", resubmissionAllowed: false }; }, "ALREADY_SUBMITTED"],
   ])("read-only: %s", async (label, setup, reason) => {

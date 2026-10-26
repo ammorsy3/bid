@@ -26,30 +26,25 @@ import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { usePlan } from "@/lib/usePlan";
 import { clearReturnPath, takeReturnPath } from "@/lib/upgrade-return";
-import { FEATURE_MIN_PLAN, isFeature, planAllows, type Feature } from "@shared/entitlements";
-import { MONTHLY_PRICE, PAID_PLANS, monthlyRate, periodPrice, priceWithVat, type BillingTerm, type PaidPlan } from "@shared/billing-plans";
+import { isFeature, planAllows, type Feature } from "@shared/entitlements";
+import { MONTHLY_PRICE, SELLABLE_PLANS, monthlyRate, periodPrice, priceWithVat, type BillingTerm, type PaidPlan } from "@shared/billing-plans";
 
 type Reason = Feature | "tenders";
 type Step = "pick" | "opening" | "details";
 
 /** What each paid box lists, with the pricing page's icons. `reason` ties a row to ?reason=. */
-const FEATURES: Record<PaidPlan, { key: string; Icon: LucideIcon; reason?: Reason }[]> = {
-  pro: [
-    { key: "upgrade.valUnlimitedTenders", Icon: InfinityIcon, reason: "tenders" },
-    { key: "upgrade.feat_seats", Icon: Users, reason: "seats" },
-    { key: "upgrade.row_marketplace", Icon: Store, reason: "marketplace" },
-    { key: "upgrade.row_aiBuilder", Icon: Sparkles, reason: "aiBuilder" },
-    { key: "upgrade.row_ownTemplates", Icon: LayoutTemplate, reason: "ownTemplates" },
-    { key: "upgrade.row_qa", Icon: MessageCircleQuestion, reason: "qa" },
-    { key: "upgrade.row_traction", Icon: Link2, reason: "traction" },
-  ],
-  business: [
-    { key: "upgrade.everythingPro", Icon: Layers },
-    { key: "upgrade.row_aiAnalysis", Icon: Sparkles, reason: "aiAnalysis" },
-    { key: "upgrade.row_comparison", Icon: GitCompare, reason: "comparison" },
-    { key: "upgrade.row_api", Icon: Plug, reason: "api" },
-  ],
-};
+const PRO_FEATURES: { key: string; Icon: LucideIcon; reason?: Reason }[] = [
+  { key: "upgrade.valUnlimitedTenders", Icon: InfinityIcon, reason: "tenders" },
+  { key: "upgrade.feat_seats", Icon: Users, reason: "seats" },
+  { key: "upgrade.row_marketplace", Icon: Store, reason: "marketplace" },
+  { key: "upgrade.row_aiBuilder", Icon: Sparkles, reason: "aiBuilder" },
+  { key: "upgrade.row_ownTemplates", Icon: LayoutTemplate, reason: "ownTemplates" },
+  { key: "upgrade.row_qa", Icon: MessageCircleQuestion, reason: "qa" },
+  { key: "upgrade.row_traction", Icon: Link2, reason: "traction" },
+  { key: "upgrade.row_aiAnalysis", Icon: Sparkles, reason: "aiAnalysis" },
+  { key: "upgrade.row_comparison", Icon: GitCompare, reason: "comparison" },
+  { key: "upgrade.row_api", Icon: Plug, reason: "api" },
+];
 
 /** The Enterprise box mirrors the pricing page: no price, a "Contact sales" button. */
 const ENTERPRISE_FEATURES: { key: string; Icon: LucideIcon }[] = [
@@ -106,7 +101,7 @@ export default function Upgrade() {
 
   const live = !!data?.subscription?.live;
   const canManage = !!data?.canManage;
-  const recommended: PaidPlan = reason && reason !== "tenders" && FEATURE_MIN_PLAN[reason] === "business" ? "business" : "pro";
+  const recommended: PaidPlan = "pro";
   const planName = (p: PaidPlan | "free") => t(p === "business" ? "billing.planBusiness" : p === "pro" ? "billing.planPro" : "billing.planFree");
   const showCards = !!data && !live && step !== "details";
 
@@ -218,7 +213,7 @@ export default function Upgrade() {
           {showCards && (
             <>
               <div className="plan-grid upgrade-grid" data-testid="upgrade-compare">
-                {PAID_PLANS.map((p) => {
+                {SELLABLE_PLANS.map((p) => {
                   const featured = p === recommended;
                   const saved = MONTHLY_PRICE[p] * 12 - periodPrice(p, "yearly");
                   return (
@@ -250,16 +245,16 @@ export default function Upgrade() {
                         <button
                           className={`btn ${featured ? "btn-orange" : "btn-primary"}`}
                           onClick={() => setRequest({ plan: p, term, key: Date.now() })}
-                          disabled={step === "opening"}
+                          disabled={step === "opening" || tier !== "free"}
                           data-testid={`billing-plan-${p}`}
                         >
                           {step === "opening" && request?.plan === p && <Loader2 className="upgrade-spin" aria-hidden="true" />}
-                          {t("billing.upgradeTo", { plan: planName(p) })}
+                          {tier !== "free" ? t("upgrade.currentPlan") : t("billing.upgradeTo", { plan: planName(p) })}
                         </button>
                       )}
 
                       <div className="plan-feat-list">
-                        {FEATURES[p].map((f) => {
+                        {PRO_FEATURES.map((f) => {
                           const needed = !!reason && f.reason === reason;
                           return (
                             <div className={`plan-feat${needed ? " needed" : ""}`} key={f.key} data-testid={needed ? "upgrade-needed-row" : undefined}>

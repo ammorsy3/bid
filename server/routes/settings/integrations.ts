@@ -26,7 +26,7 @@ export function registerIntegrationsAdminRoutes(app: Express, deps: MiddlewareDe
   // API keys & integrations are a buyer/collaboration feature. Individuals can't
   // create tenders or use the AI copilot, so they get no API access either.
   const adminGate = [authenticateToken, requireCompanyContext, requireAccountType("company"), requireCompanyRole("admin")];
-  // Creating keys and integrations is a Business feature. Listing, deleting and
+  // Creating keys and integrations is a Pro feature. Listing, deleting and
   // the logs stay open, so a downgraded company can still see and revoke what it has.
   const businessGate = [...adminGate, requireFeature("api")];
 

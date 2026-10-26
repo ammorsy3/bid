@@ -14,7 +14,7 @@
 
 import express, { type Express, type Request, type Response, type RequestHandler } from "express";
 import { z } from "zod";
-import { BILLING_TERMS, PAID_PLANS } from "@shared/billing-plans";
+import { BILLING_TERMS, SELLABLE_PLANS } from "@shared/billing-plans";
 import { billingDetailsPatchSchema } from "@shared/billing-details";
 import {
   BillingError,
@@ -29,6 +29,7 @@ import {
   getBillingDetails,
   invoicesOwnedBy,
   runCheckoutFollowups,
+  sweepTrialCoupons,
   saveBillingDetails,
   startPayment,
   normalizePromoCode,
@@ -59,7 +60,7 @@ interface MiddlewareDeps {
 }
 
 const checkoutBodySchema = z.object({
-  plan: z.enum(PAID_PLANS),
+  plan: z.enum(SELLABLE_PLANS),
   term: z.enum(BILLING_TERMS),
 });
 
@@ -297,7 +298,11 @@ export function registerBillingRoutes(app: Express, deps: MiddlewareDeps): void 
         }),
       );
       console.log(`[Billing] follow-ups: ${JSON.stringify(result)}`);
-      res.json(result);
+      const coupons = await sweepTrialCoupons();
+      console.log(`[Billing] trial coupon sweep: ${JSON.stringify(coupons)}`);
+      // A failed removal means a renewal could be discounted: surface it as a failed cron run.
+      if (coupons.failed > 0) return res.status(500).json({ ...result, coupons });
+      res.json({ ...result, coupons });
     } catch (err) {
       sendError(res, err, "cron billing-followups");
     }

@@ -24,7 +24,6 @@ import { findOfferFileProblem } from "../lib/offer-files";
 import { resolveSubmissionEligibility, resolveTenderReadGrant } from "../lib/tender-access";
 import { tenderItemsStore as defaultItems, type TenderItemsStore } from "../lib/tender-items-store";
 import { rfqOfferStore as defaultOffers, RfqOfferError, type RfqOfferStore } from "../lib/rfq-offer-store";
-import { isStructuredPricingEnabled } from "../lib/structured-pricing-flag";
 import { notifyRequesterOfProposal } from "../lib/proposal-notifications";
 import type { AuthRequest } from "../middleware/auth-types";
 
@@ -146,7 +145,6 @@ export function registerRfqPricingRoutes(app: Express, { authenticateToken, requ
       : deadlinePassed(tender.deadline) ? "DEADLINE_PASSED"
       : !eligibility.ok ? "NOT_INVITED"
       : !EDIT_ROLES.has(role ?? "") ? "VIEWER"
-      : !isStructuredPricingEnabled() ? "STRUCTURED_PRICING_DISABLED"
       : !verified ? "VERIFICATION_REQUIRED"
       : null;
     return { tender, companyId, readOnlyReason };

@@ -166,7 +166,20 @@ export interface StreamPaySubscription {
   current_period_end?: string | null;
   cancel_at_period_end?: boolean | null;
   organization_consumer_id?: string | null;
-  items?: { product_id: string; product?: StreamPayProduct | null }[];
+  latest_invoice_id?: string | null;
+  items?: { product_id: string; quantity?: number; product?: StreamPayProduct | null }[];
+  /** Coupons currently discounting this subscription (name is what we recognise ours by). */
+  coupon_calculation_metadata?: { coupons?: { coupon_id: string; name?: string }[] } | null;
+  /** A scheduled change (coupon removal lands here: it takes effect at the period end). */
+  pending_change?: { effective_at?: string; target_subscription_coupon_ids?: string[] } | null;
+}
+
+export interface StreamPayCoupon {
+  id: string;
+  name: string;
+  discount_value: string;
+  is_percentage: boolean;
+  is_active: boolean;
 }
 
 export interface StreamPayPaymentLink {
@@ -238,8 +251,24 @@ export function createPaymentLink(input: {
   custom_metadata: Record<string, string>;
   /** Free days before the first charge, for recurring products (1-365). */
   trial_period_days?: number;
+  /** Coupon ids applied at link level; this is what the hosted page shows as the amount due. */
+  coupons?: string[];
 }) {
   return streamPayRequest<StreamPayPaymentLink>("POST", "/api/v2/payment_links", input);
+}
+
+export function listCoupons(searchTerm: string) {
+  const q = new URLSearchParams({ search_term: searchTerm, limit: "100" });
+  return streamPayRequest<StreamPayList<StreamPayCoupon>>("GET", `/api/v2/coupons?${q}`);
+}
+
+export function createCoupon(input: { name: string; discount_value: number; is_percentage: boolean; is_active: boolean }) {
+  return streamPayRequest<StreamPayCoupon>("POST", "/api/v2/coupons", input);
+}
+
+/** Replaces the subscription's coupons. StreamPay defers this to the period end, as a pending change. */
+export function setSubscriptionCoupons(id: string, items: { product_id: string; quantity: number }[], coupons: string[]) {
+  return streamPayRequest<StreamPaySubscription>("PUT", `/api/v2/subscriptions/${encodeURIComponent(id)}`, { items, coupons });
 }
 
 export function getPaymentLink(id: string) {

@@ -5,6 +5,7 @@ import "./pricing.css";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
 import { SUPPORT_WHATSAPP_URL } from "@/components/support-contact";
 import { SiteFooter } from "@/components/site-footer";
 import { MONTHLY_PRICE, YEARLY_DISCOUNT } from "@shared/billing-plans";
@@ -48,7 +49,7 @@ const rateFor = (base: number, term: Term) => Math.round(base * (1 - term.discou
 const billedFor = (base: number, term: Term) => rateFor(base, term) * term.months;
 const savedFor = (base: number, term: Term) => base * term.months - billedFor(base, term);
 
-type PlanId = "pro" | "business" | "enterprise";
+type PlanId = "pro" | "enterprise";
 
 /* `base` is the undiscounted monthly rate in SAR, before VAT; every term
    derives from it. Prices live in shared/billing-plans.ts, which is also what
@@ -58,8 +59,7 @@ const PLANS: {
   base: number | null;
   featured?: boolean;
 }[] = [
-  { id: "pro", base: MONTHLY_PRICE.pro },
-  { id: "business", base: MONTHLY_PRICE.business, featured: true },
+  { id: "pro", base: MONTHLY_PRICE.pro, featured: true },
   { id: "enterprise", base: null },
 ];
 
@@ -77,9 +77,6 @@ const FEATURES: Record<PlanId, Feat[]> = {
     { key: "fTemplates", Icon: LayoutTemplate },
     { key: "fQa", Icon: MessageCircleQuestion },
     { key: "fTraction", Icon: Link2 },
-  ],
-  business: [
-    { key: "fEverythingPro", Icon: Layers },
     { key: "fAnalyser", Icon: Sparkles },
     { key: "fCompare", Icon: GitCompare },
     { key: "fAnalytics", Icon: BarChart3, soon: true },
@@ -127,12 +124,8 @@ const copy = {
     soon: "Coming soon",
 
     proName: "Pro",
-    proTagline: "For teams working on tenders regularly, with AI handling the first draft.",
+    proTagline: "Everything Bid offers: AI drafting, proposal scoring and comparison, and integrations, for your whole team.",
     proCta: "Start with Pro",
-
-    bizName: "Business",
-    bizTagline: "For teams that want the full evaluation and analytics layer, not just the basics.",
-    bizCta: "Start with Business",
 
     entName: "Enterprise",
     entTagline: "For organisations that need control, compliance and scale.",
@@ -145,13 +138,12 @@ const copy = {
     fTemplates: "Save your own templates",
     fQa: "Structured Q&A rounds",
     fTraction: "Traction Link for inbound connections",
-    fEverythingPro: "Everything in Pro",
     fAnalyser: "AI scores and ranks every proposal",
     fCompare: "Side-by-side proposal comparison",
     fAnalytics: "Analytics across every tender",
     fApi: "API access and integrations",
     fMarketplace: "Access to the marketplace",
-    fEverythingBiz: "Everything in Business",
+    fEverythingBiz: "Everything in Pro",
     fSso: "One company login for your whole team, with control over who can see and do what",
     fAudit: "A full record of who did what on every tender, ready for your auditors",
     fSla: "A dedicated account manager who replies within guaranteed times",
@@ -177,7 +169,7 @@ const copy = {
     q8: "What's the difference between private tenders and the marketplace?",
     a8: "A private tender goes only to the vendors you invite by link. Publishing to the marketplace puts it in front of vendors you have not met yet, which is where most new suppliers come from. The free plan covers private tenders; marketplace publishing starts on Pro.",
     q4: "Do you charge per user?",
-    a4: "No. The price is per company, not per person. Your whole team works from one workspace. The free plan includes one seat; Pro and Business have no seat limit.",
+    a4: "No. The price is per company, not per person. Your whole team works from one workspace. The free plan includes one seat; Pro has no seat limit.",
     q5: "Which currency am I billed in?",
     a5: "Saudi riyals. The dollar figures here are a fixed reference conversion, since the riyal is pegged to the dollar.",
     q6: "Can I change or cancel my plan?",
@@ -220,12 +212,8 @@ const copy = {
     soon: "قريباً",
 
     proName: "برو",
-    proTagline: "للفرق التي تعمل على المناقصات بانتظام، مع ذكاء اصطناعي يتولّى المسودة الأولى.",
+    proTagline: "كل ما تقدّمه Bid: صياغة بالذكاء الاصطناعي، وتقييم العروض ومقارنتها، والتكاملات، لفريقك كله.",
     proCta: "ابدأ مع برو",
-
-    bizName: "بزنس",
-    bizTagline: "للفرق التي تريد طبقة التقييم والتحليلات كاملةً، لا الأساسيات فقط.",
-    bizCta: "ابدأ مع بزنس",
 
     entName: "إنتربرايز",
     entTagline: "للمؤسسات التي تحتاج التحكّم والامتثال والتوسّع.",
@@ -238,13 +226,12 @@ const copy = {
     fTemplates: "احفظ قوالبك الخاصة",
     fQa: "جولات أسئلة وأجوبة منظّمة",
     fTraction: "رابط انضمام للتواصل الوارد",
-    fEverythingPro: "كل ما في برو",
     fAnalyser: "الذكاء الاصطناعي يقيّم العروض ويرتّبها",
     fCompare: "مقارنة العروض جنباً إلى جنب",
     fAnalytics: "تحليلات تشمل كل المناقصات",
     fApi: "الوصول إلى الواجهة البرمجية والتكاملات",
     fMarketplace: "الوصول إلى السوق",
-    fEverythingBiz: "كل ما في بزنس",
+    fEverythingBiz: "كل ما في برو",
     fSso: "تسجيل دخول واحد لكل فريق شركتك، مع تحكّم في من يرى ماذا ومن يفعل ماذا",
     fAudit: "سجلّ كامل بمن فعل ماذا في كل مناقصة، جاهز لمدقّقيك",
     fSla: "مدير حساب مخصّص يردّ خلال أوقات مضمونة",
@@ -270,7 +257,7 @@ const copy = {
     q8: "ما الفرق بين المناقصات الخاصة والسوق؟",
     a8: "المناقصة الخاصة تصل فقط للمورّدين الذين تدعوهم برابط. أما النشر في السوق فيضع مناقصتك أمام مورّدين لم تلتقِ بهم بعد، وهو مصدر معظم المورّدين الجدد. الباقة المجانية تغطي المناقصات الخاصة، والنشر في السوق يبدأ من باقة برو.",
     q4: "هل السعر لكل مستخدم؟",
-    a4: "لا. السعر لكل شركة وليس لكل شخص. فريقك كله يعمل في مساحة عمل واحدة. الباقة المجانية تشمل مقعدًا واحدًا، وباقتا برو وبزنس بلا حد للمقاعد.",
+    a4: "لا. السعر لكل شركة وليس لكل شخص. فريقك كله يعمل في مساحة عمل واحدة. الباقة المجانية تشمل مقعدًا واحدًا، وباقة برو بلا حد للمقاعد.",
     q5: "بأي عملة تتم الفوترة؟",
     a5: "بالريال السعودي. المبالغ بالدولار هنا تحويل مرجعي ثابت، لأن الريال مربوط بالدولار.",
     q6: "هل يمكنني تغيير باقتي أو إلغاؤها؟",
@@ -287,7 +274,10 @@ const copy = {
 const Pricing = () => {
   // Mirrors Landing.tsx: the app-wide language, so this page and the signup
   // flow it feeds into always speak the same language.
-  const { language: lang, setLanguage } = useI18n();
+  const { language: lang, setLanguage, t } = useI18n();
+  const { gated, tier } = usePlan();
+  // Already on a paid plan (subscription, trial or admin grant): say so instead of offering to buy it again.
+  const onPaidPlan = gated && tier !== "free";
   const [billing, setBilling] = useState<Billing>("monthly");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuthStore();
@@ -306,7 +296,6 @@ const Pricing = () => {
 
   const planCopy = (id: PlanId) => {
     if (id === "pro") return { name: c.proName, tagline: c.proTagline, cta: c.proCta };
-    if (id === "business") return { name: c.bizName, tagline: c.bizTagline, cta: c.bizCta };
     return { name: c.entName, tagline: c.entTagline, cta: c.entCta };
   };
 
@@ -508,6 +497,10 @@ const Pricing = () => {
                   <Link href="/contact-sales" className="btn btn-primary" data-testid="link-enterprise-sales">
                     {pc.cta}
                   </Link>
+                ) : onPaidPlan ? (
+                  <button className="btn btn-primary" disabled data-testid={`button-plan-${plan.id}-current`}>
+                    {t("upgrade.currentPlan")}
+                  </button>
                 ) : (
                   // Signed in → the focused upgrade page (/upgrade), which opens
                   // checkout with this plan and term already picked. Signed out →

@@ -86,13 +86,13 @@
 }
 
 /* ============ PLAN BOXES ============
-   Pro, Business and Enterprise, centred. */
+   Pro and Enterprise, centred. */
 .upgrade-page .plan-grid.upgrade-grid {
-  grid-template-columns: repeat(3, 1fr);
-  max-width: 1120px;
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 860px;
   margin-inline: auto;
 }
-.upgrade-page .free-strip { max-width: 1120px; margin-inline: auto; }
+.upgrade-page .free-strip { max-width: 860px; margin-inline: auto; }
 
 .upgrade-page .plan .btn { min-height: 46px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .upgrade-page .plan .btn:disabled { opacity: 0.6; cursor: default; }

@@ -162,14 +162,13 @@ describe("seats", () => {
 });
 
 describe("features by plan", () => {
-  it("matches the pricing page: Pro unlocks the Pro list, Business adds AI ranking, comparison and API", async () => {
+  it("matches the pricing page: Pro unlocks everything, including AI ranking, comparison and API; legacy Business is equal", async () => {
     const free = (await getEntitlements("c1")).features;
     for (const f of FEATURES) expect(free[f], `free ${f}`).toBe(false);
 
     state.subscription = sub("pro");
     const pro = (await getEntitlements("c1")).features;
-    for (const f of ["marketplace", "aiBuilder", "ownTemplates", "qa", "traction", "seats"] as const) expect(pro[f], `pro ${f}`).toBe(true);
-    for (const f of ["aiAnalysis", "comparison", "api"] as const) expect(pro[f], `pro ${f}`).toBe(false);
+    for (const f of FEATURES) expect(pro[f], `pro ${f}`).toBe(true);
 
     state.subscription = sub("business");
     const biz = (await getEntitlements("c1")).features;
@@ -177,9 +176,9 @@ describe("features by plan", () => {
   });
 
   it("assertFeature throws a PlanRequiredError naming the plan that unlocks it", async () => {
-    await expect(assertFeature("c1", "aiAnalysis")).rejects.toMatchObject({ code: "PLAN_REQUIRED", feature: "aiAnalysis", requiredPlan: "business" });
+    await expect(assertFeature("c1", "aiAnalysis")).rejects.toMatchObject({ code: "PLAN_REQUIRED", feature: "aiAnalysis", requiredPlan: "pro" });
     state.subscription = sub("pro");
-    await expect(assertFeature("c1", "aiAnalysis")).rejects.toMatchObject({ requiredPlan: "business" });
+    await expect(assertFeature("c1", "aiAnalysis")).resolves.toBeUndefined();
     await expect(assertFeature("c1", "marketplace")).resolves.toBeUndefined();
   });
 });

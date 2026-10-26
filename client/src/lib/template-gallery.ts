@@ -32,7 +32,7 @@ export interface BuiltInTemplate {
   badges: GalleryBadge[];
   icon: LucideIcon;
   journey: Journey;
-  /** Shown only while structured pricing (STRUCTURED_PRICING_ENABLED) is on. */
+  /** An RFQ entry: itemized pricing is always available. */
   requiresStructuredPricing?: boolean;
   start: () => TemplateStart;
 }

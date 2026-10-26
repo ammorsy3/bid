@@ -166,6 +166,7 @@ export interface StreamPaySubscription {
   current_period_end?: string | null;
   cancel_at_period_end?: boolean | null;
   organization_consumer_id?: string | null;
+  latest_invoice_id?: string | null;
   items?: { product_id: string; quantity?: number; product?: StreamPayProduct | null }[];
   /** Coupons currently discounting this subscription (name is what we recognise ours by). */
   coupon_calculation_metadata?: { coupons?: { coupon_id: string; name?: string }[] } | null;

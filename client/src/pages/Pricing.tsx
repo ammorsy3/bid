@@ -5,6 +5,7 @@ import "./pricing.css";
 import { BidLogo } from "@/components/brand/BidLogo";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { usePlan } from "@/lib/usePlan";
 import { SUPPORT_WHATSAPP_URL } from "@/components/support-contact";
 import { SiteFooter } from "@/components/site-footer";
 import { MONTHLY_PRICE, YEARLY_DISCOUNT } from "@shared/billing-plans";
@@ -273,7 +274,10 @@ const copy = {
 const Pricing = () => {
   // Mirrors Landing.tsx: the app-wide language, so this page and the signup
   // flow it feeds into always speak the same language.
-  const { language: lang, setLanguage } = useI18n();
+  const { language: lang, setLanguage, t } = useI18n();
+  const { gated, tier } = usePlan();
+  // Already on a paid plan (subscription, trial or admin grant): say so instead of offering to buy it again.
+  const onPaidPlan = gated && tier !== "free";
   const [billing, setBilling] = useState<Billing>("monthly");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuthStore();
@@ -493,6 +497,10 @@ const Pricing = () => {
                   <Link href="/contact-sales" className="btn btn-primary" data-testid="link-enterprise-sales">
                     {pc.cta}
                   </Link>
+                ) : onPaidPlan ? (
+                  <button className="btn btn-primary" disabled data-testid={`button-plan-${plan.id}-current`}>
+                    {t("upgrade.currentPlan")}
+                  </button>
                 ) : (
                   // Signed in → the focused upgrade page (/upgrade), which opens
                   // checkout with this plan and term already picked. Signed out →

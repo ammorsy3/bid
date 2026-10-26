@@ -245,11 +245,11 @@ export default function Upgrade() {
                         <button
                           className={`btn ${featured ? "btn-orange" : "btn-primary"}`}
                           onClick={() => setRequest({ plan: p, term, key: Date.now() })}
-                          disabled={step === "opening"}
+                          disabled={step === "opening" || tier !== "free"}
                           data-testid={`billing-plan-${p}`}
                         >
                           {step === "opening" && request?.plan === p && <Loader2 className="upgrade-spin" aria-hidden="true" />}
-                          {t("billing.upgradeTo", { plan: planName(p) })}
+                          {tier !== "free" ? t("upgrade.currentPlan") : t("billing.upgradeTo", { plan: planName(p) })}
                         </button>
                       )}
 

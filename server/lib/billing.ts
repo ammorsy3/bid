@@ -287,7 +287,12 @@ export async function stripTrialCoupon(s: StreamPaySubscription): Promise<boolea
   if (!after || after.includes(trial.coupon_id)) {
     throw new Error(`trial coupon removal on subscription ${s.id} was not scheduled (pending_change=${JSON.stringify(updated.pending_change ?? null)})`);
   }
-  console.log(`[Billing] removed trial coupon from subscription ${s.id}; effective ${updated.pending_change?.effective_at}`);
+  const effective = updated.pending_change?.effective_at;
+  // The promo is one month. If StreamPay will keep discounting well past that, a free period is being given away.
+  if (effective && s.created_at && Date.parse(effective) - Date.parse(s.created_at) > 35 * 24 * 60 * 60 * 1000) {
+    console.error(`[Billing][ALERT] subscription ${s.id}: trial coupon stays until ${effective}, more than a month after signup`);
+  }
+  console.log(`[Billing] removed trial coupon from subscription ${s.id}; effective ${effective}`);
   return true;
 }
 
@@ -341,8 +346,14 @@ export async function startPayment(
   const page = RETURN_PAGES[returnTo];
   const back = `${returnBase}${page}${page.includes("?") ? "&" : "?"}checkout=${encodeURIComponent(checkout.id)}`;
   const planName = plan === "pro" ? "Pro" : "Business";
+  // StreamPay's own trial (trial_period_days) is followed by a first billing
+  // period, and that period's invoice is issued at signup. A 100% coupon on top of
+  // a trial would therefore make the first period free as well: 30 + 30 days.
+  // So the coupon REPLACES the trial: the first billing period itself is free
+  // (a month, for a monthly plan) and the coupon comes off when it ends. A yearly
+  // plan's first period is a year, so yearly keeps the plain 30-day trial, with no coupon.
   let trialCoupons: string[] | undefined;
-  if (promo) {
+  if (promo && term === "monthly") {
     try {
       trialCoupons = [await ensureTrialCoupon()];
     } catch (err) {
@@ -362,7 +373,7 @@ export async function startPayment(
     success_redirect_url: back,
     failure_redirect_url: back,
     custom_metadata: { companyId: company.id, checkoutId: checkout.id, plan, term, ...(promoCode ? { promo: promoCode } : {}) },
-    ...(promo ? { trial_period_days: promo.trialDays } : {}),
+    ...(promo && !trialCoupons ? { trial_period_days: promo.trialDays } : {}),
     ...(trialCoupons ? { coupons: trialCoupons } : {}),
   });
 
@@ -436,11 +447,14 @@ async function subscriptionsOwnedBy(company: Company, subs: StreamPaySubscriptio
       paymentLinkIdsOf(company.id),
       listConsumerInvoices(company.streampayConsumerId),
     ]);
-    viaLink = new Set(
-      (invoices ?? [])
-        .filter((i) => i.subscription_id && i.payment_link_id && links.has(i.payment_link_id))
-        .map((i) => i.subscription_id as string),
-    );
+    const mineInvoices = (invoices ?? []).filter((i) => i.payment_link_id && links.has(i.payment_link_id));
+    // StreamPay does not always put subscription_id on the invoice row (a trial's
+    // first invoice comes without it), so also match the subscription's own latest invoice.
+    const mineInvoiceIds = new Set(mineInvoices.map((i) => i.id));
+    viaLink = new Set([
+      ...mineInvoices.flatMap((i) => (i.subscription_id ? [i.subscription_id] : [])),
+      ...unclaimed.filter((s) => s.latest_invoice_id && mineInvoiceIds.has(s.latest_invoice_id)).map((s) => s.id),
+    ]);
   }
   return subs.filter((s) => mine.has(s.id) || viaLink.has(s.id));
 }

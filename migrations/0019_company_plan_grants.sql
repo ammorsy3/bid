@@ -37,6 +37,9 @@ CREATE TABLE IF NOT EXISTS company_plan_grants (
 CREATE UNIQUE INDEX IF NOT EXISTS company_plan_grants_one_active_idx
   ON company_plan_grants (company_id) WHERE revoked_at IS NULL;
 
+-- RLS on, no policies, as for every public table (0012, 0018).
+ALTER TABLE company_plan_grants ENABLE ROW LEVEL SECURITY;
+
 COMMIT;
 
 -- ── Runbook ──────────────────────────────────────────────────────────────────

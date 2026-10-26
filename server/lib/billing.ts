@@ -243,9 +243,11 @@ const PROMO_CODES: Record<string, { trialDays: number }> = {
   tested: { trialDays: 30 },
 };
 
-// The trial's 30 days are enforced by trial_period_days. The 100% coupon below
-// exists only so StreamPay's hosted page shows 0 as the amount due instead of the
-// full price. It must NEVER stay on a subscription: StreamPay coupons have no
+// On a monthly plan the free month is the first billing period, made free by the
+// 100% coupon below (which also makes StreamPay's hosted page show 0 as the amount
+// due instead of the full price), plus a 1-day StreamPay trial. The 1-day trial is
+// required: without a trial StreamPay refuses a 0.00 checkout ("Total amount must
+// be at least 1"). It must NEVER stay on a subscription: StreamPay coupons have no
 // duration, so left in place it would discount every renewal. It is therefore
 // removed the moment the subscription exists (syncCompanySubscription), and
 // swept again by the daily cron.
@@ -346,12 +348,13 @@ export async function startPayment(
   const page = RETURN_PAGES[returnTo];
   const back = `${returnBase}${page}${page.includes("?") ? "&" : "?"}checkout=${encodeURIComponent(checkout.id)}`;
   const planName = plan === "pro" ? "Pro" : "Business";
-  // StreamPay's own trial (trial_period_days) is followed by a first billing
-  // period, and that period's invoice is issued at signup. A 100% coupon on top of
-  // a trial would therefore make the first period free as well: 30 + 30 days.
-  // So the coupon REPLACES the trial: the first billing period itself is free
-  // (a month, for a monthly plan) and the coupon comes off when it ends. A yearly
-  // plan's first period is a year, so yearly keeps the plain 30-day trial, with no coupon.
+  // StreamPay's trial (trial_period_days) is followed by a first billing period,
+  // and that period's invoice is issued at signup. So trial + 100% coupon is
+  // trial days PLUS a free period: with a 30-day trial that was 60 free days.
+  // Monthly: a 1-day trial (the minimum; a trial is needed so a 0.00 checkout is
+  // accepted) plus the free first month = 31 days, and the coupon comes off when
+  // that month ends. Yearly: a first period is a year, so no coupon, just the plain
+  // 30-day trial.
   let trialCoupons: string[] | undefined;
   if (promo && term === "monthly") {
     try {
@@ -373,7 +376,7 @@ export async function startPayment(
     success_redirect_url: back,
     failure_redirect_url: back,
     custom_metadata: { companyId: company.id, checkoutId: checkout.id, plan, term, ...(promoCode ? { promo: promoCode } : {}) },
-    ...(promo && !trialCoupons ? { trial_period_days: promo.trialDays } : {}),
+    ...(promo ? { trial_period_days: trialCoupons ? 1 : promo.trialDays } : {}),
     ...(trialCoupons ? { coupons: trialCoupons } : {}),
   });
 

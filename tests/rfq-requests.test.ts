@@ -85,17 +85,15 @@ const structured = (over: Record<string, unknown> = {}) => ({ requestType: "rfq"
 const create = (body: Record<string, unknown>) => request(server).post("/api/tenders").set(as("acme")).send({ ...base, ...body });
 
 beforeAll(async () => {
-  process.env.STRUCTURED_PRICING_ENABLED = "true";
   const { registerRoutes } = await import("../server/routes");
   const app = express();
   app.use(express.json());
   await registerRoutes(app);
   server = await startTestServer(app);
 }, 60_000);
-afterAll(() => { delete process.env.STRUCTURED_PRICING_ENABLED; return stopTestServer(server); });
+afterAll(() => stopTestServer(server));
 beforeEach(() => {
   m.tenders = {}; m.items = {}; m.created = []; m.updates = []; m.offersCreated = []; m.invited = {}; m.owners = {}; m.departed = new Set();
-  process.env.STRUCTURED_PRICING_ENABLED = "true";
 });
 
 describe("create an itemized request", () => {
@@ -108,7 +106,6 @@ describe("create an itemized request", () => {
     expect(JSON.stringify(r.body.deliverables)).not.toContain("18.5");
   });
   it.each([
-    ["flag off", () => { process.env.STRUCTURED_PRICING_ENABLED = "false"; return { structured: structured() }; }, 409, "STRUCTURED_PRICING_DISABLED"],
     ["RFQ without itemized pricing", () => ({ structured: structured({ itemizedPricing: false }) }), 400, "RFQ_REQUIRES_ITEMIZED"],
     ["itemized + quote_only", () => ({ submissionType: "quote_only", structured: structured() }), 400, "SUBMISSION_TYPE_INVALID"],
     ["itemized_only without items", () => ({ submissionType: "itemized_only" }), 400, "ITEMIZED_ONLY_REQUIRES_ITEMS"],

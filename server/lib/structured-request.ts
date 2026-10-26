@@ -9,7 +9,6 @@ import { isUploadObjectPath } from "@shared/company-verification";
 import { MAX_ITEMS } from "@shared/boq-money";
 import { attachProblem } from "./object-provenance";
 import type { ObjectProvenance } from "../objectAcl";
-import { isStructuredPricingEnabled } from "./structured-pricing-flag";
 
 export const ITEMIZED_SUBMISSION_TYPES = ["itemized_only", "tech_fin_proposal", "video_only", "tech_fin_with_video"] as const;
 
@@ -66,9 +65,6 @@ export async function parseStructuredRequest(
       throw new StructuredRequestError(400, "ITEMIZED_ONLY_REQUIRES_ITEMS", "Prices-only submission needs an item list.");
     }
     return null;
-  }
-  if (!isStructuredPricingEnabled()) {
-    throw new StructuredRequestError(409, "STRUCTURED_PRICING_DISABLED", "Itemized pricing is not available right now.");
   }
   const parsed = structuredRequestSchema.safeParse(raw);
   if (!parsed.success) throw new StructuredRequestError(400, "STRUCTURED_INVALID", "Invalid item list.");

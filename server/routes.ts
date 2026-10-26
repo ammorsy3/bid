@@ -45,7 +45,6 @@ import { registerCompanyVerificationRoutes, sendVerificationError } from "./rout
 import { registerAdminPlanRoutes } from "./routes/admin-plans";
 import { registerTenderItemRoutes } from "./routes/tender-items";
 import { registerRfqPricingRoutes } from "./routes/rfq-pricing";
-import { isStructuredPricingEnabled } from "./lib/structured-pricing-flag";
 import { verificationStore, type VerificationDetailsPatch } from "./lib/company-verification-store";
 import { CR_NUMBER_PATTERN, isUploadObjectPath, isVerificationDocumentType } from "@shared/company-verification";
 import { sendPlanRequired, assertFeature, assertSeatAvailable, requireFeature, PlanRequiredError } from "./lib/entitlements";
@@ -7077,7 +7076,7 @@ Respond with ONLY a JSON object. Example:
 
   // Deployment switches the client needs before sign-in (no secrets).
   app.get("/api/features", (_req, res) => {
-    res.json({ structuredPricing: isStructuredPricingEnabled() });
+    res.json({ structuredPricing: true });
   });
 
   // ============================================================================

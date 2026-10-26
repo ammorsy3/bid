@@ -79,8 +79,11 @@ beforeAll(async () => {
   await addMember(supplierCo.id, supplierMate.id);
   await addMember(buyerCo.id, buyerMate.id);
 
-  // The buyer publishes a tender with a spec sheet attached.
+  // The buyer publishes a tender with a spec sheet attached. It is on the
+  // marketplace (approved): only those are readable by companies that were not
+  // invited, which is what "a supplier browsing" below relies on.
   const tender = await makeTender(buyerCo.id, buyerOwner.id, "published");
+  await publishToMarketplace(tender.id);
   tenderAttachment = (await makePrivateFile("spec-sheet")).objectPath;
   await setAcl(tenderAttachment, {
     owner: buyerOwner.id,
@@ -127,6 +130,13 @@ async function attachToTender(tenderId: string, url: string) {
        ])}::jsonb
      where id = ${tenderId}
   `);
+}
+
+/** Approved marketplace listing, the one state that opens a tender's files to any other company. */
+async function publishToMarketplace(tenderId: string) {
+  const { db } = await import("../server/db");
+  const { sql } = await import("drizzle-orm");
+  await db.execute(sql`update tenders set is_marketplace = true, marketplace_status = 'approved' where id = ${tenderId}`);
 }
 
 const as = (user: { id: string }, companyId?: string, isAdmin = false) =>

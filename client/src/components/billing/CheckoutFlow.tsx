@@ -578,7 +578,7 @@ export function CheckoutFlow({
                     disabled={paying || blocking}
                     data-testid="billing-pay"
                   >
-                    {paying ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t("billing.redirecting")}</> : t("billing.continueToPayment")}
+                    {paying ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t("billing.redirecting")}</> : t(promo.state === "ok" ? "billing.startFreeTrial" : "billing.continueToPayment")}
                   </Button>
                   <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                     <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" />
@@ -615,6 +615,9 @@ function TermToggle({ term, onChange, t }: { term: BillingTerm; onChange: (x: Bi
   );
 }
 
+/** Length of the promo trial; mirrors PROMO_CODES in server/lib/billing.ts. */
+const TRIAL_DAYS = 30;
+
 function PriceBreakdown({
   plan, term, t, planName, termName, trial = false,
 }: {
@@ -623,12 +626,24 @@ function PriceBreakdown({
   t: (k: string, v?: Record<string, string | number>) => string;
   planName?: (p: PaidPlan) => string;
   termName?: (x: BillingTerm) => string;
-  /** Promo applied: the first period is free, so nothing is due today. */
+  /** Promo applied: a free trial, so nothing is due today and the first charge comes after it. */
   trial?: boolean;
 }) {
   const { subtotal, vat, total } = priceWithVat(plan, term);
+  const { language } = useI18n();
+  const money = total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const firstCharge = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000)
+    .toLocaleDateString(language === "ar" ? "ar-SA-u-nu-latn" : "en-GB", { day: "numeric", month: "long", year: "numeric" });
   return (
     <div className="space-y-2.5 text-sm" data-testid="billing-breakdown">
+      {trial && (
+        <div className="rounded-xl border border-green-300 bg-green-50 p-4 text-green-950 dark:border-green-800 dark:bg-green-950/30 dark:text-green-100" data-testid="billing-trial-banner">
+          <p className="text-lg font-bold leading-tight">{t("billing.trialHeadline", { days: TRIAL_DAYS })}</p>
+          <p className="mt-1.5 text-sm">
+            {t(term === "yearly" ? "billing.trialThenYearly" : "billing.trialThenMonthly", { amount: money, date: firstCharge })}
+          </p>
+        </div>
+      )}
       {planName && termName && (
         <div className="flex justify-between gap-3 font-medium">
           <span>{planName(plan)} · {termName(term)}</span>
@@ -646,9 +661,9 @@ function PriceBreakdown({
         <span>{sar(vat)}</span>
       </div>
       {trial && (
-        <div className="flex justify-between gap-3 text-green-700 dark:text-green-400 font-medium">
-          <span>{t("billing.promoFirstMonth")}</span>
-          <span>−{sar(total)}</span>
+        <div className="flex justify-between gap-3 font-medium">
+          <span>{t(term === "yearly" ? "billing.afterTrialYearly" : "billing.afterTrialMonthly")}</span>
+          <span>{sar(total)}</span>
         </div>
       )}
       <div className="flex justify-between gap-3 border-t pt-3 text-base font-bold">
@@ -656,9 +671,7 @@ function PriceBreakdown({
         <span>{sar(trial ? 0 : total)}</span>
       </div>
       {trial ? (
-        <p className="text-xs text-muted-foreground">
-          {t("billing.afterTrial", { amount: total.toLocaleString("en-US") })}
-        </p>
+        <p className="text-xs text-muted-foreground">{t("billing.trialCancel")}</p>
       ) : (
         <p className="text-xs text-muted-foreground">{t(term === "yearly" ? "billing.renewsYearly" : "billing.renewsMonthly")}</p>
       )}

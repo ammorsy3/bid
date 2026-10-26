@@ -36,14 +36,12 @@ import {
 import {
   StreamPayError,
   createConsumer,
-  createCoupon,
   createPaymentLink,
   getInvoice,
   getPaymentLink,
   getSubscription,
   listConsumerInvoices,
   listConsumerSubscriptions,
-  listCoupons,
   planForSubscription,
   resolvePlanProducts,
   searchConsumers,
@@ -243,29 +241,14 @@ const PROMO_CODES: Record<string, { trialDays: number }> = {
   tested: { trialDays: 30 },
 };
 
-// The trial's 30 days are enforced by trial_period_days. The 100% coupon below
-// exists only so StreamPay's hosted page shows 0 as the amount due instead of the
-// full price. It must NEVER stay on a subscription: StreamPay coupons have no
-// duration, so left in place it would discount every renewal. It is therefore
-// removed the moment the subscription exists (syncCompanySubscription), and
-// swept again by the daily cron.
+// Trials use StreamPay's native trial (trial_period_days): the card is saved at
+// checkout and charged automatically when it ends. An earlier version also put a
+// 100% coupon on the link so StreamPay's page read 0.00, but that doubled the free
+// time and forced a "1 day" trial label, so it was dropped. Subscriptions created
+// during that version may still carry the coupon, which must NEVER stay on (StreamPay
+// coupons have no duration, so it would discount every renewal): stripTrialCoupon
+// removes it on every sync and the daily cron sweeps for stragglers.
 export const TRIAL_COUPON_NAME = "Bid trial: first period free";
-let trialCouponId: Promise<string> | null = null;
-
-export function ensureTrialCoupon(): Promise<string> {
-  trialCouponId ??= (async () => {
-    const { data } = await listCoupons(TRIAL_COUPON_NAME);
-    const existing = (data ?? []).find(
-      (c) => c.name === TRIAL_COUPON_NAME && c.is_percentage && Number(c.discount_value) === 100 && c.is_active,
-    );
-    if (existing) return existing.id;
-    return (await createCoupon({ name: TRIAL_COUPON_NAME, discount_value: 100, is_percentage: true, is_active: true })).id;
-  })().catch((err) => {
-    trialCouponId = null; // retry next time
-    throw err;
-  });
-  return trialCouponId;
-}
 
 /**
  * Takes the trial coupon off a subscription. StreamPay applies the change at the
@@ -346,23 +329,8 @@ export async function startPayment(
   const page = RETURN_PAGES[returnTo];
   const back = `${returnBase}${page}${page.includes("?") ? "&" : "?"}checkout=${encodeURIComponent(checkout.id)}`;
   const planName = plan === "pro" ? "Pro" : "Business";
-  // StreamPay's own trial (trial_period_days) is followed by a first billing
-  // period, and that period's invoice is issued at signup. A 100% coupon on top of
-  // a trial would therefore make the first period free as well: 30 + 30 days.
-  // So the coupon REPLACES the trial: the first billing period itself is free
-  // (a month, for a monthly plan) and the coupon comes off when it ends. A yearly
-  // plan's first period is a year, so yearly keeps the plain 30-day trial, with no coupon.
-  let trialCoupons: string[] | undefined;
-  if (promo && term === "monthly") {
-    try {
-      trialCoupons = [await ensureTrialCoupon()];
-    } catch (err) {
-      // The trial itself still works; only StreamPay's page will show the full price.
-      console.error("[Billing] trial coupon unavailable, continuing without it", err);
-    }
-  }
   const link = await createPaymentLink({
-    name: `Bid ${planName} (${term === "yearly" ? "yearly" : "monthly"})`,
+    name: promo ? `Bid ${planName}: ${promo.trialDays}-day free trial` : `Bid ${planName} (${term === "yearly" ? "yearly" : "monthly"})`,
     description: company.name,
     items: [{ product_id: product.id, quantity: 1 }],
     currency: "SAR",
@@ -373,8 +341,7 @@ export async function startPayment(
     success_redirect_url: back,
     failure_redirect_url: back,
     custom_metadata: { companyId: company.id, checkoutId: checkout.id, plan, term, ...(promoCode ? { promo: promoCode } : {}) },
-    ...(promo && !trialCoupons ? { trial_period_days: promo.trialDays } : {}),
-    ...(trialCoupons ? { coupons: trialCoupons } : {}),
+    ...(promo ? { trial_period_days: promo.trialDays } : {}),
   });
 
   await db

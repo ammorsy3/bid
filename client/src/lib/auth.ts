@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { apiRequest } from './queryClient';
+import { apiRequest, queryClient } from './queryClient';
+import { clearAllOfferingDrafts } from './offering-draft';
 import { attributionForSignup } from './attribution';
 
 // ============================================================================
@@ -195,6 +196,9 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         localStorage.removeItem('token');
+        // Organization-private data never outlives the session on this device.
+        clearAllOfferingDrafts();
+        queryClient.removeQueries({ queryKey: ['offerings'] });
         // Note: trustedBrowserToken is intentionally kept — it should survive logout
         // so the user doesn't need OTP again on re-login within 7 days
         set({
@@ -231,6 +235,8 @@ export const useAuthStore = create<AuthState>()(
           } else if (response.status === 401 || response.status === 403) {
             // The server rejected the session itself: sign out.
             localStorage.removeItem('token');
+            clearAllOfferingDrafts();
+            queryClient.removeQueries({ queryKey: ['offerings'] });
             set({ 
               user: null, 
               token: null,

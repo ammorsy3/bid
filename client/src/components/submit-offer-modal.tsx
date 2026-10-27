@@ -74,6 +74,7 @@ const modalStrings: Record<string, Record<string, string>> = {
     notInvited: "You're not invited to submit a proposal for this request. Use the invitation link you received, or ask the requester to invite you.",
     reuploadRequired: "Upload the affected file again, then submit your proposal.",
     selfSubmission: "You can't submit a proposal to your own company's request.",
+    vendorRegistrationRequired: "Add the services or products your organization offers (Settings → Offerings) to submit proposals.",
     failedToSubmit: "Failed to submit offer",
     priceQuoteLabel: "Your Price Quote (SAR) *",
     enterPrice: "Enter your price in SAR",
@@ -148,6 +149,7 @@ const modalStrings: Record<string, Record<string, string>> = {
     notInvited: "لست مدعوًا لتقديم عرض على هذا الطلب. استخدم رابط الدعوة الذي وصلك، أو اطلب من الجهة الطالبة دعوتك.",
     reuploadRequired: "أعد رفع الملف المطلوب، ثم أرسل عرضك.",
     selfSubmission: "لا يمكنك تقديم عرض على طلب تابع لشركتك.",
+    vendorRegistrationRequired: "أضف الخدمات والمنتجات اللي تقدمها جهتك (الإعدادات ← الخدمات والمنتجات) عشان تقدر تقدّم عروض.",
     failedToSubmit: "فشل تقديم العرض",
     priceQuoteLabel: "عرض السعر (ريال سعودي) *",
     enterPrice: "أدخل السعر بالريال السعودي",
@@ -395,6 +397,7 @@ export default function SubmitOfferModal({ isOpen, onClose, tender, requester, i
       // Eligibility refusals (server/lib/tender-access.ts) get localized text instead of the server's English.
       const refusalKey = error instanceof ApiError && error.code === 'NOT_INVITED' ? 'notInvited'
         : error instanceof ApiError && error.code === 'SELF_SUBMISSION' ? 'selfSubmission'
+        : error instanceof ApiError && error.code === 'VENDOR_REGISTRATION_REQUIRED' ? 'vendorRegistrationRequired'
         : error instanceof ApiError && error.code === 'REUPLOAD_REQUIRED' ? 'reuploadRequired' : null;
       if (refusalKey) {
         // A file that must be uploaded again: clear only that file (the others stay)

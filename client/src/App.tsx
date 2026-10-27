@@ -29,6 +29,7 @@ import CompanyDocuments from "@/pages/onboarding/company-documents";
 import IndividualBasics from "@/pages/onboarding/individual-basics";
 import TeamBasics from "@/pages/onboarding/team-basics";
 import TeamInviteOnboarding from "@/pages/onboarding/team-invite";
+import OnboardingOfferings from "@/pages/onboarding/offerings";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminVendors from "@/pages/AdminVendors";
 import TenderDetails from "@/pages/tender-details";
@@ -56,6 +57,7 @@ import Pricing from "@/pages/Pricing";
 import ContactSales from "@/pages/ContactSales";
 import Settings from "@/pages/Settings";
 import SettingsIntegrations from "@/pages/SettingsIntegrations";
+import SettingsOfferings from "@/pages/SettingsOfferings";
 import DocsPage from "@/pages/docs/DocsPage";
 import CompanyProfilePage from "@/pages/CompanyProfilePage";
 import CompanyProfileEditor from "@/pages/CompanyProfileEditor";
@@ -182,6 +184,7 @@ export default function App() {
               <Route path="/onboarding/individual-profile" component={IndividualProfileEditor} />
               <Route path="/onboarding/team-basics" component={TeamBasics} />
               <Route path="/onboarding/team-invite" component={TeamInviteOnboarding} />
+              <Route path="/onboarding/offerings" component={OnboardingOfferings} />
               <Route path="/dashboard" component={DashboardGuard} />
               <Route path="/rfps" component={DashboardGuard} />
               <Route path="/proposals" component={DashboardGuard} />
@@ -224,6 +227,7 @@ export default function App() {
               <Route path="/admin/errors" component={AdminErrors} />
               <Route path="/upgrade" component={Upgrade} />
               <Route path="/settings/integrations" component={SettingsIntegrations} />
+              <Route path="/settings/offerings" component={SettingsOfferings} />
               <Route path="/settings" component={Settings} />
               <Route path="/docs" component={DocsPage} />
               <Route path="/docs/:slug" component={DocsPage} />

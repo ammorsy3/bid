@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -21,6 +22,8 @@ const DRAFT_KEY = "onboarding-draft";
 type CompanyBasicsForm = {
   name: string;
   category: string;
+  /** Vendor registration: does the company offer services/products, or only request them? */
+  vendorIntent: string; // "vendor" | "requester_only"
 };
 
 function getDraft(): Record<string, any> {
@@ -56,6 +59,7 @@ export default function CompanyBasics() {
   const companyBasicsSchema = z.object({
     name: z.string().min(2, t('validation.companyNameRequired')),
     category: z.string().min(1, t('validation.categoryRequired')),
+    vendorIntent: z.string().refine((v) => v === "vendor" || v === "requester_only", t('offerings.intentRequired')),
   });
 
   const draft = getDraft();
@@ -65,6 +69,7 @@ export default function CompanyBasics() {
     defaultValues: {
       name: draft.name || "",
       category: draft.category || "",
+      vendorIntent: draft.vendorIntent === "vendor" || draft.vendorIntent === "requester_only" ? draft.vendorIntent : "",
     },
   });
 
@@ -79,6 +84,7 @@ export default function CompanyBasics() {
       const response = await apiRequest('POST', '/api/companies', {
         name: data.name,
         category: data.category,
+        vendorIntent: data.vendorIntent,
       });
       if (!response.ok) {
         const error = await response.json();
@@ -92,7 +98,9 @@ export default function CompanyBasics() {
         title: t('onboardingPanel.workspaceReadyTitle'),
         description: t('onboardingPanel.workspaceReadyDesc'),
       });
-      setLocation(getPostOnboardingRedirect());
+      // A vendor classifies its offerings next; registration completes only when that is saved.
+      const after = getPostOnboardingRedirect();
+      setLocation(data.vendorIntent === "vendor" ? `/onboarding/offerings?next=${encodeURIComponent(after)}` : after);
     } catch (error: any) {
       toast({
         title: t('onboardingPanel.workspaceCreateError'),
@@ -163,6 +171,30 @@ export default function CompanyBasics() {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="vendorIntent"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('offerings.intentLabel')}</FormLabel>
+                    <FormControl>
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className="grid gap-2" data-testid="radio-vendor-intent">
+                        {(["vendor", "requester_only"] as const).map((v) => (
+                          <label key={v} htmlFor={`intent-${v}`} className="flex items-start gap-3 rounded-lg border border-border p-3 min-h-11 cursor-pointer has-[button[data-state=checked]]:border-[#FE3C01]">
+                            <RadioGroupItem value={v} id={`intent-${v}`} className="mt-0.5" data-testid={`radio-intent-${v}`} />
+                            <span className="text-sm">
+                              <span className="font-medium block">{t(v === "vendor" ? 'offerings.intentVendor' : 'offerings.intentRequester')}</span>
+                              <span className="text-muted-foreground text-xs">{t(v === "vendor" ? 'offerings.intentVendorDesc' : 'offerings.intentRequesterDesc')}</span>
+                            </span>
+                          </label>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="rounded-lg bg-muted border border-border p-3 text-xs text-muted-foreground">
                 {t('onboardingPanel.companyLegalInfoNote')}
               </div>
@@ -190,7 +222,7 @@ export default function CompanyBasics() {
                     </>
                   ) : (
                     <>
-                      {t('onboardingPanel.goToDashboard')}
+                      {form.watch('vendorIntent') === 'vendor' ? t('offerings.continueToOfferings') : t('onboardingPanel.goToDashboard')}
                       <ArrowRight className={`ms-2 h-4 w-4 ${isRtl ? 'rotate-180' : ''}`} />
                     </>
                   )}

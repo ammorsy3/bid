@@ -25,6 +25,7 @@ import { resolveSubmissionEligibility, resolveTenderReadGrant } from "../lib/ten
 import { tenderItemsStore as defaultItems, type TenderItemsStore } from "../lib/tender-items-store";
 import { rfqOfferStore as defaultOffers, RfqOfferError, type RfqOfferStore } from "../lib/rfq-offer-store";
 import { notifyRequesterOfProposal } from "../lib/proposal-notifications";
+import { defaultVendorStatus, vendorRegistrationBlock, type VendorStatusLookup } from "../lib/vendor-gate";
 import type { AuthRequest } from "../middleware/auth-types";
 
 interface Deps {
@@ -32,6 +33,7 @@ interface Deps {
   requireCompanyContext: RequestHandler;
   itemsStore?: TenderItemsStore;
   offerStore?: RfqOfferStore;
+  vendorStatus?: VendorStatusLookup;
 }
 
 const EDIT_ROLES = new Set(["owner", "admin", "business_developer", "member"]);
@@ -124,7 +126,7 @@ export async function runAfterCommit(
   }));
 }
 
-export function registerRfqPricingRoutes(app: Express, { authenticateToken, requireCompanyContext, itemsStore = defaultItems, offerStore = defaultOffers }: Deps) {
+export function registerRfqPricingRoutes(app: Express, { authenticateToken, requireCompanyContext, itemsStore = defaultItems, offerStore = defaultOffers, vendorStatus = defaultVendorStatus }: Deps) {
   /** Who the caller is for this request, and what they may do. Answers the request (and returns null) when nothing. */
   async function context(req: AuthRequest, res: Response) {
     const tender = await storage.getTender(req.params.id);
@@ -147,7 +149,9 @@ export function registerRfqPricingRoutes(app: Express, { authenticateToken, requ
       : !EDIT_ROLES.has(role ?? "") ? "VIEWER"
       : !verified ? "VERIFICATION_REQUIRED"
       : null;
-    return { tender, companyId, readOnlyReason };
+    // Pricing is a vendor capability: it needs a completed vendor registration (server/lib/vendor-gate.ts).
+    const vendorBlock = readOnlyReason ? null : await vendorRegistrationBlock(companyId, vendorStatus);
+    return { tender, companyId, readOnlyReason: readOnlyReason ?? (vendorBlock ? "VENDOR_REGISTRATION_REQUIRED" : null) };
   }
 
   app.get("/api/tenders/:id/pricing", authenticateToken, requireCompanyContext, async (req: AuthRequest, res) => {
@@ -180,7 +184,7 @@ export function registerRfqPricingRoutes(app: Express, { authenticateToken, requ
     try {
       const ctx = await context(req, res);
       if (!ctx) return;
-      if (ctx.readOnlyReason) return res.status(ctx.readOnlyReason === "VIEWER" ? 403 : 409).json({ message: "This draft cannot be changed.", code: ctx.readOnlyReason });
+      if (ctx.readOnlyReason) return res.status(ctx.readOnlyReason === "VIEWER" || ctx.readOnlyReason === "VENDOR_REGISTRATION_REQUIRED" ? 403 : 409).json({ message: "This draft cannot be changed.", code: ctx.readOnlyReason });
       const body = saveDraftSchema.parse(req.body);
       if (body.itemsRevision !== ctx.tender.itemsRevision) return res.status(409).json({ message: "The request's items changed.", code: "STALE_REVISION", itemsRevision: ctx.tender.itemsRevision });
       const items = await itemsStore.getItems(ctx.tender.id, ctx.tender.itemsRevision);
@@ -196,7 +200,7 @@ export function registerRfqPricingRoutes(app: Express, { authenticateToken, requ
       const ctx = await context(req, res);
       if (!ctx) return;
       if (ctx.readOnlyReason) {
-        const status = ctx.readOnlyReason === "VIEWER" || ctx.readOnlyReason === "VERIFICATION_REQUIRED" || ctx.readOnlyReason === "NOT_INVITED" ? 403 : 409;
+        const status = ctx.readOnlyReason === "VIEWER" || ctx.readOnlyReason === "VERIFICATION_REQUIRED" || ctx.readOnlyReason === "NOT_INVITED" || ctx.readOnlyReason === "VENDOR_REGISTRATION_REQUIRED" ? 403 : 409;
         return res.status(status).json({ message: "This offer cannot be submitted.", code: ctx.readOnlyReason });
       }
       const body = submitItemizedOfferSchema.parse(req.body);

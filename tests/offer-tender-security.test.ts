@@ -20,6 +20,7 @@ const m = vi.hoisted(() => ({
   statusUpdates: [] as any[],
   objectOwners: {} as Record<string, string>,
   notified: [] as string[],
+  vendorStatus: "registered" as string,
 }));
 
 const OWNER = "owner-co";
@@ -62,6 +63,12 @@ vi.mock("../server/objectAcl", async (importOriginal) => ({
 vi.mock("../server/email", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../server/email")>()),
   sendNewOfferNotification: async ({ tenderId }: { tenderId: string }) => { m.notified.push(tenderId); },
+}));
+// Vendor registration (BID-OFFERING-CLASSIFICATION) has its own tests
+// (tests/offerings-*.test.ts); here the submitting organization is a registered vendor.
+vi.mock("../server/lib/offering-store", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../server/lib/offering-store")>()),
+  offeringStore: () => ({ status: async () => m.vendorStatus }),
 }));
 vi.mock("../server/storage", () => {
   const known: Record<string, (...a: any[]) => unknown> = {
@@ -114,6 +121,7 @@ beforeEach(() => {
   m.statusUpdates = [];
   m.objectOwners = { "/objects/uploads/tech": "vendor-co-user", "/objects/uploads/fin": "vendor-co-user" };
   m.notified = [];
+  m.vendorStatus = "registered";
 });
 
 function expectPriceWithheld(body: any) {
@@ -359,5 +367,23 @@ describe("tenderForAudience", () => {
   it("only an explicit false hides the price (null/undefined keep the existing 'shown' default)", () => {
     expect((tenderForAudience({ ...PRIVATE_TENDER, showPriceToVendors: null } as any) as any).budget).toBe("500000");
     expect((tenderForAudience({ ...PRIVATE_TENDER, showPriceToVendors: undefined } as any) as any).budget).toBe("500000");
+  });
+});
+
+describe("vendor registration gate on the legacy offer route (BID-OFFERING-CLASSIFICATION)", () => {
+  const submit = () => request(server).post("/api/tenders/t1/offers").set(auth("vendor-co"))
+    .send({ technicalFileUrl: "/objects/uploads/tech", financialFileUrl: "/objects/uploads/fin", quotePrice: 1000 });
+
+  it.each(["pending", "requester_only"])("an organization whose vendor registration is %s is refused and nothing is written", async (status) => {
+    m.vendorStatus = status;
+    const r = await submit();
+    expect([r.status, r.body.code, r.body.vendorRegistrationStatus]).toEqual([403, "VENDOR_REGISTRATION_REQUIRED", status]);
+    expect(m.created).toHaveLength(0);
+  });
+
+  it.each(["registered", "legacy_unclassified"])("%s may submit (existing organizations are not locked out)", async (status) => {
+    m.vendorStatus = status;
+    expect((await submit()).status).toBe(200);
+    expect(m.created).toHaveLength(1);
   });
 });

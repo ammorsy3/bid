@@ -23,6 +23,8 @@ import {
   type InsertCompanyProfile,
 } from "@shared/schema";
 import { bindOnboardingObject, publishCompanyObject } from "../objectAcl";
+import { initializeVendorRegistration } from "./offering-store";
+import type { VendorRegistrationStatus } from "@shared/schema";
 
 export interface OnboardingDocument {
   documentType: string;
@@ -47,12 +49,15 @@ export async function createCompanyWithOnboardingFiles(
     documents: OnboardingDocument[];
     /** A private upload path to bind and publish as the logo; null when the logo is external, public-bucket or absent. */
     logoUploadPath: string | null;
+    /** Vendor registration starts with the organization (never 'registered': that needs saved offerings). */
+    vendorRegistrationStatus: VendorRegistrationStatus;
   },
 ): Promise<{ company: Company; profile: CompanyProfile }> {
   return database.transaction(async (tx) => {
     const [company] = await tx.insert(companies).values(input.company).returning();
     const [profile] = await tx.insert(companyProfiles).values({ ...input.profile, companyId: company.id }).returning();
     await tx.insert(userCompanies).values({ userId: input.userId, companyId: company.id, roleInCompany: "owner", invitedBy: null });
+    await initializeVendorRegistration(tx, company.id, input.vendorRegistrationStatus);
 
     // Bind every supplied file; collect all failures so the client can name each one.
     const bound = new Set<string>();

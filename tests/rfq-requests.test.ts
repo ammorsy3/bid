@@ -53,6 +53,12 @@ vi.mock("../server/lib/tender-items-store", () => ({
   },
   createTenderItemsStore: () => ({}),
 }));
+// Vendor registration (BID-OFFERING-CLASSIFICATION) has its own tests
+// (tests/offerings-*.test.ts); here the submitting organization is a registered vendor.
+vi.mock("../server/lib/offering-store", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../server/lib/offering-store")>()),
+  offeringStore: () => ({ status: async () => "registered" }),
+}));
 vi.mock("../server/storage", () => {
   const known: Record<string, (...a: any[]) => unknown> = {
     getUser: async (id: string) => ({ id, email: `${id}@example.test`, otpVerified: true, isAdmin: false, lastLoginAt: new Date() }),

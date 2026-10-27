@@ -1,0 +1,3150 @@
+{
+ "note": "Persisted item IDs. Assigned once by the importer; never renumber or reuse. Key = group ID + normalised source example.",
+ "items": {
+  "BID-D01-F01-G01-I01": {
+   "groupId": "BID-D01-F01-G01",
+   "key": "BID-D01-F01-G01|corporate strategy",
+   "source": "Corporate strategy"
+  },
+  "BID-D01-F01-G01-I02": {
+   "groupId": "BID-D01-F01-G01",
+   "key": "BID-D01-F01-G01|business planning",
+   "source": "Business planning"
+  },
+  "BID-D01-F01-G02-I01": {
+   "groupId": "BID-D01-F01-G02",
+   "key": "BID-D01-F01-G02|operating model design",
+   "source": "Operating model design"
+  },
+  "BID-D01-F01-G02-I02": {
+   "groupId": "BID-D01-F01-G02",
+   "key": "BID-D01-F01-G02|organizational transformation",
+   "source": "Organizational transformation"
+  },
+  "BID-D01-F02-G01-I01": {
+   "groupId": "BID-D01-F02-G01",
+   "key": "BID-D01-F02-G01|market research",
+   "source": "Market research"
+  },
+  "BID-D01-F02-G01-I02": {
+   "groupId": "BID-D01-F02-G01",
+   "key": "BID-D01-F02-G01|feasibility studies",
+   "source": "Feasibility studies"
+  },
+  "BID-D01-F02-G04-I01": {
+   "groupId": "BID-D01-F02-G04",
+   "key": "BID-D01-F02-G04|procurement consulting",
+   "source": "Procurement consulting"
+  },
+  "BID-D01-F02-G04-I02": {
+   "groupId": "BID-D01-F02-G04",
+   "key": "BID-D01-F02-G04|supply chain consulting",
+   "source": "Supply chain consulting"
+  },
+  "BID-D01-F03-G01-I01": {
+   "groupId": "BID-D01-F03-G01",
+   "key": "BID-D01-F03-G01|project management office",
+   "source": "Project management office"
+  },
+  "BID-D01-F03-G01-I02": {
+   "groupId": "BID-D01-F03-G01",
+   "key": "BID-D01-F03-G01|program management",
+   "source": "Program management"
+  },
+  "BID-D01-F03-G02-I01": {
+   "groupId": "BID-D01-F03-G02",
+   "key": "BID-D01-F03-G02|change management",
+   "source": "Change management"
+  },
+  "BID-D01-F03-G02-I02": {
+   "groupId": "BID-D01-F03-G02",
+   "key": "BID-D01-F03-G02|process improvement",
+   "source": "Process improvement"
+  },
+  "BID-D02-F01-G01-I01": {
+   "groupId": "BID-D02-F01-G01",
+   "key": "BID-D02-F01-G01|corporate legal advisory",
+   "source": "Corporate legal advisory"
+  },
+  "BID-D02-F01-G01-I02": {
+   "groupId": "BID-D02-F01-G01",
+   "key": "BID-D02-F01-G01|commercial contracts",
+   "source": "Commercial contracts"
+  },
+  "BID-D02-F02-G01-I01": {
+   "groupId": "BID-D02-F02-G01",
+   "key": "BID-D02-F02-G01|corporate governance advisory",
+   "source": "Corporate governance advisory"
+  },
+  "BID-D02-F02-G01-I02": {
+   "groupId": "BID-D02-F02-G01",
+   "key": "BID-D02-F02-G01|board advisory",
+   "source": "Board advisory"
+  },
+  "BID-D02-F02-G02-I01": {
+   "groupId": "BID-D02-F02-G02",
+   "key": "BID-D02-F02-G02|policy development",
+   "source": "Policy development"
+  },
+  "BID-D02-F02-G02-I02": {
+   "groupId": "BID-D02-F02-G02",
+   "key": "BID-D02-F02-G02|compliance program development",
+   "source": "Compliance program development"
+  },
+  "BID-D03-F01-G01-I01": {
+   "groupId": "BID-D03-F01-G01",
+   "key": "BID-D03-F01-G01|bookkeeping",
+   "source": "Bookkeeping"
+  },
+  "BID-D03-F01-G01-I02": {
+   "groupId": "BID-D03-F01-G01",
+   "key": "BID-D03-F01-G01|financial reporting",
+   "source": "Financial reporting"
+  },
+  "BID-D03-F01-G03-I01": {
+   "groupId": "BID-D03-F01-G03",
+   "key": "BID-D03-F01-G03|external audit",
+   "source": "External audit"
+  },
+  "BID-D03-F01-G03-I02": {
+   "groupId": "BID-D03-F01-G03",
+   "key": "BID-D03-F01-G03|internal audit",
+   "source": "Internal audit"
+  },
+  "BID-D03-F02-G01-I01": {
+   "groupId": "BID-D03-F02-G01",
+   "key": "BID-D03-F02-G01|financial modeling",
+   "source": "Financial modeling"
+  },
+  "BID-D03-F02-G01-I02": {
+   "groupId": "BID-D03-F02-G01",
+   "key": "BID-D03-F02-G01|business valuation",
+   "source": "Business valuation"
+  },
+  "BID-D03-F03-G03-I01": {
+   "groupId": "BID-D03-F03-G03",
+   "key": "BID-D03-F03-G03|commercial financing",
+   "source": "Commercial financing"
+  },
+  "BID-D03-F03-G03-I02": {
+   "groupId": "BID-D03-F03-G03",
+   "key": "BID-D03-F03-G03|trade finance",
+   "source": "Trade finance"
+  },
+  "BID-D03-F03-G04-I01": {
+   "groupId": "BID-D03-F03-G04",
+   "key": "BID-D03-F03-G04|insurance brokerage",
+   "source": "Insurance brokerage"
+  },
+  "BID-D03-F03-G04-I02": {
+   "groupId": "BID-D03-F03-G04",
+   "key": "BID-D03-F03-G04|commercial insurance",
+   "source": "Commercial insurance"
+  },
+  "BID-D04-F01-G01-I01": {
+   "groupId": "BID-D04-F01-G01",
+   "key": "BID-D04-F01-G01|permanent recruitment",
+   "source": "Permanent recruitment"
+  },
+  "BID-D04-F01-G01-I02": {
+   "groupId": "BID-D04-F01-G01",
+   "key": "BID-D04-F01-G01|executive search",
+   "source": "Executive search"
+  },
+  "BID-D04-F01-G02-I01": {
+   "groupId": "BID-D04-F01-G02",
+   "key": "BID-D04-F01-G02|temporary staffing",
+   "source": "Temporary staffing"
+  },
+  "BID-D04-F01-G02-I02": {
+   "groupId": "BID-D04-F01-G02",
+   "key": "BID-D04-F01-G02|contract staffing",
+   "source": "Contract staffing"
+  },
+  "BID-D04-F02-G02-I01": {
+   "groupId": "BID-D04-F02-G02",
+   "key": "BID-D04-F02-G02|compensation benchmarking",
+   "source": "Compensation benchmarking"
+  },
+  "BID-D04-F02-G02-I02": {
+   "groupId": "BID-D04-F02-G02",
+   "key": "BID-D04-F02-G02|benefits administration",
+   "source": "Benefits administration"
+  },
+  "BID-D04-F03-G01-I01": {
+   "groupId": "BID-D04-F03-G01",
+   "key": "BID-D04-F03-G01|outsourced contact center staff",
+   "source": "Outsourced contact center staff"
+  },
+  "BID-D04-F03-G01-I02": {
+   "groupId": "BID-D04-F03-G01",
+   "key": "BID-D04-F03-G01|outsourced field teams",
+   "source": "Outsourced field teams"
+  },
+  "BID-D04-F03-G01-I03": {
+   "groupId": "BID-D04-F03-G01",
+   "key": "BID-D04-F03-G01|outsourced administrative staff",
+   "source": "Outsourced administrative staff"
+  },
+  "BID-D04-F03-G02-I01": {
+   "groupId": "BID-D04-F03-G02",
+   "key": "BID-D04-F03-G02|workforce accommodation management",
+   "source": "Workforce accommodation management"
+  },
+  "BID-D04-F03-G02-I02": {
+   "groupId": "BID-D04-F03-G02",
+   "key": "BID-D04-F03-G02|employee relocation",
+   "source": "Employee relocation"
+  },
+  "BID-D05-F01-G01-I01": {
+   "groupId": "BID-D05-F01-G01",
+   "key": "BID-D05-F01-G01|corporate training",
+   "source": "Corporate training"
+  },
+  "BID-D05-F01-G01-I02": {
+   "groupId": "BID-D05-F01-G01",
+   "key": "BID-D05-F01-G01|leadership development",
+   "source": "Leadership development"
+  },
+  "BID-D05-F01-G02-I01": {
+   "groupId": "BID-D05-F01-G02",
+   "key": "BID-D05-F01-G02|vocational training",
+   "source": "Vocational training"
+  },
+  "BID-D05-F01-G02-I02": {
+   "groupId": "BID-D05-F01-G02",
+   "key": "BID-D05-F01-G02|professional exam preparation",
+   "source": "Professional exam preparation"
+  },
+  "BID-D05-F02-G01-I01": {
+   "groupId": "BID-D05-F02-G01",
+   "key": "BID-D05-F02-G01|instructional design",
+   "source": "Instructional design"
+  },
+  "BID-D05-F02-G01-I02": {
+   "groupId": "BID-D05-F02-G01",
+   "key": "BID-D05-F02-G01|e learning content development",
+   "source": "E-learning content development"
+  },
+  "BID-D05-F02-G03-I01": {
+   "groupId": "BID-D05-F02-G03",
+   "key": "BID-D05-F02-G03|assessment design",
+   "source": "Assessment design"
+  },
+  "BID-D05-F02-G03-I02": {
+   "groupId": "BID-D05-F02-G03",
+   "key": "BID-D05-F02-G03|learning evaluation",
+   "source": "Learning evaluation"
+  },
+  "BID-D05-F03-G01-I01": {
+   "groupId": "BID-D05-F03-G01",
+   "key": "BID-D05-F03-G01|textbooks",
+   "source": "Textbooks"
+  },
+  "BID-D05-F03-G01-I02": {
+   "groupId": "BID-D05-F03-G01",
+   "key": "BID-D05-F03-G01|teaching materials",
+   "source": "Teaching materials"
+  },
+  "BID-D05-F03-G02-I01": {
+   "groupId": "BID-D05-F03-G02",
+   "key": "BID-D05-F03-G02|classroom equipment",
+   "source": "Classroom equipment"
+  },
+  "BID-D05-F03-G02-I02": {
+   "groupId": "BID-D05-F03-G02",
+   "key": "BID-D05-F03-G02|vocational training kits",
+   "source": "Vocational training kits"
+  },
+  "BID-D05-F04-G01-I01": {
+   "groupId": "BID-D05-F04-G01",
+   "key": "BID-D05-F04-G01|learning management software",
+   "source": "Learning management software"
+  },
+  "BID-D05-F04-G01-I02": {
+   "groupId": "BID-D05-F04-G01",
+   "key": "BID-D05-F04-G01|assessment software",
+   "source": "Assessment software"
+  },
+  "BID-D05-F04-G02-I01": {
+   "groupId": "BID-D05-F04-G02",
+   "key": "BID-D05-F04-G02|digital course licenses",
+   "source": "Digital course licenses"
+  },
+  "BID-D05-F04-G02-I02": {
+   "groupId": "BID-D05-F04-G02",
+   "key": "BID-D05-F04-G02|digital library subscriptions",
+   "source": "Digital library subscriptions"
+  },
+  "BID-D06-F01-G01-I01": {
+   "groupId": "BID-D06-F01-G01",
+   "key": "BID-D06-F01-G01|brand strategy",
+   "source": "Brand strategy"
+  },
+  "BID-D06-F01-G01-I02": {
+   "groupId": "BID-D06-F01-G01",
+   "key": "BID-D06-F01-G01|brand naming",
+   "source": "Brand naming"
+  },
+  "BID-D06-F01-G01-I03": {
+   "groupId": "BID-D06-F01-G01",
+   "key": "BID-D06-F01-G01|brand positioning",
+   "source": "Brand positioning"
+  },
+  "BID-D06-F01-G02-I01": {
+   "groupId": "BID-D06-F01-G02",
+   "key": "BID-D06-F01-G02|marketing strategy",
+   "source": "Marketing strategy"
+  },
+  "BID-D06-F01-G02-I02": {
+   "groupId": "BID-D06-F01-G02",
+   "key": "BID-D06-F01-G02|communication strategy",
+   "source": "Communication strategy"
+  },
+  "BID-D06-F02-G05-I01": {
+   "groupId": "BID-D06-F02-G05",
+   "key": "BID-D06-F02-G05|email marketing",
+   "source": "Email marketing"
+  },
+  "BID-D06-F02-G05-I02": {
+   "groupId": "BID-D06-F02-G05",
+   "key": "BID-D06-F02-G05|affiliate program management",
+   "source": "Affiliate program management"
+  },
+  "BID-D06-F03-G01-I01": {
+   "groupId": "BID-D06-F03-G01",
+   "key": "BID-D06-F03-G01|public relations",
+   "source": "Public relations"
+  },
+  "BID-D06-F03-G01-I02": {
+   "groupId": "BID-D06-F03-G01",
+   "key": "BID-D06-F03-G01|media relations",
+   "source": "Media relations"
+  },
+  "BID-D06-F03-G03-I01": {
+   "groupId": "BID-D06-F03-G03",
+   "key": "BID-D06-F03-G03|internal communications",
+   "source": "Internal communications"
+  },
+  "BID-D06-F03-G03-I02": {
+   "groupId": "BID-D06-F03-G03",
+   "key": "BID-D06-F03-G03|employer branding",
+   "source": "Employer branding"
+  },
+  "BID-D06-F04-G01-I01": {
+   "groupId": "BID-D06-F04-G01",
+   "key": "BID-D06-F04-G01|brand tracking",
+   "source": "Brand tracking"
+  },
+  "BID-D06-F04-G01-I02": {
+   "groupId": "BID-D06-F04-G01",
+   "key": "BID-D06-F04-G01|audience research",
+   "source": "Audience research"
+  },
+  "BID-D06-F04-G02-I01": {
+   "groupId": "BID-D06-F04-G02",
+   "key": "BID-D06-F04-G02|campaign effectiveness measurement",
+   "source": "Campaign effectiveness measurement"
+  },
+  "BID-D06-F04-G02-I02": {
+   "groupId": "BID-D06-F04-G02",
+   "key": "BID-D06-F04-G02|marketing analytics",
+   "source": "Marketing analytics"
+  },
+  "BID-D06-F04-G03-I01": {
+   "groupId": "BID-D06-F04-G03",
+   "key": "BID-D06-F04-G03|social listening",
+   "source": "Social listening"
+  },
+  "BID-D06-F04-G03-I02": {
+   "groupId": "BID-D06-F04-G03",
+   "key": "BID-D06-F04-G03|media monitoring",
+   "source": "Media monitoring"
+  },
+  "BID-D07-F01-G02-I01": {
+   "groupId": "BID-D07-F01-G02",
+   "key": "BID-D07-F01-G02|graphic design",
+   "source": "Graphic design"
+  },
+  "BID-D07-F01-G02-I02": {
+   "groupId": "BID-D07-F01-G02",
+   "key": "BID-D07-F01-G02|editorial design",
+   "source": "Editorial design"
+  },
+  "BID-D07-F01-G04-I01": {
+   "groupId": "BID-D07-F01-G04",
+   "key": "BID-D07-F01-G04|motion design",
+   "source": "Motion design"
+  },
+  "BID-D07-F01-G04-I02": {
+   "groupId": "BID-D07-F01-G04",
+   "key": "BID-D07-F01-G04|illustration",
+   "source": "Illustration"
+  },
+  "BID-D07-F02-G01-I01": {
+   "groupId": "BID-D07-F02-G01",
+   "key": "BID-D07-F02-G01|commercial film production",
+   "source": "Commercial film production"
+  },
+  "BID-D07-F02-G01-I02": {
+   "groupId": "BID-D07-F02-G01",
+   "key": "BID-D07-F02-G01|corporate video production",
+   "source": "Corporate video production"
+  },
+  "BID-D07-F02-G02-I01": {
+   "groupId": "BID-D07-F02-G02",
+   "key": "BID-D07-F02-G02|product photography",
+   "source": "Product photography"
+  },
+  "BID-D07-F02-G02-I02": {
+   "groupId": "BID-D07-F02-G02",
+   "key": "BID-D07-F02-G02|event photography",
+   "source": "Event photography"
+  },
+  "BID-D07-F02-G03-I01": {
+   "groupId": "BID-D07-F02-G03",
+   "key": "BID-D07-F02-G03|animation production",
+   "source": "Animation production"
+  },
+  "BID-D07-F02-G03-I02": {
+   "groupId": "BID-D07-F02-G03",
+   "key": "BID-D07-F02-G03|post production editing",
+   "source": "Post-production editing"
+  },
+  "BID-D07-F03-G01-I01": {
+   "groupId": "BID-D07-F03-G01",
+   "key": "BID-D07-F03-G01|copywriting",
+   "source": "Copywriting"
+  },
+  "BID-D07-F03-G01-I02": {
+   "groupId": "BID-D07-F03-G01",
+   "key": "BID-D07-F03-G01|scriptwriting",
+   "source": "Scriptwriting"
+  },
+  "BID-D07-F03-G02-I01": {
+   "groupId": "BID-D07-F03-G02",
+   "key": "BID-D07-F03-G02|content localization",
+   "source": "Content localization"
+  },
+  "BID-D07-F03-G02-I02": {
+   "groupId": "BID-D07-F03-G02",
+   "key": "BID-D07-F03-G02|translation",
+   "source": "Translation"
+  },
+  "BID-D07-F03-G02-I03": {
+   "groupId": "BID-D07-F03-G02",
+   "key": "BID-D07-F03-G02|transcreation",
+   "source": "Transcreation"
+  },
+  "BID-D07-F03-G03-I01": {
+   "groupId": "BID-D07-F03-G03",
+   "key": "BID-D07-F03-G03|voice over production",
+   "source": "Voice-over production"
+  },
+  "BID-D07-F03-G03-I02": {
+   "groupId": "BID-D07-F03-G03",
+   "key": "BID-D07-F03-G03|subtitling",
+   "source": "Subtitling"
+  },
+  "BID-D07-F04-G01-I01": {
+   "groupId": "BID-D07-F04-G01",
+   "key": "BID-D07-F04-G01|stock image licenses",
+   "source": "Stock image licenses"
+  },
+  "BID-D07-F04-G01-I02": {
+   "groupId": "BID-D07-F04-G01",
+   "key": "BID-D07-F04-G01|stock footage licenses",
+   "source": "Stock footage licenses"
+  },
+  "BID-D07-F04-G03-I01": {
+   "groupId": "BID-D07-F04-G03",
+   "key": "BID-D07-F04-G03|typeface licenses",
+   "source": "Typeface licenses"
+  },
+  "BID-D07-F04-G03-I02": {
+   "groupId": "BID-D07-F04-G03",
+   "key": "BID-D07-F04-G03|design template licenses",
+   "source": "Design template licenses"
+  },
+  "BID-D08-F01-G01-I01": {
+   "groupId": "BID-D08-F01-G01",
+   "key": "BID-D08-F01-G01|corporate event management",
+   "source": "Corporate event management"
+  },
+  "BID-D08-F01-G01-I02": {
+   "groupId": "BID-D08-F01-G01",
+   "key": "BID-D08-F01-G01|product launch management",
+   "source": "Product launch management"
+  },
+  "BID-D08-F01-G02-I01": {
+   "groupId": "BID-D08-F01-G02",
+   "key": "BID-D08-F01-G02|conference management",
+   "source": "Conference management"
+  },
+  "BID-D08-F01-G02-I02": {
+   "groupId": "BID-D08-F01-G02",
+   "key": "BID-D08-F01-G02|exhibition management",
+   "source": "Exhibition management"
+  },
+  "BID-D08-F02-G01-I01": {
+   "groupId": "BID-D08-F02-G01",
+   "key": "BID-D08-F02-G01|event registration operations",
+   "source": "Event registration operations"
+  },
+  "BID-D08-F02-G01-I02": {
+   "groupId": "BID-D08-F02-G01",
+   "key": "BID-D08-F02-G01|event staffing",
+   "source": "Event staffing"
+  },
+  "BID-D08-F03-G01-I01": {
+   "groupId": "BID-D08-F03-G01",
+   "key": "BID-D08-F03-G01|exhibition stand construction",
+   "source": "Exhibition stand construction"
+  },
+  "BID-D08-F03-G01-I02": {
+   "groupId": "BID-D08-F03-G01",
+   "key": "BID-D08-F03-G01|temporary venue fit out",
+   "source": "Temporary venue fit-out"
+  },
+  "BID-D08-F03-G02-I01": {
+   "groupId": "BID-D08-F03-G02",
+   "key": "BID-D08-F03-G02|temporary stage construction",
+   "source": "Temporary stage construction"
+  },
+  "BID-D08-F03-G02-I02": {
+   "groupId": "BID-D08-F03-G02",
+   "key": "BID-D08-F03-G02|temporary seating installation",
+   "source": "Temporary seating installation"
+  },
+  "BID-D08-F04-G01-I01": {
+   "groupId": "BID-D08-F04-G01",
+   "key": "BID-D08-F04-G01|audio equipment rental",
+   "source": "Audio equipment rental"
+  },
+  "BID-D08-F04-G01-I02": {
+   "groupId": "BID-D08-F04-G01",
+   "key": "BID-D08-F04-G01|event lighting rental",
+   "source": "Event lighting rental"
+  },
+  "BID-D08-F04-G01-I03": {
+   "groupId": "BID-D08-F04-G01",
+   "key": "BID-D08-F04-G01|led screen rental",
+   "source": "LED screen rental"
+  },
+  "BID-D08-F04-G02-I01": {
+   "groupId": "BID-D08-F04-G02",
+   "key": "BID-D08-F04-G02|marquee rental",
+   "source": "Marquee rental"
+  },
+  "BID-D08-F04-G02-I02": {
+   "groupId": "BID-D08-F04-G02",
+   "key": "BID-D08-F04-G02|event furniture rental",
+   "source": "Event furniture rental"
+  },
+  "BID-D09-F01-G01-I01": {
+   "groupId": "BID-D09-F01-G01",
+   "key": "BID-D09-F01-G01|website development",
+   "source": "Website development"
+  },
+  "BID-D09-F01-G01-I02": {
+   "groupId": "BID-D09-F01-G01",
+   "key": "BID-D09-F01-G01|e commerce implementation",
+   "source": "E-commerce implementation"
+  },
+  "BID-D09-F01-G03-I01": {
+   "groupId": "BID-D09-F01-G03",
+   "key": "BID-D09-F01-G03|enterprise application development",
+   "source": "Enterprise application development"
+  },
+  "BID-D09-F01-G03-I02": {
+   "groupId": "BID-D09-F01-G03",
+   "key": "BID-D09-F01-G03|legacy system modernization",
+   "source": "Legacy system modernization"
+  },
+  "BID-D09-F02-G03-I01": {
+   "groupId": "BID-D09-F02-G03",
+   "key": "BID-D09-F02-G03|hr software licenses",
+   "source": "HR software licenses"
+  },
+  "BID-D09-F02-G03-I02": {
+   "groupId": "BID-D09-F02-G03",
+   "key": "BID-D09-F02-G03|accounting software licenses",
+   "source": "Accounting software licenses"
+  },
+  "BID-D09-F02-G04-I01": {
+   "groupId": "BID-D09-F02-G04",
+   "key": "BID-D09-F02-G04|procurement software licenses",
+   "source": "Procurement software licenses"
+  },
+  "BID-D09-F02-G04-I02": {
+   "groupId": "BID-D09-F02-G04",
+   "key": "BID-D09-F02-G04|project management software licenses",
+   "source": "Project management software licenses"
+  },
+  "BID-D09-F04-G01-I01": {
+   "groupId": "BID-D09-F04-G01",
+   "key": "BID-D09-F04-G01|product discovery",
+   "source": "Product discovery"
+  },
+  "BID-D09-F04-G01-I02": {
+   "groupId": "BID-D09-F04-G01",
+   "key": "BID-D09-F04-G01|ux research",
+   "source": "UX research"
+  },
+  "BID-D09-F04-G02-I01": {
+   "groupId": "BID-D09-F04-G02",
+   "key": "BID-D09-F04-G02|ui design",
+   "source": "UI design"
+  },
+  "BID-D09-F04-G02-I02": {
+   "groupId": "BID-D09-F04-G02",
+   "key": "BID-D09-F04-G02|accessibility assessment",
+   "source": "Accessibility assessment"
+  },
+  "BID-D10-F01-G01-I01": {
+   "groupId": "BID-D10-F01-G01",
+   "key": "BID-D10-F01-G01|desktops",
+   "source": "Desktops"
+  },
+  "BID-D10-F01-G01-I02": {
+   "groupId": "BID-D10-F01-G01",
+   "key": "BID-D10-F01-G01|laptops",
+   "source": "Laptops"
+  },
+  "BID-D10-F01-G02-I01": {
+   "groupId": "BID-D10-F01-G02",
+   "key": "BID-D10-F01-G02|servers",
+   "source": "Servers"
+  },
+  "BID-D10-F01-G02-I02": {
+   "groupId": "BID-D10-F01-G02",
+   "key": "BID-D10-F01-G02|data storage equipment",
+   "source": "Data storage equipment"
+  },
+  "BID-D10-F01-G03-I01": {
+   "groupId": "BID-D10-F01-G03",
+   "key": "BID-D10-F01-G03|computer peripherals",
+   "source": "Computer peripherals"
+  },
+  "BID-D10-F01-G03-I02": {
+   "groupId": "BID-D10-F01-G03",
+   "key": "BID-D10-F01-G03|it spare parts",
+   "source": "IT spare parts"
+  },
+  "BID-D10-F01-G04-I01": {
+   "groupId": "BID-D10-F01-G04",
+   "key": "BID-D10-F01-G04|printers",
+   "source": "Printers"
+  },
+  "BID-D10-F01-G04-I02": {
+   "groupId": "BID-D10-F01-G04",
+   "key": "BID-D10-F01-G04|scanners",
+   "source": "Scanners"
+  },
+  "BID-D10-F02-G01-I01": {
+   "groupId": "BID-D10-F02-G01",
+   "key": "BID-D10-F02-G01|network switches",
+   "source": "Network switches"
+  },
+  "BID-D10-F02-G01-I02": {
+   "groupId": "BID-D10-F02-G01",
+   "key": "BID-D10-F02-G01|network routers",
+   "source": "Network routers"
+  },
+  "BID-D10-F02-G01-I03": {
+   "groupId": "BID-D10-F02-G01",
+   "key": "BID-D10-F02-G01|wireless access points",
+   "source": "Wireless access points"
+  },
+  "BID-D10-F02-G02-I01": {
+   "groupId": "BID-D10-F02-G02",
+   "key": "BID-D10-F02-G02|network cabinets",
+   "source": "Network cabinets"
+  },
+  "BID-D10-F02-G02-I02": {
+   "groupId": "BID-D10-F02-G02",
+   "key": "BID-D10-F02-G02|structured cabling components",
+   "source": "Structured cabling components"
+  },
+  "BID-D10-F03-G01-I01": {
+   "groupId": "BID-D10-F03-G01",
+   "key": "BID-D10-F03-G01|cloud migration",
+   "source": "Cloud migration"
+  },
+  "BID-D10-F03-G01-I02": {
+   "groupId": "BID-D10-F03-G01",
+   "key": "BID-D10-F03-G01|managed cloud operations",
+   "source": "Managed cloud operations"
+  },
+  "BID-D10-F03-G02-I01": {
+   "groupId": "BID-D10-F03-G02",
+   "key": "BID-D10-F03-G02|it helpdesk",
+   "source": "IT helpdesk"
+  },
+  "BID-D10-F03-G02-I02": {
+   "groupId": "BID-D10-F03-G02",
+   "key": "BID-D10-F03-G02|data center operations",
+   "source": "Data center operations"
+  },
+  "BID-D10-F04-G01-I01": {
+   "groupId": "BID-D10-F04-G01",
+   "key": "BID-D10-F04-G01|infrastructure cloud subscriptions",
+   "source": "Infrastructure cloud subscriptions"
+  },
+  "BID-D10-F04-G01-I02": {
+   "groupId": "BID-D10-F04-G01",
+   "key": "BID-D10-F04-G01|platform cloud subscriptions",
+   "source": "Platform cloud subscriptions"
+  },
+  "BID-D11-F01-G01-I01": {
+   "groupId": "BID-D11-F01-G01",
+   "key": "BID-D11-F01-G01|cybersecurity strategy",
+   "source": "Cybersecurity strategy"
+  },
+  "BID-D11-F01-G01-I02": {
+   "groupId": "BID-D11-F01-G01",
+   "key": "BID-D11-F01-G01|cybersecurity risk assessment",
+   "source": "Cybersecurity risk assessment"
+  },
+  "BID-D11-F01-G02-I01": {
+   "groupId": "BID-D11-F01-G02",
+   "key": "BID-D11-F01-G02|penetration testing",
+   "source": "Penetration testing"
+  },
+  "BID-D11-F01-G02-I02": {
+   "groupId": "BID-D11-F01-G02",
+   "key": "BID-D11-F01-G02|red team assessment",
+   "source": "Red team assessment"
+  },
+  "BID-D11-F02-G02-I01": {
+   "groupId": "BID-D11-F02-G02",
+   "key": "BID-D11-F02-G02|incident response",
+   "source": "Incident response"
+  },
+  "BID-D11-F02-G02-I02": {
+   "groupId": "BID-D11-F02-G02",
+   "key": "BID-D11-F02-G02|digital forensics",
+   "source": "Digital forensics"
+  },
+  "BID-D11-F02-G04-I01": {
+   "groupId": "BID-D11-F02-G04",
+   "key": "BID-D11-F02-G04|identity implementation",
+   "source": "Identity implementation"
+  },
+  "BID-D11-F02-G04-I02": {
+   "groupId": "BID-D11-F02-G04",
+   "key": "BID-D11-F02-G04|security architecture design",
+   "source": "Security architecture design"
+  },
+  "BID-D11-F03-G04-I01": {
+   "groupId": "BID-D11-F03-G04",
+   "key": "BID-D11-F03-G04|data loss prevention licenses",
+   "source": "Data loss prevention licenses"
+  },
+  "BID-D11-F03-G04-I02": {
+   "groupId": "BID-D11-F03-G04",
+   "key": "BID-D11-F03-G04|encryption software licenses",
+   "source": "Encryption software licenses"
+  },
+  "BID-D11-F04-G01-I01": {
+   "groupId": "BID-D11-F04-G01",
+   "key": "BID-D11-F04-G01|firewalls",
+   "source": "Firewalls"
+  },
+  "BID-D11-F04-G01-I02": {
+   "groupId": "BID-D11-F04-G01",
+   "key": "BID-D11-F04-G01|network security appliances",
+   "source": "Network security appliances"
+  },
+  "BID-D11-F04-G02-I01": {
+   "groupId": "BID-D11-F04-G02",
+   "key": "BID-D11-F04-G02|hardware security modules",
+   "source": "Hardware security modules"
+  },
+  "BID-D11-F04-G02-I02": {
+   "groupId": "BID-D11-F04-G02",
+   "key": "BID-D11-F04-G02|authentication tokens",
+   "source": "Authentication tokens"
+  },
+  "BID-D12-F01-G01-I01": {
+   "groupId": "BID-D12-F01-G01",
+   "key": "BID-D12-F01-G01|data engineering",
+   "source": "Data engineering"
+  },
+  "BID-D12-F01-G01-I02": {
+   "groupId": "BID-D12-F01-G01",
+   "key": "BID-D12-F01-G01|data warehousing",
+   "source": "Data warehousing"
+  },
+  "BID-D12-F01-G03-I01": {
+   "groupId": "BID-D12-F01-G03",
+   "key": "BID-D12-F01-G03|data governance",
+   "source": "Data governance"
+  },
+  "BID-D12-F01-G03-I02": {
+   "groupId": "BID-D12-F01-G03",
+   "key": "BID-D12-F01-G03|data quality management",
+   "source": "Data quality management"
+  },
+  "BID-D12-F02-G02-I01": {
+   "groupId": "BID-D12-F02-G02",
+   "key": "BID-D12-F02-G02|generative ai integration",
+   "source": "Generative AI integration"
+  },
+  "BID-D12-F02-G02-I02": {
+   "groupId": "BID-D12-F02-G02",
+   "key": "BID-D12-F02-G02|conversational ai development",
+   "source": "Conversational AI development"
+  },
+  "BID-D12-F03-G01-I01": {
+   "groupId": "BID-D12-F03-G01",
+   "key": "BID-D12-F03-G01|workflow automation",
+   "source": "Workflow automation"
+  },
+  "BID-D12-F03-G01-I02": {
+   "groupId": "BID-D12-F03-G01",
+   "key": "BID-D12-F03-G01|robotic process automation",
+   "source": "Robotic process automation"
+  },
+  "BID-D12-F03-G02-I01": {
+   "groupId": "BID-D12-F03-G02",
+   "key": "BID-D12-F03-G02|industrial robot integration",
+   "source": "Industrial robot integration"
+  },
+  "BID-D12-F03-G02-I02": {
+   "groupId": "BID-D12-F03-G02",
+   "key": "BID-D12-F03-G02|service robot integration",
+   "source": "Service robot integration"
+  },
+  "BID-D12-F04-G02-I01": {
+   "groupId": "BID-D12-F04-G02",
+   "key": "BID-D12-F04-G02|service robots",
+   "source": "Service robots"
+  },
+  "BID-D12-F04-G02-I02": {
+   "groupId": "BID-D12-F04-G02",
+   "key": "BID-D12-F04-G02|autonomous mobile robots",
+   "source": "Autonomous mobile robots"
+  },
+  "BID-D12-F04-G03-I01": {
+   "groupId": "BID-D12-F04-G03",
+   "key": "BID-D12-F04-G03|robot end effectors",
+   "source": "Robot end effectors"
+  },
+  "BID-D12-F04-G03-I02": {
+   "groupId": "BID-D12-F04-G03",
+   "key": "BID-D12-F04-G03|robot controllers",
+   "source": "Robot controllers"
+  },
+  "BID-D12-F04-G04-I01": {
+   "groupId": "BID-D12-F04-G04",
+   "key": "BID-D12-F04-G04|iot sensors",
+   "source": "IoT sensors"
+  },
+  "BID-D12-F04-G04-I02": {
+   "groupId": "BID-D12-F04-G04",
+   "key": "BID-D12-F04-G04|edge computing devices",
+   "source": "Edge computing devices"
+  },
+  "BID-D12-F05-G02-I01": {
+   "groupId": "BID-D12-F05-G02",
+   "key": "BID-D12-F05-G02|data analytics software licenses",
+   "source": "Data analytics software licenses"
+  },
+  "BID-D12-F05-G02-I02": {
+   "groupId": "BID-D12-F05-G02",
+   "key": "BID-D12-F05-G02|automation software licenses",
+   "source": "Automation software licenses"
+  },
+  "BID-D13-F01-G01-I01": {
+   "groupId": "BID-D13-F01-G01",
+   "key": "BID-D13-F01-G01|business internet connectivity",
+   "source": "Business internet connectivity"
+  },
+  "BID-D13-F01-G01-I02": {
+   "groupId": "BID-D13-F01-G01",
+   "key": "BID-D13-F01-G01|dedicated connectivity",
+   "source": "Dedicated connectivity"
+  },
+  "BID-D13-F01-G03-I01": {
+   "groupId": "BID-D13-F01-G03",
+   "key": "BID-D13-F01-G03|mobile business connectivity",
+   "source": "Mobile business connectivity"
+  },
+  "BID-D13-F01-G03-I02": {
+   "groupId": "BID-D13-F01-G03",
+   "key": "BID-D13-F01-G03|private mobile networks",
+   "source": "Private mobile networks"
+  },
+  "BID-D13-F02-G02-I01": {
+   "groupId": "BID-D13-F02-G02",
+   "key": "BID-D13-F02-G02|radio communication equipment",
+   "source": "Radio communication equipment"
+  },
+  "BID-D13-F02-G02-I02": {
+   "groupId": "BID-D13-F02-G02",
+   "key": "BID-D13-F02-G02|telephony equipment",
+   "source": "Telephony equipment"
+  },
+  "BID-D13-F02-G04-I01": {
+   "groupId": "BID-D13-F02-G04",
+   "key": "BID-D13-F02-G04|broadcast transmitters",
+   "source": "Broadcast transmitters"
+  },
+  "BID-D13-F02-G04-I02": {
+   "groupId": "BID-D13-F02-G04",
+   "key": "BID-D13-F02-G04|satellite terminals",
+   "source": "Satellite terminals"
+  },
+  "BID-D13-F03-G05-I01": {
+   "groupId": "BID-D13-F03-G05",
+   "key": "BID-D13-F03-G05|spectrum planning advisory",
+   "source": "Spectrum planning advisory"
+  },
+  "BID-D13-F03-G05-I02": {
+   "groupId": "BID-D13-F03-G05",
+   "key": "BID-D13-F03-G05|telecom network design",
+   "source": "Telecom network design"
+  },
+  "BID-D14-F01-G01-I01": {
+   "groupId": "BID-D14-F01-G01",
+   "key": "BID-D14-F01-G01|residential building construction",
+   "source": "Residential building construction"
+  },
+  "BID-D14-F01-G01-I02": {
+   "groupId": "BID-D14-F01-G01",
+   "key": "BID-D14-F01-G01|commercial building construction",
+   "source": "Commercial building construction"
+  },
+  "BID-D14-F01-G02-I01": {
+   "groupId": "BID-D14-F01-G02",
+   "key": "BID-D14-F01-G02|industrial building construction",
+   "source": "Industrial building construction"
+  },
+  "BID-D14-F01-G02-I02": {
+   "groupId": "BID-D14-F01-G02",
+   "key": "BID-D14-F01-G02|institutional building construction",
+   "source": "Institutional building construction"
+  },
+  "BID-D14-F01-G03-I01": {
+   "groupId": "BID-D14-F01-G03",
+   "key": "BID-D14-F01-G03|building renovation",
+   "source": "Building renovation"
+  },
+  "BID-D14-F01-G03-I02": {
+   "groupId": "BID-D14-F01-G03",
+   "key": "BID-D14-F01-G03|modular building installation",
+   "source": "Modular building installation"
+  },
+  "BID-D14-F02-G01-I01": {
+   "groupId": "BID-D14-F02-G01",
+   "key": "BID-D14-F02-G01|road construction",
+   "source": "Road construction"
+  },
+  "BID-D14-F02-G01-I02": {
+   "groupId": "BID-D14-F02-G01",
+   "key": "BID-D14-F02-G01|bridge construction",
+   "source": "Bridge construction"
+  },
+  "BID-D14-F02-G01-I03": {
+   "groupId": "BID-D14-F02-G01",
+   "key": "BID-D14-F02-G01|tunnel construction",
+   "source": "Tunnel construction"
+  },
+  "BID-D14-F02-G02-I01": {
+   "groupId": "BID-D14-F02-G02",
+   "key": "BID-D14-F02-G02|rail civil works",
+   "source": "Rail civil works"
+  },
+  "BID-D14-F02-G02-I02": {
+   "groupId": "BID-D14-F02-G02",
+   "key": "BID-D14-F02-G02|airport civil works",
+   "source": "Airport civil works"
+  },
+  "BID-D14-F02-G02-I03": {
+   "groupId": "BID-D14-F02-G02",
+   "key": "BID-D14-F02-G02|port civil works",
+   "source": "Port civil works"
+  },
+  "BID-D14-F03-G01-I01": {
+   "groupId": "BID-D14-F03-G01",
+   "key": "BID-D14-F03-G01|earthworks",
+   "source": "Earthworks"
+  },
+  "BID-D14-F03-G01-I02": {
+   "groupId": "BID-D14-F03-G01",
+   "key": "BID-D14-F03-G01|demolition",
+   "source": "Demolition"
+  },
+  "BID-D14-F03-G02-I01": {
+   "groupId": "BID-D14-F03-G02",
+   "key": "BID-D14-F03-G02|foundations and piling",
+   "source": "Foundations and piling"
+  },
+  "BID-D14-F03-G02-I02": {
+   "groupId": "BID-D14-F03-G02",
+   "key": "BID-D14-F03-G02|structural concrete works",
+   "source": "Structural concrete works"
+  },
+  "BID-D14-F04-G02-I01": {
+   "groupId": "BID-D14-F04-G02",
+   "key": "BID-D14-F04-G02|quantity surveying",
+   "source": "Quantity surveying"
+  },
+  "BID-D14-F04-G02-I02": {
+   "groupId": "BID-D14-F04-G02",
+   "key": "BID-D14-F04-G02|cost estimation",
+   "source": "Cost estimation"
+  },
+  "BID-D14-F04-G04-I01": {
+   "groupId": "BID-D14-F04-G04",
+   "key": "BID-D14-F04-G04|construction quality inspection",
+   "source": "Construction quality inspection"
+  },
+  "BID-D14-F04-G04-I02": {
+   "groupId": "BID-D14-F04-G04",
+   "key": "BID-D14-F04-G04|building condition surveys",
+   "source": "Building condition surveys"
+  },
+  "BID-D15-F01-G03-I01": {
+   "groupId": "BID-D15-F01-G03",
+   "key": "BID-D15-F01-G03|mechanical engineering",
+   "source": "Mechanical engineering"
+  },
+  "BID-D15-F01-G03-I02": {
+   "groupId": "BID-D15-F01-G03",
+   "key": "BID-D15-F01-G03|electrical engineering",
+   "source": "Electrical engineering"
+  },
+  "BID-D15-F03-G01-I01": {
+   "groupId": "BID-D15-F03-G01",
+   "key": "BID-D15-F03-G01|bim modeling",
+   "source": "BIM modeling"
+  },
+  "BID-D15-F03-G01-I02": {
+   "groupId": "BID-D15-F03-G01",
+   "key": "BID-D15-F03-G01|engineering drafting",
+   "source": "Engineering drafting"
+  },
+  "BID-D15-F03-G02-I01": {
+   "groupId": "BID-D15-F03-G02",
+   "key": "BID-D15-F03-G02|land surveying",
+   "source": "Land surveying"
+  },
+  "BID-D15-F03-G02-I02": {
+   "groupId": "BID-D15-F03-G02",
+   "key": "BID-D15-F03-G02|geospatial surveying",
+   "source": "Geospatial surveying"
+  },
+  "BID-D15-F03-G03-I01": {
+   "groupId": "BID-D15-F03-G03",
+   "key": "BID-D15-F03-G03|design review",
+   "source": "Design review"
+  },
+  "BID-D15-F03-G03-I02": {
+   "groupId": "BID-D15-F03-G03",
+   "key": "BID-D15-F03-G03|value engineering",
+   "source": "Value engineering"
+  },
+  "BID-D16-F01-G01-I01": {
+   "groupId": "BID-D16-F01-G01",
+   "key": "BID-D16-F01-G01|cement",
+   "source": "Cement"
+  },
+  "BID-D16-F01-G01-I02": {
+   "groupId": "BID-D16-F01-G01",
+   "key": "BID-D16-F01-G01|ready mix concrete",
+   "source": "Ready-mix concrete"
+  },
+  "BID-D16-F01-G01-I03": {
+   "groupId": "BID-D16-F01-G01",
+   "key": "BID-D16-F01-G01|concrete blocks",
+   "source": "Concrete blocks"
+  },
+  "BID-D16-F01-G02-I01": {
+   "groupId": "BID-D16-F01-G02",
+   "key": "BID-D16-F01-G02|reinforcement steel",
+   "source": "Reinforcement steel"
+  },
+  "BID-D16-F01-G02-I02": {
+   "groupId": "BID-D16-F01-G02",
+   "key": "BID-D16-F01-G02|structural steel",
+   "source": "Structural steel"
+  },
+  "BID-D16-F02-G01-I01": {
+   "groupId": "BID-D16-F02-G01",
+   "key": "BID-D16-F02-G01|ceramic tiles",
+   "source": "Ceramic tiles"
+  },
+  "BID-D16-F02-G01-I02": {
+   "groupId": "BID-D16-F02-G01",
+   "key": "BID-D16-F02-G01|natural stone",
+   "source": "Natural stone"
+  },
+  "BID-D16-F02-G01-I03": {
+   "groupId": "BID-D16-F02-G01",
+   "key": "BID-D16-F02-G01|flooring materials",
+   "source": "Flooring materials"
+  },
+  "BID-D16-F02-G02-I01": {
+   "groupId": "BID-D16-F02-G02",
+   "key": "BID-D16-F02-G02|paints and coatings",
+   "source": "Paints and coatings"
+  },
+  "BID-D16-F02-G02-I02": {
+   "groupId": "BID-D16-F02-G02",
+   "key": "BID-D16-F02-G02|wall coverings",
+   "source": "Wall coverings"
+  },
+  "BID-D16-F03-G01-I01": {
+   "groupId": "BID-D16-F03-G01",
+   "key": "BID-D16-F03-G01|doors",
+   "source": "Doors"
+  },
+  "BID-D16-F03-G01-I02": {
+   "groupId": "BID-D16-F03-G01",
+   "key": "BID-D16-F03-G01|windows",
+   "source": "Windows"
+  },
+  "BID-D16-F03-G01-I03": {
+   "groupId": "BID-D16-F03-G01",
+   "key": "BID-D16-F03-G01|architectural glass",
+   "source": "Architectural glass"
+  },
+  "BID-D16-F03-G02-I01": {
+   "groupId": "BID-D16-F03-G02",
+   "key": "BID-D16-F03-G02|roofing materials",
+   "source": "Roofing materials"
+  },
+  "BID-D16-F03-G02-I02": {
+   "groupId": "BID-D16-F03-G02",
+   "key": "BID-D16-F03-G02|insulation materials",
+   "source": "Insulation materials"
+  },
+  "BID-D16-F03-G02-I03": {
+   "groupId": "BID-D16-F03-G02",
+   "key": "BID-D16-F03-G02|waterproofing materials",
+   "source": "Waterproofing materials"
+  },
+  "BID-D16-F04-G01-I01": {
+   "groupId": "BID-D16-F04-G01",
+   "key": "BID-D16-F04-G01|sanitary ware",
+   "source": "Sanitary ware"
+  },
+  "BID-D16-F04-G01-I02": {
+   "groupId": "BID-D16-F04-G01",
+   "key": "BID-D16-F04-G01|plumbing fixtures",
+   "source": "Plumbing fixtures"
+  },
+  "BID-D16-F04-G03-I01": {
+   "groupId": "BID-D16-F04-G03",
+   "key": "BID-D16-F04-G03|partitions",
+   "source": "Partitions"
+  },
+  "BID-D16-F04-G03-I02": {
+   "groupId": "BID-D16-F04-G03",
+   "key": "BID-D16-F04-G03|fixed cabinetry",
+   "source": "Fixed cabinetry"
+  },
+  "BID-D17-F01-G01-I01": {
+   "groupId": "BID-D17-F01-G01",
+   "key": "BID-D17-F01-G01|air conditioning units",
+   "source": "Air conditioning units"
+  },
+  "BID-D17-F01-G01-I02": {
+   "groupId": "BID-D17-F01-G01",
+   "key": "BID-D17-F01-G01|chillers",
+   "source": "Chillers"
+  },
+  "BID-D17-F01-G01-I03": {
+   "groupId": "BID-D17-F01-G01",
+   "key": "BID-D17-F01-G01|air handling units",
+   "source": "Air handling units"
+  },
+  "BID-D17-F01-G01-I04": {
+   "groupId": "BID-D17-F01-G01",
+   "key": "BID-D17-F01-G01|ventilation fans",
+   "source": "Ventilation fans"
+  },
+  "BID-D17-F01-G02-I01": {
+   "groupId": "BID-D17-F01-G02",
+   "key": "BID-D17-F01-G02|pumps",
+   "source": "Pumps"
+  },
+  "BID-D17-F01-G02-I02": {
+   "groupId": "BID-D17-F01-G02",
+   "key": "BID-D17-F01-G02|valves",
+   "source": "Valves"
+  },
+  "BID-D17-F01-G02-I03": {
+   "groupId": "BID-D17-F01-G02",
+   "key": "BID-D17-F01-G02|plumbing pipes",
+   "source": "Plumbing pipes"
+  },
+  "BID-D17-F02-G01-I01": {
+   "groupId": "BID-D17-F02-G01",
+   "key": "BID-D17-F02-G01|switchgear",
+   "source": "Switchgear"
+  },
+  "BID-D17-F02-G01-I02": {
+   "groupId": "BID-D17-F02-G01",
+   "key": "BID-D17-F02-G01|distribution boards",
+   "source": "Distribution boards"
+  },
+  "BID-D17-F02-G02-I01": {
+   "groupId": "BID-D17-F02-G02",
+   "key": "BID-D17-F02-G02|electrical cables",
+   "source": "Electrical cables"
+  },
+  "BID-D17-F02-G02-I02": {
+   "groupId": "BID-D17-F02-G02",
+   "key": "BID-D17-F02-G02|electrical conduits",
+   "source": "Electrical conduits"
+  },
+  "BID-D17-F03-G04-I01": {
+   "groupId": "BID-D17-F03-G04",
+   "key": "BID-D17-F03-G04|lift installation",
+   "source": "Lift installation"
+  },
+  "BID-D17-F03-G04-I02": {
+   "groupId": "BID-D17-F03-G04",
+   "key": "BID-D17-F03-G04|escalator installation",
+   "source": "Escalator installation"
+  },
+  "BID-D17-F04-G01-I01": {
+   "groupId": "BID-D17-F04-G01",
+   "key": "BID-D17-F04-G01|hvac maintenance",
+   "source": "HVAC maintenance"
+  },
+  "BID-D17-F04-G01-I02": {
+   "groupId": "BID-D17-F04-G01",
+   "key": "BID-D17-F04-G01|refrigeration maintenance",
+   "source": "Refrigeration maintenance"
+  },
+  "BID-D18-F01-G01-I01": {
+   "groupId": "BID-D18-F01-G01",
+   "key": "BID-D18-F01-G01|integrated facilities management",
+   "source": "Integrated facilities management"
+  },
+  "BID-D18-F01-G01-I02": {
+   "groupId": "BID-D18-F01-G01",
+   "key": "BID-D18-F01-G01|hard facilities management",
+   "source": "Hard facilities management"
+  },
+  "BID-D18-F01-G01-I03": {
+   "groupId": "BID-D18-F01-G01",
+   "key": "BID-D18-F01-G01|soft facilities management",
+   "source": "Soft facilities management"
+  },
+  "BID-D18-F01-G02-I01": {
+   "groupId": "BID-D18-F01-G02",
+   "key": "BID-D18-F01-G02|building maintenance coordination",
+   "source": "Building maintenance coordination"
+  },
+  "BID-D18-F01-G02-I02": {
+   "groupId": "BID-D18-F01-G02",
+   "key": "BID-D18-F01-G02|workplace management",
+   "source": "Workplace management"
+  },
+  "BID-D18-F02-G01-I01": {
+   "groupId": "BID-D18-F02-G01",
+   "key": "BID-D18-F02-G01|office cleaning",
+   "source": "Office cleaning"
+  },
+  "BID-D18-F02-G01-I02": {
+   "groupId": "BID-D18-F02-G01",
+   "key": "BID-D18-F02-G01|industrial cleaning",
+   "source": "Industrial cleaning"
+  },
+  "BID-D18-F02-G02-I01": {
+   "groupId": "BID-D18-F02-G02",
+   "key": "BID-D18-F02-G02|facade cleaning",
+   "source": "Facade cleaning"
+  },
+  "BID-D18-F02-G02-I02": {
+   "groupId": "BID-D18-F02-G02",
+   "key": "BID-D18-F02-G02|carpet cleaning",
+   "source": "Carpet cleaning"
+  },
+  "BID-D18-F02-G03-I01": {
+   "groupId": "BID-D18-F02-G03",
+   "key": "BID-D18-F02-G03|post construction cleaning",
+   "source": "Post-construction cleaning"
+  },
+  "BID-D18-F02-G03-I02": {
+   "groupId": "BID-D18-F02-G03",
+   "key": "BID-D18-F02-G03|disinfection services",
+   "source": "Disinfection services"
+  },
+  "BID-D18-F03-G01-I01": {
+   "groupId": "BID-D18-F03-G01",
+   "key": "BID-D18-F03-G01|landscaping maintenance",
+   "source": "Landscaping maintenance"
+  },
+  "BID-D18-F03-G01-I02": {
+   "groupId": "BID-D18-F03-G01",
+   "key": "BID-D18-F03-G01|indoor plant maintenance",
+   "source": "Indoor plant maintenance"
+  },
+  "BID-D18-F03-G04-I01": {
+   "groupId": "BID-D18-F03-G04",
+   "key": "BID-D18-F03-G04|reception services",
+   "source": "Reception services"
+  },
+  "BID-D18-F03-G04-I02": {
+   "groupId": "BID-D18-F03-G04",
+   "key": "BID-D18-F03-G04|mailroom services",
+   "source": "Mailroom services"
+  },
+  "BID-D18-F04-G01-I01": {
+   "groupId": "BID-D18-F04-G01",
+   "key": "BID-D18-F04-G01|cleaning chemicals",
+   "source": "Cleaning chemicals"
+  },
+  "BID-D18-F04-G01-I02": {
+   "groupId": "BID-D18-F04-G01",
+   "key": "BID-D18-F04-G01|janitorial supplies",
+   "source": "Janitorial supplies"
+  },
+  "BID-D18-F04-G03-I01": {
+   "groupId": "BID-D18-F04-G03",
+   "key": "BID-D18-F04-G03|hygiene dispensers",
+   "source": "Hygiene dispensers"
+  },
+  "BID-D18-F04-G03-I02": {
+   "groupId": "BID-D18-F04-G03",
+   "key": "BID-D18-F04-G03|paper hygiene products",
+   "source": "Paper hygiene products"
+  },
+  "BID-D19-F01-G01-I01": {
+   "groupId": "BID-D19-F01-G01",
+   "key": "BID-D19-F01-G01|commercial property brokerage",
+   "source": "Commercial property brokerage"
+  },
+  "BID-D19-F01-G01-I02": {
+   "groupId": "BID-D19-F01-G01",
+   "key": "BID-D19-F01-G01|residential property brokerage",
+   "source": "Residential property brokerage"
+  },
+  "BID-D19-F01-G04-I01": {
+   "groupId": "BID-D19-F01-G04",
+   "key": "BID-D19-F01-G04|real estate research",
+   "source": "Real estate research"
+  },
+  "BID-D19-F01-G04-I02": {
+   "groupId": "BID-D19-F01-G04",
+   "key": "BID-D19-F01-G04|real estate development advisory",
+   "source": "Real estate development advisory"
+  },
+  "BID-D19-F02-G01-I01": {
+   "groupId": "BID-D19-F02-G01",
+   "key": "BID-D19-F02-G01|office space leasing",
+   "source": "Office space leasing"
+  },
+  "BID-D19-F02-G01-I02": {
+   "groupId": "BID-D19-F02-G01",
+   "key": "BID-D19-F02-G01|coworking space rental",
+   "source": "Coworking space rental"
+  },
+  "BID-D19-F02-G03-I01": {
+   "groupId": "BID-D19-F02-G03",
+   "key": "BID-D19-F02-G03|industrial space leasing",
+   "source": "Industrial space leasing"
+  },
+  "BID-D19-F02-G03-I02": {
+   "groupId": "BID-D19-F02-G03",
+   "key": "BID-D19-F02-G03|warehouse space leasing",
+   "source": "Warehouse space leasing"
+  },
+  "BID-D19-F03-G01-I01": {
+   "groupId": "BID-D19-F03-G01",
+   "key": "BID-D19-F03-G01|lease administration",
+   "source": "Lease administration"
+  },
+  "BID-D19-F03-G01-I02": {
+   "groupId": "BID-D19-F03-G01",
+   "key": "BID-D19-F03-G01|tenant coordination",
+   "source": "Tenant coordination"
+  },
+  "BID-D20-F02-G02-I01": {
+   "groupId": "BID-D20-F02-G02",
+   "key": "BID-D20-F02-G02|sheet metal fabrication",
+   "source": "Sheet metal fabrication"
+  },
+  "BID-D20-F02-G02-I02": {
+   "groupId": "BID-D20-F02-G02",
+   "key": "BID-D20-F02-G02|metal welding",
+   "source": "Metal welding"
+  },
+  "BID-D20-F02-G03-I01": {
+   "groupId": "BID-D20-F02-G03",
+   "key": "BID-D20-F02-G03|metal casting",
+   "source": "Metal casting"
+  },
+  "BID-D20-F02-G03-I02": {
+   "groupId": "BID-D20-F02-G03",
+   "key": "BID-D20-F02-G03|metal forging",
+   "source": "Metal forging"
+  },
+  "BID-D20-F03-G01-I01": {
+   "groupId": "BID-D20-F03-G01",
+   "key": "BID-D20-F03-G01|surface treatment",
+   "source": "Surface treatment"
+  },
+  "BID-D20-F03-G01-I02": {
+   "groupId": "BID-D20-F03-G01",
+   "key": "BID-D20-F03-G01|powder coating",
+   "source": "Powder coating"
+  },
+  "BID-D20-F03-G01-I03": {
+   "groupId": "BID-D20-F03-G01",
+   "key": "BID-D20-F03-G01|electroplating",
+   "source": "Electroplating"
+  },
+  "BID-D20-F03-G01-I04": {
+   "groupId": "BID-D20-F03-G01",
+   "key": "BID-D20-F03-G01|industrial painting",
+   "source": "Industrial painting"
+  },
+  "BID-D20-F04-G01-I01": {
+   "groupId": "BID-D20-F04-G01",
+   "key": "BID-D20-F04-G01|plant maintenance",
+   "source": "Plant maintenance"
+  },
+  "BID-D20-F04-G01-I02": {
+   "groupId": "BID-D20-F04-G01",
+   "key": "BID-D20-F04-G01|equipment refurbishment",
+   "source": "Equipment refurbishment"
+  },
+  "BID-D20-F04-G02-I01": {
+   "groupId": "BID-D20-F04-G02",
+   "key": "BID-D20-F04-G02|production line installation",
+   "source": "Production line installation"
+  },
+  "BID-D20-F04-G02-I02": {
+   "groupId": "BID-D20-F04-G02",
+   "key": "BID-D20-F04-G02|factory relocation",
+   "source": "Factory relocation"
+  },
+  "BID-D21-F02-G03-I01": {
+   "groupId": "BID-D21-F02-G03",
+   "key": "BID-D21-F02-G03|gearboxes",
+   "source": "Gearboxes"
+  },
+  "BID-D21-F02-G03-I02": {
+   "groupId": "BID-D21-F02-G03",
+   "key": "BID-D21-F02-G03|hydraulic systems",
+   "source": "Hydraulic systems"
+  },
+  "BID-D21-F02-G03-I03": {
+   "groupId": "BID-D21-F02-G03",
+   "key": "BID-D21-F02-G03|pneumatic systems",
+   "source": "Pneumatic systems"
+  },
+  "BID-D21-F03-G01-I01": {
+   "groupId": "BID-D21-F03-G01",
+   "key": "BID-D21-F03-G01|bearings",
+   "source": "Bearings"
+  },
+  "BID-D21-F03-G01-I02": {
+   "groupId": "BID-D21-F03-G01",
+   "key": "BID-D21-F03-G01|fasteners",
+   "source": "Fasteners"
+  },
+  "BID-D21-F03-G01-I03": {
+   "groupId": "BID-D21-F03-G01",
+   "key": "BID-D21-F03-G01|seals and gaskets",
+   "source": "Seals and gaskets"
+  },
+  "BID-D21-F03-G01-I04": {
+   "groupId": "BID-D21-F03-G01",
+   "key": "BID-D21-F03-G01|hoses",
+   "source": "Hoses"
+  },
+  "BID-D21-F03-G02-I01": {
+   "groupId": "BID-D21-F03-G02",
+   "key": "BID-D21-F03-G02|cutting tools",
+   "source": "Cutting tools"
+  },
+  "BID-D21-F03-G02-I02": {
+   "groupId": "BID-D21-F03-G02",
+   "key": "BID-D21-F03-G02|hand tools",
+   "source": "Hand tools"
+  },
+  "BID-D21-F03-G02-I03": {
+   "groupId": "BID-D21-F03-G02",
+   "key": "BID-D21-F03-G02|power tools",
+   "source": "Power tools"
+  },
+  "BID-D21-F03-G03-I01": {
+   "groupId": "BID-D21-F03-G03",
+   "key": "BID-D21-F03-G03|abrasives",
+   "source": "Abrasives"
+  },
+  "BID-D21-F03-G03-I02": {
+   "groupId": "BID-D21-F03-G03",
+   "key": "BID-D21-F03-G03|welding consumables",
+   "source": "Welding consumables"
+  },
+  "BID-D21-F04-G01-I01": {
+   "groupId": "BID-D21-F04-G01",
+   "key": "BID-D21-F04-G01|construction machinery rental",
+   "source": "Construction machinery rental"
+  },
+  "BID-D21-F04-G01-I02": {
+   "groupId": "BID-D21-F04-G01",
+   "key": "BID-D21-F04-G01|industrial machinery rental",
+   "source": "Industrial machinery rental"
+  },
+  "BID-D21-F04-G02-I01": {
+   "groupId": "BID-D21-F04-G02",
+   "key": "BID-D21-F04-G02|power tool rental",
+   "source": "Power tool rental"
+  },
+  "BID-D21-F04-G02-I02": {
+   "groupId": "BID-D21-F04-G02",
+   "key": "BID-D21-F04-G02|compressor rental",
+   "source": "Compressor rental"
+  },
+  "BID-D22-F01-G02-I01": {
+   "groupId": "BID-D22-F01-G02",
+   "key": "BID-D22-F01-G02|printed circuit boards",
+   "source": "Printed circuit boards"
+  },
+  "BID-D22-F01-G02-I02": {
+   "groupId": "BID-D22-F01-G02",
+   "key": "BID-D22-F01-G02|embedded modules",
+   "source": "Embedded modules"
+  },
+  "BID-D22-F01-G04-I01": {
+   "groupId": "BID-D22-F01-G04",
+   "key": "BID-D22-F01-G04|capacitors",
+   "source": "Capacitors"
+  },
+  "BID-D22-F01-G04-I02": {
+   "groupId": "BID-D22-F01-G04",
+   "key": "BID-D22-F01-G04|resistors",
+   "source": "Resistors"
+  },
+  "BID-D22-F02-G01-I01": {
+   "groupId": "BID-D22-F02-G01",
+   "key": "BID-D22-F02-G01|pressure instruments",
+   "source": "Pressure instruments"
+  },
+  "BID-D22-F02-G01-I02": {
+   "groupId": "BID-D22-F02-G01",
+   "key": "BID-D22-F02-G01|temperature instruments",
+   "source": "Temperature instruments"
+  },
+  "BID-D22-F02-G02-I01": {
+   "groupId": "BID-D22-F02-G02",
+   "key": "BID-D22-F02-G02|flow meters",
+   "source": "Flow meters"
+  },
+  "BID-D22-F02-G02-I02": {
+   "groupId": "BID-D22-F02-G02",
+   "key": "BID-D22-F02-G02|level instruments",
+   "source": "Level instruments"
+  },
+  "BID-D22-F03-G01-I01": {
+   "groupId": "BID-D22-F03-G01",
+   "key": "BID-D22-F03-G01|programmable logic controllers",
+   "source": "Programmable logic controllers"
+  },
+  "BID-D22-F03-G01-I02": {
+   "groupId": "BID-D22-F03-G01",
+   "key": "BID-D22-F03-G01|human machine interfaces",
+   "source": "Human machine interfaces"
+  },
+  "BID-D22-F03-G01-I03": {
+   "groupId": "BID-D22-F03-G01",
+   "key": "BID-D22-F03-G01|variable frequency drives",
+   "source": "Variable frequency drives"
+  },
+  "BID-D22-F04-G02-I01": {
+   "groupId": "BID-D22-F04-G02",
+   "key": "BID-D22-F04-G02|control system programming",
+   "source": "Control system programming"
+  },
+  "BID-D22-F04-G02-I02": {
+   "groupId": "BID-D22-F04-G02",
+   "key": "BID-D22-F04-G02|control system maintenance",
+   "source": "Control system maintenance"
+  },
+  "BID-D23-F01-G02-I01": {
+   "groupId": "BID-D23-F01-G02",
+   "key": "BID-D23-F01-G02|well testing",
+   "source": "Well testing"
+  },
+  "BID-D23-F01-G02-I02": {
+   "groupId": "BID-D23-F01-G02",
+   "key": "BID-D23-F01-G02|well logging",
+   "source": "Well logging"
+  },
+  "BID-D23-F01-G04-I01": {
+   "groupId": "BID-D23-F01-G04",
+   "key": "BID-D23-F01-G04|pipeline inspection",
+   "source": "Pipeline inspection"
+  },
+  "BID-D23-F01-G04-I02": {
+   "groupId": "BID-D23-F01-G04",
+   "key": "BID-D23-F01-G04|oilfield equipment maintenance",
+   "source": "Oilfield equipment maintenance"
+  },
+  "BID-D23-F02-G01-I01": {
+   "groupId": "BID-D23-F02-G01",
+   "key": "BID-D23-F02-G01|drilling equipment",
+   "source": "Drilling equipment"
+  },
+  "BID-D23-F02-G01-I02": {
+   "groupId": "BID-D23-F02-G01",
+   "key": "BID-D23-F02-G01|wellhead equipment",
+   "source": "Wellhead equipment"
+  },
+  "BID-D23-F02-G04-I01": {
+   "groupId": "BID-D23-F02-G04",
+   "key": "BID-D23-F02-G04|turbines",
+   "source": "Turbines"
+  },
+  "BID-D23-F02-G04-I02": {
+   "groupId": "BID-D23-F02-G04",
+   "key": "BID-D23-F02-G04|generators",
+   "source": "Generators"
+  },
+  "BID-D23-F03-G01-I01": {
+   "groupId": "BID-D23-F03-G01",
+   "key": "BID-D23-F03-G01|solar photovoltaic modules",
+   "source": "Solar photovoltaic modules"
+  },
+  "BID-D23-F03-G01-I02": {
+   "groupId": "BID-D23-F03-G01",
+   "key": "BID-D23-F03-G01|solar inverters",
+   "source": "Solar inverters"
+  },
+  "BID-D23-F03-G01-I03": {
+   "groupId": "BID-D23-F03-G01",
+   "key": "BID-D23-F03-G01|solar mounting systems",
+   "source": "Solar mounting systems"
+  },
+  "BID-D23-F04-G03-I01": {
+   "groupId": "BID-D23-F04-G03",
+   "key": "BID-D23-F04-G03|energy auditing",
+   "source": "Energy auditing"
+  },
+  "BID-D23-F04-G03-I02": {
+   "groupId": "BID-D23-F04-G03",
+   "key": "BID-D23-F04-G03|grid connection consulting",
+   "source": "Grid connection consulting"
+  },
+  "BID-D23-F05-G01-I01": {
+   "groupId": "BID-D23-F05-G01",
+   "key": "BID-D23-F05-G01|industrial fuels",
+   "source": "Industrial fuels"
+  },
+  "BID-D23-F05-G01-I02": {
+   "groupId": "BID-D23-F05-G01",
+   "key": "BID-D23-F05-G01|biomass fuels",
+   "source": "Biomass fuels"
+  },
+  "BID-D24-F01-G02-I01": {
+   "groupId": "BID-D24-F01-G02",
+   "key": "BID-D24-F01-G02|water filtration equipment",
+   "source": "Water filtration equipment"
+  },
+  "BID-D24-F01-G02-I02": {
+   "groupId": "BID-D24-F01-G02",
+   "key": "BID-D24-F01-G02|desalination components",
+   "source": "Desalination components"
+  },
+  "BID-D24-F01-G02-I03": {
+   "groupId": "BID-D24-F01-G02",
+   "key": "BID-D24-F01-G02|wastewater treatment equipment",
+   "source": "Wastewater treatment equipment"
+  },
+  "BID-D24-F02-G01-I01": {
+   "groupId": "BID-D24-F02-G01",
+   "key": "BID-D24-F02-G01|water treatment operations",
+   "source": "Water treatment operations"
+  },
+  "BID-D24-F02-G01-I02": {
+   "groupId": "BID-D24-F02-G01",
+   "key": "BID-D24-F02-G01|wastewater treatment operations",
+   "source": "Wastewater treatment operations"
+  },
+  "BID-D24-F02-G02-I01": {
+   "groupId": "BID-D24-F02-G02",
+   "key": "BID-D24-F02-G02|water testing",
+   "source": "Water testing"
+  },
+  "BID-D24-F02-G02-I02": {
+   "groupId": "BID-D24-F02-G02",
+   "key": "BID-D24-F02-G02|water leak detection",
+   "source": "Water leak detection"
+  },
+  "BID-D24-F03-G01-I01": {
+   "groupId": "BID-D24-F03-G01",
+   "key": "BID-D24-F03-G01|general waste collection",
+   "source": "General waste collection"
+  },
+  "BID-D24-F03-G01-I02": {
+   "groupId": "BID-D24-F03-G01",
+   "key": "BID-D24-F03-G01|waste sorting services",
+   "source": "Waste sorting services"
+  },
+  "BID-D24-F03-G03-I01": {
+   "groupId": "BID-D24-F03-G03",
+   "key": "BID-D24-F03-G03|hazardous waste management",
+   "source": "Hazardous waste management"
+  },
+  "BID-D24-F03-G03-I02": {
+   "groupId": "BID-D24-F03-G03",
+   "key": "BID-D24-F03-G03|medical waste management",
+   "source": "Medical waste management"
+  },
+  "BID-D24-F04-G01-I01": {
+   "groupId": "BID-D24-F04-G01",
+   "key": "BID-D24-F04-G01|environmental impact assessment",
+   "source": "Environmental impact assessment"
+  },
+  "BID-D24-F04-G01-I02": {
+   "groupId": "BID-D24-F04-G01",
+   "key": "BID-D24-F04-G01|environmental monitoring",
+   "source": "Environmental monitoring"
+  },
+  "BID-D24-F04-G03-I01": {
+   "groupId": "BID-D24-F04-G03",
+   "key": "BID-D24-F04-G03|sustainability reporting",
+   "source": "Sustainability reporting"
+  },
+  "BID-D24-F04-G03-I02": {
+   "groupId": "BID-D24-F04-G03",
+   "key": "BID-D24-F04-G03|carbon accounting",
+   "source": "Carbon accounting"
+  },
+  "BID-D25-F01-G01-I01": {
+   "groupId": "BID-D25-F01-G01",
+   "key": "BID-D25-F01-G01|mineral exploration",
+   "source": "Mineral exploration"
+  },
+  "BID-D25-F01-G01-I02": {
+   "groupId": "BID-D25-F01-G01",
+   "key": "BID-D25-F01-G01|geological surveying",
+   "source": "Geological surveying"
+  },
+  "BID-D25-F01-G02-I01": {
+   "groupId": "BID-D25-F01-G02",
+   "key": "BID-D25-F01-G02|mine planning",
+   "source": "Mine planning"
+  },
+  "BID-D25-F01-G02-I02": {
+   "groupId": "BID-D25-F01-G02",
+   "key": "BID-D25-F01-G02|mine operations support",
+   "source": "Mine operations support"
+  },
+  "BID-D25-F02-G03-I01": {
+   "groupId": "BID-D25-F02-G03",
+   "key": "BID-D25-F02-G03|construction stone",
+   "source": "Construction stone"
+  },
+  "BID-D25-F02-G03-I02": {
+   "groupId": "BID-D25-F02-G03",
+   "key": "BID-D25-F02-G03|silica sand",
+   "source": "Silica sand"
+  },
+  "BID-D25-F02-G03-I03": {
+   "groupId": "BID-D25-F02-G03",
+   "key": "BID-D25-F02-G03|clay",
+   "source": "Clay"
+  },
+  "BID-D25-F03-G01-I01": {
+   "groupId": "BID-D25-F03-G01",
+   "key": "BID-D25-F03-G01|steel stock",
+   "source": "Steel stock"
+  },
+  "BID-D25-F03-G01-I02": {
+   "groupId": "BID-D25-F03-G01",
+   "key": "BID-D25-F03-G01|aluminum stock",
+   "source": "Aluminum stock"
+  },
+  "BID-D25-F03-G01-I03": {
+   "groupId": "BID-D25-F03-G01",
+   "key": "BID-D25-F03-G01|copper stock",
+   "source": "Copper stock"
+  },
+  "BID-D25-F03-G01-I04": {
+   "groupId": "BID-D25-F03-G01",
+   "key": "BID-D25-F03-G01|metal alloys",
+   "source": "Metal alloys"
+  },
+  "BID-D25-F04-G01-I01": {
+   "groupId": "BID-D25-F04-G01",
+   "key": "BID-D25-F04-G01|crushers",
+   "source": "Crushers"
+  },
+  "BID-D25-F04-G01-I02": {
+   "groupId": "BID-D25-F04-G01",
+   "key": "BID-D25-F04-G01|screens",
+   "source": "Screens"
+  },
+  "BID-D25-F04-G01-I03": {
+   "groupId": "BID-D25-F04-G01",
+   "key": "BID-D25-F04-G01|mineral processing equipment",
+   "source": "Mineral processing equipment"
+  },
+  "BID-D26-F01-G01-I01": {
+   "groupId": "BID-D26-F01-G01",
+   "key": "BID-D26-F01-G01|industrial chemicals",
+   "source": "Industrial chemicals"
+  },
+  "BID-D26-F01-G01-I02": {
+   "groupId": "BID-D26-F01-G01",
+   "key": "BID-D26-F01-G01|solvents",
+   "source": "Solvents"
+  },
+  "BID-D26-F01-G04-I01": {
+   "groupId": "BID-D26-F01-G04",
+   "key": "BID-D26-F01-G04|fertilizers",
+   "source": "Fertilizers"
+  },
+  "BID-D26-F01-G04-I02": {
+   "groupId": "BID-D26-F01-G04",
+   "key": "BID-D26-F01-G04|agrochemicals",
+   "source": "Agrochemicals"
+  },
+  "BID-D26-F02-G01-I01": {
+   "groupId": "BID-D26-F02-G01",
+   "key": "BID-D26-F02-G01|plastic resins",
+   "source": "Plastic resins"
+  },
+  "BID-D26-F02-G01-I02": {
+   "groupId": "BID-D26-F02-G01",
+   "key": "BID-D26-F02-G01|engineering plastics",
+   "source": "Engineering plastics"
+  },
+  "BID-D26-F02-G03-I01": {
+   "groupId": "BID-D26-F02-G03",
+   "key": "BID-D26-F02-G03|polymer films",
+   "source": "Polymer films"
+  },
+  "BID-D26-F02-G03-I02": {
+   "groupId": "BID-D26-F02-G03",
+   "key": "BID-D26-F02-G03|foam materials",
+   "source": "Foam materials"
+  },
+  "BID-D26-F04-G01-I01": {
+   "groupId": "BID-D26-F04-G01",
+   "key": "BID-D26-F04-G01|chemical formulation",
+   "source": "Chemical formulation"
+  },
+  "BID-D26-F04-G01-I02": {
+   "groupId": "BID-D26-F04-G01",
+   "key": "BID-D26-F04-G01|chemical blending",
+   "source": "Chemical blending"
+  },
+  "BID-D27-F01-G01-I01": {
+   "groupId": "BID-D27-F01-G01",
+   "key": "BID-D27-F01-G01|seeds",
+   "source": "Seeds"
+  },
+  "BID-D27-F01-G01-I02": {
+   "groupId": "BID-D27-F01-G01",
+   "key": "BID-D27-F01-G01|seedlings",
+   "source": "Seedlings"
+  },
+  "BID-D27-F01-G01-I03": {
+   "groupId": "BID-D27-F01-G01",
+   "key": "BID-D27-F01-G01|growing media",
+   "source": "Growing media"
+  },
+  "BID-D27-F01-G03-I01": {
+   "groupId": "BID-D27-F01-G03",
+   "key": "BID-D27-F01-G03|agricultural netting",
+   "source": "Agricultural netting"
+  },
+  "BID-D27-F01-G03-I02": {
+   "groupId": "BID-D27-F01-G03",
+   "key": "BID-D27-F01-G03|greenhouse systems",
+   "source": "Greenhouse systems"
+  },
+  "BID-D27-F02-G02-I01": {
+   "groupId": "BID-D27-F02-G02",
+   "key": "BID-D27-F02-G02|crop advisory",
+   "source": "Crop advisory"
+  },
+  "BID-D27-F02-G02-I02": {
+   "groupId": "BID-D27-F02-G02",
+   "key": "BID-D27-F02-G02|agricultural spraying",
+   "source": "Agricultural spraying"
+  },
+  "BID-D27-F02-G02-I03": {
+   "groupId": "BID-D27-F02-G02",
+   "key": "BID-D27-F02-G02|harvesting services",
+   "source": "Harvesting services"
+  },
+  "BID-D27-F03-G01-I01": {
+   "groupId": "BID-D27-F03-G01",
+   "key": "BID-D27-F03-G01|live plants",
+   "source": "Live plants"
+  },
+  "BID-D27-F03-G01-I02": {
+   "groupId": "BID-D27-F03-G01",
+   "key": "BID-D27-F03-G01|nursery trees",
+   "source": "Nursery trees"
+  },
+  "BID-D27-F03-G01-I03": {
+   "groupId": "BID-D27-F03-G01",
+   "key": "BID-D27-F03-G01|cut flowers",
+   "source": "Cut flowers"
+  },
+  "BID-D27-F03-G02-I01": {
+   "groupId": "BID-D27-F03-G02",
+   "key": "BID-D27-F03-G02|livestock",
+   "source": "Livestock"
+  },
+  "BID-D27-F03-G02-I02": {
+   "groupId": "BID-D27-F03-G02",
+   "key": "BID-D27-F03-G02|live fish",
+   "source": "Live fish"
+  },
+  "BID-D27-F03-G03-I01": {
+   "groupId": "BID-D27-F03-G03",
+   "key": "BID-D27-F03-G03|raw timber",
+   "source": "Raw timber"
+  },
+  "BID-D27-F03-G03-I02": {
+   "groupId": "BID-D27-F03-G03",
+   "key": "BID-D27-F03-G03|natural fibers",
+   "source": "Natural fibers"
+  },
+  "BID-D27-F04-G01-I01": {
+   "groupId": "BID-D27-F04-G01",
+   "key": "BID-D27-F04-G01|veterinary services",
+   "source": "Veterinary services"
+  },
+  "BID-D27-F04-G01-I02": {
+   "groupId": "BID-D27-F04-G01",
+   "key": "BID-D27-F04-G01|animal health laboratory services",
+   "source": "Animal health laboratory services"
+  },
+  "BID-D27-F04-G02-I01": {
+   "groupId": "BID-D27-F04-G02",
+   "key": "BID-D27-F04-G02|animal grooming",
+   "source": "Animal grooming"
+  },
+  "BID-D27-F04-G02-I02": {
+   "groupId": "BID-D27-F04-G02",
+   "key": "BID-D27-F04-G02|animal boarding",
+   "source": "Animal boarding"
+  },
+  "BID-D27-F05-G02-I01": {
+   "groupId": "BID-D27-F05-G02",
+   "key": "BID-D27-F05-G02|animal care supplies",
+   "source": "Animal care supplies"
+  },
+  "BID-D27-F05-G02-I02": {
+   "groupId": "BID-D27-F05-G02",
+   "key": "BID-D27-F05-G02|animal housing equipment",
+   "source": "Animal housing equipment"
+  },
+  "BID-D28-F01-G02-I01": {
+   "groupId": "BID-D28-F01-G02",
+   "key": "BID-D28-F01-G02|meat and poultry",
+   "source": "Meat and poultry"
+  },
+  "BID-D28-F01-G02-I02": {
+   "groupId": "BID-D28-F01-G02",
+   "key": "BID-D28-F01-G02|seafood",
+   "source": "Seafood"
+  },
+  "BID-D28-F01-G04-I01": {
+   "groupId": "BID-D28-F01-G04",
+   "key": "BID-D28-F01-G04|grains and pulses",
+   "source": "Grains and pulses"
+  },
+  "BID-D28-F01-G04-I02": {
+   "groupId": "BID-D28-F01-G04",
+   "key": "BID-D28-F01-G04|edible oils",
+   "source": "Edible oils"
+  },
+  "BID-D28-F01-G05-I01": {
+   "groupId": "BID-D28-F01-G05",
+   "key": "BID-D28-F01-G05|bakery products",
+   "source": "Bakery products"
+  },
+  "BID-D28-F01-G05-I02": {
+   "groupId": "BID-D28-F01-G05",
+   "key": "BID-D28-F01-G05|confectionery",
+   "source": "Confectionery"
+  },
+  "BID-D28-F01-G06-I01": {
+   "groupId": "BID-D28-F01-G06",
+   "key": "BID-D28-F01-G06|frozen food",
+   "source": "Frozen food"
+  },
+  "BID-D28-F01-G06-I02": {
+   "groupId": "BID-D28-F01-G06",
+   "key": "BID-D28-F01-G06|prepared food",
+   "source": "Prepared food"
+  },
+  "BID-D28-F02-G02-I01": {
+   "groupId": "BID-D28-F02-G02",
+   "key": "BID-D28-F02-G02|coffee beans",
+   "source": "Coffee beans"
+  },
+  "BID-D28-F02-G02-I02": {
+   "groupId": "BID-D28-F02-G02",
+   "key": "BID-D28-F02-G02|tea",
+   "source": "Tea"
+  },
+  "BID-D28-F02-G03-I01": {
+   "groupId": "BID-D28-F02-G03",
+   "key": "BID-D28-F02-G03|juices",
+   "source": "Juices"
+  },
+  "BID-D28-F02-G03-I02": {
+   "groupId": "BID-D28-F02-G03",
+   "key": "BID-D28-F02-G03|soft drinks",
+   "source": "Soft drinks"
+  },
+  "BID-D28-F02-G03-I03": {
+   "groupId": "BID-D28-F02-G03",
+   "key": "BID-D28-F02-G03|beverage concentrates",
+   "source": "Beverage concentrates"
+  },
+  "BID-D28-F03-G01-I01": {
+   "groupId": "BID-D28-F03-G01",
+   "key": "BID-D28-F03-G01|corporate catering",
+   "source": "Corporate catering"
+  },
+  "BID-D28-F03-G01-I02": {
+   "groupId": "BID-D28-F03-G01",
+   "key": "BID-D28-F03-G01|institutional catering",
+   "source": "Institutional catering"
+  },
+  "BID-D28-F03-G01-I03": {
+   "groupId": "BID-D28-F03-G01",
+   "key": "BID-D28-F03-G01|event catering",
+   "source": "Event catering"
+  },
+  "BID-D28-F04-G01-I01": {
+   "groupId": "BID-D28-F04-G01",
+   "key": "BID-D28-F04-G01|commercial cooking equipment",
+   "source": "Commercial cooking equipment"
+  },
+  "BID-D28-F04-G01-I02": {
+   "groupId": "BID-D28-F04-G01",
+   "key": "BID-D28-F04-G01|food preparation equipment",
+   "source": "Food preparation equipment"
+  },
+  "BID-D28-F04-G04-I01": {
+   "groupId": "BID-D28-F04-G04",
+   "key": "BID-D28-F04-G04|kitchen utensils",
+   "source": "Kitchen utensils"
+  },
+  "BID-D28-F04-G04-I02": {
+   "groupId": "BID-D28-F04-G04",
+   "key": "BID-D28-F04-G04|tableware",
+   "source": "Tableware"
+  },
+  "BID-D29-F01-G01-I01": {
+   "groupId": "BID-D29-F01-G01",
+   "key": "BID-D29-F01-G01|hotel accommodation",
+   "source": "Hotel accommodation"
+  },
+  "BID-D29-F01-G01-I02": {
+   "groupId": "BID-D29-F01-G01",
+   "key": "BID-D29-F01-G01|resort accommodation",
+   "source": "Resort accommodation"
+  },
+  "BID-D29-F01-G02-I01": {
+   "groupId": "BID-D29-F01-G02",
+   "key": "BID-D29-F01-G02|serviced accommodation",
+   "source": "Serviced accommodation"
+  },
+  "BID-D29-F01-G02-I02": {
+   "groupId": "BID-D29-F01-G02",
+   "key": "BID-D29-F01-G02|corporate accommodation",
+   "source": "Corporate accommodation"
+  },
+  "BID-D29-F01-G02-I03": {
+   "groupId": "BID-D29-F01-G02",
+   "key": "BID-D29-F01-G02|group accommodation",
+   "source": "Group accommodation"
+  },
+  "BID-D29-F02-G01-I01": {
+   "groupId": "BID-D29-F02-G01",
+   "key": "BID-D29-F02-G01|corporate travel management",
+   "source": "Corporate travel management"
+  },
+  "BID-D29-F02-G01-I02": {
+   "groupId": "BID-D29-F02-G01",
+   "key": "BID-D29-F02-G01|business travel support",
+   "source": "Business travel support"
+  },
+  "BID-D29-F02-G02-I01": {
+   "groupId": "BID-D29-F02-G02",
+   "key": "BID-D29-F02-G02|tour operations",
+   "source": "Tour operations"
+  },
+  "BID-D29-F02-G02-I02": {
+   "groupId": "BID-D29-F02-G02",
+   "key": "BID-D29-F02-G02|destination management",
+   "source": "Destination management"
+  },
+  "BID-D29-F03-G01-I01": {
+   "groupId": "BID-D29-F03-G01",
+   "key": "BID-D29-F03-G01|cultural tours",
+   "source": "Cultural tours"
+  },
+  "BID-D29-F03-G01-I02": {
+   "groupId": "BID-D29-F03-G01",
+   "key": "BID-D29-F03-G01|adventure tours",
+   "source": "Adventure tours"
+  },
+  "BID-D29-F03-G01-I03": {
+   "groupId": "BID-D29-F03-G01",
+   "key": "BID-D29-F03-G01|tourism guide services",
+   "source": "Tourism guide services"
+  },
+  "BID-D29-F04-G01-I01": {
+   "groupId": "BID-D29-F04-G01",
+   "key": "BID-D29-F04-G01|hotel linen",
+   "source": "Hotel linen"
+  },
+  "BID-D29-F04-G01-I02": {
+   "groupId": "BID-D29-F04-G01",
+   "key": "BID-D29-F04-G01|hospitality uniforms",
+   "source": "Hospitality uniforms"
+  },
+  "BID-D29-F04-G02-I01": {
+   "groupId": "BID-D29-F04-G02",
+   "key": "BID-D29-F04-G02|guest amenities",
+   "source": "Guest amenities"
+  },
+  "BID-D29-F04-G02-I02": {
+   "groupId": "BID-D29-F04-G02",
+   "key": "BID-D29-F04-G02|hotel room accessories",
+   "source": "Hotel room accessories"
+  },
+  "BID-D30-F01-G05-I01": {
+   "groupId": "BID-D30-F01-G05",
+   "key": "BID-D30-F01-G05|multimodal freight",
+   "source": "Multimodal freight"
+  },
+  "BID-D30-F01-G05-I02": {
+   "groupId": "BID-D30-F01-G05",
+   "key": "BID-D30-F01-G05|freight forwarding",
+   "source": "Freight forwarding"
+  },
+  "BID-D30-F03-G01-I01": {
+   "groupId": "BID-D30-F03-G01",
+   "key": "BID-D30-F03-G01|general warehousing",
+   "source": "General warehousing"
+  },
+  "BID-D30-F03-G01-I02": {
+   "groupId": "BID-D30-F03-G01",
+   "key": "BID-D30-F03-G01|bonded warehousing",
+   "source": "Bonded warehousing"
+  },
+  "BID-D30-F03-G03-I01": {
+   "groupId": "BID-D30-F03-G03",
+   "key": "BID-D30-F03-G03|inventory management services",
+   "source": "Inventory management services"
+  },
+  "BID-D30-F03-G03-I02": {
+   "groupId": "BID-D30-F03-G03",
+   "key": "BID-D30-F03-G03|pick and pack services",
+   "source": "Pick and pack services"
+  },
+  "BID-D30-F04-G01-I01": {
+   "groupId": "BID-D30-F04-G01",
+   "key": "BID-D30-F04-G01|warehouse racking",
+   "source": "Warehouse racking"
+  },
+  "BID-D30-F04-G01-I02": {
+   "groupId": "BID-D30-F04-G01",
+   "key": "BID-D30-F04-G01|pallets",
+   "source": "Pallets"
+  },
+  "BID-D30-F04-G01-I03": {
+   "groupId": "BID-D30-F04-G01",
+   "key": "BID-D30-F04-G01|storage containers",
+   "source": "Storage containers"
+  },
+  "BID-D30-F04-G03-I01": {
+   "groupId": "BID-D30-F04-G03",
+   "key": "BID-D30-F04-G03|material handling conveyors",
+   "source": "Material handling conveyors"
+  },
+  "BID-D30-F04-G03-I02": {
+   "groupId": "BID-D30-F04-G03",
+   "key": "BID-D30-F04-G03|forklifts",
+   "source": "Forklifts"
+  },
+  "BID-D30-F04-G03-I03": {
+   "groupId": "BID-D30-F04-G03",
+   "key": "BID-D30-F04-G03|hand pallet trucks",
+   "source": "Hand pallet trucks"
+  },
+  "BID-D31-F01-G01-I01": {
+   "groupId": "BID-D31-F01-G01",
+   "key": "BID-D31-F01-G01|passenger vehicles",
+   "source": "Passenger vehicles"
+  },
+  "BID-D31-F01-G01-I02": {
+   "groupId": "BID-D31-F01-G01",
+   "key": "BID-D31-F01-G01|commercial vehicles",
+   "source": "Commercial vehicles"
+  },
+  "BID-D31-F01-G01-I03": {
+   "groupId": "BID-D31-F01-G01",
+   "key": "BID-D31-F01-G01|buses",
+   "source": "Buses"
+  },
+  "BID-D31-F01-G02-I01": {
+   "groupId": "BID-D31-F01-G02",
+   "key": "BID-D31-F01-G02|motorcycles",
+   "source": "Motorcycles"
+  },
+  "BID-D31-F01-G02-I02": {
+   "groupId": "BID-D31-F01-G02",
+   "key": "BID-D31-F01-G02|bicycles",
+   "source": "Bicycles"
+  },
+  "BID-D31-F01-G04-I01": {
+   "groupId": "BID-D31-F01-G04",
+   "key": "BID-D31-F01-G04|vehicle spare parts",
+   "source": "Vehicle spare parts"
+  },
+  "BID-D31-F01-G04-I02": {
+   "groupId": "BID-D31-F01-G04",
+   "key": "BID-D31-F01-G04|tires",
+   "source": "Tires"
+  },
+  "BID-D31-F02-G01-I01": {
+   "groupId": "BID-D31-F02-G01",
+   "key": "BID-D31-F02-G01|vehicle maintenance",
+   "source": "Vehicle maintenance"
+  },
+  "BID-D31-F02-G01-I02": {
+   "groupId": "BID-D31-F02-G01",
+   "key": "BID-D31-F02-G01|vehicle inspection",
+   "source": "Vehicle inspection"
+  },
+  "BID-D31-F02-G01-I03": {
+   "groupId": "BID-D31-F02-G01",
+   "key": "BID-D31-F02-G01|roadside assistance",
+   "source": "Roadside assistance"
+  },
+  "BID-D31-F02-G03-I01": {
+   "groupId": "BID-D31-F02-G03",
+   "key": "BID-D31-F02-G03|chauffeur services",
+   "source": "Chauffeur services"
+  },
+  "BID-D31-F02-G03-I02": {
+   "groupId": "BID-D31-F02-G03",
+   "key": "BID-D31-F02-G03|passenger transport operations",
+   "source": "Passenger transport operations"
+  },
+  "BID-D31-F03-G01-I01": {
+   "groupId": "BID-D31-F03-G01",
+   "key": "BID-D31-F03-G01|workboats",
+   "source": "Workboats"
+  },
+  "BID-D31-F03-G01-I02": {
+   "groupId": "BID-D31-F03-G01",
+   "key": "BID-D31-F03-G01|marine engines",
+   "source": "Marine engines"
+  },
+  "BID-D31-F03-G01-I03": {
+   "groupId": "BID-D31-F03-G01",
+   "key": "BID-D31-F03-G01|marine spare parts",
+   "source": "Marine spare parts"
+  },
+  "BID-D31-F03-G02-I01": {
+   "groupId": "BID-D31-F03-G02",
+   "key": "BID-D31-F03-G02|aircraft ground support equipment",
+   "source": "Aircraft ground support equipment"
+  },
+  "BID-D31-F03-G02-I02": {
+   "groupId": "BID-D31-F03-G02",
+   "key": "BID-D31-F03-G02|aircraft spare parts",
+   "source": "Aircraft spare parts"
+  },
+  "BID-D31-F04-G03-I01": {
+   "groupId": "BID-D31-F04-G03",
+   "key": "BID-D31-F04-G03|airport support operations",
+   "source": "Airport support operations"
+  },
+  "BID-D31-F04-G03-I02": {
+   "groupId": "BID-D31-F04-G03",
+   "key": "BID-D31-F04-G03|port support operations",
+   "source": "Port support operations"
+  },
+  "BID-D31-F05-G01-I01": {
+   "groupId": "BID-D31-F05-G01",
+   "key": "BID-D31-F05-G01|car rental",
+   "source": "Car rental"
+  },
+  "BID-D31-F05-G01-I02": {
+   "groupId": "BID-D31-F05-G01",
+   "key": "BID-D31-F05-G01|bus rental",
+   "source": "Bus rental"
+  },
+  "BID-D31-F05-G01-I03": {
+   "groupId": "BID-D31-F05-G01",
+   "key": "BID-D31-F05-G01|commercial vehicle rental",
+   "source": "Commercial vehicle rental"
+  },
+  "BID-D31-F05-G02-I01": {
+   "groupId": "BID-D31-F05-G02",
+   "key": "BID-D31-F05-G02|boat charter",
+   "source": "Boat charter"
+  },
+  "BID-D31-F05-G02-I02": {
+   "groupId": "BID-D31-F05-G02",
+   "key": "BID-D31-F05-G02|aircraft charter",
+   "source": "Aircraft charter"
+  },
+  "BID-D32-F01-G02-I01": {
+   "groupId": "BID-D32-F01-G02",
+   "key": "BID-D32-F01-G02|primary care services",
+   "source": "Primary care services"
+  },
+  "BID-D32-F01-G02-I02": {
+   "groupId": "BID-D32-F01-G02",
+   "key": "BID-D32-F01-G02|specialist clinical services",
+   "source": "Specialist clinical services"
+  },
+  "BID-D32-F01-G03-I01": {
+   "groupId": "BID-D32-F01-G03",
+   "key": "BID-D32-F01-G03|diagnostic imaging",
+   "source": "Diagnostic imaging"
+  },
+  "BID-D32-F01-G03-I02": {
+   "groupId": "BID-D32-F01-G03",
+   "key": "BID-D32-F01-G03|clinical laboratory services",
+   "source": "Clinical laboratory services"
+  },
+  "BID-D32-F02-G01-I01": {
+   "groupId": "BID-D32-F02-G01",
+   "key": "BID-D32-F02-G01|medical consumables",
+   "source": "Medical consumables"
+  },
+  "BID-D32-F02-G01-I02": {
+   "groupId": "BID-D32-F02-G01",
+   "key": "BID-D32-F02-G01|medical ppe",
+   "source": "Medical PPE"
+  },
+  "BID-D32-F02-G03-I01": {
+   "groupId": "BID-D32-F02-G03",
+   "key": "BID-D32-F02-G03|diagnostic equipment",
+   "source": "Diagnostic equipment"
+  },
+  "BID-D32-F02-G03-I02": {
+   "groupId": "BID-D32-F02-G03",
+   "key": "BID-D32-F02-G03|patient monitoring equipment",
+   "source": "Patient monitoring equipment"
+  },
+  "BID-D32-F03-G02-I01": {
+   "groupId": "BID-D32-F03-G02",
+   "key": "BID-D32-F03-G02|medical equipment maintenance",
+   "source": "Medical equipment maintenance"
+  },
+  "BID-D32-F03-G02-I02": {
+   "groupId": "BID-D32-F03-G02",
+   "key": "BID-D32-F03-G02|medical equipment calibration",
+   "source": "Medical equipment calibration"
+  },
+  "BID-D32-F03-G04-I01": {
+   "groupId": "BID-D32-F03-G04",
+   "key": "BID-D32-F03-G04|medical coding",
+   "source": "Medical coding"
+  },
+  "BID-D32-F03-G04-I02": {
+   "groupId": "BID-D32-F03-G04",
+   "key": "BID-D32-F03-G04|medical records digitization",
+   "source": "Medical records digitization"
+  },
+  "BID-D32-F04-G05-I01": {
+   "groupId": "BID-D32-F04-G05",
+   "key": "BID-D32-F04-G05|home healthcare",
+   "source": "Home healthcare"
+  },
+  "BID-D32-F04-G05-I02": {
+   "groupId": "BID-D32-F04-G05",
+   "key": "BID-D32-F04-G05|elder care services",
+   "source": "Elder care services"
+  },
+  "BID-D33-F01-G01-I01": {
+   "groupId": "BID-D33-F01-G01",
+   "key": "BID-D33-F01-G01|prescription medicines",
+   "source": "Prescription medicines"
+  },
+  "BID-D33-F01-G01-I02": {
+   "groupId": "BID-D33-F01-G01",
+   "key": "BID-D33-F01-G01|non prescription medicines",
+   "source": "Non-prescription medicines"
+  },
+  "BID-D33-F01-G02-I01": {
+   "groupId": "BID-D33-F01-G02",
+   "key": "BID-D33-F01-G02|vaccines",
+   "source": "Vaccines"
+  },
+  "BID-D33-F01-G02-I02": {
+   "groupId": "BID-D33-F01-G02",
+   "key": "BID-D33-F01-G02|biologic medicines",
+   "source": "Biologic medicines"
+  },
+  "BID-D33-F01-G03-I01": {
+   "groupId": "BID-D33-F01-G03",
+   "key": "BID-D33-F01-G03|active pharmaceutical ingredients",
+   "source": "Active pharmaceutical ingredients"
+  },
+  "BID-D33-F01-G03-I02": {
+   "groupId": "BID-D33-F01-G03",
+   "key": "BID-D33-F01-G03|pharmaceutical excipients",
+   "source": "Pharmaceutical excipients"
+  },
+  "BID-D33-F02-G01-I01": {
+   "groupId": "BID-D33-F02-G01",
+   "key": "BID-D33-F02-G01|laboratory reagents",
+   "source": "Laboratory reagents"
+  },
+  "BID-D33-F02-G01-I02": {
+   "groupId": "BID-D33-F02-G01",
+   "key": "BID-D33-F02-G01|diagnostic test kits",
+   "source": "Diagnostic test kits"
+  },
+  "BID-D33-F02-G02-I01": {
+   "groupId": "BID-D33-F02-G02",
+   "key": "BID-D33-F02-G02|bioprocess consumables",
+   "source": "Bioprocess consumables"
+  },
+  "BID-D33-F02-G02-I02": {
+   "groupId": "BID-D33-F02-G02",
+   "key": "BID-D33-F02-G02|cell culture materials",
+   "source": "Cell culture materials"
+  },
+  "BID-D33-F03-G01-I01": {
+   "groupId": "BID-D33-F03-G01",
+   "key": "BID-D33-F03-G01|contract research",
+   "source": "Contract research"
+  },
+  "BID-D33-F03-G01-I02": {
+   "groupId": "BID-D33-F03-G01",
+   "key": "BID-D33-F03-G01|clinical trial operations",
+   "source": "Clinical trial operations"
+  },
+  "BID-D33-F04-G01-I01": {
+   "groupId": "BID-D33-F04-G01",
+   "key": "BID-D33-F04-G01|pharmaceutical validation",
+   "source": "Pharmaceutical validation"
+  },
+  "BID-D33-F04-G01-I02": {
+   "groupId": "BID-D33-F04-G01",
+   "key": "BID-D33-F04-G01|cleanroom qualification",
+   "source": "Cleanroom qualification"
+  },
+  "BID-D33-F04-G01-I03": {
+   "groupId": "BID-D33-F04-G01",
+   "key": "BID-D33-F04-G01|gmp consulting",
+   "source": "GMP consulting"
+  },
+  "BID-D34-F01-G02-I01": {
+   "groupId": "BID-D34-F01-G02",
+   "key": "BID-D34-F01-G02|laboratory glassware",
+   "source": "Laboratory glassware"
+  },
+  "BID-D34-F01-G02-I02": {
+   "groupId": "BID-D34-F01-G02",
+   "key": "BID-D34-F01-G02|laboratory furniture",
+   "source": "Laboratory furniture"
+  },
+  "BID-D34-F02-G01-I01": {
+   "groupId": "BID-D34-F02-G01",
+   "key": "BID-D34-F02-G01|materials testing",
+   "source": "Materials testing"
+  },
+  "BID-D34-F02-G01-I02": {
+   "groupId": "BID-D34-F02-G01",
+   "key": "BID-D34-F02-G01|mechanical testing",
+   "source": "Mechanical testing"
+  },
+  "BID-D34-F02-G02-I01": {
+   "groupId": "BID-D34-F02-G02",
+   "key": "BID-D34-F02-G02|food testing",
+   "source": "Food testing"
+  },
+  "BID-D34-F02-G02-I02": {
+   "groupId": "BID-D34-F02-G02",
+   "key": "BID-D34-F02-G02|microbiology testing",
+   "source": "Microbiology testing"
+  },
+  "BID-D34-F03-G01-I01": {
+   "groupId": "BID-D34-F03-G01",
+   "key": "BID-D34-F03-G01|product certification",
+   "source": "Product certification"
+  },
+  "BID-D34-F03-G01-I02": {
+   "groupId": "BID-D34-F03-G01",
+   "key": "BID-D34-F03-G01|management system certification",
+   "source": "Management system certification"
+  },
+  "BID-D34-F04-G02-I01": {
+   "groupId": "BID-D34-F04-G02",
+   "key": "BID-D34-F04-G02|research data collection",
+   "source": "Research data collection"
+  },
+  "BID-D34-F04-G02-I02": {
+   "groupId": "BID-D34-F04-G02",
+   "key": "BID-D34-F04-G02|field research operations",
+   "source": "Field research operations"
+  },
+  "BID-D35-F01-G01-I01": {
+   "groupId": "BID-D35-F01-G01",
+   "key": "BID-D35-F01-G01|office desks",
+   "source": "Office desks"
+  },
+  "BID-D35-F01-G01-I02": {
+   "groupId": "BID-D35-F01-G01",
+   "key": "BID-D35-F01-G01|office seating",
+   "source": "Office seating"
+  },
+  "BID-D35-F01-G01-I03": {
+   "groupId": "BID-D35-F01-G01",
+   "key": "BID-D35-F01-G01|storage furniture",
+   "source": "Storage furniture"
+  },
+  "BID-D35-F01-G02-I01": {
+   "groupId": "BID-D35-F01-G02",
+   "key": "BID-D35-F01-G02|hospitality furniture",
+   "source": "Hospitality furniture"
+  },
+  "BID-D35-F01-G02-I02": {
+   "groupId": "BID-D35-F01-G02",
+   "key": "BID-D35-F01-G02|educational furniture",
+   "source": "Educational furniture"
+  },
+  "BID-D35-F01-G02-I03": {
+   "groupId": "BID-D35-F01-G02",
+   "key": "BID-D35-F01-G02|healthcare furniture",
+   "source": "Healthcare furniture"
+  },
+  "BID-D35-F02-G01-I01": {
+   "groupId": "BID-D35-F02-G01",
+   "key": "BID-D35-F02-G01|stationery",
+   "source": "Stationery"
+  },
+  "BID-D35-F02-G01-I02": {
+   "groupId": "BID-D35-F02-G01",
+   "key": "BID-D35-F02-G01|office organizers",
+   "source": "Office organizers"
+  },
+  "BID-D35-F02-G01-I03": {
+   "groupId": "BID-D35-F02-G01",
+   "key": "BID-D35-F02-G01|business stamps",
+   "source": "Business stamps"
+  },
+  "BID-D35-F02-G02-I01": {
+   "groupId": "BID-D35-F02-G02",
+   "key": "BID-D35-F02-G02|paper supplies",
+   "source": "Paper supplies"
+  },
+  "BID-D35-F02-G02-I02": {
+   "groupId": "BID-D35-F02-G02",
+   "key": "BID-D35-F02-G02|printer consumables",
+   "source": "Printer consumables"
+  },
+  "BID-D35-F03-G01-I01": {
+   "groupId": "BID-D35-F03-G01",
+   "key": "BID-D35-F03-G01|retail shelving",
+   "source": "Retail shelving"
+  },
+  "BID-D35-F03-G01-I02": {
+   "groupId": "BID-D35-F03-G01",
+   "key": "BID-D35-F03-G01|checkout counters",
+   "source": "Checkout counters"
+  },
+  "BID-D35-F03-G01-I03": {
+   "groupId": "BID-D35-F03-G01",
+   "key": "BID-D35-F03-G01|retail display units",
+   "source": "Retail display units"
+  },
+  "BID-D35-F03-G02-I01": {
+   "groupId": "BID-D35-F03-G02",
+   "key": "BID-D35-F03-G02|point of sale hardware",
+   "source": "Point-of-sale hardware"
+  },
+  "BID-D35-F03-G02-I02": {
+   "groupId": "BID-D35-F03-G02",
+   "key": "BID-D35-F03-G02|barcode scanners",
+   "source": "Barcode scanners"
+  },
+  "BID-D35-F03-G02-I03": {
+   "groupId": "BID-D35-F03-G02",
+   "key": "BID-D35-F03-G02|label printers",
+   "source": "Label printers"
+  },
+  "BID-D35-F04-G01-I01": {
+   "groupId": "BID-D35-F04-G01",
+   "key": "BID-D35-F04-G01|furniture installation",
+   "source": "Furniture installation"
+  },
+  "BID-D35-F04-G01-I02": {
+   "groupId": "BID-D35-F04-G01",
+   "key": "BID-D35-F04-G01|furniture repair",
+   "source": "Furniture repair"
+  },
+  "BID-D35-F04-G04-I01": {
+   "groupId": "BID-D35-F04-G04",
+   "key": "BID-D35-F04-G04|retail merchandising services",
+   "source": "Retail merchandising services"
+  },
+  "BID-D35-F04-G04-I02": {
+   "groupId": "BID-D35-F04-G04",
+   "key": "BID-D35-F04-G04|retail store setup",
+   "source": "Retail store setup"
+  },
+  "BID-D36-F01-G01-I01": {
+   "groupId": "BID-D36-F01-G01",
+   "key": "BID-D36-F01-G01|corrugated boxes",
+   "source": "Corrugated boxes"
+  },
+  "BID-D36-F01-G01-I02": {
+   "groupId": "BID-D36-F01-G01",
+   "key": "BID-D36-F01-G01|protective packaging",
+   "source": "Protective packaging"
+  },
+  "BID-D36-F01-G02-I01": {
+   "groupId": "BID-D36-F01-G02",
+   "key": "BID-D36-F01-G02|flexible packaging",
+   "source": "Flexible packaging"
+  },
+  "BID-D36-F01-G02-I02": {
+   "groupId": "BID-D36-F01-G02",
+   "key": "BID-D36-F01-G02|pallet wrapping materials",
+   "source": "Pallet wrapping materials"
+  },
+  "BID-D36-F01-G03-I01": {
+   "groupId": "BID-D36-F01-G03",
+   "key": "BID-D36-F01-G03|rigid plastic packaging",
+   "source": "Rigid plastic packaging"
+  },
+  "BID-D36-F01-G03-I02": {
+   "groupId": "BID-D36-F01-G03",
+   "key": "BID-D36-F01-G03|glass packaging",
+   "source": "Glass packaging"
+  },
+  "BID-D36-F01-G03-I03": {
+   "groupId": "BID-D36-F01-G03",
+   "key": "BID-D36-F01-G03|metal packaging",
+   "source": "Metal packaging"
+  },
+  "BID-D36-F02-G01-I01": {
+   "groupId": "BID-D36-F02-G01",
+   "key": "BID-D36-F02-G01|business cards",
+   "source": "Business cards"
+  },
+  "BID-D36-F02-G01-I02": {
+   "groupId": "BID-D36-F02-G01",
+   "key": "BID-D36-F02-G01|brochures",
+   "source": "Brochures"
+  },
+  "BID-D36-F02-G01-I03": {
+   "groupId": "BID-D36-F02-G01",
+   "key": "BID-D36-F02-G01|printed forms",
+   "source": "Printed forms"
+  },
+  "BID-D36-F03-G01-I01": {
+   "groupId": "BID-D36-F03-G01",
+   "key": "BID-D36-F03-G01|indoor signs",
+   "source": "Indoor signs"
+  },
+  "BID-D36-F03-G01-I02": {
+   "groupId": "BID-D36-F03-G01",
+   "key": "BID-D36-F03-G01|outdoor signs",
+   "source": "Outdoor signs"
+  },
+  "BID-D36-F03-G01-I03": {
+   "groupId": "BID-D36-F03-G01",
+   "key": "BID-D36-F03-G01|wayfinding signs",
+   "source": "Wayfinding signs"
+  },
+  "BID-D36-F03-G02-I01": {
+   "groupId": "BID-D36-F03-G02",
+   "key": "BID-D36-F03-G02|digital signage screens",
+   "source": "Digital signage screens"
+  },
+  "BID-D36-F03-G02-I02": {
+   "groupId": "BID-D36-F03-G02",
+   "key": "BID-D36-F03-G02|illuminated signs",
+   "source": "Illuminated signs"
+  },
+  "BID-D36-F04-G01-I01": {
+   "groupId": "BID-D36-F04-G01",
+   "key": "BID-D36-F04-G01|commercial printing",
+   "source": "Commercial printing"
+  },
+  "BID-D36-F04-G01-I02": {
+   "groupId": "BID-D36-F04-G01",
+   "key": "BID-D36-F04-G01|digital printing",
+   "source": "Digital printing"
+  },
+  "BID-D36-F04-G01-I03": {
+   "groupId": "BID-D36-F04-G01",
+   "key": "BID-D36-F04-G01|screen printing",
+   "source": "Screen printing"
+  },
+  "BID-D36-F05-G02-I01": {
+   "groupId": "BID-D36-F05-G02",
+   "key": "BID-D36-F05-G02|branded apparel",
+   "source": "Branded apparel"
+  },
+  "BID-D36-F05-G02-I02": {
+   "groupId": "BID-D36-F05-G02",
+   "key": "BID-D36-F05-G02|promotional bags",
+   "source": "Promotional bags"
+  },
+  "BID-D36-F05-G03-I01": {
+   "groupId": "BID-D36-F05-G03",
+   "key": "BID-D36-F05-G03|branded drinkware",
+   "source": "Branded drinkware"
+  },
+  "BID-D36-F05-G03-I02": {
+   "groupId": "BID-D36-F05-G03",
+   "key": "BID-D36-F05-G03|promotional stationery",
+   "source": "Promotional stationery"
+  },
+  "BID-D37-F01-G01-I01": {
+   "groupId": "BID-D37-F01-G01",
+   "key": "BID-D37-F01-G01|apparel fabrics",
+   "source": "Apparel fabrics"
+  },
+  "BID-D37-F01-G01-I02": {
+   "groupId": "BID-D37-F01-G01",
+   "key": "BID-D37-F01-G01|upholstery fabrics",
+   "source": "Upholstery fabrics"
+  },
+  "BID-D37-F01-G01-I03": {
+   "groupId": "BID-D37-F01-G01",
+   "key": "BID-D37-F01-G01|technical fabrics",
+   "source": "Technical fabrics"
+  },
+  "BID-D37-F01-G02-I01": {
+   "groupId": "BID-D37-F01-G02",
+   "key": "BID-D37-F01-G02|home textiles",
+   "source": "Home textiles"
+  },
+  "BID-D37-F01-G02-I02": {
+   "groupId": "BID-D37-F01-G02",
+   "key": "BID-D37-F01-G02|carpets and rugs",
+   "source": "Carpets and rugs"
+  },
+  "BID-D37-F02-G01-I01": {
+   "groupId": "BID-D37-F02-G01",
+   "key": "BID-D37-F02-G01|corporate uniforms",
+   "source": "Corporate uniforms"
+  },
+  "BID-D37-F02-G01-I02": {
+   "groupId": "BID-D37-F02-G01",
+   "key": "BID-D37-F02-G01|workwear",
+   "source": "Workwear"
+  },
+  "BID-D37-F02-G01-I03": {
+   "groupId": "BID-D37-F02-G01",
+   "key": "BID-D37-F02-G01|protective apparel",
+   "source": "Protective apparel"
+  },
+  "BID-D37-F02-G02-I01": {
+   "groupId": "BID-D37-F02-G02",
+   "key": "BID-D37-F02-G02|fashion apparel",
+   "source": "Fashion apparel"
+  },
+  "BID-D37-F02-G02-I02": {
+   "groupId": "BID-D37-F02-G02",
+   "key": "BID-D37-F02-G02|sportswear",
+   "source": "Sportswear"
+  },
+  "BID-D37-F02-G04-I01": {
+   "groupId": "BID-D37-F02-G04",
+   "key": "BID-D37-F02-G04|headwear",
+   "source": "Headwear"
+  },
+  "BID-D37-F02-G04-I02": {
+   "groupId": "BID-D37-F02-G04",
+   "key": "BID-D37-F02-G04|apparel accessories",
+   "source": "Apparel accessories"
+  },
+  "BID-D37-F03-G01-I01": {
+   "groupId": "BID-D37-F03-G01",
+   "key": "BID-D37-F03-G01|bags and luggage",
+   "source": "Bags and luggage"
+  },
+  "BID-D37-F03-G01-I02": {
+   "groupId": "BID-D37-F03-G01",
+   "key": "BID-D37-F03-G01|travel accessories",
+   "source": "Travel accessories"
+  },
+  "BID-D37-F03-G03-I01": {
+   "groupId": "BID-D37-F03-G03",
+   "key": "BID-D37-F03-G03|jewelry",
+   "source": "Jewelry"
+  },
+  "BID-D37-F03-G03-I02": {
+   "groupId": "BID-D37-F03-G03",
+   "key": "BID-D37-F03-G03|watches",
+   "source": "Watches"
+  },
+  "BID-D37-F04-G02-I01": {
+   "groupId": "BID-D37-F04-G02",
+   "key": "BID-D37-F04-G02|tailoring",
+   "source": "Tailoring"
+  },
+  "BID-D37-F04-G02-I02": {
+   "groupId": "BID-D37-F04-G02",
+   "key": "BID-D37-F04-G02|garment alterations",
+   "source": "Garment alterations"
+  },
+  "BID-D37-F04-G03-I01": {
+   "groupId": "BID-D37-F04-G03",
+   "key": "BID-D37-F04-G03|embroidery services",
+   "source": "Embroidery services"
+  },
+  "BID-D37-F04-G03-I02": {
+   "groupId": "BID-D37-F04-G03",
+   "key": "BID-D37-F04-G03|textile printing",
+   "source": "Textile printing"
+  },
+  "BID-D38-F01-G03-I01": {
+   "groupId": "BID-D38-F01-G03",
+   "key": "BID-D38-F01-G03|makeup",
+   "source": "Makeup"
+  },
+  "BID-D38-F01-G03-I02": {
+   "groupId": "BID-D38-F01-G03",
+   "key": "BID-D38-F01-G03|perfumes",
+   "source": "Perfumes"
+  },
+  "BID-D38-F01-G04-I01": {
+   "groupId": "BID-D38-F01-G04",
+   "key": "BID-D38-F01-G04|grooming products",
+   "source": "Grooming products"
+  },
+  "BID-D38-F01-G04-I02": {
+   "groupId": "BID-D38-F01-G04",
+   "key": "BID-D38-F01-G04|personal hygiene products",
+   "source": "Personal hygiene products"
+  },
+  "BID-D38-F02-G01-I01": {
+   "groupId": "BID-D38-F02-G01",
+   "key": "BID-D38-F02-G01|salon equipment",
+   "source": "Salon equipment"
+  },
+  "BID-D38-F02-G01-I02": {
+   "groupId": "BID-D38-F02-G01",
+   "key": "BID-D38-F02-G01|barber equipment",
+   "source": "Barber equipment"
+  },
+  "BID-D38-F02-G02-I01": {
+   "groupId": "BID-D38-F02-G02",
+   "key": "BID-D38-F02-G02|spa equipment",
+   "source": "Spa equipment"
+  },
+  "BID-D38-F02-G02-I02": {
+   "groupId": "BID-D38-F02-G02",
+   "key": "BID-D38-F02-G02|beauty treatment devices",
+   "source": "Beauty treatment devices"
+  },
+  "BID-D38-F03-G01-I01": {
+   "groupId": "BID-D38-F03-G01",
+   "key": "BID-D38-F03-G01|salon services",
+   "source": "Salon services"
+  },
+  "BID-D38-F03-G01-I02": {
+   "groupId": "BID-D38-F03-G01",
+   "key": "BID-D38-F03-G01|barber services",
+   "source": "Barber services"
+  },
+  "BID-D38-F03-G02-I01": {
+   "groupId": "BID-D38-F03-G02",
+   "key": "BID-D38-F03-G02|spa services",
+   "source": "Spa services"
+  },
+  "BID-D38-F03-G02-I02": {
+   "groupId": "BID-D38-F03-G02",
+   "key": "BID-D38-F03-G02|mobile beauty services",
+   "source": "Mobile beauty services"
+  },
+  "BID-D39-F01-G01-I01": {
+   "groupId": "BID-D39-F01-G01",
+   "key": "BID-D39-F01-G01|security guarding",
+   "source": "Security guarding"
+  },
+  "BID-D39-F01-G01-I02": {
+   "groupId": "BID-D39-F01-G01",
+   "key": "BID-D39-F01-G01|event security",
+   "source": "Event security"
+  },
+  "BID-D39-F02-G01-I01": {
+   "groupId": "BID-D39-F02-G01",
+   "key": "BID-D39-F02-G01|cctv equipment",
+   "source": "CCTV equipment"
+  },
+  "BID-D39-F02-G01-I02": {
+   "groupId": "BID-D39-F02-G01",
+   "key": "BID-D39-F02-G01|access control equipment",
+   "source": "Access control equipment"
+  },
+  "BID-D39-F02-G01-I03": {
+   "groupId": "BID-D39-F02-G01",
+   "key": "BID-D39-F02-G01|intrusion alarms",
+   "source": "Intrusion alarms"
+  },
+  "BID-D39-F02-G02-I01": {
+   "groupId": "BID-D39-F02-G02",
+   "key": "BID-D39-F02-G02|security barriers",
+   "source": "Security barriers"
+  },
+  "BID-D39-F02-G02-I02": {
+   "groupId": "BID-D39-F02-G02",
+   "key": "BID-D39-F02-G02|screening equipment",
+   "source": "Screening equipment"
+  },
+  "BID-D39-F03-G01-I01": {
+   "groupId": "BID-D39-F03-G01",
+   "key": "BID-D39-F03-G01|fire extinguishers",
+   "source": "Fire extinguishers"
+  },
+  "BID-D39-F03-G01-I02": {
+   "groupId": "BID-D39-F03-G01",
+   "key": "BID-D39-F03-G01|fire detection equipment",
+   "source": "Fire detection equipment"
+  },
+  "BID-D39-F03-G01-I03": {
+   "groupId": "BID-D39-F03-G01",
+   "key": "BID-D39-F03-G01|fire suppression equipment",
+   "source": "Fire suppression equipment"
+  },
+  "BID-D39-F03-G02-I01": {
+   "groupId": "BID-D39-F03-G02",
+   "key": "BID-D39-F03-G02|fall protection equipment",
+   "source": "Fall protection equipment"
+  },
+  "BID-D39-F03-G02-I02": {
+   "groupId": "BID-D39-F03-G02",
+   "key": "BID-D39-F03-G02|respiratory protection",
+   "source": "Respiratory protection"
+  },
+  "BID-D39-F03-G03-I01": {
+   "groupId": "BID-D39-F03-G03",
+   "key": "BID-D39-F03-G03|safety signage",
+   "source": "Safety signage"
+  },
+  "BID-D39-F03-G03-I02": {
+   "groupId": "BID-D39-F03-G03",
+   "key": "BID-D39-F03-G03|emergency lighting",
+   "source": "Emergency lighting"
+  },
+  "BID-D39-F04-G01-I01": {
+   "groupId": "BID-D39-F04-G01",
+   "key": "BID-D39-F04-G01|fire system inspection",
+   "source": "Fire system inspection"
+  },
+  "BID-D39-F04-G01-I02": {
+   "groupId": "BID-D39-F04-G01",
+   "key": "BID-D39-F04-G01|fire protection commissioning",
+   "source": "Fire protection commissioning"
+  },
+  "BID-D39-F04-G04-I01": {
+   "groupId": "BID-D39-F04-G04",
+   "key": "BID-D39-F04-G04|emergency planning",
+   "source": "Emergency planning"
+  },
+  "BID-D39-F04-G04-I02": {
+   "groupId": "BID-D39-F04-G04",
+   "key": "BID-D39-F04-G04|emergency medical standby",
+   "source": "Emergency medical standby"
+  },
+  "BID-D39-F04-G04-I03": {
+   "groupId": "BID-D39-F04-G04",
+   "key": "BID-D39-F04-G04|rescue services",
+   "source": "Rescue services"
+  },
+  "BID-D40-F01-G01-I01": {
+   "groupId": "BID-D40-F01-G01",
+   "key": "BID-D40-F01-G01|museum consulting",
+   "source": "Museum consulting"
+  },
+  "BID-D40-F01-G01-I02": {
+   "groupId": "BID-D40-F01-G01",
+   "key": "BID-D40-F01-G01|exhibition curation",
+   "source": "Exhibition curation"
+  },
+  "BID-D40-F01-G02-I01": {
+   "groupId": "BID-D40-F01-G02",
+   "key": "BID-D40-F01-G02|heritage documentation",
+   "source": "Heritage documentation"
+  },
+  "BID-D40-F01-G02-I02": {
+   "groupId": "BID-D40-F01-G02",
+   "key": "BID-D40-F01-G02|art conservation",
+   "source": "Art conservation"
+  },
+  "BID-D40-F01-G02-I03": {
+   "groupId": "BID-D40-F01-G02",
+   "key": "BID-D40-F01-G02|archival services",
+   "source": "Archival services"
+  },
+  "BID-D40-F02-G03-I01": {
+   "groupId": "BID-D40-F02-G03",
+   "key": "BID-D40-F02-G03|fitness facility operations",
+   "source": "Fitness facility operations"
+  },
+  "BID-D40-F02-G03-I02": {
+   "groupId": "BID-D40-F02-G03",
+   "key": "BID-D40-F02-G03|recreation facility management",
+   "source": "Recreation facility management"
+  },
+  "BID-D40-F03-G01-I01": {
+   "groupId": "BID-D40-F03-G01",
+   "key": "BID-D40-F03-G01|sporting goods",
+   "source": "Sporting goods"
+  },
+  "BID-D40-F03-G01-I02": {
+   "groupId": "BID-D40-F03-G01",
+   "key": "BID-D40-F03-G01|fitness equipment",
+   "source": "Fitness equipment"
+  },
+  "BID-D40-F03-G02-I01": {
+   "groupId": "BID-D40-F03-G02",
+   "key": "BID-D40-F03-G02|musical instruments",
+   "source": "Musical instruments"
+  },
+  "BID-D40-F03-G02-I02": {
+   "groupId": "BID-D40-F03-G02",
+   "key": "BID-D40-F03-G02|art materials",
+   "source": "Art materials"
+  },
+  "BID-D40-F03-G03-I01": {
+   "groupId": "BID-D40-F03-G03",
+   "key": "BID-D40-F03-G03|games and toys",
+   "source": "Games and toys"
+  },
+  "BID-D40-F03-G03-I02": {
+   "groupId": "BID-D40-F03-G03",
+   "key": "BID-D40-F03-G03|playground equipment",
+   "source": "Playground equipment"
+  },
+  "BID-D40-F04-G01-I01": {
+   "groupId": "BID-D40-F04-G01",
+   "key": "BID-D40-F04-G01|leisure attraction operations",
+   "source": "Leisure attraction operations"
+  },
+  "BID-D40-F04-G01-I02": {
+   "groupId": "BID-D40-F04-G01",
+   "key": "BID-D40-F04-G01|recreational activity provision",
+   "source": "Recreational activity provision"
+  },
+  "BID-D40-F04-G04-I01": {
+   "groupId": "BID-D40-F04-G04",
+   "key": "BID-D40-F04-G04|venue programming",
+   "source": "Venue programming"
+  },
+  "BID-D40-F04-G04-I02": {
+   "groupId": "BID-D40-F04-G04",
+   "key": "BID-D40-F04-G04|live performance production",
+   "source": "Live performance production"
+  },
+  "BID-D41-F01-G01-I01": {
+   "groupId": "BID-D41-F01-G01",
+   "key": "BID-D41-F01-G01|public policy research",
+   "source": "Public policy research"
+  },
+  "BID-D41-F01-G01-I02": {
+   "groupId": "BID-D41-F01-G01",
+   "key": "BID-D41-F01-G01|public program evaluation",
+   "source": "Public program evaluation"
+  },
+  "BID-D41-F01-G02-I01": {
+   "groupId": "BID-D41-F01-G02",
+   "key": "BID-D41-F01-G02|public service design",
+   "source": "Public service design"
+  },
+  "BID-D41-F01-G02-I02": {
+   "groupId": "BID-D41-F01-G02",
+   "key": "BID-D41-F01-G02|public sector digital advisory",
+   "source": "Public sector digital advisory"
+  },
+  "BID-D41-F02-G02-I01": {
+   "groupId": "BID-D41-F02-G02",
+   "key": "BID-D41-F02-G02|fundraising consulting",
+   "source": "Fundraising consulting"
+  },
+  "BID-D41-F02-G02-I02": {
+   "groupId": "BID-D41-F02-G02",
+   "key": "BID-D41-F02-G02|grant management support",
+   "source": "Grant management support"
+  },
+  "BID-D41-F02-G04-I01": {
+   "groupId": "BID-D41-F02-G04",
+   "key": "BID-D41-F02-G04|volunteer program management",
+   "source": "Volunteer program management"
+  },
+  "BID-D41-F02-G04-I02": {
+   "groupId": "BID-D41-F02-G04",
+   "key": "BID-D41-F02-G04|community outreach",
+   "source": "Community outreach"
+  },
+  "BID-D41-F03-G01-I01": {
+   "groupId": "BID-D41-F03-G01",
+   "key": "BID-D41-F03-G01|social care services",
+   "source": "Social care services"
+  },
+  "BID-D41-F03-G01-I02": {
+   "groupId": "BID-D41-F03-G01",
+   "key": "BID-D41-F03-G01|accessibility support services",
+   "source": "Accessibility support services"
+  },
+  "BID-D41-F03-G03-I01": {
+   "groupId": "BID-D41-F03-G03",
+   "key": "BID-D41-F03-G03|humanitarian logistics coordination",
+   "source": "Humanitarian logistics coordination"
+  },
+  "BID-D41-F03-G03-I02": {
+   "groupId": "BID-D41-F03-G03",
+   "key": "BID-D41-F03-G03|disaster recovery coordination",
+   "source": "Disaster recovery coordination"
+  },
+  "BID-D42-F01-G02-I01": {
+   "groupId": "BID-D42-F01-G02",
+   "key": "BID-D42-F01-G02|aerospace quality assurance",
+   "source": "Aerospace quality assurance"
+  },
+  "BID-D42-F01-G02-I02": {
+   "groupId": "BID-D42-F01-G02",
+   "key": "BID-D42-F01-G02|defense supply chain assurance",
+   "source": "Defense supply chain assurance"
+  },
+  "BID-D42-F03-G01-I01": {
+   "groupId": "BID-D42-F03-G01",
+   "key": "BID-D42-F03-G01|nuclear engineering consulting",
+   "source": "Nuclear engineering consulting"
+  },
+  "BID-D42-F03-G01-I02": {
+   "groupId": "BID-D42-F03-G01",
+   "key": "BID-D42-F03-G01|radiation monitoring",
+   "source": "Radiation monitoring"
+  },
+  "BID-D42-F03-G03-I01": {
+   "groupId": "BID-D42-F03-G03",
+   "key": "BID-D42-F03-G03|high security facility assessment",
+   "source": "High-security facility assessment"
+  },
+  "BID-D42-F03-G03-I02": {
+   "groupId": "BID-D42-F03-G03",
+   "key": "BID-D42-F03-G03|critical infrastructure assurance",
+   "source": "Critical infrastructure assurance"
+  }
+ }
+}

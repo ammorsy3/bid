@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2, Palette, Eye, ExternalLink, History, FileText, Send, Activity, Plug, ChevronRight, Bell, CreditCard } from "lucide-react";
+import { X, Upload, User, Users, Building2, Loader2, Linkedin, Phone, Clock, Briefcase, Check, Sun, Moon, Monitor, ArrowLeft, UserPlus, Trash2, Mail, Shield, Crown, MoreVertical, FileCheck2, CheckCircle2, Palette, Eye, ExternalLink, History, FileText, Send, Activity, Plug, ChevronRight, Bell, CreditCard, Layers } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -966,6 +966,14 @@ export default function Settings() {
               {item.label}
             </button>
           ))}
+          <button
+            onClick={() => setLocation("/settings/offerings")}
+            className="flex-shrink-0 flex items-center gap-2 px-3 py-2 min-h-11 rounded-lg text-sm font-medium whitespace-nowrap text-muted-foreground hover:bg-muted transition-colors active:opacity-70 active:bg-accent"
+            data-testid="sidebar-offerings"
+          >
+            <Layers className="h-4 w-4 flex-shrink-0" />
+            {t('offerings.navLabel')}
+          </button>
           {isCompanyWorkspace && (
             <button
               onClick={() => setLocation("/settings/integrations")}
@@ -1010,9 +1018,22 @@ export default function Settings() {
           ))}
 
           {/* External links (navigate away, don't switch tab state) */}
+          <div className="mt-4 pt-4 border-t border-border dark:border-border">
+            <button
+              onClick={() => setLocation("/settings/offerings")}
+              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 active:opacity-70 active:bg-accent ${isRtl ? 'text-right' : 'text-start'}`}
+              data-testid="sidebar-offerings"
+            >
+              <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                <Layers className="h-3 w-3" />
+              </div>
+              <span className="text-sm font-medium truncate flex-1">{t('offerings.navLabel')}</span>
+              <ChevronRight className={`h-3 w-3 text-muted-foreground ${isRtl ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
           {/* Integrations/API are company-only — see Q-016. */}
           {isCompanyWorkspace && (
-            <div className="mt-4 pt-4 border-t border-border dark:border-border">
+            <div className="mt-2 pt-2 border-t border-border dark:border-border">
               <button
                 onClick={() => setLocation("/settings/integrations")}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors hover:bg-muted dark:hover:bg-gray-700 active:opacity-70 active:bg-accent ${isRtl ? 'text-right' : 'text-start'}`}

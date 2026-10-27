@@ -64,7 +64,8 @@ export default function TeamBasics() {
         title: t('onboardingTeamBasics.teamCreatedTitle'),
         description: t('onboardingTeamBasics.teamCreatedDesc'),
       });
-      setLocation('/onboarding/team-invite');
+      // Teams offer services: classify them first (vendor registration), then invite.
+      setLocation('/onboarding/offerings?next=%2Fonboarding%2Fteam-invite');
     } catch (error: any) {
       toast({
         title: t('onboardingTeamBasics.couldNotCreateTitle'),

@@ -713,7 +713,7 @@ export async function getBillingSummary(companyId: string, userId: string) {
       .where(and(eq(billingCheckouts.companyId, companyId), eq(billingCheckouts.userId, userId), ne(billingCheckouts.status, "paid")))
       .orderBy(desc(billingCheckouts.createdAt))
       .limit(1),
-    // Fails soft (e.g. before migration 0020): the page just shows no trial.
+    // Fails soft (e.g. before migration 0022): the page just shows no trial.
     getCompanyTrial(companyId).catch((err) => {
       console.error("[Billing] trial lookup failed:", (err as Error)?.message);
       return null;

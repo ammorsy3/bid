@@ -45,6 +45,9 @@ import { registerCompanyVerificationRoutes, sendVerificationError } from "./rout
 import { registerAdminPlanRoutes } from "./routes/admin-plans";
 import { registerTenderItemRoutes } from "./routes/tender-items";
 import { registerRfqPricingRoutes } from "./routes/rfq-pricing";
+import { registerOfferingRoutes } from "./routes/offerings";
+import { initialVendorStatus } from "./lib/offering-store";
+import { requireVendorRegistration } from "./lib/vendor-gate";
 import { verificationStore, type VerificationDetailsPatch } from "./lib/company-verification-store";
 import { CR_NUMBER_PATTERN, isUploadObjectPath, isVerificationDocumentType } from "@shared/company-verification";
 import { sendPlanRequired, assertFeature, assertSeatAvailable, requireFeature, PlanRequiredError } from "./lib/entitlements";
@@ -2117,8 +2120,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // later via PATCH /api/companies/:id/verify-info.
   app.post("/api/companies", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const { logoUrl, bio, websiteUrl, documents: rawDocuments, ...rest } = req.body;
+      const { logoUrl, bio, websiteUrl, documents: rawDocuments, vendorIntent, ...rest } = req.body;
       const companyData = createCompanySchema.parse(rest);
+
+      // Vendor registration (BID-OFFERING-CLASSIFICATION). A company says whether
+      // it offers services/products or only requests them; teams and individuals
+      // only offer. A vendor starts 'pending' and completes registration by
+      // saving at least one offering (PUT /api/companies/:id/offerings) — never here.
+      if (companyData.accountType === 'company' && vendorIntent !== 'vendor' && vendorIntent !== 'requester_only') {
+        return res.status(400).json({ code: 'VENDOR_INTENT_REQUIRED', message: "Tell us whether your company offers services or products, or only requests them.", field: 'vendorIntent' });
+      }
+      if (companyData.accountType !== 'company' && vendorIntent !== undefined && vendorIntent !== 'vendor') {
+        return res.status(400).json({ code: 'INVALID_VENDOR_INTENT', message: "Team and individual workspaces offer services.", field: 'vendorIntent' });
+      }
+      const vendorRegistrationStatus = initialVendorStatus(companyData.accountType, vendorIntent);
 
       // Onboarding files (documents and a private-upload logo) were uploaded before
       // the company existed, as pending onboarding uploads. They are bound to the
@@ -2224,6 +2239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           documents: inputDocuments,
           logoUploadPath: logoKind === "upload" ? (logoUrl as string) : null,
+          vendorRegistrationStatus,
         }));
       } catch (bindError) {
         if (bindError instanceof OnboardingFileError) {
@@ -2256,6 +2272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           slug: company.slug,
           verificationStatus: initialVerificationStatus,
           onboardingState: company.onboardingState,
+          vendorRegistrationStatus,
           role: 'owner',
           profile
         },
@@ -5095,6 +5112,8 @@ Respond with ONLY a JSON object. Example:
     // Viewers are read-only (approved P5); member and above may submit.
     requireCompanyRole('member'),
     requireVerifiedCompany,
+    // Offering requires a completed vendor registration (server/lib/vendor-gate.ts).
+    requireVendorRegistration(),
     async (req: AuthRequest, res) => {
       try {
         const company = await storage.getCompany(req.auth!.activeCompanyId!);
@@ -7073,6 +7092,7 @@ Respond with ONLY a JSON object. Example:
   registerAdminPlanRoutes(app, { authenticateToken });
   registerTenderItemRoutes(app, { authenticateToken });
   registerRfqPricingRoutes(app, { authenticateToken, requireCompanyContext });
+  registerOfferingRoutes(app, { authenticateToken, requireCompanyContext });
 
   // Deployment switches the client needs before sign-in (no secrets).
   app.get("/api/features", (_req, res) => {

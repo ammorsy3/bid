@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, boolean, jsonb, integer, numeric, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, boolean, jsonb, integer, numeric, uniqueIndex, index, primaryKey, foreignKey } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1340,7 +1340,130 @@ export const companyPlanGrants = pgTable("company_plan_grants", {
 });
 export type CompanyPlanGrant = typeof companyPlanGrants.$inferSelect;
 
-// Free trials (migration 0020). A promo code gives the company a paid plan for a
+// ============================================================================
+// VENDOR OFFERINGS (migrations 0020 + 0021; BID-OFFERING-CLASSIFICATION)
+// ============================================================================
+// Catalogue: main sector → specialized sector → offering group, plus listed
+// items (offering details) inside groups. Stable IDs from the source sheet /
+// shared/offering-catalogue/item-ids.json; filled by the generated, idempotent
+// migrations/0021_offering_catalogue_seed.sql. Non-sensitive.
+export const offeringCatalogueVersions = pgTable("offering_catalogue_versions", {
+  version: varchar("version", { length: 64 }).primaryKey(),
+  sourceUrl: text("source_url").notNull(),
+  sourceRevisionId: text("source_revision_id").notNull(),
+  sourceModifiedAt: timestamp("source_modified_at"),
+  retrievedAt: timestamp("retrieved_at").notNull(),
+  checksum: text("checksum").notNull(),
+  importedAt: timestamp("imported_at").defaultNow().notNull(),
+});
+
+export const offeringSectors = pgTable("offering_sectors", {
+  id: varchar("id", { length: 16 }).primaryKey(),
+  labelSource: text("label_source").notNull(),
+  labelEn: text("label_en").notNull(),
+  labelAr: text("label_ar").notNull(),
+  status: varchar("status", { length: 16 }).notNull(),
+  introducedIn: varchar("introduced_in", { length: 64 }).notNull().references(() => offeringCatalogueVersions.version),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const offeringSpecializations = pgTable("offering_specializations", {
+  id: varchar("id", { length: 24 }).primaryKey(),
+  sectorId: varchar("sector_id", { length: 16 }).notNull().references(() => offeringSectors.id),
+  labelSource: text("label_source").notNull(),
+  labelEn: text("label_en").notNull(),
+  labelAr: text("label_ar").notNull(),
+  status: varchar("status", { length: 16 }).notNull(),
+  introducedIn: varchar("introduced_in", { length: 64 }).notNull().references(() => offeringCatalogueVersions.version),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  bySector: index("offering_specializations_sector_idx").on(t.sectorId),
+}));
+
+export const offeringGroups = pgTable("offering_groups", {
+  id: varchar("id", { length: 32 }).primaryKey(),
+  specializationId: varchar("specialization_id", { length: 24 }).notNull().references(() => offeringSpecializations.id),
+  offeringType: varchar("offering_type", { length: 24 }).notNull(),
+  examplesSource: text("examples_source").notNull(),
+  labelSource: text("label_source").notNull(),
+  labelEn: text("label_en").notNull(),
+  labelAr: text("label_ar").notNull(),
+  status: varchar("status", { length: 16 }).notNull(),
+  introducedIn: varchar("introduced_in", { length: 64 }).notNull().references(() => offeringCatalogueVersions.version),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  bySpecialization: index("offering_groups_specialization_idx").on(t.specializationId),
+}));
+
+export const offeringItems = pgTable("offering_items", {
+  id: varchar("id", { length: 48 }).primaryKey(),
+  groupId: varchar("group_id", { length: 32 }).notNull().references(() => offeringGroups.id),
+  provenance: varchar("provenance", { length: 24 }).notNull(),
+  labelSource: text("label_source").notNull(),
+  labelEn: text("label_en").notNull(),
+  labelAr: text("label_ar").notNull(),
+  status: varchar("status", { length: 16 }).notNull(),
+  introducedIn: varchar("introduced_in", { length: 64 }).notNull().references(() => offeringCatalogueVersions.version),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  byGroup: index("offering_items_group_idx").on(t.groupId),
+  idInGroup: uniqueIndex("offering_items_id_group_key").on(t.id, t.groupId),
+}));
+
+// Vendor registration state of an organization — PRIVATE to its members. Kept
+// out of `companies` on purpose: many responses spread whole company rows, and
+// this must never reach another organization. Statuses:
+//   legacy_unclassified  existed before classification; unknown, NOT "offers nothing"
+//   requester_only       a company that only requests offers; claims no offerings
+//   pending              vendor registration started, no effective offering yet
+//   registered           at least one effective offering (server-enforced)
+// `revision` increments on every successful offerings save (optimistic concurrency).
+export const VENDOR_REGISTRATION_STATUSES = ["legacy_unclassified", "requester_only", "pending", "registered"] as const;
+export type VendorRegistrationStatus = typeof VENDOR_REGISTRATION_STATUSES[number];
+
+export const companyVendorRegistrations = pgTable("company_vendor_registrations", {
+  companyId: varchar("company_id").primaryKey().references(() => companies.id, { onDelete: "cascade" }),
+  status: varchar("status", { length: 24 }).notNull(),
+  revision: integer("revision").notNull().default(0),
+  catalogueVersion: varchar("catalogue_version", { length: 64 }).references(() => offeringCatalogueVersions.version),
+  registeredAt: timestamp("registered_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedBy: varchar("updated_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (t) => ({
+  byStatus: index("company_vendor_registrations_status_idx").on(t.status),
+}));
+export type CompanyVendorRegistration = typeof companyVendorRegistrations.$inferSelect;
+
+// Explicit positive item selections — the source of truth for item offerings.
+export const companyOfferingItems = pgTable("company_offering_items", {
+  companyId: varchar("company_id").notNull().references(() => companyVendorRegistrations.companyId, { onDelete: "cascade" }),
+  itemId: varchar("item_id", { length: 48 }).notNull(),
+  groupId: varchar("group_id", { length: 32 }).notNull(),
+  catalogueVersion: varchar("catalogue_version", { length: 64 }).notNull().references(() => offeringCatalogueVersions.version),
+  selectedAt: timestamp("selected_at").defaultNow().notNull(),
+  selectedBy: varchar("selected_by").references(() => users.id, { onDelete: "set null" }),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.companyId, t.itemId] }),
+  itemInGroup: foreignKey({ columns: [t.itemId, t.groupId], foreignColumns: [offeringItems.id, offeringItems.groupId] }),
+  byItem: index("company_offering_items_item_idx").on(t.itemId, t.companyId),
+  byGroup: index("company_offering_items_group_idx").on(t.groupId, t.companyId),
+}));
+
+// Group-level declarations, distinguishable from item selections. A
+// declaration never implies the group's listed items.
+export const companyOfferingGroups = pgTable("company_offering_groups", {
+  companyId: varchar("company_id").notNull().references(() => companyVendorRegistrations.companyId, { onDelete: "cascade" }),
+  groupId: varchar("group_id", { length: 32 }).notNull().references(() => offeringGroups.id),
+  catalogueVersion: varchar("catalogue_version", { length: 64 }).notNull().references(() => offeringCatalogueVersions.version),
+  declaredAt: timestamp("declared_at").defaultNow().notNull(),
+  declaredBy: varchar("declared_by").references(() => users.id, { onDelete: "set null" }),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.companyId, t.groupId] }),
+  byGroup: index("company_offering_groups_group_idx").on(t.groupId, t.companyId),
+}));
+
+// Free trials (migration 0022). A promo code gives the company a paid plan for a
 // while with no card and nothing at StreamPay; near the end Bid asks for payment.
 // One per company, ever. See server/lib/trials.ts.
 export const companyTrials = pgTable("company_trials", {

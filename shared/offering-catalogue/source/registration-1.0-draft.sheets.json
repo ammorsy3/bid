@@ -1,0 +1,8411 @@
+{
+ "provenance": {
+  "title": "Bid — Company Registration Catalogue",
+  "spreadsheetId": "1iBjCNeg6n1kvUwtGpKSQck4nliaZrDo-pEA8NGd2n3g",
+  "sourceUrl": "https://docs.google.com/spreadsheets/d/1iBjCNeg6n1kvUwtGpKSQck4nliaZrDo-pEA8NGd2n3g/edit",
+  "sheetIds": {
+   "Offering Groups": 2111897260,
+   "Specialized Sectors": 660932440,
+   "Main Sectors": 1011914254
+  },
+  "sourceRevisionId": "APfK_pAHxvk7FdkplbuXyUvH1jDH_HEi1Wj92jr04HtysA13jA2Y4oLDl4O9NXtiKIOu15ZOzsXyFj1_i6EYnTQbTkMliCUeqdQ0tPKo5dU",
+  "sourceModifiedTime": "2026-10-23T20:08:41.135Z",
+  "retrievedAt": "2026-10-25T19:09:00Z",
+  "retrievalMethod": "Google Sheets API v4 spreadsheets.get (formattedValue) through the authenticated Google Sheets connector; cross-checked equal to spreadsheets.values.get for 'Offering Groups'",
+  "declaredCatalogueVersion": "registration-1.0-draft",
+  "checksumAlgorithm": "sha256 over JSON.stringify(tabs) (UTF-8, tabs in the order listed)",
+  "checksum": "fb0db83e55beb8d8b57588cea9676a3466aa5867690454d850e814811669ab69"
+ },
+ "tabs": {
+  "Main Sectors": [
+   [
+    "Main Sector",
+    "Specialized Sectors",
+    "Offering Groups",
+    "Main Sector ID"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "3",
+    "12",
+    "BID-D01"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "3",
+    "15",
+    "BID-D02"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "3",
+    "15",
+    "BID-D03"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "3",
+    "12",
+    "BID-D04"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "4",
+    "14",
+    "BID-D05"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "4",
+    "15",
+    "BID-D06"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "4",
+    "17",
+    "BID-D07"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "4",
+    "14",
+    "BID-D08"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "4",
+    "19",
+    "BID-D09"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "4",
+    "16",
+    "BID-D10"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "4",
+    "15",
+    "BID-D11"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "5",
+    "21",
+    "BID-D12"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "3",
+    "13",
+    "BID-D13"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "4",
+    "15",
+    "BID-D14"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "3",
+    "17",
+    "BID-D15"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "4",
+    "15",
+    "BID-D16"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "4",
+    "19",
+    "BID-D17"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "4",
+    "16",
+    "BID-D18"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "3",
+    "14",
+    "BID-D19"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "4",
+    "19",
+    "BID-D20"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "4",
+    "18",
+    "BID-D21"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "4",
+    "18",
+    "BID-D22"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "5",
+    "22",
+    "BID-D23"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "4",
+    "18",
+    "BID-D24"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "4",
+    "17",
+    "BID-D25"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "4",
+    "20",
+    "BID-D26"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "5",
+    "20",
+    "BID-D27"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "4",
+    "19",
+    "BID-D28"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "4",
+    "15",
+    "BID-D29"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "4",
+    "22",
+    "BID-D30"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "5",
+    "19",
+    "BID-D31"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "4",
+    "22",
+    "BID-D32"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "4",
+    "17",
+    "BID-D33"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "4",
+    "20",
+    "BID-D34"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "4",
+    "13",
+    "BID-D35"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "5",
+    "20",
+    "BID-D36"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "4",
+    "15",
+    "BID-D37"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "3",
+    "12",
+    "BID-D38"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "4",
+    "15",
+    "BID-D39"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "4",
+    "17",
+    "BID-D40"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "3",
+    "12",
+    "BID-D41"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "3",
+    "11",
+    "BID-D42"
+   ],
+   [],
+   [],
+   [
+    "Catalogue version",
+    "registration-1.0-draft"
+   ],
+   [
+    "Scope",
+    "Company registration: offerings only"
+   ],
+   [
+    "Source",
+    "Bid_Company_Registration_Catalogue.html"
+   ],
+   [
+    "Reference",
+    "https://unstats.un.org/unsd/classifications/Econ"
+   ]
+  ],
+  "Specialized Sectors": [
+   [
+    "Main Sector",
+    "Specialized Sector",
+    "Offering Groups",
+    "Specialized Sector ID",
+    "Main Sector ID"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Corporate advisory",
+    "4",
+    "BID-D01-F01",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Commercial advisory",
+    "4",
+    "BID-D01-F02",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Execution support",
+    "4",
+    "BID-D01-F03",
+    "BID-D01"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Legal services",
+    "5",
+    "BID-D02-F01",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Governance",
+    "4",
+    "BID-D02-F02",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Specialist compliance",
+    "6",
+    "BID-D02-F03",
+    "BID-D02"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Accounting",
+    "4",
+    "BID-D03-F01",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Corporate finance",
+    "5",
+    "BID-D03-F02",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Financial products",
+    "6",
+    "BID-D03-F03",
+    "BID-D03"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "Talent acquisition",
+    "4",
+    "BID-D04-F01",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "HR operations",
+    "5",
+    "BID-D04-F02",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "Workforce services",
+    "3",
+    "BID-D04-F03",
+    "BID-D04"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning services",
+    "4",
+    "BID-D05-F01",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning development",
+    "4",
+    "BID-D05-F02",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning products",
+    "4",
+    "BID-D05-F03",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning software",
+    "2",
+    "BID-D05-F04",
+    "BID-D05"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Brand and strategy",
+    "3",
+    "BID-D06-F01",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Marketing execution",
+    "5",
+    "BID-D06-F02",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Communications",
+    "4",
+    "BID-D06-F03",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Research and measurement",
+    "3",
+    "BID-D06-F04",
+    "BID-D06"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Design",
+    "4",
+    "BID-D07-F01",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Production",
+    "5",
+    "BID-D07-F02",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Editorial",
+    "4",
+    "BID-D07-F03",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Media assets",
+    "4",
+    "BID-D07-F04",
+    "BID-D07"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event planning",
+    "4",
+    "BID-D08-F01",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event execution",
+    "5",
+    "BID-D08-F02",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event structures",
+    "2",
+    "BID-D08-F03",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event equipment",
+    "3",
+    "BID-D08-F04",
+    "BID-D08"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Application development",
+    "5",
+    "BID-D09-F01",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Enterprise software",
+    "4",
+    "BID-D09-F02",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Specialist software",
+    "6",
+    "BID-D09-F03",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Digital product services",
+    "4",
+    "BID-D09-F04",
+    "BID-D09"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "IT hardware",
+    "4",
+    "BID-D10-F01",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Network hardware",
+    "3",
+    "BID-D10-F02",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Infrastructure services",
+    "5",
+    "BID-D10-F03",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Cloud products",
+    "4",
+    "BID-D10-F04",
+    "BID-D10"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security advisory",
+    "4",
+    "BID-D11-F01",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security operations",
+    "4",
+    "BID-D11-F02",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security software",
+    "5",
+    "BID-D11-F03",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security appliances",
+    "2",
+    "BID-D11-F04",
+    "BID-D11"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Data services",
+    "4",
+    "BID-D12-F01",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI services",
+    "6",
+    "BID-D12-F02",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Automation services",
+    "4",
+    "BID-D12-F03",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Smart products",
+    "4",
+    "BID-D12-F04",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI products",
+    "3",
+    "BID-D12-F05",
+    "BID-D12"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Connectivity services",
+    "4",
+    "BID-D13-F01",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Telecom equipment",
+    "4",
+    "BID-D13-F02",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Communications operations",
+    "5",
+    "BID-D13-F03",
+    "BID-D13"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Building works",
+    "3",
+    "BID-D14-F01",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Civil works",
+    "3",
+    "BID-D14-F02",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Site works",
+    "5",
+    "BID-D14-F03",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Construction services",
+    "4",
+    "BID-D14-F04",
+    "BID-D14"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Design disciplines",
+    "6",
+    "BID-D15-F01",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Specialist engineering",
+    "7",
+    "BID-D15-F02",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Technical delivery",
+    "4",
+    "BID-D15-F03",
+    "BID-D15"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Structural materials",
+    "4",
+    "BID-D16-F01",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Interior finishes",
+    "4",
+    "BID-D16-F02",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Building envelope",
+    "3",
+    "BID-D16-F03",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Building fixtures",
+    "4",
+    "BID-D16-F04",
+    "BID-D16"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Mechanical products",
+    "3",
+    "BID-D17-F01",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Electrical products",
+    "5",
+    "BID-D17-F02",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Installation works",
+    "5",
+    "BID-D17-F03",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Technical services",
+    "6",
+    "BID-D17-F04",
+    "BID-D17"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Facility operations",
+    "3",
+    "BID-D18-F01",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning services",
+    "4",
+    "BID-D18-F02",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Grounds and support",
+    "5",
+    "BID-D18-F03",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning products",
+    "4",
+    "BID-D18-F04",
+    "BID-D18"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property services",
+    "4",
+    "BID-D19-F01",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Space leasing",
+    "5",
+    "BID-D19-F02",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property support",
+    "5",
+    "BID-D19-F03",
+    "BID-D19"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Contract manufacturing",
+    "6",
+    "BID-D20-F01",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Fabrication",
+    "5",
+    "BID-D20-F02",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial finishing",
+    "4",
+    "BID-D20-F03",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial support",
+    "4",
+    "BID-D20-F04",
+    "BID-D20"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Production equipment",
+    "7",
+    "BID-D21-F01",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "General machinery",
+    "5",
+    "BID-D21-F02",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Components and tools",
+    "3",
+    "BID-D21-F03",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Machine rental",
+    "3",
+    "BID-D21-F04",
+    "BID-D21"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Electronic components",
+    "5",
+    "BID-D22-F01",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Instrumentation",
+    "4",
+    "BID-D22-F02",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Control systems",
+    "4",
+    "BID-D22-F03",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Technical services",
+    "5",
+    "BID-D22-F04",
+    "BID-D22"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Oilfield services",
+    "5",
+    "BID-D23-F01",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy equipment",
+    "5",
+    "BID-D23-F02",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Renewable products",
+    "4",
+    "BID-D23-F03",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy delivery",
+    "5",
+    "BID-D23-F04",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy commodities",
+    "3",
+    "BID-D23-F05",
+    "BID-D23"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water products",
+    "4",
+    "BID-D24-F01",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water services",
+    "4",
+    "BID-D24-F02",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Waste services",
+    "5",
+    "BID-D24-F03",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Environmental services",
+    "5",
+    "BID-D24-F04",
+    "BID-D24"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining services",
+    "5",
+    "BID-D25-F01",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mineral products",
+    "5",
+    "BID-D25-F02",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Metal products",
+    "3",
+    "BID-D25-F03",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining equipment",
+    "4",
+    "BID-D25-F04",
+    "BID-D25"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical materials",
+    "5",
+    "BID-D26-F01",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Polymer materials",
+    "4",
+    "BID-D26-F02",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Specialty materials",
+    "6",
+    "BID-D26-F03",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical services",
+    "5",
+    "BID-D26-F04",
+    "BID-D26"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural supplies",
+    "5",
+    "BID-D27-F01",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural services",
+    "6",
+    "BID-D27-F02",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Live and natural materials",
+    "3",
+    "BID-D27-F03",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Animal care",
+    "3",
+    "BID-D27-F04",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Animal care products",
+    "3",
+    "BID-D27-F05",
+    "BID-D27"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food products",
+    "6",
+    "BID-D28-F01",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Beverage products",
+    "3",
+    "BID-D28-F02",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food services",
+    "5",
+    "BID-D28-F03",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Kitchen products",
+    "5",
+    "BID-D28-F04",
+    "BID-D28"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Accommodation services",
+    "3",
+    "BID-D29-F01",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Travel services",
+    "4",
+    "BID-D29-F02",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Tourism experiences",
+    "4",
+    "BID-D29-F03",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Hospitality supplies",
+    "4",
+    "BID-D29-F04",
+    "BID-D29"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Freight services",
+    "7",
+    "BID-D30-F01",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Special logistics",
+    "7",
+    "BID-D30-F02",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Warehouse services",
+    "5",
+    "BID-D30-F03",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Logistics products",
+    "3",
+    "BID-D30-F04",
+    "BID-D30"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Road mobility products",
+    "4",
+    "BID-D31-F01",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Road mobility services",
+    "3",
+    "BID-D31-F02",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Marine and aviation products",
+    "4",
+    "BID-D31-F03",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Specialist transport services",
+    "5",
+    "BID-D31-F04",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Transport rental",
+    "3",
+    "BID-D31-F05",
+    "BID-D31"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare services",
+    "6",
+    "BID-D32-F01",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Medical products",
+    "6",
+    "BID-D32-F02",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare support",
+    "5",
+    "BID-D32-F03",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Wellness services",
+    "5",
+    "BID-D32-F04",
+    "BID-D32"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Pharmaceutical products",
+    "3",
+    "BID-D33-F01",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Life sciences products",
+    "4",
+    "BID-D33-F02",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Research services",
+    "6",
+    "BID-D33-F03",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Manufacturing support",
+    "4",
+    "BID-D33-F04",
+    "BID-D33"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Laboratory products",
+    "5",
+    "BID-D34-F01",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Testing services",
+    "5",
+    "BID-D34-F02",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Assurance services",
+    "5",
+    "BID-D34-F03",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Research support",
+    "5",
+    "BID-D34-F04",
+    "BID-D34"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Furniture",
+    "3",
+    "BID-D35-F01",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Office supplies",
+    "3",
+    "BID-D35-F02",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Retail equipment",
+    "3",
+    "BID-D35-F03",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Workplace services",
+    "4",
+    "BID-D35-F04",
+    "BID-D35"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Packaging products",
+    "4",
+    "BID-D36-F01",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Print products",
+    "4",
+    "BID-D36-F02",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Signage products",
+    "3",
+    "BID-D36-F03",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Production services",
+    "5",
+    "BID-D36-F04",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Promotional products",
+    "4",
+    "BID-D36-F05",
+    "BID-D36"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Textile products",
+    "3",
+    "BID-D37-F01",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Apparel products",
+    "4",
+    "BID-D37-F02",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Personal goods",
+    "4",
+    "BID-D37-F03",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Textile services",
+    "4",
+    "BID-D37-F04",
+    "BID-D37"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty products",
+    "4",
+    "BID-D38-F01",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty equipment",
+    "4",
+    "BID-D38-F02",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty services",
+    "4",
+    "BID-D38-F03",
+    "BID-D38"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Physical security",
+    "5",
+    "BID-D39-F01",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Security products",
+    "3",
+    "BID-D39-F02",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Fire and safety products",
+    "3",
+    "BID-D39-F03",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Safety services",
+    "4",
+    "BID-D39-F04",
+    "BID-D39"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Cultural services",
+    "4",
+    "BID-D40-F01",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Sports services",
+    "5",
+    "BID-D40-F02",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Leisure products",
+    "4",
+    "BID-D40-F03",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Experience services",
+    "4",
+    "BID-D40-F04",
+    "BID-D40"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Public sector support",
+    "4",
+    "BID-D41-F01",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Nonprofit support",
+    "4",
+    "BID-D41-F02",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Community services",
+    "4",
+    "BID-D41-F03",
+    "BID-D41"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Defense industry support",
+    "3",
+    "BID-D42-F01",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Specialist equipment",
+    "5",
+    "BID-D42-F02",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "High-assurance services",
+    "3",
+    "BID-D42-F03",
+    "BID-D42"
+   ]
+  ],
+  "Offering Groups": [
+   [
+    "Main Sector",
+    "Specialized Sector",
+    "Service / Product Group",
+    "Offering Type",
+    "Includes (Examples)",
+    "Group ID",
+    "Specialized Sector ID",
+    "Main Sector ID"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Corporate advisory",
+    "Business Strategy & Planning",
+    "Service",
+    "Corporate strategy; Business planning",
+    "BID-D01-F01-G01",
+    "BID-D01-F01",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Corporate advisory",
+    "Operating Models & Transformation",
+    "Service",
+    "Operating model design; Organizational transformation",
+    "BID-D01-F01-G02",
+    "BID-D01-F01",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Corporate advisory",
+    "Market entry advisory",
+    "Service",
+    "Market entry advisory",
+    "BID-D01-F01-G03",
+    "BID-D01-F01",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Corporate advisory",
+    "Business continuity planning",
+    "Service",
+    "Business continuity planning",
+    "BID-D01-F01-G04",
+    "BID-D01-F01",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Commercial advisory",
+    "Market Research & Feasibility",
+    "Service",
+    "Market research; Feasibility studies",
+    "BID-D01-F02-G01",
+    "BID-D01-F02",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Commercial advisory",
+    "Commercial due diligence",
+    "Service",
+    "Commercial due diligence",
+    "BID-D01-F02-G02",
+    "BID-D01-F02",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Commercial advisory",
+    "Pricing advisory",
+    "Service",
+    "Pricing advisory",
+    "BID-D01-F02-G03",
+    "BID-D01-F02",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Commercial advisory",
+    "Procurement & Supply Chain Advisory",
+    "Service",
+    "Procurement consulting; Supply chain consulting",
+    "BID-D01-F02-G04",
+    "BID-D01-F02",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Execution support",
+    "Project & Program Management",
+    "Service",
+    "Project management office; Program management",
+    "BID-D01-F03-G01",
+    "BID-D01-F03",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Execution support",
+    "Change & Process Improvement",
+    "Service",
+    "Change management; Process improvement",
+    "BID-D01-F03-G02",
+    "BID-D01-F03",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Execution support",
+    "Franchise development",
+    "Service",
+    "Franchise development",
+    "BID-D01-F03-G03",
+    "BID-D01-F03",
+    "BID-D01"
+   ],
+   [
+    "Strategy, Management & Business Consulting",
+    "Execution support",
+    "Customer experience consulting",
+    "Service",
+    "Customer experience consulting",
+    "BID-D01-F03-G04",
+    "BID-D01-F03",
+    "BID-D01"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Legal services",
+    "Corporate & Commercial Legal Services",
+    "Service",
+    "Corporate legal advisory; Commercial contracts",
+    "BID-D02-F01-G01",
+    "BID-D02-F01",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Legal services",
+    "Dispute resolution",
+    "Service",
+    "Dispute resolution",
+    "BID-D02-F01-G02",
+    "BID-D02-F01",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Legal services",
+    "Employment law advisory",
+    "Service",
+    "Employment law advisory",
+    "BID-D02-F01-G03",
+    "BID-D02-F01",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Legal services",
+    "Intellectual property advisory",
+    "Service",
+    "Intellectual property advisory",
+    "BID-D02-F01-G04",
+    "BID-D02-F01",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Legal services",
+    "Legal due diligence",
+    "Service",
+    "Legal due diligence",
+    "BID-D02-F01-G05",
+    "BID-D02-F01",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Governance",
+    "Corporate & Board Governance",
+    "Service",
+    "Corporate governance advisory; Board advisory",
+    "BID-D02-F02-G01",
+    "BID-D02-F02",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Governance",
+    "Policies & Compliance Programs",
+    "Service",
+    "Policy development; Compliance program development",
+    "BID-D02-F02-G02",
+    "BID-D02-F02",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Governance",
+    "Enterprise risk management",
+    "Service",
+    "Enterprise risk management",
+    "BID-D02-F02-G03",
+    "BID-D02-F02",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Governance",
+    "Internal controls advisory",
+    "Service",
+    "Internal controls advisory",
+    "BID-D02-F02-G04",
+    "BID-D02-F02",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Specialist compliance",
+    "Data privacy advisory",
+    "Service",
+    "Data privacy advisory",
+    "BID-D02-F03-G01",
+    "BID-D02-F03",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Specialist compliance",
+    "Anti-fraud investigation",
+    "Service",
+    "Anti-fraud investigation",
+    "BID-D02-F03-G02",
+    "BID-D02-F03",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Specialist compliance",
+    "Regulatory compliance assessment",
+    "Service",
+    "Regulatory compliance assessment",
+    "BID-D02-F03-G03",
+    "BID-D02-F03",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Specialist compliance",
+    "Competition law advisory",
+    "Service",
+    "Competition law advisory",
+    "BID-D02-F03-G04",
+    "BID-D02-F03",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Specialist compliance",
+    "Legal translation",
+    "Service",
+    "Legal translation",
+    "BID-D02-F03-G05",
+    "BID-D02-F03",
+    "BID-D02"
+   ],
+   [
+    "Legal, Governance & Compliance",
+    "Specialist compliance",
+    "Company secretarial support",
+    "Service",
+    "Company secretarial support",
+    "BID-D02-F03-G06",
+    "BID-D02-F03",
+    "BID-D02"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Accounting",
+    "Bookkeeping & Financial Reporting",
+    "Service",
+    "Bookkeeping; Financial reporting",
+    "BID-D03-F01-G01",
+    "BID-D03-F01",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Accounting",
+    "Payroll accounting",
+    "Service",
+    "Payroll accounting",
+    "BID-D03-F01-G02",
+    "BID-D03-F01",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Accounting",
+    "Audit Services",
+    "Service",
+    "External audit; Internal audit",
+    "BID-D03-F01-G03",
+    "BID-D03-F01",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Accounting",
+    "Tax and zakat advisory",
+    "Service",
+    "Tax and zakat advisory",
+    "BID-D03-F01-G04",
+    "BID-D03-F01",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Corporate finance",
+    "Financial Modeling & Valuation",
+    "Service",
+    "Financial modeling; Business valuation",
+    "BID-D03-F02-G01",
+    "BID-D03-F02",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Corporate finance",
+    "Transaction advisory",
+    "Service",
+    "Transaction advisory",
+    "BID-D03-F02-G02",
+    "BID-D03-F02",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Corporate finance",
+    "Treasury advisory",
+    "Service",
+    "Treasury advisory",
+    "BID-D03-F02-G03",
+    "BID-D03-F02",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Corporate finance",
+    "Investor relations",
+    "Service",
+    "Investor relations",
+    "BID-D03-F02-G04",
+    "BID-D03-F02",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Corporate finance",
+    "Credit analysis",
+    "Service",
+    "Credit analysis",
+    "BID-D03-F02-G05",
+    "BID-D03-F02",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Financial products",
+    "Business banking",
+    "Service",
+    "Business banking",
+    "BID-D03-F03-G01",
+    "BID-D03-F03",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Financial products",
+    "Payment processing",
+    "Service",
+    "Payment processing",
+    "BID-D03-F03-G02",
+    "BID-D03-F03",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Financial products",
+    "Business & Trade Financing",
+    "Service",
+    "Commercial financing; Trade finance",
+    "BID-D03-F03-G03",
+    "BID-D03-F03",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Financial products",
+    "Commercial Insurance & Brokerage",
+    "Service",
+    "Insurance brokerage; Commercial insurance",
+    "BID-D03-F03-G04",
+    "BID-D03-F03",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Financial products",
+    "Investment management",
+    "Service",
+    "Investment management",
+    "BID-D03-F03-G05",
+    "BID-D03-F03",
+    "BID-D03"
+   ],
+   [
+    "Finance, Accounting, Insurance & Investment Support",
+    "Financial products",
+    "Actuarial services",
+    "Service",
+    "Actuarial services",
+    "BID-D03-F03-G06",
+    "BID-D03-F03",
+    "BID-D03"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "Talent acquisition",
+    "Recruitment & Executive Search",
+    "Service",
+    "Permanent recruitment; Executive search",
+    "BID-D04-F01-G01",
+    "BID-D04-F01",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "Talent acquisition",
+    "Temporary & Contract Staffing",
+    "Service",
+    "Temporary staffing; Contract staffing",
+    "BID-D04-F01-G02",
+    "BID-D04-F01",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "Talent acquisition",
+    "Recruitment process outsourcing",
+    "Service",
+    "Recruitment process outsourcing",
+    "BID-D04-F01-G03",
+    "BID-D04-F01",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "Talent acquisition",
+    "Candidate assessment",
+    "Service",
+    "Candidate assessment",
+    "BID-D04-F01-G04",
+    "BID-D04-F01",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "HR operations",
+    "HR policy development",
+    "Service",
+    "HR policy development",
+    "BID-D04-F02-G01",
+    "BID-D04-F02",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "HR operations",
+    "Compensation & Benefits Services",
+    "Service",
+    "Compensation benchmarking; Benefits administration",
+    "BID-D04-F02-G02",
+    "BID-D04-F02",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "HR operations",
+    "Payroll processing",
+    "Service",
+    "Payroll processing",
+    "BID-D04-F02-G03",
+    "BID-D04-F02",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "HR operations",
+    "Employee engagement research",
+    "Service",
+    "Employee engagement research",
+    "BID-D04-F02-G04",
+    "BID-D04-F02",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "HR operations",
+    "Workforce planning",
+    "Service",
+    "Workforce planning",
+    "BID-D04-F02-G05",
+    "BID-D04-F02",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "Workforce services",
+    "Outsourced Workforce Teams",
+    "Service",
+    "Outsourced contact center staff; Outsourced field teams; Outsourced administrative staff",
+    "BID-D04-F03-G01",
+    "BID-D04-F03",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "Workforce services",
+    "Workforce Accommodation & Relocation",
+    "Service",
+    "Workforce accommodation management; Employee relocation",
+    "BID-D04-F03-G02",
+    "BID-D04-F03",
+    "BID-D04"
+   ],
+   [
+    "People, Recruitment & Workforce",
+    "Workforce services",
+    "Occupational skills assessment",
+    "Service",
+    "Occupational skills assessment",
+    "BID-D04-F03-G03",
+    "BID-D04-F03",
+    "BID-D04"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning services",
+    "Corporate & Leadership Training",
+    "Service",
+    "Corporate training; Leadership development",
+    "BID-D05-F01-G01",
+    "BID-D05-F01",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning services",
+    "Vocational & Professional Training",
+    "Service",
+    "Vocational training; Professional exam preparation",
+    "BID-D05-F01-G02",
+    "BID-D05-F01",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning services",
+    "Language training",
+    "Service",
+    "Language training",
+    "BID-D05-F01-G03",
+    "BID-D05-F01",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning services",
+    "Learning needs analysis",
+    "Service",
+    "Learning needs analysis",
+    "BID-D05-F01-G04",
+    "BID-D05-F01",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning development",
+    "Instructional Design & E-learning Content",
+    "Service",
+    "Instructional design; E-learning content development",
+    "BID-D05-F02-G01",
+    "BID-D05-F02",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning development",
+    "Training delivery",
+    "Service",
+    "Training delivery",
+    "BID-D05-F02-G02",
+    "BID-D05-F02",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning development",
+    "Learning Assessment & Evaluation",
+    "Service",
+    "Assessment design; Learning evaluation",
+    "BID-D05-F02-G03",
+    "BID-D05-F02",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning development",
+    "Academic research support",
+    "Service",
+    "Academic research support",
+    "BID-D05-F02-G04",
+    "BID-D05-F02",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning products",
+    "Books & Teaching Materials",
+    "Physical Product",
+    "Textbooks; Teaching materials",
+    "BID-D05-F03-G01",
+    "BID-D05-F03",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning products",
+    "Classroom & Training Equipment",
+    "Physical Product",
+    "Classroom equipment; Vocational training kits",
+    "BID-D05-F03-G02",
+    "BID-D05-F03",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning products",
+    "Educational toys",
+    "Physical Product",
+    "Educational toys",
+    "BID-D05-F03-G03",
+    "BID-D05-F03",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning products",
+    "Library supplies",
+    "Physical Product",
+    "Library supplies",
+    "BID-D05-F03-G04",
+    "BID-D05-F03",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning software",
+    "Learning & Assessment Platforms",
+    "Digital Product",
+    "Learning management software; Assessment software",
+    "BID-D05-F04-G01",
+    "BID-D05-F04",
+    "BID-D05"
+   ],
+   [
+    "Education, Training & Knowledge",
+    "Learning software",
+    "Digital Learning Content & Libraries",
+    "Digital Product",
+    "Digital course licenses; Digital library subscriptions",
+    "BID-D05-F04-G02",
+    "BID-D05-F04",
+    "BID-D05"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Brand and strategy",
+    "Brand Strategy, Naming & Positioning",
+    "Service",
+    "Brand strategy; Brand naming; Brand positioning",
+    "BID-D06-F01-G01",
+    "BID-D06-F01",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Brand and strategy",
+    "Marketing & Communication Strategy",
+    "Service",
+    "Marketing strategy; Communication strategy",
+    "BID-D06-F01-G02",
+    "BID-D06-F01",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Brand and strategy",
+    "Campaign concept development",
+    "Service",
+    "Campaign concept development",
+    "BID-D06-F01-G03",
+    "BID-D06-F01",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Marketing execution",
+    "Social media management",
+    "Service",
+    "Social media management",
+    "BID-D06-F02-G01",
+    "BID-D06-F02",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Marketing execution",
+    "Search engine optimization",
+    "Service",
+    "Search engine optimization",
+    "BID-D06-F02-G02",
+    "BID-D06-F02",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Marketing execution",
+    "Paid media management",
+    "Service",
+    "Paid media management",
+    "BID-D06-F02-G03",
+    "BID-D06-F02",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Marketing execution",
+    "Influencer campaign management",
+    "Service",
+    "Influencer campaign management",
+    "BID-D06-F02-G04",
+    "BID-D06-F02",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Marketing execution",
+    "Email & Affiliate Marketing",
+    "Service",
+    "Email marketing; Affiliate program management",
+    "BID-D06-F02-G05",
+    "BID-D06-F02",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Communications",
+    "Public & Media Relations",
+    "Service",
+    "Public relations; Media relations",
+    "BID-D06-F03-G01",
+    "BID-D06-F03",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Communications",
+    "Crisis communications",
+    "Service",
+    "Crisis communications",
+    "BID-D06-F03-G02",
+    "BID-D06-F03",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Communications",
+    "Internal Communications & Employer Branding",
+    "Service",
+    "Internal communications; Employer branding",
+    "BID-D06-F03-G03",
+    "BID-D06-F03",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Communications",
+    "Community management",
+    "Service",
+    "Community management",
+    "BID-D06-F03-G04",
+    "BID-D06-F03",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Research and measurement",
+    "Brand & Audience Research",
+    "Service",
+    "Brand tracking; Audience research",
+    "BID-D06-F04-G01",
+    "BID-D06-F04",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Research and measurement",
+    "Marketing Performance & Analytics",
+    "Service",
+    "Campaign effectiveness measurement; Marketing analytics",
+    "BID-D06-F04-G02",
+    "BID-D06-F04",
+    "BID-D06"
+   ],
+   [
+    "Marketing, Advertising & Communications",
+    "Research and measurement",
+    "Social Listening & Media Monitoring",
+    "Service",
+    "Social listening; Media monitoring",
+    "BID-D06-F04-G03",
+    "BID-D06-F04",
+    "BID-D06"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Design",
+    "Visual identity design",
+    "Service",
+    "Visual identity design",
+    "BID-D07-F01-G01",
+    "BID-D07-F01",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Design",
+    "Graphic & Editorial Design",
+    "Service",
+    "Graphic design; Editorial design",
+    "BID-D07-F01-G02",
+    "BID-D07-F01",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Design",
+    "Packaging design",
+    "Service",
+    "Packaging design",
+    "BID-D07-F01-G03",
+    "BID-D07-F01",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Design",
+    "Motion Design & Illustration",
+    "Service",
+    "Motion design; Illustration",
+    "BID-D07-F01-G04",
+    "BID-D07-F01",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Production",
+    "Film & Video Production",
+    "Service",
+    "Commercial film production; Corporate video production",
+    "BID-D07-F02-G01",
+    "BID-D07-F02",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Production",
+    "Commercial & Event Photography",
+    "Service",
+    "Product photography; Event photography",
+    "BID-D07-F02-G02",
+    "BID-D07-F02",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Production",
+    "Animation & Post-production",
+    "Service",
+    "Animation production; Post-production editing",
+    "BID-D07-F02-G03",
+    "BID-D07-F02",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Production",
+    "Audio production",
+    "Service",
+    "Audio production",
+    "BID-D07-F02-G04",
+    "BID-D07-F02",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Production",
+    "Drone filming",
+    "Service",
+    "Drone filming",
+    "BID-D07-F02-G05",
+    "BID-D07-F02",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Editorial",
+    "Copywriting & Scriptwriting",
+    "Service",
+    "Copywriting; Scriptwriting",
+    "BID-D07-F03-G01",
+    "BID-D07-F03",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Editorial",
+    "Translation, Localization & Transcreation",
+    "Service",
+    "Content localization; Translation; Transcreation",
+    "BID-D07-F03-G02",
+    "BID-D07-F03",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Editorial",
+    "Voice-over & Subtitling",
+    "Service",
+    "Voice-over production; Subtitling",
+    "BID-D07-F03-G03",
+    "BID-D07-F03",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Editorial",
+    "Media publishing services",
+    "Service",
+    "Media publishing services",
+    "BID-D07-F03-G04",
+    "BID-D07-F03",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Media assets",
+    "Stock Images & Footage",
+    "Digital Product",
+    "Stock image licenses; Stock footage licenses",
+    "BID-D07-F04-G01",
+    "BID-D07-F04",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Media assets",
+    "Music licenses",
+    "Digital Product",
+    "Music licenses",
+    "BID-D07-F04-G02",
+    "BID-D07-F04",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Media assets",
+    "Fonts & Design Templates",
+    "Digital Product",
+    "Typeface licenses; Design template licenses",
+    "BID-D07-F04-G03",
+    "BID-D07-F04",
+    "BID-D07"
+   ],
+   [
+    "Creative, Design, Media & Production",
+    "Media assets",
+    "Digital publishing subscriptions",
+    "Digital Product",
+    "Digital publishing subscriptions",
+    "BID-D07-F04-G04",
+    "BID-D07-F04",
+    "BID-D07"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event planning",
+    "Corporate Events & Product Launches",
+    "Service",
+    "Corporate event management; Product launch management",
+    "BID-D08-F01-G01",
+    "BID-D08-F01",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event planning",
+    "Conferences & Exhibitions",
+    "Service",
+    "Conference management; Exhibition management",
+    "BID-D08-F01-G02",
+    "BID-D08-F01",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event planning",
+    "Festival management",
+    "Service",
+    "Festival management",
+    "BID-D08-F01-G03",
+    "BID-D08-F01",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event planning",
+    "Wedding planning",
+    "Service",
+    "Wedding planning",
+    "BID-D08-F01-G04",
+    "BID-D08-F01",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event execution",
+    "Event Registration & Staffing",
+    "Service",
+    "Event registration operations; Event staffing",
+    "BID-D08-F02-G01",
+    "BID-D08-F02",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event execution",
+    "Live entertainment booking",
+    "Service",
+    "Live entertainment booking",
+    "BID-D08-F02-G02",
+    "BID-D08-F02",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event execution",
+    "Event logistics",
+    "Service",
+    "Event logistics",
+    "BID-D08-F02-G03",
+    "BID-D08-F02",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event execution",
+    "Event sponsorship activation",
+    "Service",
+    "Event sponsorship activation",
+    "BID-D08-F02-G04",
+    "BID-D08-F02",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event execution",
+    "Event attendee research",
+    "Service",
+    "Event attendee research",
+    "BID-D08-F02-G05",
+    "BID-D08-F02",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event structures",
+    "Exhibition Stands & Venue Fit-outs",
+    "Works",
+    "Exhibition stand construction; Temporary venue fit-out",
+    "BID-D08-F03-G01",
+    "BID-D08-F03",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event structures",
+    "Stages & Temporary Seating",
+    "Works",
+    "Temporary stage construction; Temporary seating installation",
+    "BID-D08-F03-G02",
+    "BID-D08-F03",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event equipment",
+    "Event Audio, Lighting & Screens",
+    "Rental",
+    "Audio equipment rental; Event lighting rental; LED screen rental",
+    "BID-D08-F04-G01",
+    "BID-D08-F04",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event equipment",
+    "Marquees & Event Furniture",
+    "Rental",
+    "Marquee rental; Event furniture rental",
+    "BID-D08-F04-G02",
+    "BID-D08-F04",
+    "BID-D08"
+   ],
+   [
+    "Events, Exhibitions & Live Experiences",
+    "Event equipment",
+    "Interpretation equipment rental",
+    "Rental",
+    "Interpretation equipment rental",
+    "BID-D08-F04-G03",
+    "BID-D08-F04",
+    "BID-D08"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Application development",
+    "Websites & E-commerce Development",
+    "Service",
+    "Website development; E-commerce implementation",
+    "BID-D09-F01-G01",
+    "BID-D09-F01",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Application development",
+    "Mobile application development",
+    "Service",
+    "Mobile application development",
+    "BID-D09-F01-G02",
+    "BID-D09-F01",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Application development",
+    "Enterprise Applications & Modernization",
+    "Service",
+    "Enterprise application development; Legacy system modernization",
+    "BID-D09-F01-G03",
+    "BID-D09-F01",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Application development",
+    "API integration",
+    "Service",
+    "API integration",
+    "BID-D09-F01-G04",
+    "BID-D09-F01",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Application development",
+    "Software testing",
+    "Service",
+    "Software testing",
+    "BID-D09-F01-G05",
+    "BID-D09-F01",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Enterprise software",
+    "ERP software licenses",
+    "Digital Product",
+    "ERP software licenses",
+    "BID-D09-F02-G01",
+    "BID-D09-F02",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Enterprise software",
+    "CRM software licenses",
+    "Digital Product",
+    "CRM software licenses",
+    "BID-D09-F02-G02",
+    "BID-D09-F02",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Enterprise software",
+    "HR & Accounting Software",
+    "Digital Product",
+    "HR software licenses; Accounting software licenses",
+    "BID-D09-F02-G03",
+    "BID-D09-F02",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Enterprise software",
+    "Procurement & Project Management Software",
+    "Digital Product",
+    "Procurement software licenses; Project management software licenses",
+    "BID-D09-F02-G04",
+    "BID-D09-F02",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Specialist software",
+    "Hotel management software",
+    "Digital Product",
+    "Hotel management software",
+    "BID-D09-F03-G01",
+    "BID-D09-F03",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Specialist software",
+    "Retail management software",
+    "Digital Product",
+    "Retail management software",
+    "BID-D09-F03-G02",
+    "BID-D09-F03",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Specialist software",
+    "Healthcare management software",
+    "Digital Product",
+    "Healthcare management software",
+    "BID-D09-F03-G03",
+    "BID-D09-F03",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Specialist software",
+    "Construction management software",
+    "Digital Product",
+    "Construction management software",
+    "BID-D09-F03-G04",
+    "BID-D09-F03",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Specialist software",
+    "Logistics management software",
+    "Digital Product",
+    "Logistics management software",
+    "BID-D09-F03-G05",
+    "BID-D09-F03",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Specialist software",
+    "Legal practice software",
+    "Digital Product",
+    "Legal practice software",
+    "BID-D09-F03-G06",
+    "BID-D09-F03",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Digital product services",
+    "Product Discovery & UX Research",
+    "Service",
+    "Product discovery; UX research",
+    "BID-D09-F04-G01",
+    "BID-D09-F04",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Digital product services",
+    "Interface Design & Accessibility",
+    "Service",
+    "UI design; Accessibility assessment",
+    "BID-D09-F04-G02",
+    "BID-D09-F04",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Digital product services",
+    "DevOps implementation",
+    "Service",
+    "DevOps implementation",
+    "BID-D09-F04-G03",
+    "BID-D09-F04",
+    "BID-D09"
+   ],
+   [
+    "Software, Web, Mobile & Digital Platforms",
+    "Digital product services",
+    "Software maintenance",
+    "Service",
+    "Software maintenance",
+    "BID-D09-F04-G04",
+    "BID-D09-F04",
+    "BID-D09"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "IT hardware",
+    "Desktop & Laptop Computers",
+    "Physical Product",
+    "Desktops; Laptops",
+    "BID-D10-F01-G01",
+    "BID-D10-F01",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "IT hardware",
+    "Servers & Storage",
+    "Physical Product",
+    "Servers; Data storage equipment",
+    "BID-D10-F01-G02",
+    "BID-D10-F01",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "IT hardware",
+    "Computer Peripherals & Spare Parts",
+    "Physical Product",
+    "Computer peripherals; IT spare parts",
+    "BID-D10-F01-G03",
+    "BID-D10-F01",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "IT hardware",
+    "Printers & Scanners",
+    "Physical Product",
+    "Printers; Scanners",
+    "BID-D10-F01-G04",
+    "BID-D10-F01",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Network hardware",
+    "Network Switching, Routing & Wireless",
+    "Physical Product",
+    "Network switches; Network routers; Wireless access points",
+    "BID-D10-F02-G01",
+    "BID-D10-F02",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Network hardware",
+    "Network Cabinets & Cabling",
+    "Physical Product",
+    "Network cabinets; Structured cabling components",
+    "BID-D10-F02-G02",
+    "BID-D10-F02",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Network hardware",
+    "Network monitoring appliances",
+    "Physical Product",
+    "Network monitoring appliances",
+    "BID-D10-F02-G03",
+    "BID-D10-F02",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Infrastructure services",
+    "Cloud Migration & Management",
+    "Service",
+    "Cloud migration; Managed cloud operations",
+    "BID-D10-F03-G01",
+    "BID-D10-F03",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Infrastructure services",
+    "IT Support & Data Center Operations",
+    "Service",
+    "IT helpdesk; Data center operations",
+    "BID-D10-F03-G02",
+    "BID-D10-F03",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Infrastructure services",
+    "Backup and disaster recovery",
+    "Service",
+    "Backup and disaster recovery",
+    "BID-D10-F03-G03",
+    "BID-D10-F03",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Infrastructure services",
+    "IT asset disposal",
+    "Service",
+    "IT asset disposal",
+    "BID-D10-F03-G04",
+    "BID-D10-F03",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Infrastructure services",
+    "Network installation",
+    "Service",
+    "Network installation",
+    "BID-D10-F03-G05",
+    "BID-D10-F03",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Cloud products",
+    "Infrastructure & Platform Cloud Services",
+    "Digital Product",
+    "Infrastructure cloud subscriptions; Platform cloud subscriptions",
+    "BID-D10-F04-G01",
+    "BID-D10-F04",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Cloud products",
+    "Backup subscriptions",
+    "Digital Product",
+    "Backup subscriptions",
+    "BID-D10-F04-G02",
+    "BID-D10-F04",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Cloud products",
+    "Collaboration software subscriptions",
+    "Digital Product",
+    "Collaboration software subscriptions",
+    "BID-D10-F04-G03",
+    "BID-D10-F04",
+    "BID-D10"
+   ],
+   [
+    "IT Infrastructure, Cloud & Technical Support",
+    "Cloud products",
+    "Endpoint management software licenses",
+    "Digital Product",
+    "Endpoint management software licenses",
+    "BID-D10-F04-G04",
+    "BID-D10-F04",
+    "BID-D10"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security advisory",
+    "Cybersecurity Strategy & Risk Advisory",
+    "Service",
+    "Cybersecurity strategy; Cybersecurity risk assessment",
+    "BID-D11-F01-G01",
+    "BID-D11-F01",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security advisory",
+    "Penetration Testing & Red Team Assessments",
+    "Service",
+    "Penetration testing; Red team assessment",
+    "BID-D11-F01-G02",
+    "BID-D11-F01",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security advisory",
+    "Security awareness training",
+    "Service",
+    "Security awareness training",
+    "BID-D11-F01-G03",
+    "BID-D11-F01",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security advisory",
+    "Privacy impact assessment",
+    "Service",
+    "Privacy impact assessment",
+    "BID-D11-F01-G04",
+    "BID-D11-F01",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security operations",
+    "Managed security monitoring",
+    "Service",
+    "Managed security monitoring",
+    "BID-D11-F02-G01",
+    "BID-D11-F02",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security operations",
+    "Incident Response & Digital Forensics",
+    "Service",
+    "Incident response; Digital forensics",
+    "BID-D11-F02-G02",
+    "BID-D11-F02",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security operations",
+    "Vulnerability management",
+    "Service",
+    "Vulnerability management",
+    "BID-D11-F02-G03",
+    "BID-D11-F02",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security operations",
+    "Identity & Security Architecture",
+    "Service",
+    "Identity implementation; Security architecture design",
+    "BID-D11-F02-G04",
+    "BID-D11-F02",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security software",
+    "Endpoint security licenses",
+    "Digital Product",
+    "Endpoint security licenses",
+    "BID-D11-F03-G01",
+    "BID-D11-F03",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security software",
+    "Identity management licenses",
+    "Digital Product",
+    "Identity management licenses",
+    "BID-D11-F03-G02",
+    "BID-D11-F03",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security software",
+    "SIEM software licenses",
+    "Digital Product",
+    "SIEM software licenses",
+    "BID-D11-F03-G03",
+    "BID-D11-F03",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security software",
+    "Data Protection & Encryption Software",
+    "Digital Product",
+    "Data loss prevention licenses; Encryption software licenses",
+    "BID-D11-F03-G04",
+    "BID-D11-F03",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security software",
+    "Cloud security licenses",
+    "Digital Product",
+    "Cloud security licenses",
+    "BID-D11-F03-G05",
+    "BID-D11-F03",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security appliances",
+    "Firewalls & Network Security Appliances",
+    "Physical Product",
+    "Firewalls; Network security appliances",
+    "BID-D11-F04-G01",
+    "BID-D11-F04",
+    "BID-D11"
+   ],
+   [
+    "Cybersecurity, Identity & Data Protection",
+    "Security appliances",
+    "Hardware Security & Authentication Devices",
+    "Physical Product",
+    "Hardware security modules; Authentication tokens",
+    "BID-D11-F04-G02",
+    "BID-D11-F04",
+    "BID-D11"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Data services",
+    "Data Engineering & Warehousing",
+    "Service",
+    "Data engineering; Data warehousing",
+    "BID-D12-F01-G01",
+    "BID-D12-F01",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Data services",
+    "Business intelligence development",
+    "Service",
+    "Business intelligence development",
+    "BID-D12-F01-G02",
+    "BID-D12-F01",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Data services",
+    "Data Governance & Quality",
+    "Service",
+    "Data governance; Data quality management",
+    "BID-D12-F01-G03",
+    "BID-D12-F01",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Data services",
+    "Geospatial analytics",
+    "Service",
+    "Geospatial analytics",
+    "BID-D12-F01-G04",
+    "BID-D12-F01",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI services",
+    "Machine learning development",
+    "Service",
+    "Machine learning development",
+    "BID-D12-F02-G01",
+    "BID-D12-F02",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI services",
+    "Generative & Conversational AI Solutions",
+    "Service",
+    "Generative AI integration; Conversational AI development",
+    "BID-D12-F02-G02",
+    "BID-D12-F02",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI services",
+    "AI model evaluation",
+    "Service",
+    "AI model evaluation",
+    "BID-D12-F02-G03",
+    "BID-D12-F02",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI services",
+    "Data annotation",
+    "Service",
+    "Data annotation",
+    "BID-D12-F02-G04",
+    "BID-D12-F02",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI services",
+    "Computer vision integration",
+    "Service",
+    "Computer vision integration",
+    "BID-D12-F02-G05",
+    "BID-D12-F02",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI services",
+    "AI governance advisory",
+    "Service",
+    "AI governance advisory",
+    "BID-D12-F02-G06",
+    "BID-D12-F02",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Automation services",
+    "Business Process & Workflow Automation",
+    "Service",
+    "Workflow automation; Robotic process automation",
+    "BID-D12-F03-G01",
+    "BID-D12-F03",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Automation services",
+    "Industrial & Service Robot Integration",
+    "Service",
+    "Industrial robot integration; Service robot integration",
+    "BID-D12-F03-G02",
+    "BID-D12-F03",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Automation services",
+    "Digital twin development",
+    "Service",
+    "Digital twin development",
+    "BID-D12-F03-G03",
+    "BID-D12-F03",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Automation services",
+    "IoT platform integration",
+    "Service",
+    "IoT platform integration",
+    "BID-D12-F03-G04",
+    "BID-D12-F03",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Smart products",
+    "Industrial robots",
+    "Physical Product",
+    "Industrial robots",
+    "BID-D12-F04-G01",
+    "BID-D12-F04",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Smart products",
+    "Service & Mobile Robots",
+    "Physical Product",
+    "Service robots; Autonomous mobile robots",
+    "BID-D12-F04-G02",
+    "BID-D12-F04",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Smart products",
+    "Robot Components & Controllers",
+    "Physical Product",
+    "Robot end effectors; Robot controllers",
+    "BID-D12-F04-G03",
+    "BID-D12-F04",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "Smart products",
+    "IoT & Edge Computing Devices",
+    "Physical Product",
+    "IoT sensors; Edge computing devices",
+    "BID-D12-F04-G04",
+    "BID-D12-F04",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI products",
+    "AI model licenses",
+    "Digital Product",
+    "AI model licenses",
+    "BID-D12-F05-G01",
+    "BID-D12-F05",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI products",
+    "Analytics & Automation Software",
+    "Digital Product",
+    "Data analytics software licenses; Automation software licenses",
+    "BID-D12-F05-G02",
+    "BID-D12-F05",
+    "BID-D12"
+   ],
+   [
+    "Data, AI, Automation & Robotics",
+    "AI products",
+    "Commercial data subscriptions",
+    "Digital Product",
+    "Commercial data subscriptions",
+    "BID-D12-F05-G03",
+    "BID-D12-F05",
+    "BID-D12"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Connectivity services",
+    "Business Internet & Dedicated Connectivity",
+    "Service",
+    "Business internet connectivity; Dedicated connectivity",
+    "BID-D13-F01-G01",
+    "BID-D13-F01",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Connectivity services",
+    "Managed WAN",
+    "Service",
+    "Managed WAN",
+    "BID-D13-F01-G02",
+    "BID-D13-F01",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Connectivity services",
+    "Business Mobile & Private Networks",
+    "Service",
+    "Mobile business connectivity; Private mobile networks",
+    "BID-D13-F01-G03",
+    "BID-D13-F01",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Connectivity services",
+    "Satellite connectivity",
+    "Service",
+    "Satellite connectivity",
+    "BID-D13-F01-G04",
+    "BID-D13-F01",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Telecom equipment",
+    "Telecom towers and components",
+    "Physical Product",
+    "Telecom towers and components",
+    "BID-D13-F02-G01",
+    "BID-D13-F02",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Telecom equipment",
+    "Radio & Telephony Equipment",
+    "Physical Product",
+    "Radio communication equipment; Telephony equipment",
+    "BID-D13-F02-G02",
+    "BID-D13-F02",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Telecom equipment",
+    "Fiber optic equipment",
+    "Physical Product",
+    "Fiber optic equipment",
+    "BID-D13-F02-G03",
+    "BID-D13-F02",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Telecom equipment",
+    "Broadcast & Satellite Equipment",
+    "Physical Product",
+    "Broadcast transmitters; Satellite terminals",
+    "BID-D13-F02-G04",
+    "BID-D13-F02",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Communications operations",
+    "Unified communications deployment",
+    "Service",
+    "Unified communications deployment",
+    "BID-D13-F03-G01",
+    "BID-D13-F03",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Communications operations",
+    "Telecom network maintenance",
+    "Service",
+    "Telecom network maintenance",
+    "BID-D13-F03-G02",
+    "BID-D13-F03",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Communications operations",
+    "Broadcast engineering",
+    "Service",
+    "Broadcast engineering",
+    "BID-D13-F03-G03",
+    "BID-D13-F03",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Communications operations",
+    "Call center technology implementation",
+    "Service",
+    "Call center technology implementation",
+    "BID-D13-F03-G04",
+    "BID-D13-F03",
+    "BID-D13"
+   ],
+   [
+    "Telecommunications, Connectivity & Broadcasting",
+    "Communications operations",
+    "Telecom Network Design & Planning",
+    "Service",
+    "Spectrum planning advisory; Telecom network design",
+    "BID-D13-F03-G05",
+    "BID-D13-F03",
+    "BID-D13"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Building works",
+    "Residential & Commercial Construction",
+    "Works",
+    "Residential building construction; Commercial building construction",
+    "BID-D14-F01-G01",
+    "BID-D14-F01",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Building works",
+    "Industrial & Institutional Construction",
+    "Works",
+    "Industrial building construction; Institutional building construction",
+    "BID-D14-F01-G02",
+    "BID-D14-F01",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Building works",
+    "Renovation & Modular Building Works",
+    "Works",
+    "Building renovation; Modular building installation",
+    "BID-D14-F01-G03",
+    "BID-D14-F01",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Civil works",
+    "Road, Bridge & Tunnel Works",
+    "Works",
+    "Road construction; Bridge construction; Tunnel construction",
+    "BID-D14-F02-G01",
+    "BID-D14-F02",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Civil works",
+    "Rail, Airport & Port Civil Works",
+    "Works",
+    "Rail civil works; Airport civil works; Port civil works",
+    "BID-D14-F02-G02",
+    "BID-D14-F02",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Civil works",
+    "Utility network construction",
+    "Works",
+    "Utility network construction",
+    "BID-D14-F02-G03",
+    "BID-D14-F02",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Site works",
+    "Earthworks & Demolition",
+    "Works",
+    "Earthworks; Demolition",
+    "BID-D14-F03-G01",
+    "BID-D14-F03",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Site works",
+    "Foundations & Concrete Works",
+    "Works",
+    "Foundations and piling; Structural concrete works",
+    "BID-D14-F03-G02",
+    "BID-D14-F03",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Site works",
+    "Structural steel erection",
+    "Works",
+    "Structural steel erection",
+    "BID-D14-F03-G03",
+    "BID-D14-F03",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Site works",
+    "Waterproofing works",
+    "Works",
+    "Waterproofing works",
+    "BID-D14-F03-G04",
+    "BID-D14-F03",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Site works",
+    "External paving",
+    "Works",
+    "External paving",
+    "BID-D14-F03-G05",
+    "BID-D14-F03",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Construction services",
+    "Construction supervision",
+    "Service",
+    "Construction supervision",
+    "BID-D14-F04-G01",
+    "BID-D14-F04",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Construction services",
+    "Quantity Surveying & Cost Estimation",
+    "Service",
+    "Quantity surveying; Cost estimation",
+    "BID-D14-F04-G02",
+    "BID-D14-F04",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Construction services",
+    "Construction scheduling",
+    "Service",
+    "Construction scheduling",
+    "BID-D14-F04-G03",
+    "BID-D14-F04",
+    "BID-D14"
+   ],
+   [
+    "Construction, Civil Works & Infrastructure",
+    "Construction services",
+    "Construction Inspection & Building Surveys",
+    "Service",
+    "Construction quality inspection; Building condition surveys",
+    "BID-D14-F04-G04",
+    "BID-D14-F04",
+    "BID-D14"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Design disciplines",
+    "Architectural design",
+    "Service",
+    "Architectural design",
+    "BID-D15-F01-G01",
+    "BID-D15-F01",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Design disciplines",
+    "Structural engineering",
+    "Service",
+    "Structural engineering",
+    "BID-D15-F01-G02",
+    "BID-D15-F01",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Design disciplines",
+    "Mechanical & Electrical Engineering",
+    "Service",
+    "Mechanical engineering; Electrical engineering",
+    "BID-D15-F01-G03",
+    "BID-D15-F01",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Design disciplines",
+    "Civil engineering",
+    "Service",
+    "Civil engineering",
+    "BID-D15-F01-G04",
+    "BID-D15-F01",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Design disciplines",
+    "Interior design",
+    "Service",
+    "Interior design",
+    "BID-D15-F01-G05",
+    "BID-D15-F01",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Design disciplines",
+    "Landscape architecture",
+    "Service",
+    "Landscape architecture",
+    "BID-D15-F01-G06",
+    "BID-D15-F01",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Specialist engineering",
+    "Fire engineering",
+    "Service",
+    "Fire engineering",
+    "BID-D15-F02-G01",
+    "BID-D15-F02",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Specialist engineering",
+    "Acoustic engineering",
+    "Service",
+    "Acoustic engineering",
+    "BID-D15-F02-G02",
+    "BID-D15-F02",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Specialist engineering",
+    "Facade engineering",
+    "Service",
+    "Facade engineering",
+    "BID-D15-F02-G03",
+    "BID-D15-F02",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Specialist engineering",
+    "Traffic engineering",
+    "Service",
+    "Traffic engineering",
+    "BID-D15-F02-G04",
+    "BID-D15-F02",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Specialist engineering",
+    "Geotechnical engineering",
+    "Service",
+    "Geotechnical engineering",
+    "BID-D15-F02-G05",
+    "BID-D15-F02",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Specialist engineering",
+    "Coastal engineering",
+    "Service",
+    "Coastal engineering",
+    "BID-D15-F02-G06",
+    "BID-D15-F02",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Specialist engineering",
+    "Process engineering",
+    "Service",
+    "Process engineering",
+    "BID-D15-F02-G07",
+    "BID-D15-F02",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Technical delivery",
+    "BIM & Engineering Drafting",
+    "Service",
+    "BIM modeling; Engineering drafting",
+    "BID-D15-F03-G01",
+    "BID-D15-F03",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Technical delivery",
+    "Land & Geospatial Surveying",
+    "Service",
+    "Land surveying; Geospatial surveying",
+    "BID-D15-F03-G02",
+    "BID-D15-F03",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Technical delivery",
+    "Design Review & Value Engineering",
+    "Service",
+    "Design review; Value engineering",
+    "BID-D15-F03-G03",
+    "BID-D15-F03",
+    "BID-D15"
+   ],
+   [
+    "Architecture, Engineering & Technical Design",
+    "Technical delivery",
+    "Engineering project management",
+    "Service",
+    "Engineering project management",
+    "BID-D15-F03-G04",
+    "BID-D15-F03",
+    "BID-D15"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Structural materials",
+    "Cement, Concrete & Masonry",
+    "Physical Product",
+    "Cement; Ready-mix concrete; Concrete blocks",
+    "BID-D16-F01-G01",
+    "BID-D16-F01",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Structural materials",
+    "Reinforcement & Structural Steel",
+    "Physical Product",
+    "Reinforcement steel; Structural steel",
+    "BID-D16-F01-G02",
+    "BID-D16-F01",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Structural materials",
+    "Aggregates",
+    "Physical Product",
+    "Aggregates",
+    "BID-D16-F01-G03",
+    "BID-D16-F01",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Structural materials",
+    "Timber and wood panels",
+    "Physical Product",
+    "Timber and wood panels",
+    "BID-D16-F01-G04",
+    "BID-D16-F01",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Interior finishes",
+    "Tiles, Stone & Flooring",
+    "Physical Product",
+    "Ceramic tiles; Natural stone; Flooring materials",
+    "BID-D16-F02-G01",
+    "BID-D16-F02",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Interior finishes",
+    "Paints & Wall Coverings",
+    "Physical Product",
+    "Paints and coatings; Wall coverings",
+    "BID-D16-F02-G02",
+    "BID-D16-F02",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Interior finishes",
+    "Ceiling systems",
+    "Physical Product",
+    "Ceiling systems",
+    "BID-D16-F02-G03",
+    "BID-D16-F02",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Interior finishes",
+    "Joinery products",
+    "Physical Product",
+    "Joinery products",
+    "BID-D16-F02-G04",
+    "BID-D16-F02",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Building envelope",
+    "Doors, Windows & Architectural Glass",
+    "Physical Product",
+    "Doors; Windows; Architectural glass",
+    "BID-D16-F03-G01",
+    "BID-D16-F03",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Building envelope",
+    "Roofing, Insulation & Waterproofing",
+    "Physical Product",
+    "Roofing materials; Insulation materials; Waterproofing materials",
+    "BID-D16-F03-G02",
+    "BID-D16-F03",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Building envelope",
+    "Facade systems",
+    "Physical Product",
+    "Facade systems",
+    "BID-D16-F03-G03",
+    "BID-D16-F03",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Building fixtures",
+    "Sanitary Ware & Plumbing Fixtures",
+    "Physical Product",
+    "Sanitary ware; Plumbing fixtures",
+    "BID-D16-F04-G01",
+    "BID-D16-F04",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Building fixtures",
+    "Architectural ironmongery",
+    "Physical Product",
+    "Architectural ironmongery",
+    "BID-D16-F04-G02",
+    "BID-D16-F04",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Building fixtures",
+    "Partitions & Fixed Cabinetry",
+    "Physical Product",
+    "Partitions; Fixed cabinetry",
+    "BID-D16-F04-G03",
+    "BID-D16-F04",
+    "BID-D16"
+   ],
+   [
+    "Building Materials, Finishes & Fixtures",
+    "Building fixtures",
+    "Access panels",
+    "Physical Product",
+    "Access panels",
+    "BID-D16-F04-G04",
+    "BID-D16-F04",
+    "BID-D16"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Mechanical products",
+    "Air Conditioning & Ventilation Equipment",
+    "Physical Product",
+    "Air conditioning units; Chillers; Air handling units; Ventilation fans",
+    "BID-D17-F01-G01",
+    "BID-D17-F01",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Mechanical products",
+    "Pumps, Valves & Plumbing Pipes",
+    "Physical Product",
+    "Pumps; Valves; Plumbing pipes",
+    "BID-D17-F01-G02",
+    "BID-D17-F01",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Mechanical products",
+    "Water heaters",
+    "Physical Product",
+    "Water heaters",
+    "BID-D17-F01-G03",
+    "BID-D17-F01",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Electrical products",
+    "Switchgear & Distribution Boards",
+    "Physical Product",
+    "Switchgear; Distribution boards",
+    "BID-D17-F02-G01",
+    "BID-D17-F02",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Electrical products",
+    "Electrical Cables & Conduits",
+    "Physical Product",
+    "Electrical cables; Electrical conduits",
+    "BID-D17-F02-G02",
+    "BID-D17-F02",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Electrical products",
+    "Transformers",
+    "Physical Product",
+    "Transformers",
+    "BID-D17-F02-G03",
+    "BID-D17-F02",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Electrical products",
+    "Lighting fixtures",
+    "Physical Product",
+    "Lighting fixtures",
+    "BID-D17-F02-G04",
+    "BID-D17-F02",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Electrical products",
+    "Uninterruptible power systems",
+    "Physical Product",
+    "Uninterruptible power systems",
+    "BID-D17-F02-G05",
+    "BID-D17-F02",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Installation works",
+    "HVAC installation",
+    "Works",
+    "HVAC installation",
+    "BID-D17-F03-G01",
+    "BID-D17-F03",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Installation works",
+    "Plumbing installation",
+    "Works",
+    "Plumbing installation",
+    "BID-D17-F03-G02",
+    "BID-D17-F03",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Installation works",
+    "Electrical installation",
+    "Works",
+    "Electrical installation",
+    "BID-D17-F03-G03",
+    "BID-D17-F03",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Installation works",
+    "Lift & Escalator Installation",
+    "Works",
+    "Lift installation; Escalator installation",
+    "BID-D17-F03-G04",
+    "BID-D17-F03",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Installation works",
+    "Building automation installation",
+    "Works",
+    "Building automation installation",
+    "BID-D17-F03-G05",
+    "BID-D17-F03",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Technical services",
+    "HVAC & Refrigeration Maintenance",
+    "Service",
+    "HVAC maintenance; Refrigeration maintenance",
+    "BID-D17-F04-G01",
+    "BID-D17-F04",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Technical services",
+    "Electrical maintenance",
+    "Service",
+    "Electrical maintenance",
+    "BID-D17-F04-G02",
+    "BID-D17-F04",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Technical services",
+    "Plumbing maintenance",
+    "Service",
+    "Plumbing maintenance",
+    "BID-D17-F04-G03",
+    "BID-D17-F04",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Technical services",
+    "Lift maintenance",
+    "Service",
+    "Lift maintenance",
+    "BID-D17-F04-G04",
+    "BID-D17-F04",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Technical services",
+    "MEP testing and commissioning",
+    "Service",
+    "MEP testing and commissioning",
+    "BID-D17-F04-G05",
+    "BID-D17-F04",
+    "BID-D17"
+   ],
+   [
+    "Mechanical, Electrical, Plumbing & HVAC",
+    "Technical services",
+    "Energy performance assessment",
+    "Service",
+    "Energy performance assessment",
+    "BID-D17-F04-G06",
+    "BID-D17-F04",
+    "BID-D17"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Facility operations",
+    "Facilities Management Services",
+    "Service",
+    "Integrated facilities management; Hard facilities management; Soft facilities management",
+    "BID-D18-F01-G01",
+    "BID-D18-F01",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Facility operations",
+    "Building & Workplace Operations",
+    "Service",
+    "Building maintenance coordination; Workplace management",
+    "BID-D18-F01-G02",
+    "BID-D18-F01",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Facility operations",
+    "Parking operations",
+    "Service",
+    "Parking operations",
+    "BID-D18-F01-G03",
+    "BID-D18-F01",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning services",
+    "Office & Industrial Cleaning",
+    "Service",
+    "Office cleaning; Industrial cleaning",
+    "BID-D18-F02-G01",
+    "BID-D18-F02",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning services",
+    "Facade & Carpet Cleaning",
+    "Service",
+    "Facade cleaning; Carpet cleaning",
+    "BID-D18-F02-G02",
+    "BID-D18-F02",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning services",
+    "Deep Cleaning & Disinfection",
+    "Service",
+    "Post-construction cleaning; Disinfection services",
+    "BID-D18-F02-G03",
+    "BID-D18-F02",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning services",
+    "Tank cleaning",
+    "Service",
+    "Tank cleaning",
+    "BID-D18-F02-G04",
+    "BID-D18-F02",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Grounds and support",
+    "Landscaping & Indoor Plant Care",
+    "Service",
+    "Landscaping maintenance; Indoor plant maintenance",
+    "BID-D18-F03-G01",
+    "BID-D18-F03",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Grounds and support",
+    "Pest management",
+    "Service",
+    "Pest management",
+    "BID-D18-F03-G02",
+    "BID-D18-F03",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Grounds and support",
+    "Waste collection coordination",
+    "Service",
+    "Waste collection coordination",
+    "BID-D18-F03-G03",
+    "BID-D18-F03",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Grounds and support",
+    "Reception & Mailroom Services",
+    "Service",
+    "Reception services; Mailroom services",
+    "BID-D18-F03-G04",
+    "BID-D18-F03",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Grounds and support",
+    "Laundry services",
+    "Service",
+    "Laundry services",
+    "BID-D18-F03-G05",
+    "BID-D18-F03",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning products",
+    "Cleaning Chemicals & Janitorial Supplies",
+    "Physical Product",
+    "Cleaning chemicals; Janitorial supplies",
+    "BID-D18-F04-G01",
+    "BID-D18-F04",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning products",
+    "Cleaning machines",
+    "Physical Product",
+    "Cleaning machines",
+    "BID-D18-F04-G02",
+    "BID-D18-F04",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning products",
+    "Hygiene Dispensers & Paper Products",
+    "Physical Product",
+    "Hygiene dispensers; Paper hygiene products",
+    "BID-D18-F04-G03",
+    "BID-D18-F04",
+    "BID-D18"
+   ],
+   [
+    "Facilities, Property Operations & Workplace",
+    "Cleaning products",
+    "Waste bins",
+    "Physical Product",
+    "Waste bins",
+    "BID-D18-F04-G04",
+    "BID-D18-F04",
+    "BID-D18"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property services",
+    "Property Brokerage",
+    "Service",
+    "Commercial property brokerage; Residential property brokerage",
+    "BID-D19-F01-G01",
+    "BID-D19-F01",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property services",
+    "Property valuation",
+    "Service",
+    "Property valuation",
+    "BID-D19-F01-G02",
+    "BID-D19-F01",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property services",
+    "Property management",
+    "Service",
+    "Property management",
+    "BID-D19-F01-G03",
+    "BID-D19-F01",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property services",
+    "Real Estate Research & Development Advisory",
+    "Service",
+    "Real estate research; Real estate development advisory",
+    "BID-D19-F01-G04",
+    "BID-D19-F01",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Space leasing",
+    "Offices & Coworking Space",
+    "Rental",
+    "Office space leasing; Coworking space rental",
+    "BID-D19-F02-G01",
+    "BID-D19-F02",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Space leasing",
+    "Retail space leasing",
+    "Rental",
+    "Retail space leasing",
+    "BID-D19-F02-G02",
+    "BID-D19-F02",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Space leasing",
+    "Industrial & Warehouse Space",
+    "Rental",
+    "Industrial space leasing; Warehouse space leasing",
+    "BID-D19-F02-G03",
+    "BID-D19-F02",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Space leasing",
+    "Residential property leasing",
+    "Rental",
+    "Residential property leasing",
+    "BID-D19-F02-G04",
+    "BID-D19-F02",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Space leasing",
+    "Land leasing",
+    "Rental",
+    "Land leasing",
+    "BID-D19-F02-G05",
+    "BID-D19-F02",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property support",
+    "Lease & Tenant Administration",
+    "Service",
+    "Lease administration; Tenant coordination",
+    "BID-D19-F03-G01",
+    "BID-D19-F03",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property support",
+    "Property marketing",
+    "Service",
+    "Property marketing",
+    "BID-D19-F03-G02",
+    "BID-D19-F03",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property support",
+    "Property handover inspection",
+    "Service",
+    "Property handover inspection",
+    "BID-D19-F03-G03",
+    "BID-D19-F03",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property support",
+    "Real estate asset advisory",
+    "Service",
+    "Real estate asset advisory",
+    "BID-D19-F03-G04",
+    "BID-D19-F03",
+    "BID-D19"
+   ],
+   [
+    "Real Estate, Leasing & Valuation",
+    "Property support",
+    "Community management services",
+    "Service",
+    "Community management services",
+    "BID-D19-F03-G05",
+    "BID-D19-F03",
+    "BID-D19"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Contract manufacturing",
+    "Contract electronics manufacturing",
+    "Service",
+    "Contract electronics manufacturing",
+    "BID-D20-F01-G01",
+    "BID-D20-F01",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Contract manufacturing",
+    "Contract food manufacturing",
+    "Service",
+    "Contract food manufacturing",
+    "BID-D20-F01-G02",
+    "BID-D20-F01",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Contract manufacturing",
+    "Contract cosmetics manufacturing",
+    "Service",
+    "Contract cosmetics manufacturing",
+    "BID-D20-F01-G03",
+    "BID-D20-F01",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Contract manufacturing",
+    "Contract apparel manufacturing",
+    "Service",
+    "Contract apparel manufacturing",
+    "BID-D20-F01-G04",
+    "BID-D20-F01",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Contract manufacturing",
+    "Private label manufacturing",
+    "Service",
+    "Private label manufacturing",
+    "BID-D20-F01-G05",
+    "BID-D20-F01",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Contract manufacturing",
+    "Prototype manufacturing",
+    "Service",
+    "Prototype manufacturing",
+    "BID-D20-F01-G06",
+    "BID-D20-F01",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Fabrication",
+    "CNC machining",
+    "Service",
+    "CNC machining",
+    "BID-D20-F02-G01",
+    "BID-D20-F02",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Fabrication",
+    "Sheet Metal & Welding Services",
+    "Service",
+    "Sheet metal fabrication; Metal welding",
+    "BID-D20-F02-G02",
+    "BID-D20-F02",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Fabrication",
+    "Casting & Forging",
+    "Service",
+    "Metal casting; Metal forging",
+    "BID-D20-F02-G03",
+    "BID-D20-F02",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Fabrication",
+    "Plastic injection molding",
+    "Service",
+    "Plastic injection molding",
+    "BID-D20-F02-G04",
+    "BID-D20-F02",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Fabrication",
+    "Composite fabrication",
+    "Service",
+    "Composite fabrication",
+    "BID-D20-F02-G05",
+    "BID-D20-F02",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial finishing",
+    "Surface Treatment & Industrial Coating",
+    "Service",
+    "Surface treatment; Powder coating; Electroplating; Industrial painting",
+    "BID-D20-F03-G01",
+    "BID-D20-F03",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial finishing",
+    "Heat treatment",
+    "Service",
+    "Heat treatment",
+    "BID-D20-F03-G02",
+    "BID-D20-F03",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial finishing",
+    "Tool and die making",
+    "Service",
+    "Tool and die making",
+    "BID-D20-F03-G03",
+    "BID-D20-F03",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial finishing",
+    "Additive manufacturing",
+    "Service",
+    "Additive manufacturing",
+    "BID-D20-F03-G04",
+    "BID-D20-F03",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial support",
+    "Plant Maintenance & Equipment Refurbishment",
+    "Service",
+    "Plant maintenance; Equipment refurbishment",
+    "BID-D20-F04-G01",
+    "BID-D20-F04",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial support",
+    "Production Line Installation & Factory Relocation",
+    "Service",
+    "Production line installation; Factory relocation",
+    "BID-D20-F04-G02",
+    "BID-D20-F04",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial support",
+    "Shutdown and turnaround services",
+    "Service",
+    "Shutdown and turnaround services",
+    "BID-D20-F04-G03",
+    "BID-D20-F04",
+    "BID-D20"
+   ],
+   [
+    "Manufacturing, Fabrication & Industrial Services",
+    "Industrial support",
+    "Manufacturing process optimization",
+    "Service",
+    "Manufacturing process optimization",
+    "BID-D20-F04-G04",
+    "BID-D20-F04",
+    "BID-D20"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Production equipment",
+    "Machine tools",
+    "Physical Product",
+    "Machine tools",
+    "BID-D21-F01-G01",
+    "BID-D21-F01",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Production equipment",
+    "Food processing equipment",
+    "Physical Product",
+    "Food processing equipment",
+    "BID-D21-F01-G02",
+    "BID-D21-F01",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Production equipment",
+    "Textile machinery",
+    "Physical Product",
+    "Textile machinery",
+    "BID-D21-F01-G03",
+    "BID-D21-F01",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Production equipment",
+    "Packaging machinery",
+    "Physical Product",
+    "Packaging machinery",
+    "BID-D21-F01-G04",
+    "BID-D21-F01",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Production equipment",
+    "Printing machinery",
+    "Physical Product",
+    "Printing machinery",
+    "BID-D21-F01-G05",
+    "BID-D21-F01",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Production equipment",
+    "Plastic processing machinery",
+    "Physical Product",
+    "Plastic processing machinery",
+    "BID-D21-F01-G06",
+    "BID-D21-F01",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Production equipment",
+    "Industrial ovens",
+    "Physical Product",
+    "Industrial ovens",
+    "BID-D21-F01-G07",
+    "BID-D21-F01",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "General machinery",
+    "Compressors",
+    "Physical Product",
+    "Compressors",
+    "BID-D21-F02-G01",
+    "BID-D21-F02",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "General machinery",
+    "Industrial motors",
+    "Physical Product",
+    "Industrial motors",
+    "BID-D21-F02-G02",
+    "BID-D21-F02",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "General machinery",
+    "Mechanical, Hydraulic & Pneumatic Drives",
+    "Physical Product",
+    "Gearboxes; Hydraulic systems; Pneumatic systems",
+    "BID-D21-F02-G03",
+    "BID-D21-F02",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "General machinery",
+    "Industrial fans",
+    "Physical Product",
+    "Industrial fans",
+    "BID-D21-F02-G04",
+    "BID-D21-F02",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "General machinery",
+    "Industrial boilers",
+    "Physical Product",
+    "Industrial boilers",
+    "BID-D21-F02-G05",
+    "BID-D21-F02",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Components and tools",
+    "Mechanical Components & Fittings",
+    "Physical Product",
+    "Bearings; Fasteners; Seals and gaskets; Hoses",
+    "BID-D21-F03-G01",
+    "BID-D21-F03",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Components and tools",
+    "Cutting, Hand & Power Tools",
+    "Physical Product",
+    "Cutting tools; Hand tools; Power tools",
+    "BID-D21-F03-G02",
+    "BID-D21-F03",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Components and tools",
+    "Abrasives & Welding Consumables",
+    "Physical Product",
+    "Abrasives; Welding consumables",
+    "BID-D21-F03-G03",
+    "BID-D21-F03",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Machine rental",
+    "Construction & Industrial Machinery Rental",
+    "Rental",
+    "Construction machinery rental; Industrial machinery rental",
+    "BID-D21-F04-G01",
+    "BID-D21-F04",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Machine rental",
+    "Tools & Compressor Rental",
+    "Rental",
+    "Power tool rental; Compressor rental",
+    "BID-D21-F04-G02",
+    "BID-D21-F04",
+    "BID-D21"
+   ],
+   [
+    "Machinery, Tools & Industrial Components",
+    "Machine rental",
+    "Access equipment rental",
+    "Rental",
+    "Access equipment rental",
+    "BID-D21-F04-G03",
+    "BID-D21-F04",
+    "BID-D21"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Electronic components",
+    "Semiconductors",
+    "Physical Product",
+    "Semiconductors",
+    "BID-D22-F01-G01",
+    "BID-D22-F01",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Electronic components",
+    "Circuit Boards & Embedded Modules",
+    "Physical Product",
+    "Printed circuit boards; Embedded modules",
+    "BID-D22-F01-G02",
+    "BID-D22-F01",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Electronic components",
+    "Electronic connectors",
+    "Physical Product",
+    "Electronic connectors",
+    "BID-D22-F01-G03",
+    "BID-D22-F01",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Electronic components",
+    "Passive Electronic Components",
+    "Physical Product",
+    "Capacitors; Resistors",
+    "BID-D22-F01-G04",
+    "BID-D22-F01",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Electronic components",
+    "Circuit protection components",
+    "Physical Product",
+    "Circuit protection components",
+    "BID-D22-F01-G05",
+    "BID-D22-F01",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Instrumentation",
+    "Pressure & Temperature Instruments",
+    "Physical Product",
+    "Pressure instruments; Temperature instruments",
+    "BID-D22-F02-G01",
+    "BID-D22-F02",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Instrumentation",
+    "Flow & Level Instruments",
+    "Physical Product",
+    "Flow meters; Level instruments",
+    "BID-D22-F02-G02",
+    "BID-D22-F02",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Instrumentation",
+    "Analytical instruments",
+    "Physical Product",
+    "Analytical instruments",
+    "BID-D22-F02-G03",
+    "BID-D22-F02",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Instrumentation",
+    "Industrial weighing equipment",
+    "Physical Product",
+    "Industrial weighing equipment",
+    "BID-D22-F02-G04",
+    "BID-D22-F02",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Control systems",
+    "Industrial Controllers, Interfaces & Drives",
+    "Physical Product",
+    "Programmable logic controllers; Human machine interfaces; Variable frequency drives",
+    "BID-D22-F03-G01",
+    "BID-D22-F03",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Control systems",
+    "Control panels",
+    "Physical Product",
+    "Control panels",
+    "BID-D22-F03-G02",
+    "BID-D22-F03",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Control systems",
+    "Industrial communication modules",
+    "Physical Product",
+    "Industrial communication modules",
+    "BID-D22-F03-G03",
+    "BID-D22-F03",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Control systems",
+    "Machine vision hardware",
+    "Physical Product",
+    "Machine vision hardware",
+    "BID-D22-F03-G04",
+    "BID-D22-F03",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Technical services",
+    "Instrument calibration",
+    "Service",
+    "Instrument calibration",
+    "BID-D22-F04-G01",
+    "BID-D22-F04",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Technical services",
+    "Control System Programming & Maintenance",
+    "Service",
+    "Control system programming; Control system maintenance",
+    "BID-D22-F04-G02",
+    "BID-D22-F04",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Technical services",
+    "Electronic board repair",
+    "Service",
+    "Electronic board repair",
+    "BID-D22-F04-G03",
+    "BID-D22-F04",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Technical services",
+    "Instrument installation",
+    "Service",
+    "Instrument installation",
+    "BID-D22-F04-G04",
+    "BID-D22-F04",
+    "BID-D22"
+   ],
+   [
+    "Electrical, Electronic & Instrumentation Components",
+    "Technical services",
+    "Electronics design services",
+    "Service",
+    "Electronics design services",
+    "BID-D22-F04-G05",
+    "BID-D22-F04",
+    "BID-D22"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Oilfield services",
+    "Well drilling services",
+    "Service",
+    "Well drilling services",
+    "BID-D23-F01-G01",
+    "BID-D23-F01",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Oilfield services",
+    "Well Testing & Logging",
+    "Service",
+    "Well testing; Well logging",
+    "BID-D23-F01-G02",
+    "BID-D23-F01",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Oilfield services",
+    "Reservoir consulting",
+    "Service",
+    "Reservoir consulting",
+    "BID-D23-F01-G03",
+    "BID-D23-F01",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Oilfield services",
+    "Oilfield Inspection & Maintenance",
+    "Service",
+    "Pipeline inspection; Oilfield equipment maintenance",
+    "BID-D23-F01-G04",
+    "BID-D23-F01",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Oilfield services",
+    "Offshore support services",
+    "Service",
+    "Offshore support services",
+    "BID-D23-F01-G05",
+    "BID-D23-F01",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy equipment",
+    "Drilling & Wellhead Equipment",
+    "Physical Product",
+    "Drilling equipment; Wellhead equipment",
+    "BID-D23-F02-G01",
+    "BID-D23-F02",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy equipment",
+    "Pipeline components",
+    "Physical Product",
+    "Pipeline components",
+    "BID-D23-F02-G02",
+    "BID-D23-F02",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy equipment",
+    "Gas processing equipment",
+    "Physical Product",
+    "Gas processing equipment",
+    "BID-D23-F02-G03",
+    "BID-D23-F02",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy equipment",
+    "Turbines & Generators",
+    "Physical Product",
+    "Turbines; Generators",
+    "BID-D23-F02-G04",
+    "BID-D23-F02",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy equipment",
+    "Fuel storage equipment",
+    "Physical Product",
+    "Fuel storage equipment",
+    "BID-D23-F02-G05",
+    "BID-D23-F02",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Renewable products",
+    "Solar Power Equipment & Components",
+    "Physical Product",
+    "Solar photovoltaic modules; Solar inverters; Solar mounting systems",
+    "BID-D23-F03-G01",
+    "BID-D23-F03",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Renewable products",
+    "Battery energy storage systems",
+    "Physical Product",
+    "Battery energy storage systems",
+    "BID-D23-F03-G02",
+    "BID-D23-F03",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Renewable products",
+    "Wind power components",
+    "Physical Product",
+    "Wind power components",
+    "BID-D23-F03-G03",
+    "BID-D23-F03",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Renewable products",
+    "EV charging equipment",
+    "Physical Product",
+    "EV charging equipment",
+    "BID-D23-F03-G04",
+    "BID-D23-F03",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy delivery",
+    "Renewable energy design",
+    "Service",
+    "Renewable energy design",
+    "BID-D23-F04-G01",
+    "BID-D23-F04",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy delivery",
+    "Solar system maintenance",
+    "Service",
+    "Solar system maintenance",
+    "BID-D23-F04-G02",
+    "BID-D23-F04",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy delivery",
+    "Energy Auditing & Grid Connection Advisory",
+    "Service",
+    "Energy auditing; Grid connection consulting",
+    "BID-D23-F04-G03",
+    "BID-D23-F04",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy delivery",
+    "Power plant operations",
+    "Service",
+    "Power plant operations",
+    "BID-D23-F04-G04",
+    "BID-D23-F04",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy delivery",
+    "Fuel supply logistics",
+    "Service",
+    "Fuel supply logistics",
+    "BID-D23-F04-G05",
+    "BID-D23-F04",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy commodities",
+    "Industrial & Biomass Fuels",
+    "Physical Product",
+    "Industrial fuels; Biomass fuels",
+    "BID-D23-F05-G01",
+    "BID-D23-F05",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy commodities",
+    "Lubricants",
+    "Physical Product",
+    "Lubricants",
+    "BID-D23-F05-G02",
+    "BID-D23-F05",
+    "BID-D23"
+   ],
+   [
+    "Energy, Oil, Gas & Renewables",
+    "Energy commodities",
+    "Industrial gases",
+    "Physical Product",
+    "Industrial gases",
+    "BID-D23-F05-G03",
+    "BID-D23-F05",
+    "BID-D23"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water products",
+    "Water treatment chemicals",
+    "Physical Product",
+    "Water treatment chemicals",
+    "BID-D24-F01-G01",
+    "BID-D24-F01",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water products",
+    "Water & Wastewater Treatment Equipment",
+    "Physical Product",
+    "Water filtration equipment; Desalination components; Wastewater treatment equipment",
+    "BID-D24-F01-G02",
+    "BID-D24-F01",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water products",
+    "Water meters",
+    "Physical Product",
+    "Water meters",
+    "BID-D24-F01-G03",
+    "BID-D24-F01",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water products",
+    "Irrigation equipment",
+    "Physical Product",
+    "Irrigation equipment",
+    "BID-D24-F01-G04",
+    "BID-D24-F01",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water services",
+    "Water & Wastewater Treatment Operations",
+    "Service",
+    "Water treatment operations; Wastewater treatment operations",
+    "BID-D24-F02-G01",
+    "BID-D24-F02",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water services",
+    "Water Testing & Leak Detection",
+    "Service",
+    "Water testing; Water leak detection",
+    "BID-D24-F02-G02",
+    "BID-D24-F02",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water services",
+    "Irrigation maintenance",
+    "Service",
+    "Irrigation maintenance",
+    "BID-D24-F02-G03",
+    "BID-D24-F02",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Water services",
+    "Desalination consulting",
+    "Service",
+    "Desalination consulting",
+    "BID-D24-F02-G04",
+    "BID-D24-F02",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Waste services",
+    "General Waste Collection & Sorting",
+    "Service",
+    "General waste collection; Waste sorting services",
+    "BID-D24-F03-G01",
+    "BID-D24-F03",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Waste services",
+    "Recycling services",
+    "Service",
+    "Recycling services",
+    "BID-D24-F03-G02",
+    "BID-D24-F03",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Waste services",
+    "Hazardous & Medical Waste Management",
+    "Service",
+    "Hazardous waste management; Medical waste management",
+    "BID-D24-F03-G03",
+    "BID-D24-F03",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Waste services",
+    "Electronic waste management",
+    "Service",
+    "Electronic waste management",
+    "BID-D24-F03-G04",
+    "BID-D24-F03",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Waste services",
+    "Wastewater hauling",
+    "Service",
+    "Wastewater hauling",
+    "BID-D24-F03-G05",
+    "BID-D24-F03",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Environmental services",
+    "Environmental Assessment & Monitoring",
+    "Service",
+    "Environmental impact assessment; Environmental monitoring",
+    "BID-D24-F04-G01",
+    "BID-D24-F04",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Environmental services",
+    "Contaminated site remediation",
+    "Service",
+    "Contaminated site remediation",
+    "BID-D24-F04-G02",
+    "BID-D24-F04",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Environmental services",
+    "Sustainability & Carbon Reporting",
+    "Service",
+    "Sustainability reporting; Carbon accounting",
+    "BID-D24-F04-G03",
+    "BID-D24-F04",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Environmental services",
+    "Biodiversity assessment",
+    "Service",
+    "Biodiversity assessment",
+    "BID-D24-F04-G04",
+    "BID-D24-F04",
+    "BID-D24"
+   ],
+   [
+    "Water, Waste, Environment & Sustainability",
+    "Environmental services",
+    "Circular economy consulting",
+    "Service",
+    "Circular economy consulting",
+    "BID-D24-F04-G05",
+    "BID-D24-F04",
+    "BID-D24"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining services",
+    "Mineral Exploration & Geological Surveying",
+    "Service",
+    "Mineral exploration; Geological surveying",
+    "BID-D25-F01-G01",
+    "BID-D25-F01",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining services",
+    "Mine Planning & Operations Support",
+    "Service",
+    "Mine planning; Mine operations support",
+    "BID-D25-F01-G02",
+    "BID-D25-F01",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining services",
+    "Quarry operations",
+    "Service",
+    "Quarry operations",
+    "BID-D25-F01-G03",
+    "BID-D25-F01",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining services",
+    "Mineral processing services",
+    "Service",
+    "Mineral processing services",
+    "BID-D25-F01-G04",
+    "BID-D25-F01",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining services",
+    "Mine rehabilitation",
+    "Service",
+    "Mine rehabilitation",
+    "BID-D25-F01-G05",
+    "BID-D25-F01",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mineral products",
+    "Metal ores",
+    "Physical Product",
+    "Metal ores",
+    "BID-D25-F02-G01",
+    "BID-D25-F02",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mineral products",
+    "Industrial minerals",
+    "Physical Product",
+    "Industrial minerals",
+    "BID-D25-F02-G02",
+    "BID-D25-F02",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mineral products",
+    "Stone, Sand & Clay Materials",
+    "Physical Product",
+    "Construction stone; Silica sand; Clay",
+    "BID-D25-F02-G03",
+    "BID-D25-F02",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mineral products",
+    "Salt",
+    "Physical Product",
+    "Salt",
+    "BID-D25-F02-G04",
+    "BID-D25-F02",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mineral products",
+    "Refractory materials",
+    "Physical Product",
+    "Refractory materials",
+    "BID-D25-F02-G05",
+    "BID-D25-F02",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Metal products",
+    "Metal Stock & Alloys",
+    "Physical Product",
+    "Steel stock; Aluminum stock; Copper stock; Metal alloys",
+    "BID-D25-F03-G01",
+    "BID-D25-F03",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Metal products",
+    "Metal scrap",
+    "Physical Product",
+    "Metal scrap",
+    "BID-D25-F03-G02",
+    "BID-D25-F03",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Metal products",
+    "Precious metal materials",
+    "Physical Product",
+    "Precious metal materials",
+    "BID-D25-F03-G03",
+    "BID-D25-F03",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining equipment",
+    "Crushing, Screening & Mineral Processing Equipment",
+    "Physical Product",
+    "Crushers; Screens; Mineral processing equipment",
+    "BID-D25-F04-G01",
+    "BID-D25-F04",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining equipment",
+    "Mine ventilation equipment",
+    "Physical Product",
+    "Mine ventilation equipment",
+    "BID-D25-F04-G02",
+    "BID-D25-F04",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining equipment",
+    "Mining drilling equipment",
+    "Physical Product",
+    "Mining drilling equipment",
+    "BID-D25-F04-G03",
+    "BID-D25-F04",
+    "BID-D25"
+   ],
+   [
+    "Mining, Metals, Minerals & Raw Materials",
+    "Mining equipment",
+    "Quarry equipment",
+    "Physical Product",
+    "Quarry equipment",
+    "BID-D25-F04-G04",
+    "BID-D25-F04",
+    "BID-D25"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical materials",
+    "Industrial Chemicals & Solvents",
+    "Physical Product",
+    "Industrial chemicals; Solvents",
+    "BID-D26-F01-G01",
+    "BID-D26-F01",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical materials",
+    "Laboratory chemicals",
+    "Physical Product",
+    "Laboratory chemicals",
+    "BID-D26-F01-G02",
+    "BID-D26-F01",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical materials",
+    "Industrial adhesives",
+    "Physical Product",
+    "Industrial adhesives",
+    "BID-D26-F01-G03",
+    "BID-D26-F01",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical materials",
+    "Fertilizers & Crop Protection Chemicals",
+    "Physical Product",
+    "Fertilizers; Agrochemicals",
+    "BID-D26-F01-G04",
+    "BID-D26-F01",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical materials",
+    "Chemical catalysts",
+    "Physical Product",
+    "Chemical catalysts",
+    "BID-D26-F01-G05",
+    "BID-D26-F01",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Polymer materials",
+    "Plastic Resins & Engineering Plastics",
+    "Physical Product",
+    "Plastic resins; Engineering plastics",
+    "BID-D26-F02-G01",
+    "BID-D26-F02",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Polymer materials",
+    "Rubber materials",
+    "Physical Product",
+    "Rubber materials",
+    "BID-D26-F02-G02",
+    "BID-D26-F02",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Polymer materials",
+    "Polymer Films & Foams",
+    "Physical Product",
+    "Polymer films; Foam materials",
+    "BID-D26-F02-G03",
+    "BID-D26-F02",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Polymer materials",
+    "Composite materials",
+    "Physical Product",
+    "Composite materials",
+    "BID-D26-F02-G04",
+    "BID-D26-F02",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Specialty materials",
+    "Ceramic materials",
+    "Physical Product",
+    "Ceramic materials",
+    "BID-D26-F03-G01",
+    "BID-D26-F03",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Specialty materials",
+    "Nanomaterials",
+    "Physical Product",
+    "Nanomaterials",
+    "BID-D26-F03-G02",
+    "BID-D26-F03",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Specialty materials",
+    "Specialty coatings",
+    "Physical Product",
+    "Specialty coatings",
+    "BID-D26-F03-G03",
+    "BID-D26-F03",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Specialty materials",
+    "Industrial textiles",
+    "Physical Product",
+    "Industrial textiles",
+    "BID-D26-F03-G04",
+    "BID-D26-F03",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Specialty materials",
+    "Carbon fiber materials",
+    "Physical Product",
+    "Carbon fiber materials",
+    "BID-D26-F03-G05",
+    "BID-D26-F03",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Specialty materials",
+    "Industrial biochemicals",
+    "Physical Product",
+    "Industrial biochemicals",
+    "BID-D26-F03-G06",
+    "BID-D26-F03",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical services",
+    "Chemical Formulation & Blending",
+    "Service",
+    "Chemical formulation; Chemical blending",
+    "BID-D26-F04-G01",
+    "BID-D26-F04",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical services",
+    "Chemical handling services",
+    "Service",
+    "Chemical handling services",
+    "BID-D26-F04-G02",
+    "BID-D26-F04",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical services",
+    "Chemical composition analysis",
+    "Service",
+    "Chemical composition analysis",
+    "BID-D26-F04-G03",
+    "BID-D26-F04",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical services",
+    "Chemical process advisory",
+    "Service",
+    "Chemical process advisory",
+    "BID-D26-F04-G04",
+    "BID-D26-F04",
+    "BID-D26"
+   ],
+   [
+    "Chemicals, Plastics, Rubber & Advanced Materials",
+    "Chemical services",
+    "Chemical waste characterization",
+    "Service",
+    "Chemical waste characterization",
+    "BID-D26-F04-G05",
+    "BID-D26-F04",
+    "BID-D26"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural supplies",
+    "Seeds, Seedlings & Growing Media",
+    "Physical Product",
+    "Seeds; Seedlings; Growing media",
+    "BID-D27-F01-G01",
+    "BID-D27-F01",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural supplies",
+    "Animal feed",
+    "Physical Product",
+    "Animal feed",
+    "BID-D27-F01-G02",
+    "BID-D27-F01",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural supplies",
+    "Greenhouse Systems & Agricultural Netting",
+    "Physical Product",
+    "Agricultural netting; Greenhouse systems",
+    "BID-D27-F01-G03",
+    "BID-D27-F01",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural supplies",
+    "Farm machinery",
+    "Physical Product",
+    "Farm machinery",
+    "BID-D27-F01-G04",
+    "BID-D27-F01",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural supplies",
+    "Aquaculture equipment",
+    "Physical Product",
+    "Aquaculture equipment",
+    "BID-D27-F01-G05",
+    "BID-D27-F01",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural services",
+    "Farm management",
+    "Service",
+    "Farm management",
+    "BID-D27-F02-G01",
+    "BID-D27-F02",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural services",
+    "Crop Advisory & Field Services",
+    "Service",
+    "Crop advisory; Agricultural spraying; Harvesting services",
+    "BID-D27-F02-G02",
+    "BID-D27-F02",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural services",
+    "Soil testing",
+    "Service",
+    "Soil testing",
+    "BID-D27-F02-G03",
+    "BID-D27-F02",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural services",
+    "Livestock husbandry services",
+    "Service",
+    "Livestock husbandry services",
+    "BID-D27-F02-G04",
+    "BID-D27-F02",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural services",
+    "Aquaculture consulting",
+    "Service",
+    "Aquaculture consulting",
+    "BID-D27-F02-G05",
+    "BID-D27-F02",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Agricultural services",
+    "Forestry management",
+    "Service",
+    "Forestry management",
+    "BID-D27-F02-G06",
+    "BID-D27-F02",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Live and natural materials",
+    "Plants, Trees & Cut Flowers",
+    "Physical Product",
+    "Live plants; Nursery trees; Cut flowers",
+    "BID-D27-F03-G01",
+    "BID-D27-F03",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Live and natural materials",
+    "Livestock & Live Fish",
+    "Physical Product",
+    "Livestock; Live fish",
+    "BID-D27-F03-G02",
+    "BID-D27-F03",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Live and natural materials",
+    "Raw Timber & Natural Fibers",
+    "Physical Product",
+    "Raw timber; Natural fibers",
+    "BID-D27-F03-G03",
+    "BID-D27-F03",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Animal care",
+    "Veterinary & Animal Health Services",
+    "Service",
+    "Veterinary services; Animal health laboratory services",
+    "BID-D27-F04-G01",
+    "BID-D27-F04",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Animal care",
+    "Animal Grooming & Boarding",
+    "Service",
+    "Animal grooming; Animal boarding",
+    "BID-D27-F04-G02",
+    "BID-D27-F04",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Animal care",
+    "Animal transportation",
+    "Service",
+    "Animal transportation",
+    "BID-D27-F04-G03",
+    "BID-D27-F04",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Animal care products",
+    "Veterinary equipment",
+    "Physical Product",
+    "Veterinary equipment",
+    "BID-D27-F05-G01",
+    "BID-D27-F05",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Animal care products",
+    "Animal Care & Housing Supplies",
+    "Physical Product",
+    "Animal care supplies; Animal housing equipment",
+    "BID-D27-F05-G02",
+    "BID-D27-F05",
+    "BID-D27"
+   ],
+   [
+    "Agriculture, Forestry, Fisheries & Animal Care",
+    "Animal care products",
+    "Pet food",
+    "Physical Product",
+    "Pet food",
+    "BID-D27-F05-G03",
+    "BID-D27-F05",
+    "BID-D27"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food products",
+    "Fresh produce",
+    "Physical Product",
+    "Fresh produce",
+    "BID-D28-F01-G01",
+    "BID-D28-F01",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food products",
+    "Meat, Poultry & Seafood",
+    "Physical Product",
+    "Meat and poultry; Seafood",
+    "BID-D28-F01-G02",
+    "BID-D28-F01",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food products",
+    "Dairy products",
+    "Physical Product",
+    "Dairy products",
+    "BID-D28-F01-G03",
+    "BID-D28-F01",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food products",
+    "Grains, Pulses & Edible Oils",
+    "Physical Product",
+    "Grains and pulses; Edible oils",
+    "BID-D28-F01-G04",
+    "BID-D28-F01",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food products",
+    "Bakery & Confectionery",
+    "Physical Product",
+    "Bakery products; Confectionery",
+    "BID-D28-F01-G05",
+    "BID-D28-F01",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food products",
+    "Frozen & Prepared Foods",
+    "Physical Product",
+    "Frozen food; Prepared food",
+    "BID-D28-F01-G06",
+    "BID-D28-F01",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Beverage products",
+    "Bottled water",
+    "Physical Product",
+    "Bottled water",
+    "BID-D28-F02-G01",
+    "BID-D28-F02",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Beverage products",
+    "Coffee & Tea",
+    "Physical Product",
+    "Coffee beans; Tea",
+    "BID-D28-F02-G02",
+    "BID-D28-F02",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Beverage products",
+    "Juices, Soft Drinks & Beverage Concentrates",
+    "Physical Product",
+    "Juices; Soft drinks; Beverage concentrates",
+    "BID-D28-F02-G03",
+    "BID-D28-F02",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food services",
+    "Corporate, Institutional & Event Catering",
+    "Service",
+    "Corporate catering; Institutional catering; Event catering",
+    "BID-D28-F03-G01",
+    "BID-D28-F03",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food services",
+    "Meal subscription services",
+    "Service",
+    "Meal subscription services",
+    "BID-D28-F03-G02",
+    "BID-D28-F03",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food services",
+    "Coffee cart operation",
+    "Service",
+    "Coffee cart operation",
+    "BID-D28-F03-G03",
+    "BID-D28-F03",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food services",
+    "Commercial kitchen operations",
+    "Service",
+    "Commercial kitchen operations",
+    "BID-D28-F03-G04",
+    "BID-D28-F03",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Food services",
+    "Food safety consulting",
+    "Service",
+    "Food safety consulting",
+    "BID-D28-F03-G05",
+    "BID-D28-F03",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Kitchen products",
+    "Commercial Cooking & Food Preparation Equipment",
+    "Physical Product",
+    "Commercial cooking equipment; Food preparation equipment",
+    "BID-D28-F04-G01",
+    "BID-D28-F04",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Kitchen products",
+    "Commercial refrigeration",
+    "Physical Product",
+    "Commercial refrigeration",
+    "BID-D28-F04-G02",
+    "BID-D28-F04",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Kitchen products",
+    "Coffee machines",
+    "Physical Product",
+    "Coffee machines",
+    "BID-D28-F04-G03",
+    "BID-D28-F04",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Kitchen products",
+    "Kitchen Utensils & Tableware",
+    "Physical Product",
+    "Kitchen utensils; Tableware",
+    "BID-D28-F04-G04",
+    "BID-D28-F04",
+    "BID-D28"
+   ],
+   [
+    "Food, Beverages, Catering & Commercial Kitchens",
+    "Kitchen products",
+    "Food service disposables",
+    "Physical Product",
+    "Food service disposables",
+    "BID-D28-F04-G05",
+    "BID-D28-F04",
+    "BID-D28"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Accommodation services",
+    "Hotels & Resorts",
+    "Service",
+    "Hotel accommodation; Resort accommodation",
+    "BID-D29-F01-G01",
+    "BID-D29-F01",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Accommodation services",
+    "Serviced, Corporate & Group Accommodation",
+    "Service",
+    "Serviced accommodation; Corporate accommodation; Group accommodation",
+    "BID-D29-F01-G02",
+    "BID-D29-F01",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Accommodation services",
+    "Accommodation management",
+    "Service",
+    "Accommodation management",
+    "BID-D29-F01-G03",
+    "BID-D29-F01",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Travel services",
+    "Corporate Travel Services",
+    "Service",
+    "Corporate travel management; Business travel support",
+    "BID-D29-F02-G01",
+    "BID-D29-F02",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Travel services",
+    "Tour Operations & Destination Management",
+    "Service",
+    "Tour operations; Destination management",
+    "BID-D29-F02-G02",
+    "BID-D29-F02",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Travel services",
+    "Ground handling coordination",
+    "Service",
+    "Ground handling coordination",
+    "BID-D29-F02-G03",
+    "BID-D29-F02",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Travel services",
+    "Visa application assistance",
+    "Service",
+    "Visa application assistance",
+    "BID-D29-F02-G04",
+    "BID-D29-F02",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Tourism experiences",
+    "Guided Cultural & Adventure Tours",
+    "Service",
+    "Cultural tours; Adventure tours; Tourism guide services",
+    "BID-D29-F03-G01",
+    "BID-D29-F03",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Tourism experiences",
+    "Visitor experience design",
+    "Service",
+    "Visitor experience design",
+    "BID-D29-F03-G02",
+    "BID-D29-F03",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Tourism experiences",
+    "Religious visitor logistics",
+    "Service",
+    "Religious visitor logistics",
+    "BID-D29-F03-G03",
+    "BID-D29-F03",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Tourism experiences",
+    "Destination research",
+    "Service",
+    "Destination research",
+    "BID-D29-F03-G04",
+    "BID-D29-F03",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Hospitality supplies",
+    "Hotel Linen & Hospitality Uniforms",
+    "Physical Product",
+    "Hotel linen; Hospitality uniforms",
+    "BID-D29-F04-G01",
+    "BID-D29-F04",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Hospitality supplies",
+    "Guest Amenities & Room Accessories",
+    "Physical Product",
+    "Guest amenities; Hotel room accessories",
+    "BID-D29-F04-G02",
+    "BID-D29-F04",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Hospitality supplies",
+    "Housekeeping carts",
+    "Physical Product",
+    "Housekeeping carts",
+    "BID-D29-F04-G03",
+    "BID-D29-F04",
+    "BID-D29"
+   ],
+   [
+    "Hospitality, Travel, Tourism & Accommodation",
+    "Hospitality supplies",
+    "In-room appliances",
+    "Physical Product",
+    "In-room appliances",
+    "BID-D29-F04-G04",
+    "BID-D29-F04",
+    "BID-D29"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Freight services",
+    "Road freight",
+    "Service",
+    "Road freight",
+    "BID-D30-F01-G01",
+    "BID-D30-F01",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Freight services",
+    "Air freight",
+    "Service",
+    "Air freight",
+    "BID-D30-F01-G02",
+    "BID-D30-F01",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Freight services",
+    "Sea freight",
+    "Service",
+    "Sea freight",
+    "BID-D30-F01-G03",
+    "BID-D30-F01",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Freight services",
+    "Rail freight",
+    "Service",
+    "Rail freight",
+    "BID-D30-F01-G04",
+    "BID-D30-F01",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Freight services",
+    "Multimodal Freight & Forwarding",
+    "Service",
+    "Multimodal freight; Freight forwarding",
+    "BID-D30-F01-G05",
+    "BID-D30-F01",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Freight services",
+    "Heavy haulage",
+    "Service",
+    "Heavy haulage",
+    "BID-D30-F01-G06",
+    "BID-D30-F01",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Freight services",
+    "Last-mile delivery",
+    "Service",
+    "Last-mile delivery",
+    "BID-D30-F01-G07",
+    "BID-D30-F01",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Special logistics",
+    "Cold chain logistics",
+    "Service",
+    "Cold chain logistics",
+    "BID-D30-F02-G01",
+    "BID-D30-F02",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Special logistics",
+    "Dangerous goods logistics",
+    "Service",
+    "Dangerous goods logistics",
+    "BID-D30-F02-G02",
+    "BID-D30-F02",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Special logistics",
+    "Project cargo logistics",
+    "Service",
+    "Project cargo logistics",
+    "BID-D30-F02-G03",
+    "BID-D30-F02",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Special logistics",
+    "Medical logistics",
+    "Service",
+    "Medical logistics",
+    "BID-D30-F02-G04",
+    "BID-D30-F02",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Special logistics",
+    "E-commerce fulfillment",
+    "Service",
+    "E-commerce fulfillment",
+    "BID-D30-F02-G05",
+    "BID-D30-F02",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Special logistics",
+    "Reverse logistics",
+    "Service",
+    "Reverse logistics",
+    "BID-D30-F02-G06",
+    "BID-D30-F02",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Special logistics",
+    "Customs brokerage",
+    "Service",
+    "Customs brokerage",
+    "BID-D30-F02-G07",
+    "BID-D30-F02",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Warehouse services",
+    "General & Bonded Warehousing",
+    "Service",
+    "General warehousing; Bonded warehousing",
+    "BID-D30-F03-G01",
+    "BID-D30-F03",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Warehouse services",
+    "Cold storage",
+    "Service",
+    "Cold storage",
+    "BID-D30-F03-G02",
+    "BID-D30-F03",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Warehouse services",
+    "Inventory, Picking & Packing Services",
+    "Service",
+    "Inventory management services; Pick and pack services",
+    "BID-D30-F03-G03",
+    "BID-D30-F03",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Warehouse services",
+    "Cross-docking",
+    "Service",
+    "Cross-docking",
+    "BID-D30-F03-G04",
+    "BID-D30-F03",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Warehouse services",
+    "Document storage",
+    "Service",
+    "Document storage",
+    "BID-D30-F03-G05",
+    "BID-D30-F03",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Logistics products",
+    "Warehouse Storage Systems & Containers",
+    "Physical Product",
+    "Warehouse racking; Pallets; Storage containers",
+    "BID-D30-F04-G01",
+    "BID-D30-F04",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Logistics products",
+    "Cargo restraints",
+    "Physical Product",
+    "Cargo restraints",
+    "BID-D30-F04-G02",
+    "BID-D30-F04",
+    "BID-D30"
+   ],
+   [
+    "Freight, Logistics, Warehousing & Distribution",
+    "Logistics products",
+    "Material Handling Equipment",
+    "Physical Product",
+    "Material handling conveyors; Forklifts; Hand pallet trucks",
+    "BID-D30-F04-G03",
+    "BID-D30-F04",
+    "BID-D30"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Road mobility products",
+    "Passenger & Commercial Vehicles",
+    "Physical Product",
+    "Passenger vehicles; Commercial vehicles; Buses",
+    "BID-D31-F01-G01",
+    "BID-D31-F01",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Road mobility products",
+    "Motorcycles & Bicycles",
+    "Physical Product",
+    "Motorcycles; Bicycles",
+    "BID-D31-F01-G02",
+    "BID-D31-F01",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Road mobility products",
+    "Trailers",
+    "Physical Product",
+    "Trailers",
+    "BID-D31-F01-G03",
+    "BID-D31-F01",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Road mobility products",
+    "Vehicle Parts & Tires",
+    "Physical Product",
+    "Vehicle spare parts; Tires",
+    "BID-D31-F01-G04",
+    "BID-D31-F01",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Road mobility services",
+    "Vehicle Maintenance, Inspection & Assistance",
+    "Service",
+    "Vehicle maintenance; Vehicle inspection; Roadside assistance",
+    "BID-D31-F02-G01",
+    "BID-D31-F02",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Road mobility services",
+    "Fleet management",
+    "Service",
+    "Fleet management",
+    "BID-D31-F02-G02",
+    "BID-D31-F02",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Road mobility services",
+    "Chauffeur & Passenger Transport Services",
+    "Service",
+    "Chauffeur services; Passenger transport operations",
+    "BID-D31-F02-G03",
+    "BID-D31-F02",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Marine and aviation products",
+    "Marine Vessels, Engines & Parts",
+    "Physical Product",
+    "Workboats; Marine engines; Marine spare parts",
+    "BID-D31-F03-G01",
+    "BID-D31-F03",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Marine and aviation products",
+    "Aircraft Parts & Ground Support Equipment",
+    "Physical Product",
+    "Aircraft ground support equipment; Aircraft spare parts",
+    "BID-D31-F03-G02",
+    "BID-D31-F03",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Marine and aviation products",
+    "Navigation equipment",
+    "Physical Product",
+    "Navigation equipment",
+    "BID-D31-F03-G03",
+    "BID-D31-F03",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Marine and aviation products",
+    "Rail rolling stock components",
+    "Physical Product",
+    "Rail rolling stock components",
+    "BID-D31-F03-G04",
+    "BID-D31-F03",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Specialist transport services",
+    "Marine maintenance",
+    "Service",
+    "Marine maintenance",
+    "BID-D31-F04-G01",
+    "BID-D31-F04",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Specialist transport services",
+    "Aircraft maintenance",
+    "Service",
+    "Aircraft maintenance",
+    "BID-D31-F04-G02",
+    "BID-D31-F04",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Specialist transport services",
+    "Airport & Port Support Operations",
+    "Service",
+    "Airport support operations; Port support operations",
+    "BID-D31-F04-G03",
+    "BID-D31-F04",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Specialist transport services",
+    "Rail maintenance",
+    "Service",
+    "Rail maintenance",
+    "BID-D31-F04-G04",
+    "BID-D31-F04",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Specialist transport services",
+    "Fleet electrification advisory",
+    "Service",
+    "Fleet electrification advisory",
+    "BID-D31-F04-G05",
+    "BID-D31-F04",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Transport rental",
+    "Road Vehicle Rental",
+    "Rental",
+    "Car rental; Bus rental; Commercial vehicle rental",
+    "BID-D31-F05-G01",
+    "BID-D31-F05",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Transport rental",
+    "Marine & Aircraft Charter",
+    "Rental",
+    "Boat charter; Aircraft charter",
+    "BID-D31-F05-G02",
+    "BID-D31-F05",
+    "BID-D31"
+   ],
+   [
+    "Vehicles, Mobility, Marine & Aviation",
+    "Transport rental",
+    "Rail equipment rental",
+    "Rental",
+    "Rail equipment rental",
+    "BID-D31-F05-G03",
+    "BID-D31-F05",
+    "BID-D31"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare services",
+    "Occupational health services",
+    "Service",
+    "Occupational health services",
+    "BID-D32-F01-G01",
+    "BID-D32-F01",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare services",
+    "Primary & Specialist Clinical Care",
+    "Service",
+    "Primary care services; Specialist clinical services",
+    "BID-D32-F01-G02",
+    "BID-D32-F01",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare services",
+    "Diagnostic Imaging & Laboratory Services",
+    "Service",
+    "Diagnostic imaging; Clinical laboratory services",
+    "BID-D32-F01-G03",
+    "BID-D32-F01",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare services",
+    "Dental services",
+    "Service",
+    "Dental services",
+    "BID-D32-F01-G04",
+    "BID-D32-F01",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare services",
+    "Rehabilitation services",
+    "Service",
+    "Rehabilitation services",
+    "BID-D32-F01-G05",
+    "BID-D32-F01",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare services",
+    "Telehealth services",
+    "Service",
+    "Telehealth services",
+    "BID-D32-F01-G06",
+    "BID-D32-F01",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Medical products",
+    "Medical Consumables & PPE",
+    "Physical Product",
+    "Medical consumables; Medical PPE",
+    "BID-D32-F02-G01",
+    "BID-D32-F02",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Medical products",
+    "Surgical instruments",
+    "Physical Product",
+    "Surgical instruments",
+    "BID-D32-F02-G02",
+    "BID-D32-F02",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Medical products",
+    "Diagnostic & Patient Monitoring Equipment",
+    "Physical Product",
+    "Diagnostic equipment; Patient monitoring equipment",
+    "BID-D32-F02-G03",
+    "BID-D32-F02",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Medical products",
+    "Hospital beds",
+    "Physical Product",
+    "Hospital beds",
+    "BID-D32-F02-G04",
+    "BID-D32-F02",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Medical products",
+    "Dental equipment",
+    "Physical Product",
+    "Dental equipment",
+    "BID-D32-F02-G05",
+    "BID-D32-F02",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Medical products",
+    "Medical implants",
+    "Physical Product",
+    "Medical implants",
+    "BID-D32-F02-G06",
+    "BID-D32-F02",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare support",
+    "Hospital operations consulting",
+    "Service",
+    "Hospital operations consulting",
+    "BID-D32-F03-G01",
+    "BID-D32-F03",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare support",
+    "Medical Equipment Maintenance & Calibration",
+    "Service",
+    "Medical equipment maintenance; Medical equipment calibration",
+    "BID-D32-F03-G02",
+    "BID-D32-F03",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare support",
+    "Healthcare staffing",
+    "Service",
+    "Healthcare staffing",
+    "BID-D32-F03-G03",
+    "BID-D32-F03",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare support",
+    "Medical Coding & Records Services",
+    "Service",
+    "Medical coding; Medical records digitization",
+    "BID-D32-F03-G04",
+    "BID-D32-F03",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Healthcare support",
+    "Clinical waste advisory",
+    "Service",
+    "Clinical waste advisory",
+    "BID-D32-F03-G05",
+    "BID-D32-F03",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Wellness services",
+    "Workplace wellness programs",
+    "Service",
+    "Workplace wellness programs",
+    "BID-D32-F04-G01",
+    "BID-D32-F04",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Wellness services",
+    "Nutrition consulting",
+    "Service",
+    "Nutrition consulting",
+    "BID-D32-F04-G02",
+    "BID-D32-F04",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Wellness services",
+    "Fitness instruction",
+    "Service",
+    "Fitness instruction",
+    "BID-D32-F04-G03",
+    "BID-D32-F04",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Wellness services",
+    "Mental health services",
+    "Service",
+    "Mental health services",
+    "BID-D32-F04-G04",
+    "BID-D32-F04",
+    "BID-D32"
+   ],
+   [
+    "Healthcare, Medical, Dental & Wellness",
+    "Wellness services",
+    "Home Healthcare & Elder Care",
+    "Service",
+    "Home healthcare; Elder care services",
+    "BID-D32-F04-G05",
+    "BID-D32-F04",
+    "BID-D32"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Pharmaceutical products",
+    "Prescription & Non-prescription Medicines",
+    "Physical Product",
+    "Prescription medicines; Non-prescription medicines",
+    "BID-D33-F01-G01",
+    "BID-D33-F01",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Pharmaceutical products",
+    "Vaccines & Biologic Medicines",
+    "Physical Product",
+    "Vaccines; Biologic medicines",
+    "BID-D33-F01-G02",
+    "BID-D33-F01",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Pharmaceutical products",
+    "Pharmaceutical Ingredients & Excipients",
+    "Physical Product",
+    "Active pharmaceutical ingredients; Pharmaceutical excipients",
+    "BID-D33-F01-G03",
+    "BID-D33-F01",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Life sciences products",
+    "Laboratory Reagents & Diagnostic Kits",
+    "Physical Product",
+    "Laboratory reagents; Diagnostic test kits",
+    "BID-D33-F02-G01",
+    "BID-D33-F02",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Life sciences products",
+    "Bioprocess & Cell Culture Materials",
+    "Physical Product",
+    "Bioprocess consumables; Cell culture materials",
+    "BID-D33-F02-G02",
+    "BID-D33-F02",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Life sciences products",
+    "Research instruments",
+    "Physical Product",
+    "Research instruments",
+    "BID-D33-F02-G03",
+    "BID-D33-F02",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Life sciences products",
+    "Pharmaceutical packaging materials",
+    "Physical Product",
+    "Pharmaceutical packaging materials",
+    "BID-D33-F02-G04",
+    "BID-D33-F02",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Research services",
+    "Contract Research & Clinical Trials",
+    "Service",
+    "Contract research; Clinical trial operations",
+    "BID-D33-F03-G01",
+    "BID-D33-F03",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Research services",
+    "Bioanalytical testing",
+    "Service",
+    "Bioanalytical testing",
+    "BID-D33-F03-G02",
+    "BID-D33-F03",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Research services",
+    "Pharmaceutical formulation",
+    "Service",
+    "Pharmaceutical formulation",
+    "BID-D33-F03-G03",
+    "BID-D33-F03",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Research services",
+    "Biomanufacturing services",
+    "Service",
+    "Biomanufacturing services",
+    "BID-D33-F03-G04",
+    "BID-D33-F03",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Research services",
+    "Pharmacovigilance",
+    "Service",
+    "Pharmacovigilance",
+    "BID-D33-F03-G05",
+    "BID-D33-F03",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Research services",
+    "Regulatory affairs consulting",
+    "Service",
+    "Regulatory affairs consulting",
+    "BID-D33-F03-G06",
+    "BID-D33-F03",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Manufacturing support",
+    "Pharmaceutical Validation & Quality Consulting",
+    "Service",
+    "Pharmaceutical validation; Cleanroom qualification; GMP consulting",
+    "BID-D33-F04-G01",
+    "BID-D33-F04",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Manufacturing support",
+    "Stability testing",
+    "Service",
+    "Stability testing",
+    "BID-D33-F04-G02",
+    "BID-D33-F04",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Manufacturing support",
+    "Cold chain qualification",
+    "Service",
+    "Cold chain qualification",
+    "BID-D33-F04-G03",
+    "BID-D33-F04",
+    "BID-D33"
+   ],
+   [
+    "Pharmaceuticals, Biotechnology & Life Sciences",
+    "Manufacturing support",
+    "Laboratory method development",
+    "Service",
+    "Laboratory method development",
+    "BID-D33-F04-G04",
+    "BID-D33-F04",
+    "BID-D33"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Laboratory products",
+    "General laboratory instruments",
+    "Physical Product",
+    "General laboratory instruments",
+    "BID-D34-F01-G01",
+    "BID-D34-F01",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Laboratory products",
+    "Laboratory Glassware & Furniture",
+    "Physical Product",
+    "Laboratory glassware; Laboratory furniture",
+    "BID-D34-F01-G02",
+    "BID-D34-F01",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Laboratory products",
+    "Measurement standards",
+    "Physical Product",
+    "Measurement standards",
+    "BID-D34-F01-G03",
+    "BID-D34-F01",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Laboratory products",
+    "Sample preparation equipment",
+    "Physical Product",
+    "Sample preparation equipment",
+    "BID-D34-F01-G04",
+    "BID-D34-F01",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Laboratory products",
+    "Laboratory safety equipment",
+    "Physical Product",
+    "Laboratory safety equipment",
+    "BID-D34-F01-G05",
+    "BID-D34-F01",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Testing services",
+    "Materials & Mechanical Testing",
+    "Service",
+    "Materials testing; Mechanical testing",
+    "BID-D34-F02-G01",
+    "BID-D34-F02",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Testing services",
+    "Food & Microbiology Testing",
+    "Service",
+    "Food testing; Microbiology testing",
+    "BID-D34-F02-G02",
+    "BID-D34-F02",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Testing services",
+    "Product performance testing",
+    "Service",
+    "Product performance testing",
+    "BID-D34-F02-G03",
+    "BID-D34-F02",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Testing services",
+    "Electrical safety testing",
+    "Service",
+    "Electrical safety testing",
+    "BID-D34-F02-G04",
+    "BID-D34-F02",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Testing services",
+    "Non-destructive testing",
+    "Service",
+    "Non-destructive testing",
+    "BID-D34-F02-G05",
+    "BID-D34-F02",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Assurance services",
+    "Product & Management System Certification",
+    "Service",
+    "Product certification; Management system certification",
+    "BID-D34-F03-G01",
+    "BID-D34-F03",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Assurance services",
+    "Third-party inspection",
+    "Service",
+    "Third-party inspection",
+    "BID-D34-F03-G02",
+    "BID-D34-F03",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Assurance services",
+    "Metrology services",
+    "Service",
+    "Metrology services",
+    "BID-D34-F03-G03",
+    "BID-D34-F03",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Assurance services",
+    "Laboratory accreditation consulting",
+    "Service",
+    "Laboratory accreditation consulting",
+    "BID-D34-F03-G04",
+    "BID-D34-F03",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Assurance services",
+    "Supplier quality audits",
+    "Service",
+    "Supplier quality audits",
+    "BID-D34-F03-G05",
+    "BID-D34-F03",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Research support",
+    "Scientific research consulting",
+    "Service",
+    "Scientific research consulting",
+    "BID-D34-F04-G01",
+    "BID-D34-F04",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Research support",
+    "Research Data Collection & Fieldwork",
+    "Service",
+    "Research data collection; Field research operations",
+    "BID-D34-F04-G02",
+    "BID-D34-F04",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Research support",
+    "Technical documentation",
+    "Service",
+    "Technical documentation",
+    "BID-D34-F04-G03",
+    "BID-D34-F04",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Research support",
+    "Research equipment maintenance",
+    "Service",
+    "Research equipment maintenance",
+    "BID-D34-F04-G04",
+    "BID-D34-F04",
+    "BID-D34"
+   ],
+   [
+    "Scientific, Laboratory, Testing & Certification",
+    "Research support",
+    "Experimental design consulting",
+    "Service",
+    "Experimental design consulting",
+    "BID-D34-F04-G05",
+    "BID-D34-F04",
+    "BID-D34"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Furniture",
+    "Office Furniture",
+    "Physical Product",
+    "Office desks; Office seating; Storage furniture",
+    "BID-D35-F01-G01",
+    "BID-D35-F01",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Furniture",
+    "Hospitality, Education & Healthcare Furniture",
+    "Physical Product",
+    "Hospitality furniture; Educational furniture; Healthcare furniture",
+    "BID-D35-F01-G02",
+    "BID-D35-F01",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Furniture",
+    "Outdoor furniture",
+    "Physical Product",
+    "Outdoor furniture",
+    "BID-D35-F01-G03",
+    "BID-D35-F01",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Office supplies",
+    "Stationery & Office Accessories",
+    "Physical Product",
+    "Stationery; Office organizers; Business stamps",
+    "BID-D35-F02-G01",
+    "BID-D35-F02",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Office supplies",
+    "Paper & Printer Consumables",
+    "Physical Product",
+    "Paper supplies; Printer consumables",
+    "BID-D35-F02-G02",
+    "BID-D35-F02",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Office supplies",
+    "Office presentation equipment",
+    "Physical Product",
+    "Office presentation equipment",
+    "BID-D35-F02-G03",
+    "BID-D35-F02",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Retail equipment",
+    "Retail Shelving, Counters & Displays",
+    "Physical Product",
+    "Retail shelving; Checkout counters; Retail display units",
+    "BID-D35-F03-G01",
+    "BID-D35-F03",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Retail equipment",
+    "Point-of-sale & Barcode Equipment",
+    "Physical Product",
+    "Point-of-sale hardware; Barcode scanners; Label printers",
+    "BID-D35-F03-G02",
+    "BID-D35-F03",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Retail equipment",
+    "Shopping carts",
+    "Physical Product",
+    "Shopping carts",
+    "BID-D35-F03-G03",
+    "BID-D35-F03",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Workplace services",
+    "Furniture Installation & Repair",
+    "Service",
+    "Furniture installation; Furniture repair",
+    "BID-D35-F04-G01",
+    "BID-D35-F04",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Workplace services",
+    "Workplace relocation",
+    "Service",
+    "Workplace relocation",
+    "BID-D35-F04-G02",
+    "BID-D35-F04",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Workplace services",
+    "Office equipment maintenance",
+    "Service",
+    "Office equipment maintenance",
+    "BID-D35-F04-G03",
+    "BID-D35-F04",
+    "BID-D35"
+   ],
+   [
+    "Furniture, Office, Retail & Commercial Equipment",
+    "Workplace services",
+    "Retail Setup & Merchandising",
+    "Service",
+    "Retail merchandising services; Retail store setup",
+    "BID-D35-F04-G04",
+    "BID-D35-F04",
+    "BID-D35"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Packaging products",
+    "Boxes & Protective Packaging",
+    "Physical Product",
+    "Corrugated boxes; Protective packaging",
+    "BID-D36-F01-G01",
+    "BID-D36-F01",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Packaging products",
+    "Flexible Packaging & Wrapping",
+    "Physical Product",
+    "Flexible packaging; Pallet wrapping materials",
+    "BID-D36-F01-G02",
+    "BID-D36-F01",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Packaging products",
+    "Rigid Plastic, Glass & Metal Packaging",
+    "Physical Product",
+    "Rigid plastic packaging; Glass packaging; Metal packaging",
+    "BID-D36-F01-G03",
+    "BID-D36-F01",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Packaging products",
+    "Labels",
+    "Physical Product",
+    "Labels",
+    "BID-D36-F01-G04",
+    "BID-D36-F01",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Print products",
+    "Business & Marketing Print Products",
+    "Physical Product",
+    "Business cards; Brochures; Printed forms",
+    "BID-D36-F02-G01",
+    "BID-D36-F02",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Print products",
+    "Books and magazines",
+    "Physical Product",
+    "Books and magazines",
+    "BID-D36-F02-G02",
+    "BID-D36-F02",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Print products",
+    "Large format prints",
+    "Physical Product",
+    "Large format prints",
+    "BID-D36-F02-G03",
+    "BID-D36-F02",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Print products",
+    "Security printed documents",
+    "Physical Product",
+    "Security printed documents",
+    "BID-D36-F02-G04",
+    "BID-D36-F02",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Signage products",
+    "Indoor, Outdoor & Wayfinding Signs",
+    "Physical Product",
+    "Indoor signs; Outdoor signs; Wayfinding signs",
+    "BID-D36-F03-G01",
+    "BID-D36-F03",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Signage products",
+    "Digital & Illuminated Signage",
+    "Physical Product",
+    "Digital signage screens; Illuminated signs",
+    "BID-D36-F03-G02",
+    "BID-D36-F03",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Signage products",
+    "Vehicle graphics",
+    "Physical Product",
+    "Vehicle graphics",
+    "BID-D36-F03-G03",
+    "BID-D36-F03",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Production services",
+    "Commercial & Specialty Printing",
+    "Service",
+    "Commercial printing; Digital printing; Screen printing",
+    "BID-D36-F04-G01",
+    "BID-D36-F04",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Production services",
+    "Print finishing",
+    "Service",
+    "Print finishing",
+    "BID-D36-F04-G02",
+    "BID-D36-F04",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Production services",
+    "Packaging prototyping",
+    "Service",
+    "Packaging prototyping",
+    "BID-D36-F04-G03",
+    "BID-D36-F04",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Production services",
+    "Signage installation",
+    "Service",
+    "Signage installation",
+    "BID-D36-F04-G04",
+    "BID-D36-F04",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Production services",
+    "Promotional product customization",
+    "Service",
+    "Promotional product customization",
+    "BID-D36-F04-G05",
+    "BID-D36-F04",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Promotional products",
+    "Corporate gifts",
+    "Physical Product",
+    "Corporate gifts",
+    "BID-D36-F05-G01",
+    "BID-D36-F05",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Promotional products",
+    "Branded Apparel & Bags",
+    "Physical Product",
+    "Branded apparel; Promotional bags",
+    "BID-D36-F05-G02",
+    "BID-D36-F05",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Promotional products",
+    "Branded Drinkware & Stationery",
+    "Physical Product",
+    "Branded drinkware; Promotional stationery",
+    "BID-D36-F05-G03",
+    "BID-D36-F05",
+    "BID-D36"
+   ],
+   [
+    "Packaging, Printing, Signage & Promotional Products",
+    "Promotional products",
+    "Awards and trophies",
+    "Physical Product",
+    "Awards and trophies",
+    "BID-D36-F05-G04",
+    "BID-D36-F05",
+    "BID-D36"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Textile products",
+    "Apparel, Upholstery & Technical Fabrics",
+    "Physical Product",
+    "Apparel fabrics; Upholstery fabrics; Technical fabrics",
+    "BID-D37-F01-G01",
+    "BID-D37-F01",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Textile products",
+    "Home Textiles, Carpets & Rugs",
+    "Physical Product",
+    "Home textiles; Carpets and rugs",
+    "BID-D37-F01-G02",
+    "BID-D37-F01",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Textile products",
+    "Sewing supplies",
+    "Physical Product",
+    "Sewing supplies",
+    "BID-D37-F01-G03",
+    "BID-D37-F01",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Apparel products",
+    "Uniforms, Workwear & Protective Apparel",
+    "Physical Product",
+    "Corporate uniforms; Workwear; Protective apparel",
+    "BID-D37-F02-G01",
+    "BID-D37-F02",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Apparel products",
+    "Fashion & Sports Apparel",
+    "Physical Product",
+    "Fashion apparel; Sportswear",
+    "BID-D37-F02-G02",
+    "BID-D37-F02",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Apparel products",
+    "Footwear",
+    "Physical Product",
+    "Footwear",
+    "BID-D37-F02-G03",
+    "BID-D37-F02",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Apparel products",
+    "Headwear & Apparel Accessories",
+    "Physical Product",
+    "Headwear; Apparel accessories",
+    "BID-D37-F02-G04",
+    "BID-D37-F02",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Personal goods",
+    "Bags, Luggage & Travel Accessories",
+    "Physical Product",
+    "Bags and luggage; Travel accessories",
+    "BID-D37-F03-G01",
+    "BID-D37-F03",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Personal goods",
+    "Leather goods",
+    "Physical Product",
+    "Leather goods",
+    "BID-D37-F03-G02",
+    "BID-D37-F03",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Personal goods",
+    "Jewelry & Watches",
+    "Physical Product",
+    "Jewelry; Watches",
+    "BID-D37-F03-G03",
+    "BID-D37-F03",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Personal goods",
+    "Personal accessories",
+    "Physical Product",
+    "Personal accessories",
+    "BID-D37-F03-G04",
+    "BID-D37-F03",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Textile services",
+    "Garment manufacturing services",
+    "Service",
+    "Garment manufacturing services",
+    "BID-D37-F04-G01",
+    "BID-D37-F04",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Textile services",
+    "Tailoring & Garment Alterations",
+    "Service",
+    "Tailoring; Garment alterations",
+    "BID-D37-F04-G02",
+    "BID-D37-F04",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Textile services",
+    "Embroidery & Textile Printing",
+    "Service",
+    "Embroidery services; Textile printing",
+    "BID-D37-F04-G03",
+    "BID-D37-F04",
+    "BID-D37"
+   ],
+   [
+    "Textiles, Apparel, Footwear & Personal Goods",
+    "Textile services",
+    "Textile repair",
+    "Service",
+    "Textile repair",
+    "BID-D37-F04-G04",
+    "BID-D37-F04",
+    "BID-D37"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty products",
+    "Skincare products",
+    "Physical Product",
+    "Skincare products",
+    "BID-D38-F01-G01",
+    "BID-D38-F01",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty products",
+    "Haircare products",
+    "Physical Product",
+    "Haircare products",
+    "BID-D38-F01-G02",
+    "BID-D38-F01",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty products",
+    "Makeup & Fragrances",
+    "Physical Product",
+    "Makeup; Perfumes",
+    "BID-D38-F01-G03",
+    "BID-D38-F01",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty products",
+    "Grooming & Personal Hygiene Products",
+    "Physical Product",
+    "Grooming products; Personal hygiene products",
+    "BID-D38-F01-G04",
+    "BID-D38-F01",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty equipment",
+    "Salon & Barber Equipment",
+    "Physical Product",
+    "Salon equipment; Barber equipment",
+    "BID-D38-F02-G01",
+    "BID-D38-F02",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty equipment",
+    "Spa & Beauty Treatment Equipment",
+    "Physical Product",
+    "Spa equipment; Beauty treatment devices",
+    "BID-D38-F02-G02",
+    "BID-D38-F02",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty equipment",
+    "Cosmetic display units",
+    "Physical Product",
+    "Cosmetic display units",
+    "BID-D38-F02-G03",
+    "BID-D38-F02",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty equipment",
+    "Beauty tools",
+    "Physical Product",
+    "Beauty tools",
+    "BID-D38-F02-G04",
+    "BID-D38-F02",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty services",
+    "Salon & Barber Services",
+    "Service",
+    "Salon services; Barber services",
+    "BID-D38-F03-G01",
+    "BID-D38-F03",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty services",
+    "Spa & Mobile Beauty Services",
+    "Service",
+    "Spa services; Mobile beauty services",
+    "BID-D38-F03-G02",
+    "BID-D38-F03",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty services",
+    "Cosmetic formulation consulting",
+    "Service",
+    "Cosmetic formulation consulting",
+    "BID-D38-F03-G03",
+    "BID-D38-F03",
+    "BID-D38"
+   ],
+   [
+    "Beauty, Cosmetics & Personal Care",
+    "Beauty services",
+    "Beauty training",
+    "Service",
+    "Beauty training",
+    "BID-D38-F03-G04",
+    "BID-D38-F03",
+    "BID-D38"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Physical security",
+    "Security Guarding & Event Security",
+    "Service",
+    "Security guarding; Event security",
+    "BID-D39-F01-G01",
+    "BID-D39-F01",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Physical security",
+    "Physical security risk assessment",
+    "Service",
+    "Physical security risk assessment",
+    "BID-D39-F01-G02",
+    "BID-D39-F01",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Physical security",
+    "Security system maintenance",
+    "Service",
+    "Security system maintenance",
+    "BID-D39-F01-G03",
+    "BID-D39-F01",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Physical security",
+    "Access control operations",
+    "Service",
+    "Access control operations",
+    "BID-D39-F01-G04",
+    "BID-D39-F01",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Physical security",
+    "Cash-in-transit services",
+    "Service",
+    "Cash-in-transit services",
+    "BID-D39-F01-G05",
+    "BID-D39-F01",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Security products",
+    "Surveillance, Access Control & Alarm Systems",
+    "Physical Product",
+    "CCTV equipment; Access control equipment; Intrusion alarms",
+    "BID-D39-F02-G01",
+    "BID-D39-F02",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Security products",
+    "Security Barriers & Screening Equipment",
+    "Physical Product",
+    "Security barriers; Screening equipment",
+    "BID-D39-F02-G02",
+    "BID-D39-F02",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Security products",
+    "Safes",
+    "Physical Product",
+    "Safes",
+    "BID-D39-F02-G03",
+    "BID-D39-F02",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Fire and safety products",
+    "Fire Detection & Suppression Products",
+    "Physical Product",
+    "Fire extinguishers; Fire detection equipment; Fire suppression equipment",
+    "BID-D39-F03-G01",
+    "BID-D39-F03",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Fire and safety products",
+    "Personal Safety & Protective Equipment",
+    "Physical Product",
+    "Fall protection equipment; Respiratory protection",
+    "BID-D39-F03-G02",
+    "BID-D39-F03",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Fire and safety products",
+    "Safety Signage & Emergency Lighting",
+    "Physical Product",
+    "Safety signage; Emergency lighting",
+    "BID-D39-F03-G03",
+    "BID-D39-F03",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Safety services",
+    "Fire System Inspection & Commissioning",
+    "Service",
+    "Fire system inspection; Fire protection commissioning",
+    "BID-D39-F04-G01",
+    "BID-D39-F04",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Safety services",
+    "HSE consulting",
+    "Service",
+    "HSE consulting",
+    "BID-D39-F04-G02",
+    "BID-D39-F04",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Safety services",
+    "Safety training",
+    "Service",
+    "Safety training",
+    "BID-D39-F04-G03",
+    "BID-D39-F04",
+    "BID-D39"
+   ],
+   [
+    "Physical Security, Fire, Safety & Emergency",
+    "Safety services",
+    "Emergency Planning & Response Services",
+    "Service",
+    "Emergency planning; Emergency medical standby; Rescue services",
+    "BID-D39-F04-G04",
+    "BID-D39-F04",
+    "BID-D39"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Cultural services",
+    "Museums & Exhibition Curation",
+    "Service",
+    "Museum consulting; Exhibition curation",
+    "BID-D40-F01-G01",
+    "BID-D40-F01",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Cultural services",
+    "Heritage, Conservation & Archives",
+    "Service",
+    "Heritage documentation; Art conservation; Archival services",
+    "BID-D40-F01-G02",
+    "BID-D40-F01",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Cultural services",
+    "Cultural program management",
+    "Service",
+    "Cultural program management",
+    "BID-D40-F01-G03",
+    "BID-D40-F01",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Cultural services",
+    "Artist representation",
+    "Service",
+    "Artist representation",
+    "BID-D40-F01-G04",
+    "BID-D40-F01",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Sports services",
+    "Sports event operations",
+    "Service",
+    "Sports event operations",
+    "BID-D40-F02-G01",
+    "BID-D40-F02",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Sports services",
+    "Sports coaching",
+    "Service",
+    "Sports coaching",
+    "BID-D40-F02-G02",
+    "BID-D40-F02",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Sports services",
+    "Sports & Recreation Facility Operations",
+    "Service",
+    "Fitness facility operations; Recreation facility management",
+    "BID-D40-F02-G03",
+    "BID-D40-F02",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Sports services",
+    "Sports sponsorship activation",
+    "Service",
+    "Sports sponsorship activation",
+    "BID-D40-F02-G04",
+    "BID-D40-F02",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Sports services",
+    "Athlete performance analysis",
+    "Service",
+    "Athlete performance analysis",
+    "BID-D40-F02-G05",
+    "BID-D40-F02",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Leisure products",
+    "Sporting Goods & Fitness Equipment",
+    "Physical Product",
+    "Sporting goods; Fitness equipment",
+    "BID-D40-F03-G01",
+    "BID-D40-F03",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Leisure products",
+    "Musical Instruments & Art Materials",
+    "Physical Product",
+    "Musical instruments; Art materials",
+    "BID-D40-F03-G02",
+    "BID-D40-F03",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Leisure products",
+    "Games, Toys & Playground Equipment",
+    "Physical Product",
+    "Games and toys; Playground equipment",
+    "BID-D40-F03-G03",
+    "BID-D40-F03",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Leisure products",
+    "Camping equipment",
+    "Physical Product",
+    "Camping equipment",
+    "BID-D40-F03-G04",
+    "BID-D40-F03",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Experience services",
+    "Leisure Attractions & Recreational Activities",
+    "Service",
+    "Leisure attraction operations; Recreational activity provision",
+    "BID-D40-F04-G01",
+    "BID-D40-F04",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Experience services",
+    "Themed experience design",
+    "Service",
+    "Themed experience design",
+    "BID-D40-F04-G02",
+    "BID-D40-F04",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Experience services",
+    "Creative workshops",
+    "Service",
+    "Creative workshops",
+    "BID-D40-F04-G03",
+    "BID-D40-F04",
+    "BID-D40"
+   ],
+   [
+    "Arts, Culture, Sports & Recreation",
+    "Experience services",
+    "Venue Programming & Live Performance",
+    "Service",
+    "Venue programming; Live performance production",
+    "BID-D40-F04-G04",
+    "BID-D40-F04",
+    "BID-D40"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Public sector support",
+    "Public Policy Research & Program Evaluation",
+    "Service",
+    "Public policy research; Public program evaluation",
+    "BID-D41-F01-G01",
+    "BID-D41-F01",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Public sector support",
+    "Public Service Design & Digital Advisory",
+    "Service",
+    "Public service design; Public sector digital advisory",
+    "BID-D41-F01-G02",
+    "BID-D41-F01",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Public sector support",
+    "Municipal service consulting",
+    "Service",
+    "Municipal service consulting",
+    "BID-D41-F01-G03",
+    "BID-D41-F01",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Public sector support",
+    "Citizen engagement research",
+    "Service",
+    "Citizen engagement research",
+    "BID-D41-F01-G04",
+    "BID-D41-F01",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Nonprofit support",
+    "Nonprofit strategy",
+    "Service",
+    "Nonprofit strategy",
+    "BID-D41-F02-G01",
+    "BID-D41-F02",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Nonprofit support",
+    "Fundraising & Grant Management",
+    "Service",
+    "Fundraising consulting; Grant management support",
+    "BID-D41-F02-G02",
+    "BID-D41-F02",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Nonprofit support",
+    "Social impact measurement",
+    "Service",
+    "Social impact measurement",
+    "BID-D41-F02-G03",
+    "BID-D41-F02",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Nonprofit support",
+    "Volunteering & Community Outreach",
+    "Service",
+    "Volunteer program management; Community outreach",
+    "BID-D41-F02-G04",
+    "BID-D41-F02",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Community services",
+    "Social Care & Accessibility Services",
+    "Service",
+    "Social care services; Accessibility support services",
+    "BID-D41-F03-G01",
+    "BID-D41-F03",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Community services",
+    "Community center operations",
+    "Service",
+    "Community center operations",
+    "BID-D41-F03-G02",
+    "BID-D41-F03",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Community services",
+    "Humanitarian Logistics & Disaster Coordination",
+    "Service",
+    "Humanitarian logistics coordination; Disaster recovery coordination",
+    "BID-D41-F03-G03",
+    "BID-D41-F03",
+    "BID-D41"
+   ],
+   [
+    "Government, Nonprofit & Community Services",
+    "Community services",
+    "Association management",
+    "Service",
+    "Association management",
+    "BID-D41-F03-G04",
+    "BID-D41-F03",
+    "BID-D41"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Defense industry support",
+    "Defense engineering advisory",
+    "Service",
+    "Defense engineering advisory",
+    "BID-D42-F01-G01",
+    "BID-D42-F01",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Defense industry support",
+    "Defense Quality & Supply Chain Assurance",
+    "Service",
+    "Aerospace quality assurance; Defense supply chain assurance",
+    "BID-D42-F01-G02",
+    "BID-D42-F01",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Defense industry support",
+    "Military equipment maintenance",
+    "Service",
+    "Military equipment maintenance",
+    "BID-D42-F01-G03",
+    "BID-D42-F01",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Specialist equipment",
+    "Defense equipment",
+    "Physical Product",
+    "Defense equipment",
+    "BID-D42-F02-G01",
+    "BID-D42-F02",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Specialist equipment",
+    "Controlled protective equipment",
+    "Physical Product",
+    "Controlled protective equipment",
+    "BID-D42-F02-G02",
+    "BID-D42-F02",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Specialist equipment",
+    "Nuclear measurement equipment",
+    "Physical Product",
+    "Nuclear measurement equipment",
+    "BID-D42-F02-G03",
+    "BID-D42-F02",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Specialist equipment",
+    "Radioactive research materials",
+    "Physical Product",
+    "Radioactive research materials",
+    "BID-D42-F02-G04",
+    "BID-D42-F02",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "Specialist equipment",
+    "Specialist forensic equipment",
+    "Physical Product",
+    "Specialist forensic equipment",
+    "BID-D42-F02-G05",
+    "BID-D42-F02",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "High-assurance services",
+    "Nuclear Engineering & Radiation Monitoring",
+    "Service",
+    "Nuclear engineering consulting; Radiation monitoring",
+    "BID-D42-F03-G01",
+    "BID-D42-F03",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "High-assurance services",
+    "Secure document destruction",
+    "Service",
+    "Secure document destruction",
+    "BID-D42-F03-G02",
+    "BID-D42-F03",
+    "BID-D42"
+   ],
+   [
+    "Specialist & Controlled Industries",
+    "High-assurance services",
+    "High-security & Critical Infrastructure Assurance",
+    "Service",
+    "High-security facility assessment; Critical infrastructure assurance",
+    "BID-D42-F03-G03",
+    "BID-D42-F03",
+    "BID-D42"
+   ]
+  ]
+ }
+}

@@ -85,7 +85,7 @@ async function loadActiveGrant(companyId: string): Promise<CompanyPlanGrant | nu
   }
 }
 
-// A free trial (migration 0020) raises the plan the same way, and fails soft too.
+// A free trial (migration 0022) raises the plan the same way, and fails soft too.
 async function loadActiveTrial(companyId: string): Promise<CompanyTrial | null> {
   try {
     const t = await getCompanyTrial(companyId);

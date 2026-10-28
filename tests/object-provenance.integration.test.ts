@@ -287,6 +287,7 @@ describe.skipIf(!SAFE)("company-file provenance on real PostgreSQL", () => {
     const create = (userId: string, name: string, docs: string[], logo?: string) =>
       request(server).post("/api/companies").set(as(userId)).send({
         name,
+        vendorIntent: "vendor",
         documents: docs.map((fileUrl, i) => ({ documentType: i === 0 ? "cr_certificate" : "vat_certificate", fileUrl, originalName: `d${i}.pdf` })),
         ...(logo ? { logoUrl: logo } : {}),
       });

@@ -291,7 +291,9 @@ export default function RfqPricingPage() {
 
       {readOnlyText && (
         <div role="note" className="mb-5 flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200" data-testid="pricing-readonly">
-          <Lock className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" /><p>{readOnlyText}</p>
+          <Lock className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" /><p>{readOnlyText}{data.readOnlyReason === "VENDOR_REGISTRATION_REQUIRED" && (
+            <> <a href="/settings/offerings" className="underline font-medium" data-testid="link-complete-registration">{t("offerings.promptAction")}</a></>
+          )}</p>
         </div>
       )}
       {conflict && (

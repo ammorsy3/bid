@@ -22,6 +22,7 @@ const m = vi.hoisted(() => ({
   replay: false,
   conflict: false,
   fail: new Set<string>(),
+  vendorStatus: "registered" as string,
 }));
 vi.mock("../server/lib/proposal-notifications", () => ({
   notifyRequesterOfProposal: async (n: any) => { m.notices.push(n); if (m.noticeFails) throw new Error("smtp down"); return "sent"; },
@@ -76,7 +77,7 @@ beforeAll(async () => {
     req.auth = { userId: `${req.header("x-company")}-user`, activeCompanyId: req.header("x-company"), roleInCompany: req.header("x-role") ?? "member", isAdmin: false };
     next();
   };
-  registerRfqPricingRoutes(app, { authenticateToken, requireCompanyContext: (_q, _s, n) => n(), itemsStore, offerStore });
+  registerRfqPricingRoutes(app, { authenticateToken, requireCompanyContext: (_q, _s, n) => n(), itemsStore, offerStore, vendorStatus: async () => m.vendorStatus as any });
   server = await startTestServer(app);
 });
 afterAll(() => stopTestServer(server));
@@ -87,6 +88,7 @@ beforeEach(() => {
     { id: "i1", position: 0, name: "Cement", description: null, unit: "bag", quantity: "100", referenceUnitPrice: "18.00", imageUrl: null, customValues: null },
     { id: "i2", position: 1, name: "Rebar", description: null, unit: "ton", quantity: "2.5", referenceUnitPrice: null, imageUrl: null, customValues: null },
   ];
+  m.vendorStatus = "registered";
   m.invited = ["vendor"]; m.offers = {}; m.draft = null; m.submits = []; m.owners = {}; m.companies = {};
   m.notices = []; m.noticeFails = false; m.replay = false; m.conflict = false; m.fail = new Set();
 });
@@ -301,4 +303,22 @@ describe("PB-5-R1: post-commit steps are isolated", () => {
     expect(m.notices).toHaveLength(0);
   });
 });
+describe("vendor registration gate on itemized pricing (BID-OFFERING-CLASSIFICATION)", () => {
+  it.each(["pending", "requester_only"])("%s: the page is read-only with the reason, and draft saves and submissions are refused", async (status) => {
+    m.vendorStatus = status;
+    const page = await request(server).get("/api/tenders/t1/pricing").set(as("vendor"));
+    expect([page.status, page.body.readOnlyReason]).toEqual([200, "VENDOR_REGISTRATION_REQUIRED"]);
+    const draft = await request(server).put("/api/tenders/t1/pricing-draft").set(as("vendor")).send({ baseVersion: null, itemsRevision: 1, payload: payload() });
+    expect([draft.status, draft.body.code]).toEqual([403, "VENDOR_REGISTRATION_REQUIRED"]);
+    const sub = await request(server).post("/api/tenders/t1/itemized-offers").set(as("vendor")).send({ submissionKey: "key-12345678", itemsRevision: 1, draftVersion: null, ...payload() });
+    expect([sub.status, sub.body.code]).toEqual([403, "VENDOR_REGISTRATION_REQUIRED"]);
+    expect(m.submits).toHaveLength(0);
+  });
 
+  it("an earlier refusal (not invited) keeps its own reason; legacy organizations are not blocked", async () => {
+    m.vendorStatus = "pending";
+    expect((await request(server).get("/api/tenders/t1/pricing").set(as("stranger"))).body.code).toBe("NOT_INVITED");
+    m.vendorStatus = "legacy_unclassified";
+    expect((await request(server).get("/api/tenders/t1/pricing").set(as("vendor"))).body.readOnlyReason).toBeNull();
+  });
+});

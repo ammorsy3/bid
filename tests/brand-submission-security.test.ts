@@ -36,6 +36,7 @@ const m = vi.hoisted(() => ({
   profileUpdates: [] as Row[],
   notified: [] as string[],
   unstubbed: [] as string[],
+  vendorStatuses: [] as (string | undefined)[],
 }));
 
 const bytesOf = (p: string) => `BYTES:${p}`;
@@ -91,6 +92,7 @@ vi.mock("../server/lib/company-onboarding", async (importOriginal) => {
       for (const d of input.documents) if (!(m.pending.has(d.fileUrl) && m.owners[d.fileUrl] === input.userId)) failed.push(`documents.${d.documentType}`);
       if (input.logoUploadPath && !(m.pending.has(input.logoUploadPath) && m.owners[input.logoUploadPath] === input.userId)) failed.push("logoUrl");
       if (failed.length) throw new actual.OnboardingFileError(failed);
+      m.vendorStatuses.push(input.vendorRegistrationStatus);
       const company = { id: "new-co", ...input.company };
       m.createdCompanies.push(company);
       const profile = { ...input.profile, companyId: company.id };
@@ -104,6 +106,12 @@ vi.mock("../server/lib/company-onboarding", async (importOriginal) => {
 vi.mock("../server/email", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../server/email")>()),
   sendNewOfferNotification: async ({ tenderId }: { tenderId: string }) => { m.notified.push(tenderId); },
+}));
+// Vendor registration (BID-OFFERING-CLASSIFICATION) has its own tests
+// (tests/offerings-*.test.ts); here the submitting organization is a registered vendor.
+vi.mock("../server/lib/offering-store", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../server/lib/offering-store")>()),
+  offeringStore: () => ({ status: async () => "registered" }),
 }));
 vi.mock("../server/storage", () => {
   const brandCompanies = (u: string) => Object.entries(m.profiles)
@@ -218,7 +226,7 @@ afterEach(() => {
 // ── S6: company creation ────────────────────────────────────────────────────────
 describe("S6 company creation (POST /api/companies) logo", () => {
   const createCompany = (logoUrl: unknown) =>
-    request(server).post("/api/companies").set(as("none", "founder-user")).send({ name: "New Co", logoUrl });
+    request(server).post("/api/companies").set(as("none", "founder-user")).send({ name: "New Co", logoUrl, vendorIntent: "vendor" });
 
   it("a foreign private file as logo cannot be bound: nothing is created and the file stays sealed", async () => {
     const r = await createCompany(B_TECH);
@@ -377,5 +385,42 @@ describe("S7 submission to a private request", () => {
     const r = await submit("owner-co");
     expect([r.status, r.body.code]).toEqual([403, "SELF_SUBMISSION"]);
     expect(m.created).toEqual([]);
+  });
+});
+
+describe("vendor intent at organization creation (BID-OFFERING-CLASSIFICATION)", () => {
+  const create = (body: Record<string, unknown>) =>
+    request(server).post("/api/companies").set(as("none", "founder-user")).send({ name: "New Co", ...body });
+
+  it("a company must say whether it offers or only requests; nothing is created otherwise", async () => {
+    const before = m.createdCompanies.length;
+    for (const vendorIntent of [undefined, "", "registered", "both"]) {
+      const r = await create(vendorIntent === undefined ? {} : { vendorIntent });
+      expect([r.status, r.body.code]).toEqual([400, "VENDOR_INTENT_REQUIRED"]);
+    }
+    expect(m.createdCompanies.length).toBe(before);
+  });
+
+  it("a vendor company starts 'pending' (never registered); a requester-only company starts 'requester_only'", async () => {
+    const v = await create({ vendorIntent: "vendor" });
+    expect([v.status, v.body.company.vendorRegistrationStatus, m.vendorStatuses.at(-1)]).toEqual([200, "pending", "pending"]);
+    const r = await create({ vendorIntent: "requester_only" });
+    expect([r.status, m.vendorStatuses.at(-1)]).toEqual([200, "requester_only"]);
+  });
+
+  it("teams and individuals always start as pending vendors and cannot be requester-only", async () => {
+    for (const accountType of ["team", "individual"]) {
+      const ok = await create({ accountType });
+      expect([ok.status, m.vendorStatuses.at(-1)]).toEqual([200, "pending"]);
+      const bad = await create({ accountType, vendorIntent: "requester_only" });
+      expect([bad.status, bad.body.code]).toEqual([400, "INVALID_VENDOR_INTENT"]);
+    }
+  });
+
+  it("client-sent completion or status fields cannot make a new organization registered", async () => {
+    await create({ vendorIntent: "vendor", vendorRegistrationStatus: "registered", onboardingState: "completed", status: "registered" });
+    expect(m.vendorStatuses.at(-1)).toBe("pending");
+    expect(m.createdCompanies.at(-1)).not.toHaveProperty("vendorRegistrationStatus");
+    expect(m.createdCompanies.at(-1)?.onboardingState).toBe("draft");
   });
 });

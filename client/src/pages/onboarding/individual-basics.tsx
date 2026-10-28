@@ -68,13 +68,10 @@ export default function IndividualBasics() {
       // Individuals must set up their public profile before reaching the
       // dashboard. Honour an invite redirect if one is pending, otherwise send
       // them straight to the profile-creation step.
+      // Classifying what they offer comes first (vendor registration).
       const pending = localStorage.getItem('postOnboardingRedirect');
-      if (pending) {
-        localStorage.removeItem('postOnboardingRedirect');
-        setLocation(pending);
-      } else {
-        setLocation('/onboarding/individual-profile');
-      }
+      if (pending) localStorage.removeItem('postOnboardingRedirect');
+      setLocation(`/onboarding/offerings?next=${encodeURIComponent(pending || '/onboarding/individual-profile')}`);
     } catch (error: any) {
       toast({
         title: t('indBasics.couldntCreate'),

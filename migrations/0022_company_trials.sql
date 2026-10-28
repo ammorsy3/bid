@@ -1,4 +1,4 @@
--- 0020: free trials run inside Bid, with no card and no StreamPay.
+-- 0022: free trials run inside Bid, with no card and no StreamPay.
 --
 -- A promo code ("tested") used to start StreamPay's native trial: card saved at
 -- checkout, charged when it ended. StreamPay's page then showed the full monthly
@@ -44,8 +44,8 @@ COMMIT;
 
 -- ── Runbook ──────────────────────────────────────────────────────────────────
 -- 0. ./scripts/which-db.sh
--- 1. Dev:   psql "$DATABASE_URL"      -f migrations/0020_company_trials.sql
--- 2. Prod:  psql "$PROD_DATABASE_URL" -f migrations/0020_company_trials.sql
+-- 1. Dev:   psql "$DATABASE_URL"      -f migrations/0022_company_trials.sql
+-- 2. Prod:  psql "$PROD_DATABASE_URL" -f migrations/0022_company_trials.sql
 -- 3. Verify on each:  \d company_trials
 -- Before it is applied, the app treats every company as having no trial
 -- (lookups fail soft) and a "tested" code fails with a server error.

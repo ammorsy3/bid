@@ -1,4 +1,4 @@
-// Free trials (migration 0020): a promo code gives a company workspace a paid
+// Free trials (migration 0022): a promo code gives a company workspace a paid
 // plan for a while, with no card and nothing created at StreamPay. Entitlements
 // count an active trial like an admin grant (server/lib/entitlements.ts). Near
 // the end Bid asks for payment: a banner in the app, and the two emails sent

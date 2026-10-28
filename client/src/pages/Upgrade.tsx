@@ -243,7 +243,7 @@ export default function Upgrade() {
 
                       {canManage && (
                         <button
-                          className={`btn ${featured ? "btn-orange" : "btn-primary"}`}
+                          className={`btn ${tier !== "free" ? "btn-orange plan-current" : featured ? "btn-orange" : "btn-primary"}`}
                           onClick={() => setRequest({ plan: p, term, key: Date.now() })}
                           disabled={step === "opening" || tier !== "free"}
                           data-testid={`billing-plan-${p}`}

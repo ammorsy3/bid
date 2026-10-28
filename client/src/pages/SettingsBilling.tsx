@@ -5,6 +5,7 @@
 //   - the card, via StreamPay's secure portal
 //   - invoices
 //   - for a workspace with no live plan, the upgrade flow (<CheckoutFlow>)
+//   - a free trial (no card): when it ends, and "Keep Pro" to add payment
 //
 // The plan state is our cache of StreamPay, which the server refreshes on
 // return from checkout, by webhook, and on "Refresh". Cancel and resume go
@@ -29,7 +30,7 @@ import { apiRequest, ApiError } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { priceWithVat, type BillingTerm, type PaidPlan } from "@shared/billing-plans";
 import { CheckoutFlow } from "@/components/billing/CheckoutFlow";
-import { sar, type BillingSummary, type InvoiceRow } from "@/components/billing/shared";
+import { dayCount, sar, type BillingSummary, type InvoiceRow } from "@/components/billing/shared";
 
 /** StreamPay statuses where the plan is no longer being paid for. */
 const PAYMENT_PROBLEM = new Set(["inactive", "frozen"]);
@@ -54,6 +55,10 @@ export function SettingsBilling() {
 
   const sub = data?.subscription ?? null;
   const live = !!sub?.live;
+  // A free trial only matters while there's no live subscription of its own.
+  const trial = !live ? data?.trial ?? null : null;
+  const onTrial = !!trial?.active;
+  const [keepRequest, setKeepRequest] = useState<{ plan: PaidPlan; term: BillingTerm; key: number } | null>(null);
   const canManage = !!data?.canManage;
 
   const { data: invoices, isLoading: invoicesLoading } = useQuery<InvoiceRow[]>({
@@ -162,9 +167,14 @@ export function SettingsBilling() {
               <p className={`text-xs font-semibold text-muted-foreground ${isRtl ? "" : "uppercase tracking-wide"}`}>{t("billing.currentPlan")}</p>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 <span className="font-display font-black text-2xl tracking-[-0.03em]" data-testid="billing-plan-name">
-                  {live && sub ? planName(sub.plan) : t("billing.planFree")}
+                  {live && sub ? planName(sub.plan) : onTrial && trial ? planName(trial.plan) : t("billing.planFree")}
                 </span>
-                {sub && (
+                {onTrial && (
+                  <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/40 dark:text-green-300" data-testid="billing-trial-badge">
+                    {t("billing.trialBadge")}
+                  </Badge>
+                )}
+                {sub && !onTrial && (
                   <>
                     <Badge variant="secondary">{termName(sub.term)}</Badge>
                     <Badge
@@ -183,12 +193,28 @@ export function SettingsBilling() {
                   <>{t("billing.renewsOn", { date: fmtDate(end) })} · <bdi dir="ltr">{sar(priceWithVat(sub.plan, sub.term).total)}</bdi> <span className="text-xs">({t("billing.inclVat")})</span></>
                 )}
                 {cancelling && end && t("billing.endsOn", { date: fmtDate(end) })}
-                {!live && sub && !paymentProblem && end && t("billing.endedOn", { date: fmtDate(end) })}
-                {!live && !sub && t("billing.freeDesc")}
+                {!live && sub && !onTrial && !paymentProblem && end && t("billing.endedOn", { date: fmtDate(end) })}
+                {onTrial && trial && t("billing.trialNote", { date: fmtDate(trial.endsAt), days: dayCount(trial.daysLeft, language) })}
+                {!live && !sub && !onTrial && (trial ? t("billing.trialEndedNote", { date: fmtDate(trial.endsAt) }) : t("billing.freeDesc"))}
               </p>
+              {onTrial && trial && canManage && (
+                <p className="text-sm text-muted-foreground mt-1" data-testid="billing-trial-keep-note">
+                  {t("billing.trialNoteKeep", { plan: planName(trial.plan), date: fmtDate(trial.endsAt) })}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              {onTrial && trial && canManage && !keepRequest && (
+                <Button
+                  size="sm"
+                  className="min-h-11 sm:min-h-0 bg-[#FE3C01] hover:bg-[#FE3C01]/90 text-white"
+                  onClick={() => setKeepRequest({ plan: trial.plan, term: "monthly", key: Date.now() })}
+                  data-testid="billing-trial-keep"
+                >
+                  {t("billing.keepPlanCta", { plan: planName(trial.plan) })}
+                </Button>
+              )}
               {sub && (
                 <Button variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={refreshStatus} disabled={refreshing} data-testid="billing-refresh">
                   <RefreshCw className={`h-4 w-4 me-1.5 ${refreshing ? "animate-spin" : ""}`} />
@@ -231,6 +257,9 @@ export function SettingsBilling() {
         summary={data}
         onSummaryChanged={refetch}
         keepParams={{ tab: "billing" }}
+        // During a free trial the picker waits for "Keep Pro", which opens the details step directly.
+        hidePicker={onTrial && !keepRequest}
+        request={keepRequest}
       />
 
       {/* Invoices */}

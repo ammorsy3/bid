@@ -56,7 +56,8 @@ export function effectiveTier(subscriptionTier: PlanTier, grant: GrantLike | nul
   return TIER_RANK[granted] > TIER_RANK[subscriptionTier] ? granted : subscriptionTier;
 }
 
-export type PlanSource = "free" | "subscription" | "grant";
+/** "trial" is a free trial (server/lib/trials.ts); planSource() itself only knows subscriptions and grants. */
+export type PlanSource = "free" | "subscription" | "grant" | "trial";
 
 export function planSource(subscriptionTier: PlanTier, grant: GrantLike | null | undefined, now: Date = new Date()): PlanSource {
   const tier = effectiveTier(subscriptionTier, grant, now);

@@ -17,7 +17,7 @@ interface CheckoutRow {
   id: string;
   plan: "pro" | "business";
   term: "monthly" | "yearly";
-  status: "draft" | "redirected" | "paid" | "failed" | "abandoned";
+  status: "draft" | "redirected" | "paid" | "failed" | "abandoned" | "trial";
   failureReason: string | null;
   lastActivityAt: string;
   followupSentAt: string | null;
@@ -32,6 +32,7 @@ interface CheckoutRow {
 
 const STATUS_TONE: Record<CheckoutRow["status"], string> = {
   paid: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  trial: "bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
   failed: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
   abandoned: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
   redirected: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
@@ -57,7 +58,7 @@ export default function AdminCheckouts() {
   }), [rows]);
 
   const shown = rows.filter((r) =>
-    filter === "all" ? true : filter === "paid" ? r.status === "paid" : r.status !== "paid",
+    filter === "all" ? true : filter === "paid" ? r.status === "paid" : r.status !== "paid" && r.status !== "trial",
   );
 
   return (

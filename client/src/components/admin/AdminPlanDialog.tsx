@@ -22,7 +22,8 @@ interface PlanView {
   subscription: { plan: string; term: string; status: string; live: boolean; currentPeriodEnd: string | null; cancelAtPeriodEnd: boolean } | null;
   grant: { id: string; plan: string; reason: string; startsAt: string; endsAt: string | null; active: boolean } | null;
   effectiveTier: "free" | "pro" | "business" | null;
-  planSource: "free" | "subscription" | "grant" | null;
+  trial?: { plan: string; startsAt: string; endsAt: string; active: boolean } | null;
+  planSource: "free" | "subscription" | "grant" | "trial" | null;
   history: { id: string; plan: string; reason: string; startsAt: string; endsAt: string | null; revokedAt: string | null; revokeReason: string | null }[];
 }
 

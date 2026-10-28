@@ -11,6 +11,7 @@
 // server/lib/plan-grants.ts.
 
 import type { Express, RequestHandler, Response } from "express";
+import { getCompanyTrial, isTrialActive } from "../lib/trials";
 import { setPlanGrantSchema, revokePlanGrantSchema, effectiveTier, planSource, isGrantActive } from "@shared/plan-grants";
 import type { PlanTier } from "@shared/entitlements";
 import { storage } from "../storage";
@@ -39,15 +40,22 @@ export function registerAdminPlanRoutes(app: Express, { authenticateToken, store
   async function planView(companyId: string) {
     const company = await storage.getCompany(companyId);
     if (!company || company.deletedAt) return null;
-    const [sub, grant, history] = await Promise.all([getCompanySubscription(companyId), store.current(companyId), store.history(companyId)]);
+    const [sub, grant, history, trial] = await Promise.all([
+      getCompanySubscription(companyId), store.current(companyId), store.history(companyId),
+      getCompanyTrial(companyId).catch(() => null),
+    ]);
     const live = isLiveSubscription(sub);
     const paidTier: PlanTier = live && sub ? (sub.plan as PlanTier) : "free";
+    const withGrant = effectiveTier(paidTier, grant);
+    const activeTrial = isTrialActive(trial) ? trial : null;
+    const tier = effectiveTier(withGrant, activeTrial && { ...activeTrial, revokedAt: null });
     return {
       company: { id: company.id, name: company.name, accountType: company.accountType, verificationStatus: company.verificationStatus },
       subscription: sub ? { plan: sub.plan, term: sub.term, status: sub.status, live, currentPeriodEnd: sub.currentPeriodEnd, cancelAtPeriodEnd: sub.cancelAtPeriodEnd } : null,
       grant: grant ? { ...grant, active: isGrantActive(grant) } : null,
-      effectiveTier: company.accountType === "company" ? effectiveTier(paidTier, grant) : null,
-      planSource: company.accountType === "company" ? planSource(paidTier, grant) : null,
+      trial: trial ? { plan: trial.plan, startsAt: trial.startsAt, endsAt: trial.endsAt, active: !!activeTrial } : null,
+      effectiveTier: company.accountType === "company" ? tier : null,
+      planSource: company.accountType === "company" ? (tier !== withGrant ? "trial" : planSource(paidTier, grant)) : null,
       history,
     };
   }

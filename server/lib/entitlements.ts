@@ -24,8 +24,9 @@ import {
 import { storage } from "../storage";
 import { getCompanySubscription, isLiveSubscription } from "./billing";
 import { planGrants } from "./plan-grants";
+import { getCompanyTrial, isTrialActive } from "./trials";
 import { effectiveTier, planSource, type PlanSource } from "@shared/plan-grants";
-import type { CompanyPlanGrant } from "@shared/schema";
+import type { CompanyPlanGrant, CompanyTrial } from "@shared/schema";
 import type { AuthRequest } from "../middleware/auth-types";
 
 export class PlanRequiredError extends Error {
@@ -66,6 +67,8 @@ export function sendPlanRequired(res: Response, err: unknown): boolean {
 interface CompanyPlanFacts {
   tier: PlanTier;
   source: PlanSource;
+  /** Set while a free trial is what gives the tier. */
+  trialEndsAt: Date | null;
   gated: boolean;
   grandfathered: Set<string>;
 }
@@ -82,10 +85,21 @@ async function loadActiveGrant(companyId: string): Promise<CompanyPlanGrant | nu
   }
 }
 
+// A free trial (migration 0020) raises the plan the same way, and fails soft too.
+async function loadActiveTrial(companyId: string): Promise<CompanyTrial | null> {
+  try {
+    const t = await getCompanyTrial(companyId);
+    return isTrialActive(t) ? t : null;
+  } catch (err) {
+    console.error("[Entitlements] trial lookup failed; using the paid plan only:", (err as Error)?.message);
+    return null;
+  }
+}
+
 async function loadPlanFacts(companyId: string): Promise<CompanyPlanFacts> {
   const company = await storage.getCompany(companyId);
   // Unknown company: fail closed (free and gated), never open.
-  if (!company) return { tier: "free", source: "free", gated: true, grandfathered: new Set() };
+  if (!company) return { tier: "free", source: "free", trialEndsAt: null, gated: true, grandfathered: new Set() };
 
   // Only company workspaces are gated. Teams and individuals are vendors.
   const gated = company.accountType === "company";
@@ -93,10 +107,14 @@ async function loadPlanFacts(companyId: string): Promise<CompanyPlanFacts> {
   // A cancelled plan stays live until its paid period ends (status stays
   // 'active' with cancelAtPeriodEnd), so "live" is exactly "still paid for".
   const paidTier: PlanTier = isLiveSubscription(sub) && sub ? (sub.plan as PlanTier) : "free";
-  const grant = gated ? await loadActiveGrant(companyId) : null;
+  const [grant, trial] = gated ? await Promise.all([loadActiveGrant(companyId), loadActiveTrial(companyId)]) : [null, null];
+  const withGrant = effectiveTier(paidTier, grant);
+  const tier = effectiveTier(withGrant, trial && { ...trial, revokedAt: null });
+  const fromTrial = tier !== withGrant;
   return {
-    tier: effectiveTier(paidTier, grant),
-    source: planSource(paidTier, grant),
+    tier,
+    source: fromTrial ? "trial" : planSource(paidTier, grant),
+    trialEndsAt: fromTrial ? trial!.endsAt : null,
     gated,
     grandfathered: new Set(company.grandfatheredFeatures ?? []),
   };
@@ -142,6 +160,7 @@ export async function getEntitlements(companyId: string, role?: string | null): 
   return {
     tier: facts.tier,
     planSource: facts.source,
+    trialEndsAt: facts.trialEndsAt ? facts.trialEndsAt.toISOString() : null,
     gated: facts.gated,
     tendersUsed,
     tenderLimit,

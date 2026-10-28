@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
 import { copyText, useCopyWithFallback } from "@/lib/clipboard";
-import { SidebarPlanCard, MobileUpgradeChip, PlanUsageBanner } from "@/components/billing/DashboardPlanCard";
+import { SidebarPlanCard, MobileUpgradeChip, PlanUsageBanner, TrialEndingBanner } from "@/components/billing/DashboardPlanCard";
 import { usePlan } from "@/lib/usePlan";
 import { PlanBadge } from "@/components/billing/PlanBadge";
 import { Building2, FileText, Users, Inbox, LogOut, Search, CheckCircle, XCircle, Loader2, Mail, UserPlus, Eye, ShieldCheck, ShieldAlert, Clock, UserCheck, Plus, Copy, Check, Calendar, Send, MoreHorizontal, Trash2, Edit, ExternalLink, DollarSign, X, LayoutDashboard, Settings, CreditCard, Bell, MessageSquare, ChevronDown, Sparkles, Image, Link2, ClipboardList, Cog, Video, Play, Globe, HelpCircle, Gift, Sun, Moon, Monitor, ChevronRight, Filter, Handshake, ChevronsUpDown, Paintbrush, Briefcase, BookmarkPlus, Bookmark, User, Code2, CheckCircle2, MapPin } from "lucide-react";
@@ -2676,6 +2676,7 @@ function DashboardInner({ user, activeCompany }: {
           <TabsContent value="overview" className="space-y-10 w-full pt-2 px-1 sm:px-2">
 
             <PlanUsageBanner />
+            <TrialEndingBanner />
 
             {/* ── Signal desk — heading + live stats fused into one ink panel ── */}
             <motion.section

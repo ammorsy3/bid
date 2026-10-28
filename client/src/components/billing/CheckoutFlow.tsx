@@ -10,6 +10,9 @@
 // server — which re-reads StreamPay, never trusting the URL — and say plainly
 // whether it worked.
 //
+// A promo code starts a free trial instead of a payment: the server unlocks the
+// plan for 30 days without StreamPay, so no card and no price page.
+//
 // URL params it reacts to: plan & term (from /pricing or /upgrade links),
 // checkout (StreamPay return, plus StreamPay's own status/message), resume
 // (follow-up email).
@@ -33,7 +36,7 @@ import {
 import {
   REQUIRED_BILLING_FIELDS, billingDetailsPatchSchema, type BillingDetailField,
 } from "@shared/billing-details";
-import { sar, type BillingDetails as Details, type BillingSummary } from "./shared";
+import { longDate, sar, type BillingDetails as Details, type BillingSummary } from "./shared";
 
 const FULL_WIDTH_FIELDS: BillingDetailField[] = ["billingName", "address", "billingEmail"];
 
@@ -41,7 +44,8 @@ type ReturnState =
   | { kind: "checking" }
   | { kind: "paid"; plan: PaidPlan }
   | { kind: "pending" }
-  | { kind: "failed"; reason: string | null };
+  | { kind: "failed"; reason: string | null }
+  | { kind: "trial"; plan: PaidPlan; endsAt: string };
 
 type FieldStatus = "idle" | "saving" | "saved" | "error";
 
@@ -306,8 +310,20 @@ export function CheckoutFlow({
         returnTo,
         ...(promo.state === "ok" ? { promoCode: promo.code } : {}),
       });
-      const { url } = await res.json() as { url: string };
-      window.location.href = url;
+      const body = await res.json() as { url?: string; trial?: { plan: PaidPlan; endsAt: string } };
+      if (body.trial) {
+        // Nothing to pay: the plan is on now.
+        setReturnState({ kind: "trial", plan: body.trial.plan, endsAt: body.trial.endsAt });
+        setCheckout(null);
+        setPromo({ state: "idle" });
+        setPromoInput("");
+        setPromoOpen(false);
+        setPaying(false);
+        await Promise.all([refreshEverything(), onSummaryChanged()]);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      window.location.href = body.url!;
     } catch (err) {
       handleApiError(err);
       setPaying(false);
@@ -315,6 +331,9 @@ export function CheckoutFlow({
   };
 
   const live = !!summary.subscription?.live;
+  const trialApplied = promo.state === "ok";
+  // Paying during a free trial: StreamPay starts the subscription when the trial ends.
+  const paysFrom = summary.trial?.active ? summary.trial.endsAt : null;
 
   // Two columns only when the container itself is wide enough (Settings has a
   // sidebar, so the viewport width says nothing about the room available).
@@ -569,21 +588,24 @@ export function CheckoutFlow({
                   )}
                 </div>
 
-                <PriceBreakdown plan={checkout.plan} term={checkout.term} t={t} trial={promo.state === "ok"} />
+                <PriceBreakdown plan={checkout.plan} term={checkout.term} t={t} trial={trialApplied} paysFrom={paysFrom} />
 
                 <div className="space-y-3">
                   <Button
                     className="w-full bg-[#FE3C01] hover:bg-[#FE3C01]/90 text-white h-12 text-base font-semibold rounded-xl"
                     onClick={pay}
-                    disabled={paying || blocking}
+                    // A trial asks for nothing, so unfinished details don't hold it up.
+                    disabled={paying || (blocking && !trialApplied)}
                     data-testid="billing-pay"
                   >
-                    {paying ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t("billing.redirecting")}</> : t(promo.state === "ok" ? "billing.startFreeTrial" : "billing.continueToPayment")}
+                    {paying ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{t(trialApplied ? "billing.saving" : "billing.redirecting")}</> : t(trialApplied ? "billing.startFreeTrial" : "billing.continueToPayment")}
                   </Button>
-                  <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                    <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    {t("billing.securedBy")}
-                  </p>
+                  {!trialApplied && (
+                    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                      {t("billing.securedBy")}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -619,31 +641,40 @@ function TermToggle({ term, onChange, t }: { term: BillingTerm; onChange: (x: Bi
 const TRIAL_DAYS = 30;
 
 function PriceBreakdown({
-  plan, term, t, planName, termName, trial = false,
+  plan, term, t, planName, termName, trial = false, paysFrom = null,
 }: {
   plan: PaidPlan;
   term: BillingTerm;
   t: (k: string, v?: Record<string, string | number>) => string;
   planName?: (p: PaidPlan) => string;
   termName?: (x: BillingTerm) => string;
-  /** Promo applied: a free trial, so nothing is due today and the first charge comes after it. */
+  /** Promo applied: a free trial with no card, so there is no price to show at all. */
   trial?: boolean;
+  /** Paying during a free trial: the first charge is when the trial ends (ISO date). */
+  paysFrom?: string | null;
 }) {
   const { subtotal, vat, total } = priceWithVat(plan, term);
   const { language } = useI18n();
-  const money = total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const firstCharge = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000)
-    .toLocaleDateString(language === "ar" ? "ar-SA-u-nu-latn" : "en-GB", { day: "numeric", month: "long", year: "numeric" });
-  return (
-    <div className="space-y-2.5 text-sm" data-testid="billing-breakdown">
-      {trial && (
+  const name = t(plan === "pro" ? "billing.planPro" : "billing.planBusiness");
+
+  if (trial) {
+    return (
+      <div className="space-y-2.5 text-sm" data-testid="billing-breakdown">
         <div className="rounded-xl border border-green-300 bg-green-50 p-4 text-green-950 dark:border-green-800 dark:bg-green-950/30 dark:text-green-100" data-testid="billing-trial-banner">
           <p className="text-lg font-bold leading-tight">{t("billing.trialHeadline", { days: TRIAL_DAYS })}</p>
-          <p className="mt-1.5 text-sm">
-            {t(term === "yearly" ? "billing.trialThenYearly" : "billing.trialThenMonthly", { amount: money, date: firstCharge })}
-          </p>
+          <p className="mt-1.5 text-sm">{t("billing.trialNoCard", { plan: name })}</p>
         </div>
-      )}
+        <div className="flex justify-between gap-3 border-t pt-3 text-base font-bold">
+          <span>{t("billing.totalToday")}</span>
+          <span>{sar(0)}</span>
+        </div>
+      </div>
+    );
+  }
+
+  const money = total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (
+    <div className="space-y-2.5 text-sm" data-testid="billing-breakdown">
       {planName && termName && (
         <div className="flex justify-between gap-3 font-medium">
           <span>{planName(plan)} · {termName(term)}</span>
@@ -660,47 +691,43 @@ function PriceBreakdown({
         <span>{t("billing.vat")}</span>
         <span>{sar(vat)}</span>
       </div>
-      {trial && (
-        <div className="flex justify-between gap-3 font-medium">
-          <span>{t(term === "yearly" ? "billing.afterTrialYearly" : "billing.afterTrialMonthly")}</span>
-          <span>{sar(total)}</span>
-        </div>
-      )}
       <div className="flex justify-between gap-3 border-t pt-3 text-base font-bold">
         <span>{t("billing.totalToday")}</span>
-        <span>{sar(trial ? 0 : total)}</span>
+        <span>{sar(paysFrom ? 0 : total)}</span>
       </div>
-      {trial ? (
-        <p className="text-xs text-muted-foreground">{t("billing.trialCancel")}</p>
-      ) : (
-        <p className="text-xs text-muted-foreground">{t(term === "yearly" ? "billing.renewsYearly" : "billing.renewsMonthly")}</p>
-      )}
+      <p className="text-xs text-muted-foreground" data-testid={paysFrom ? "billing-pays-from" : undefined}>
+        {paysFrom
+          ? t("billing.keepAfterTrial", { date: longDate(paysFrom, language), amount: money, period: t(term === "yearly" ? "billing.periodYearly" : "billing.periodMonthly") })
+          : t(term === "yearly" ? "billing.renewsYearly" : "billing.renewsMonthly")}
+      </p>
     </div>
   );
 }
 
 function ReturnBanner({ state, planName, onRetry }: { state: ReturnState; planName: (p: PaidPlan) => string; onRetry: () => void }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const tone =
-    state.kind === "paid" ? "border-green-200 bg-green-50 text-green-900 dark:border-green-900 dark:bg-green-950/40 dark:text-green-200"
+    state.kind === "paid" || state.kind === "trial" ? "border-green-200 bg-green-50 text-green-900 dark:border-green-900 dark:bg-green-950/40 dark:text-green-200"
     : state.kind === "failed" ? "border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
     : "border-border bg-muted/50";
   return (
     <div className={`rounded-xl border p-4 flex items-start gap-3 ${tone}`} role="status" data-testid={`billing-return-${state.kind}`}>
       {state.kind === "checking" && <Loader2 className="h-5 w-5 animate-spin shrink-0 mt-0.5" />}
-      {state.kind === "paid" && <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5 text-green-600" />}
+      {(state.kind === "paid" || state.kind === "trial") && <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5 text-green-600" />}
       {state.kind === "pending" && <Loader2 className="h-5 w-5 shrink-0 mt-0.5" />}
       {state.kind === "failed" && <XCircle className="h-5 w-5 shrink-0 mt-0.5 text-red-600" />}
       <div className="min-w-0 flex-1">
         <p className="font-semibold">
           {state.kind === "checking" && t("billing.returnChecking")}
           {state.kind === "paid" && t("billing.returnSuccessTitle", { plan: planName(state.plan) })}
+          {state.kind === "trial" && t("billing.trialStartedTitle", { plan: planName(state.plan) })}
           {state.kind === "pending" && t("billing.returnPendingTitle")}
           {state.kind === "failed" && t("billing.returnFailedTitle")}
         </p>
         {state.kind !== "checking" && (
           <p className="text-sm mt-0.5 opacity-90">
             {state.kind === "paid" && t("billing.returnSuccessDesc")}
+            {state.kind === "trial" && t("billing.trialStartedDesc", { plan: planName(state.plan), date: longDate(state.endsAt, language) })}
             {state.kind === "pending" && t("billing.returnPendingDesc")}
             {state.kind === "failed" && t("billing.returnFailedDesc")}
           </p>

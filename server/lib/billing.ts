@@ -15,10 +15,12 @@ import {
   billingProfiles,
   companies,
   companySubscriptions,
+  companyTrials,
   users,
   type BillingCheckout,
   type Company,
   type CompanySubscription,
+  type CompanyTrial,
   type User,
 } from "@shared/schema";
 import {
@@ -49,6 +51,7 @@ import {
   updateConsumer,
   type StreamPaySubscription,
 } from "./streampay";
+import { getCompanyTrial, isTrialActive, trialDaysLeft } from "./trials";
 
 /** Statuses under which the company has the paid plan right now. */
 const LIVE_STATUSES = new Set(["active", "trialing"]);
@@ -233,21 +236,20 @@ export type ReturnPage = keyof typeof RETURN_PAGES;
  * Turns a checkout into a StreamPay payment link and returns its URL.
  * `returnBase` is the origin the payer comes back to (bidapp.sa in production).
  */
-// Promo codes. "Tested" gives the first month free. It is applied as a 30-day
-// trial on the payment link, not as a StreamPay coupon: StreamPay coupons have
-// no duration, so on a subscription a 100% coupon could discount every renewal.
-// A trial can only ever cover the first period.
+// Promo codes. "Tested" gives 30 days of the plan free. The trial runs inside Bid
+// (company_trials, server/lib/trials.ts): no card, no StreamPay page, nothing
+// charged. StreamPay's own checkout always shows the full recurring price, which
+// read as a charge even with its "trial period" note, so a trial never goes there.
+// Near the end Bid asks for payment; paying during the trial keeps the days left.
 const PROMO_CODES: Record<string, { trialDays: number }> = {
   tested: { trialDays: 30 },
 };
 
-// Trials use StreamPay's native trial (trial_period_days): the card is saved at
-// checkout and charged automatically when it ends. An earlier version also put a
-// 100% coupon on the link so StreamPay's page read 0.00, but that doubled the free
-// time and forced a "1 day" trial label, so it was dropped. Subscriptions created
-// during that version may still carry the coupon, which must NEVER stay on (StreamPay
-// coupons have no duration, so it would discount every renewal): stripTrialCoupon
-// removes it on every sync and the daily cron sweeps for stragglers.
+// Earlier versions started the trial at StreamPay (trial_period_days on the
+// payment link), one of them with a 100% coupon on the link as well.
+// Subscriptions created then may still carry that coupon, which must NEVER stay on
+// (StreamPay coupons have no duration, so it would discount every renewal):
+// stripTrialCoupon removes it on every sync and the daily cron sweeps for stragglers.
 export const TRIAL_COUPON_NAME = "Bid trial: first period free";
 
 /**
@@ -294,7 +296,51 @@ export async function assertPromoUsable(companyId: string, code: string): Promis
     .where(and(eq(billingCheckouts.companyId, companyId), eq(billingCheckouts.status, "paid")))
     .limit(1);
   if (used) throw new BillingError("This code can only be used once, on a first plan.", 422, "PROMO_USED");
+  if (await getCompanyTrial(companyId)) {
+    throw new BillingError("This code can only be used once, on a first plan.", 422, "PROMO_USED");
+  }
   return promo;
+}
+
+/**
+ * Starts a free trial from a promo code: the company gets the checkout's plan
+ * for the promo's days. Nothing is created at StreamPay and no card is asked for.
+ * The checkout is closed as "trial" so the unfinished-checkout email skips it.
+ */
+export async function startTrial(checkout: BillingCheckout, userId: string, promoCode: string, now = new Date()): Promise<CompanyTrial> {
+  const current = await getCompanySubscription(checkout.companyId);
+  if (isLiveSubscription(current)) {
+    throw new BillingError("This workspace already has an active plan.", 409, "ALREADY_SUBSCRIBED");
+  }
+  const promo = await assertPromoUsable(checkout.companyId, promoCode);
+  let trial: CompanyTrial | undefined;
+  try {
+    // The trial and the closed checkout land together or not at all.
+    trial = await db.transaction(async (tx) => {
+      const [row] = await tx.insert(companyTrials).values({
+        companyId: checkout.companyId,
+        plan: checkout.plan,
+        promoCode,
+        startedBy: userId,
+        startsAt: now,
+        endsAt: new Date(now.getTime() + promo.trialDays * 24 * 60 * 60 * 1000),
+        createdAt: now,
+      }).returning();
+      await tx
+        .update(billingCheckouts)
+        .set({ status: "trial", promoCode, completedAt: now, lastActivityAt: now, failureReason: null })
+        .where(eq(billingCheckouts.id, checkout.id));
+      return row;
+    });
+  } catch (err) {
+    // Two clicks at once: the unique index lets only one trial in.
+    if ((err as { code?: string })?.code === "23505") {
+      throw new BillingError("This code can only be used once, on a first plan.", 422, "PROMO_USED");
+    }
+    throw err;
+  }
+  console.log(`[Billing] company ${checkout.companyId} started a ${promo.trialDays}-day ${checkout.plan} trial (code ${promoCode})`);
+  return trial!;
 }
 
 export async function startPayment(
@@ -302,7 +348,6 @@ export async function startPayment(
   userId: string,
   returnBase: string,
   returnTo: ReturnPage = "settings",
-  promoCode: string | null = null,
 ): Promise<{ url: string }> {
   const current = await getCompanySubscription(checkout.companyId);
   if (isLiveSubscription(current)) {
@@ -316,7 +361,10 @@ export async function startPayment(
     throw new BillingError("Some billing details are missing.", 422, "DETAILS_MISSING", { missing });
   }
 
-  const promo = promoCode ? await assertPromoUsable(checkout.companyId, promoCode) : null;
+  // Paying during a free trial: the subscription starts with the days still left,
+  // so the first charge lands when the trial would have ended.
+  const trial = await getCompanyTrial(checkout.companyId);
+  const trialDays = isTrialActive(trial) ? trialDaysLeft(trial!) : 0;
 
   const plan = checkout.plan as PaidPlan;
   const term = checkout.term as BillingTerm;
@@ -330,7 +378,7 @@ export async function startPayment(
   const back = `${returnBase}${page}${page.includes("?") ? "&" : "?"}checkout=${encodeURIComponent(checkout.id)}`;
   const planName = plan === "pro" ? "Pro" : "Business";
   const link = await createPaymentLink({
-    name: promo ? `Bid ${planName}: ${promo.trialDays}-day free trial` : `Bid ${planName} (${term === "yearly" ? "yearly" : "monthly"})`,
+    name: `Bid ${planName} (${term === "yearly" ? "yearly" : "monthly"})`,
     description: company.name,
     items: [{ product_id: product.id, quantity: 1 }],
     currency: "SAR",
@@ -340,13 +388,13 @@ export async function startPayment(
     contact_information_type: "EMAIL",
     success_redirect_url: back,
     failure_redirect_url: back,
-    custom_metadata: { companyId: company.id, checkoutId: checkout.id, plan, term, ...(promoCode ? { promo: promoCode } : {}) },
-    ...(promo ? { trial_period_days: promo.trialDays } : {}),
+    custom_metadata: { companyId: company.id, checkoutId: checkout.id, plan, term },
+    ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
   });
 
   await db
     .update(billingCheckouts)
-    .set({ status: "redirected", paymentLinkId: link.id, lastActivityAt: new Date(), failureReason: null, promoCode })
+    .set({ status: "redirected", paymentLinkId: link.id, lastActivityAt: new Date(), failureReason: null })
     .where(eq(billingCheckouts.id, checkout.id));
 
   // StreamPay picks the checkout language from a query param on the link.
@@ -656,7 +704,7 @@ export async function handleWebhookEvent(event: StreamPayWebhook, signatureTs: s
 // ---------------------------------------------------------------------------
 
 export async function getBillingSummary(companyId: string, userId: string) {
-  const [subscription, details, [openCheckoutRow]] = await Promise.all([
+  const [subscription, details, [openCheckoutRow], trial] = await Promise.all([
     getCompanySubscription(companyId),
     getBillingDetails(companyId, userId),
     db
@@ -665,6 +713,11 @@ export async function getBillingSummary(companyId: string, userId: string) {
       .where(and(eq(billingCheckouts.companyId, companyId), eq(billingCheckouts.userId, userId), ne(billingCheckouts.status, "paid")))
       .orderBy(desc(billingCheckouts.createdAt))
       .limit(1),
+    // Fails soft (e.g. before migration 0020): the page just shows no trial.
+    getCompanyTrial(companyId).catch((err) => {
+      console.error("[Billing] trial lookup failed:", (err as Error)?.message);
+      return null;
+    }),
   ]);
   return {
     subscription: subscription && {
@@ -674,6 +727,13 @@ export async function getBillingSummary(companyId: string, userId: string) {
       live: isLiveSubscription(subscription),
       currentPeriodEnd: subscription.currentPeriodEnd,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+    },
+    trial: trial && {
+      plan: trial.plan as PaidPlan,
+      startsAt: trial.startsAt,
+      endsAt: trial.endsAt,
+      active: isTrialActive(trial),
+      daysLeft: trialDaysLeft(trial),
     },
     details,
     openCheckout: openCheckoutRow

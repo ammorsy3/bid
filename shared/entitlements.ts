@@ -93,8 +93,10 @@ export interface PlanRequiredBody {
 /** What GET /api/entitlements returns. */
 export interface EntitlementsSummary {
   tier: PlanTier;
-  /** Where the tier comes from: a paid subscription or an administrative grant. */
-  planSource?: "free" | "subscription" | "grant";
+  /** Where the tier comes from: a paid subscription, an administrative grant or a free trial. */
+  planSource?: "free" | "subscription" | "grant" | "trial";
+  /** When the free trial ends, while it is what gives the tier (planSource "trial"). ISO string. */
+  trialEndsAt?: string | null;
   /** False for team and individual workspaces: nothing is gated for them. */
   gated: boolean;
   tendersUsed: number;

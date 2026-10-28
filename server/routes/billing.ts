@@ -3,10 +3,12 @@
 //   GET   /api/billing                          current plan + prefilled details (any member)
 //   POST  /api/billing/checkouts                open/reuse a checkout for {plan, term}   (owner/admin)
 //   PATCH /api/billing/details                  auto-save one or more typed fields      (owner/admin)
-//   POST  /api/billing/checkouts/:id/pay        create the StreamPay link, return its url (owner/admin)
+//   POST  /api/billing/checkouts/:id/pay        create the StreamPay link, return its url (owner/admin);
+//                                               with a promo code, start the free trial instead (no StreamPay)
 //   POST  /api/billing/checkouts/:id/confirm    after the redirect back: re-read StreamPay
 //   POST  /api/billing/portal                   StreamPay customer portal (cancel, card, invoices)
-//   GET   /api/cron/billing-followups           daily Vercel cron (07:00 UTC = 10:00 Riyadh): one email per unfinished checkout
+//   GET   /api/cron/billing-followups           daily Vercel cron (07:00 UTC = 10:00 Riyadh): one email per unfinished
+//                                               checkout, and the "trial ends soon" / "trial ended" emails
 //   GET   /api/admin/billing/checkouts          every checkout attempt, for personal follow-up
 //
 // The webhook is registered separately (registerBillingWebhook) because it
@@ -32,6 +34,7 @@ import {
   sweepTrialCoupons,
   saveBillingDetails,
   startPayment,
+  startTrial,
   normalizePromoCode,
   assertPromoUsable,
   syncCompanySubscription,
@@ -47,8 +50,9 @@ import {
   verifyWebhookSignature,
 } from "../lib/streampay";
 import { getEntitlements } from "../lib/entitlements";
+import { runTrialEmails, trialDaysLeft } from "../lib/trials";
 import { publicOrigin } from "../lib/campaigns";
-import { sendCheckoutFollowupEmail } from "../email";
+import { sendCheckoutFollowupEmail, sendTrialEmail } from "../email";
 import { storage } from "../storage";
 import type { AuthRequest } from "../middleware/auth-types";
 
@@ -139,7 +143,7 @@ export function registerBillingRoutes(app: Express, deps: MiddlewareDeps): void 
     }
   });
 
-  // Lets the checkout screen say "first month free" before the payer is sent off.
+  // Lets the checkout screen show the free trial before it is started.
   app.post("/api/billing/promo/check", ...manager, async (req: AuthRequest, res) => {
     try {
       const { code } = promoBodySchema.parse(req.body ?? {});
@@ -159,7 +163,13 @@ export function registerBillingRoutes(app: Express, deps: MiddlewareDeps): void 
         throw new BillingError("This checkout is already paid.", 409, "ALREADY_PAID");
       }
       const { returnTo, promoCode } = payBodySchema.parse(req.body ?? {});
-      const { url } = await startPayment(checkout, userId, publicOrigin(req), returnTo, normalizePromoCode(promoCode));
+      const code = normalizePromoCode(promoCode);
+      if (code) {
+        // A free trial never goes to StreamPay: no card, nothing to pay.
+        const trial = await startTrial(checkout, userId, code);
+        return res.json({ trial: { plan: trial.plan, endsAt: trial.endsAt } });
+      }
+      const { url } = await startPayment(checkout, userId, publicOrigin(req), returnTo);
       res.json({ url });
     } catch (err) {
       sendError(res, err, "POST /api/billing/checkouts/:id/pay");
@@ -298,11 +308,24 @@ export function registerBillingRoutes(app: Express, deps: MiddlewareDeps): void 
         }),
       );
       console.log(`[Billing] follow-ups: ${JSON.stringify(result)}`);
+      const trials = await runTrialEmails(({ kind, trial, user, companyName }) =>
+        sendTrialEmail({
+          kind,
+          email: user.email,
+          name: user.name,
+          language: user.language === "ar" ? "ar" : "en",
+          companyName,
+          plan: trial.plan as "pro" | "business",
+          endsAt: trial.endsAt,
+          daysLeft: trialDaysLeft(trial),
+        }),
+      );
+      console.log(`[Billing] trial emails: ${JSON.stringify(trials)}`);
       const coupons = await sweepTrialCoupons();
       console.log(`[Billing] trial coupon sweep: ${JSON.stringify(coupons)}`);
       // A failed removal means a renewal could be discounted: surface it as a failed cron run.
-      if (coupons.failed > 0) return res.status(500).json({ ...result, coupons });
-      res.json({ ...result, coupons });
+      if (coupons.failed > 0) return res.status(500).json({ ...result, trials, coupons });
+      res.json({ ...result, trials, coupons });
     } catch (err) {
       sendError(res, err, "cron billing-followups");
     }

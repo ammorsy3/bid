@@ -45,6 +45,8 @@ export function usePlan() {
     /** False for team/individual workspaces: nothing is gated for them. */
     gated: e?.gated ?? false,
     tier: e?.tier ?? "free",
+    /** Set while a free trial is what gives the tier (ISO date it ends). */
+    trialEndsAt: e?.planSource === "trial" ? e.trialEndsAt ?? null : null,
     tendersUsed: e?.tendersUsed ?? 0,
     tenderLimit: e ? e.tenderLimit : FREE_TENDER_LIMIT,
     canCreateTender,

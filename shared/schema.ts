@@ -1340,6 +1340,23 @@ export const companyPlanGrants = pgTable("company_plan_grants", {
 });
 export type CompanyPlanGrant = typeof companyPlanGrants.$inferSelect;
 
+// Free trials (migration 0020). A promo code gives the company a paid plan for a
+// while with no card and nothing at StreamPay; near the end Bid asks for payment.
+// One per company, ever. See server/lib/trials.ts.
+export const companyTrials = pgTable("company_trials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }).unique(),
+  plan: varchar("plan", { length: 16 }).notNull(),
+  promoCode: varchar("promo_code", { length: 32 }).notNull(),
+  startedBy: varchar("started_by").notNull().references(() => users.id),
+  startsAt: timestamp("starts_at").defaultNow().notNull(),
+  endsAt: timestamp("ends_at").notNull(),
+  reminderSentAt: timestamp("reminder_sent_at"),
+  endedSentAt: timestamp("ended_sent_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export type CompanyTrial = typeof companyTrials.$inferSelect;
+
 // Every verified StreamPay webhook. The unique index drops re-deliveries.
 export const billingEvents = pgTable("billing_events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

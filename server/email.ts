@@ -1636,3 +1636,62 @@ export async function sendCheckoutFollowupEmail(params: {
 
   return sendEmail(email, subject, html);
 }
+
+/**
+ * The two free-trial emails (server/lib/trials.ts): a few days before the trial
+ * ends, asking for payment, and once it has ended. No card was ever taken, so
+ * both say plainly that nothing is charged unless they choose a plan.
+ */
+export async function sendTrialEmail(params: {
+  kind: "ending" | "ended";
+  email: string;
+  name?: string | null;
+  language?: Lang;
+  companyName: string;
+  plan: "pro" | "business";
+  endsAt: Date;
+  daysLeft: number;
+  appBaseUrl?: string;
+}): Promise<boolean> {
+  const { kind, email, name, language = "en", plan, endsAt, daysLeft, appBaseUrl } = params;
+  const isAr = language === "ar";
+  const company = escapeHtml(params.companyName);
+  const planName = plan === "pro" ? "Pro" : "Business";
+  const date = endsAt.toLocaleDateString(isAr ? "ar-SA-u-nu-latn-ca-gregory" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Riyadh" });
+  const url = `${getBaseUrl(appBaseUrl)}/settings?tab=billing`;
+  const ending = kind === "ending";
+  const days = isAr
+    ? (daysLeft === 1 ? "يوم واحد" : daysLeft === 2 ? "يومين" : daysLeft <= 10 ? `${daysLeft} أيام` : `${daysLeft} يومًا`)
+    : (daysLeft === 1 ? "1 day" : `${daysLeft} days`);
+
+  const subject = ending
+    ? (isAr ? `تجربتك المجانية لباقة ${planName} تنتهي خلال ${days}` : `Your free ${planName} trial ends in ${days}`)
+    : (isAr ? `انتهت تجربتك المجانية لباقة ${planName}` : `Your free ${planName} trial has ended`);
+
+  const bodyText = ending
+    ? (isAr
+        ? `تنتهي التجربة المجانية لباقة ${planName} في <strong>${company}</strong> يوم ${date}. لإبقاء ميزات ${planName} أضف وسيلة الدفع الآن — لن يُخصم شيء قبل نهاية التجربة.<br><br>إن لم تفعل شيئًا، تعود مساحة العمل إلى الباقة المجانية ولن يُخصم منك أي مبلغ. بياناتك تبقى كما هي.`
+        : `The free ${planName} trial for <strong>${company}</strong> ends on ${date}. To keep the ${planName} features, add a payment method now — nothing is charged before the trial ends.<br><br>If you do nothing, the workspace moves back to the Free plan and you are not charged anything. Your data stays as it is.`)
+    : (isAr
+        ? `انتهت التجربة المجانية لباقة ${planName} في <strong>${company}</strong>، وعادت مساحة العمل إلى الباقة المجانية. لم يُخصم منك أي مبلغ، وبياناتك كما هي.<br><br>لاستعادة ميزات ${planName} اختر باقة من صفحة الفوترة.`
+        : `The free ${planName} trial for <strong>${company}</strong> has ended, and the workspace is back on the Free plan. You were not charged anything, and your data is untouched.<br><br>To get the ${planName} features back, pick a plan on the billing page.`);
+
+  const html = buildEmailHtml({
+    language,
+    iconEmoji: ending ? "&#9203;" : "&#128075;",
+    iconBg: "#FFF1EE",
+    headline: ending
+      ? (isAr ? `تجربتك تنتهي خلال ${days}` : `Your trial ends in ${days}`)
+      : (isAr ? "انتهت تجربتك المجانية" : "Your free trial has ended"),
+    subheadline: isAr ? `باقة ${planName}` : `${planName} plan`,
+    recipientName: name ? escapeHtml(name) : undefined,
+    bodyText,
+    ctaLabel: ending ? (isAr ? `أبقِ ${planName}` : `Keep ${planName}`) : (isAr ? "اختر باقة" : "Choose a plan"),
+    ctaUrl: url,
+    reasonText: isAr
+      ? `وصلك هذا البريد لأنك بدأت تجربة ${planName} المجانية لـ ${company} على Bid. يمكنك إيقاف رسائل الفوترة من الإعدادات ← الإشعارات.`
+      : `You received this because you started the free ${planName} trial for ${company} on Bid. You can turn off billing emails in Settings → Notifications.`,
+  });
+
+  return sendEmail(email, subject, html);
+}

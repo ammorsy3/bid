@@ -498,7 +498,7 @@ const Pricing = () => {
                     {pc.cta}
                   </Link>
                 ) : onPaidPlan ? (
-                  <button className="btn btn-primary" disabled data-testid={`button-plan-${plan.id}-current`}>
+                  <button className="btn btn-orange plan-current" disabled data-testid={`button-plan-${plan.id}-current`}>
                     {t("upgrade.currentPlan")}
                   </button>
                 ) : (

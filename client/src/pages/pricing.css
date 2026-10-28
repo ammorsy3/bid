@@ -610,3 +610,6 @@
    text colour and showed black on black. */
 .landing-page a.btn-primary { color: var(--cream); }
 .landing-page a.btn-orange { color: var(--white); }
+/* "Current plan": brand orange, no hover change (it's not clickable). */
+.pricing-page .plan .btn.plan-current,
+.pricing-page .plan .btn.plan-current:hover { background: var(--orange); color: var(--white); cursor: default; }

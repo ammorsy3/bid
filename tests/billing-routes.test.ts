@@ -14,6 +14,7 @@ const m = vi.hoisted(() => ({
   checkout: { id: "k1", status: "draft", plan: "pro", term: "monthly" } as any,
   calls: [] as string[],
   startPayment: vi.fn(async (..._a: unknown[]) => ({ url: "https://streampay.sa/s/X" })),
+  startTrial: vi.fn(async (..._a: unknown[]) => ({ plan: "pro", endsAt: new Date("2026-11-26T12:00:00Z") })),
 }));
 
 vi.mock("../server/db", () => ({ db: {} }));
@@ -28,6 +29,7 @@ vi.mock("../server/lib/billing", async (importOriginal) => {
     getBillingSummary: vi.fn(async () => ({ subscription: m.sub, details: {}, openCheckout: null })),
     getCheckout: vi.fn(async () => m.checkout),
     startPayment: m.startPayment,
+    startTrial: m.startTrial,
   };
 });
 vi.mock("../server/lib/streampay", async (importOriginal) => {
@@ -79,6 +81,7 @@ beforeEach(() => {
   m.invoices = [];
   m.calls.length = 0;
   m.startPayment.mockClear();
+  m.startTrial.mockClear();
 });
 
 describe("POST /api/billing/subscription/cancel", () => {
@@ -165,5 +168,23 @@ describe("POST /api/billing/checkouts/:id/pay — where the payer returns to", (
   it("the allowlist is fixed same-origin paths", () => {
     expect(RETURN_PAGES).toEqual({ settings: "/settings?tab=billing", upgrade: "/upgrade" });
     for (const p of Object.values(RETURN_PAGES)) expect(p.startsWith("/") && !p.startsWith("//")).toBe(true);
+  });
+});
+
+describe("POST /api/billing/checkouts/:id/pay — with a promo code", () => {
+  it("starts the free trial in Bid and never creates a StreamPay link", async () => {
+    const res = await request(server).post("/api/billing/checkouts/k1/pay").send({ promoCode: "  Tested " });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ trial: { plan: "pro", endsAt: "2026-11-26T12:00:00.000Z" } });
+    expect(res.body.url).toBeUndefined();
+    expect(m.startTrial).toHaveBeenCalledTimes(1);
+    expect(m.startTrial.mock.calls[0][2]).toBe("tested");
+    expect(m.startPayment).not.toHaveBeenCalled();
+  });
+
+  it("an empty code is an ordinary payment", async () => {
+    await request(server).post("/api/billing/checkouts/k1/pay").send({ promoCode: "  " });
+    expect(m.startTrial).not.toHaveBeenCalled();
+    expect(m.startPayment).toHaveBeenCalledTimes(1);
   });
 });

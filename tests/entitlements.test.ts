@@ -12,6 +12,7 @@ import request from "supertest";
 const state = vi.hoisted(() => ({
   company: null as any,
   subscription: null as any,
+  trial: null as any,
   counts: new Map<unknown, number>(),
 }));
 
@@ -32,6 +33,10 @@ vi.mock("../server/storage", () => ({ storage: { getCompany: vi.fn(async () => s
 vi.mock("../server/lib/billing", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../server/lib/billing")>();
   return { ...actual, getCompanySubscription: vi.fn(async () => state.subscription) };
+});
+vi.mock("../server/lib/trials", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../server/lib/trials")>();
+  return { ...actual, getCompanyTrial: vi.fn(async () => state.trial) };
 });
 
 import { tenders, teamInvitations, userCompanies } from "../shared/schema";
@@ -62,6 +67,7 @@ const sub = (plan: "pro" | "business", status = "active", cancelAtPeriodEnd = fa
 beforeEach(() => {
   state.company = company();
   state.subscription = null;
+  state.trial = null;
   state.counts.set(tenders, 0);
   state.counts.set(userCompanies, 1);
   state.counts.set(teamInvitations, 0);
@@ -317,5 +323,46 @@ describe("routes.ts: every gate is still wired, vendor routes are not gated", ()
     for (const decl of ['app.post("/api/tenders/:id/questions"', 'app.post("/api/tenders/:id/offers"', 'app.post("/api/r/:slug/apply"', 'app.get("/api/r/:slug"']) {
       expect(header(decl), decl).not.toContain("requireFeature");
     }
+  });
+});
+
+describe("a free trial (no card, nothing at StreamPay)", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const trial = (startDaysAgo: number, lengthDays = 30, plan = "pro") => ({
+    id: "t1", companyId: "c1", plan, promoCode: "tested", startedBy: "u1",
+    startsAt: new Date(Date.now() - startDaysAgo * DAY),
+    endsAt: new Date(Date.now() - startDaysAgo * DAY + lengthDays * DAY),
+  });
+
+  it("an active trial gives its plan, and says when it ends", async () => {
+    state.trial = trial(3);
+    const e = await getEntitlements("c1");
+    expect(e.tier).toBe("pro");
+    expect(e.planSource).toBe("trial");
+    expect(e.trialEndsAt).toBe(state.trial.endsAt.toISOString());
+    expect(e.canCreateTender).toBe(true);
+  });
+
+  it("an ended trial gives nothing: back to free", async () => {
+    state.trial = trial(31);
+    const e = await getEntitlements("c1");
+    expect(e.tier).toBe("free");
+    expect(e.planSource).toBe("free");
+    expect(e.trialEndsAt).toBeNull();
+  });
+
+  it("a paid plan wins over the trial, so the trial banner goes away once they pay", async () => {
+    state.trial = trial(3);
+    state.subscription = sub("pro");
+    const e = await getEntitlements("c1");
+    expect(e.tier).toBe("pro");
+    expect(e.planSource).toBe("subscription");
+    expect(e.trialEndsAt).toBeNull();
+  });
+
+  it("teams and individuals are never gated, trial or not", async () => {
+    state.company = company({ accountType: "team" });
+    state.trial = trial(3);
+    expect((await getEntitlements("c1")).planSource).not.toBe("trial");
   });
 });

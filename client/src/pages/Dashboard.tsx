@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
 import { copyText, useCopyWithFallback } from "@/lib/clipboard";
-import { SidebarPlanCard, MobileUpgradeChip, PlanUsageBanner } from "@/components/billing/DashboardPlanCard";
+import { SidebarPlanCard, MobileUpgradeChip, PlanUsageBanner, TrialEndingBanner } from "@/components/billing/DashboardPlanCard";
 import { VendorRegistrationPrompt } from "@/components/offerings/VendorRegistrationPrompt";
 import { usePlan } from "@/lib/usePlan";
 import { PlanBadge } from "@/components/billing/PlanBadge";
@@ -2677,6 +2677,7 @@ function DashboardInner({ user, activeCompany }: {
           <TabsContent value="overview" className="space-y-10 w-full pt-2 px-1 sm:px-2">
 
             <PlanUsageBanner />
+            <TrialEndingBanner />
             <VendorRegistrationPrompt />
 
             {/* ── Signal desk — heading + live stats fused into one ink panel ── */}

@@ -96,6 +96,9 @@
 
 .upgrade-page .plan .btn { min-height: 46px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .upgrade-page .plan .btn:disabled { opacity: 0.6; cursor: default; }
+/* "Current plan": brand orange at full strength, so it reads on the dark card too. */
+.upgrade-page .plan .btn.plan-current:disabled,
+.upgrade-page .plan .btn.plan-current:disabled:hover { opacity: 1; background: var(--orange); color: var(--white); }
 .upgrade-page .plan .btn-primary:hover:not(:disabled) { background: var(--orange); }
 .upgrade-page .plan.featured .btn-orange:hover:not(:disabled) { background: var(--white); color: var(--ink); }
 .upgrade-page .upgrade-spin { width: 16px; height: 16px; animation: upgradeSpin 0.8s linear infinite; }
